@@ -2346,10 +2346,14 @@
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = '/pages/login.html'; return; }
 
+      // Get brand ID — prefer mongoId (real MongoDB ObjectId) from synced brand context
       let brandId = null;
       try {
         const stored = localStorage.getItem('kup_active_brand');
-        if (stored) brandId = JSON.parse(stored).id;
+        if (stored) {
+          const brand = JSON.parse(stored);
+          brandId = brand.mongoId || brand.id;  // Use mongoId if available, fall back to local id
+        }
       } catch(e) {}
 
       if (!brandId) { window.location.href = 'manage-brands.html'; return; }
@@ -2388,6 +2392,12 @@
         const row = document.createElement('tr');
         row.setAttribute('data-status', sub.status);
         row.setAttribute('data-campaign', sub.campaignId?.title || 'General');
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function(e) {
+          // Don't navigate if clicking a button or checkbox
+          if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+          window.location.href = 'content-manager.html?id=' + sub._id;
+        });
 
         const timeAgo = getTimeAgo(sub.submittedAt);
         const statusBadge = getStatusBadge(sub.status);
@@ -2396,34 +2406,81 @@
         const initials = influencer?.displayName?.substring(0, 2).toUpperCase() || '??';
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
 
+        // Build thumbnail — show actual media if available
+        let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
+        if (sub.mediaUrls && sub.mediaUrls.length > 0) {
+          const firstUrl = sub.mediaUrls[0];
+          if (sub.contentType === 'video') {
+            thumbHtml = `<video src="${firstUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted></video>`;
+          } else {
+            thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
+          }
+        }
+
+        // Build action buttons based on status
+        let actionsHtml = '';
+        if (sub.status === 'submitted') {
+          actionsHtml = `
+            <button data-id="${sub._id}" onclick="approveContent('${sub._id}', this)" style="background:#16a34a;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;margin-right:4px">Approve</button>
+            <button data-id="${sub._id}" onclick="rejectContent('${sub._id}', this)" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Reject</button>
+          `;
+        } else if (sub.status === 'approved') {
+          actionsHtml = `
+            <button data-id="${sub._id}" onclick="markPostd('${sub._id}', this)" style="background:#2EA5DD;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Mark Postd</button>
+          `;
+        }
+
         row.innerHTML = `
           <td style="width:40px"><input type="checkbox" class="content-check"></td>
           <td>
-            <div class="content-thumb">
-              <div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>
+            <div class="content-thumb" style="display:flex;align-items:center;gap:10px">
+              ${thumbHtml}
               <div class="thumb-info">
                 <span class="thumb-type">${sub.contentType.charAt(0).toUpperCase() + sub.contentType.slice(1)}</span>
+                ${sub.caption ? `<div style="font-size:0.7rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sub.caption}</div>` : ''}
               </div>
             </div>
           </td>
           <td>${sub.campaignId?.title || 'General'}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div class="avatar-xs" style="width:28px;height:28px;border-radius:50%;background:#2EA5DD;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
-              <span>@${handle}</span>
+          <td data-label="Submitted By">
+            <div class="influencer-cell" data-influencer-id="${sub.influencerProfileId?._id || ''}" data-influencer-name="${influencer?.displayName || 'Unknown'}" data-influencer-handle="${handle}" data-influencer-tier="${influencer?.influenceTier || 'Nano Influencer'}" style="cursor:pointer">
+              <div class="avatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
+              <div>
+                <div class="name" style="font-size:0.82rem;font-weight:600;color:#2EA5DD">@${handle}</div>
+              </div>
             </div>
           </td>
           <td>${timeAgo}</td>
           <td>${statusBadge}</td>
-          <td>
-            ${sub.status === 'submitted' ? `
-              <button class="btn-approve-content" data-id="${sub._id}" onclick="approveContent('${sub._id}', this)" style="background:#16a34a;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;margin-right:4px">Approve</button>
-              <button class="btn-reject-content" data-id="${sub._id}" onclick="rejectContent('${sub._id}', this)" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Reject</button>
-            ` : ''}
-          </td>
+          <td>${actionsHtml}</td>
         `;
 
         tbody.appendChild(row);
+      });
+
+      // Wire up influencer profile clicks on real data rows
+      document.querySelectorAll('.influencer-cell[data-influencer-id]').forEach(function(cell) {
+        cell.addEventListener('click', function(e) {
+          e.stopPropagation(); // Don't trigger row click (content-manager nav)
+          var name = this.getAttribute('data-influencer-name') || 'Unknown';
+          var handle = this.getAttribute('data-influencer-handle') || '';
+          var tier = this.getAttribute('data-influencer-tier') || 'Creator';
+          var initials = name.substring(0, 2).toUpperCase();
+
+          // Populate the existing influencer profile modal
+          document.getElementById('ipAvatar').textContent = initials;
+          document.getElementById('ipModalHandle').textContent = '@' + handle;
+          document.getElementById('ipName').textContent = name;
+          var tierEl = document.getElementById('ipTier');
+          tierEl.textContent = tier;
+          tierEl.className = 'ip-tier tier-badge micro';
+          document.getElementById('ipFollowers').textContent = '—';
+          document.getElementById('ipEngagement').textContent = '—';
+          document.getElementById('ipPosts').textContent = '—';
+          document.getElementById('ipBio').textContent = 'Creator profile — more details coming soon.';
+
+          openModal('influencerProfileModal');
+        });
       });
     }
 
@@ -2476,6 +2533,21 @@
         btn.disabled = false;
         btn.textContent = 'Reject';
         kupToast(err.message || 'Failed to reject', 'error');
+      }
+    }
+
+    async function markPostd(submissionId, btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/postd', {});
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('postd');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content marked as Postd!', 'success');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Mark Postd';
+        kupToast(err.message || 'Failed to mark as Postd', 'error');
       }
     }
   </script>

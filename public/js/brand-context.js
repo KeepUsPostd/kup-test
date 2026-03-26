@@ -457,6 +457,89 @@ var KUP_BRAND_CONTEXT = (function() {
   }
 
 
+  // ================================================================
+  //  SYNC BRANDS WITH API — Bridge localStorage IDs to MongoDB ObjectIds
+  //  After Firebase auth confirms, fetch real brands from the API and
+  //  enrich the local brand list with mongoId (the real MongoDB _id).
+  //  All pages can then use getActiveBrand().mongoId for API calls.
+  // ================================================================
+
+  function syncBrandsWithApi() {
+    // Only run if kupApi and Firebase auth are available
+    if (typeof kupApi === 'undefined' || typeof auth === 'undefined') return;
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) return;
+
+      kupApi.get('/api/brands').then(function(data) {
+        if (!data || !data.brands || data.brands.length === 0) return;
+
+        var stored = getAllBrands();
+        var changed = false;
+
+        data.brands.forEach(function(apiBrand) {
+          // Try to match by name (case-insensitive)
+          var match = null;
+          for (var i = 0; i < stored.length; i++) {
+            if (stored[i].name.toLowerCase() === apiBrand.name.toLowerCase()) {
+              match = stored[i];
+              break;
+            }
+          }
+
+          if (match) {
+            // Enrich with MongoDB _id
+            if (match.mongoId !== apiBrand._id) {
+              match.mongoId = apiBrand._id;
+              changed = true;
+            }
+          } else {
+            // Brand exists in API but not locally — add it
+            stored.push({
+              id: apiBrand._id.substring(0, 6),  // Short local id from ObjectId
+              name: apiBrand.name,
+              abbreviation: apiBrand.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3),
+              color: '#2EA5DD',
+              plan: apiBrand.planTier || 'starter',
+              isAnchor: false,
+              state: apiBrand.status || 'active',
+              mongoId: apiBrand._id
+            });
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          localStorage.setItem(BRANDS_KEY, JSON.stringify(stored));
+
+          // Also update the active brand if it got a mongoId
+          var active = getActiveBrand();
+          var updatedActive = null;
+          for (var i = 0; i < stored.length; i++) {
+            if (stored[i].id === active.id) {
+              updatedActive = stored[i];
+              break;
+            }
+          }
+          if (updatedActive) setActiveBrand(updatedActive);
+
+          console.log('🔄 Brand context synced with API (' + data.brands.length + ' brands)');
+        }
+      }).catch(function(err) {
+        console.warn('Brand sync skipped:', err.message || err);
+      });
+    });
+  }
+
+
+  function loadCreatorSwitch() {
+    // Dynamically load creator-switch.js (adds "Switch to Creator" to profile dropdown)
+    if (document.querySelector('script[src*="creator-switch"]')) return;
+    var script = document.createElement('script');
+    script.src = '/js/creator-switch.js';
+    document.body.appendChild(script);
+  }
+
   function init() {
     injectStyles();
     injectContextBar();
@@ -466,6 +549,8 @@ var KUP_BRAND_CONTEXT = (function() {
     syncBrandElements();
     initMultiTabSync();
     initMobileNav();
+    syncBrandsWithApi();
+    loadCreatorSwitch();
   }
 
   if (document.readyState === 'loading') {
@@ -483,7 +568,8 @@ var KUP_BRAND_CONTEXT = (function() {
     getActiveBrand: getActiveBrand,
     getAllBrands: getAllBrands,
     switchBrand: switchBrand,
-    setActiveBrand: setActiveBrand
+    setActiveBrand: setActiveBrand,
+    syncBrandsWithApi: syncBrandsWithApi
   };
 
 })();

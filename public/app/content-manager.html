@@ -1042,30 +1042,256 @@
     </div>
   </div>
 
+  <!-- Firebase + API helpers (needed for auth + API calls) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
   <div class="kup-toast-container" id="toastContainer"></div>
   <script>
     // ========== Content Data ==========
     // Platform Config Reference: KUP_PLATFORM.CONTENT_RULES.AUTO_APPROVE_DAYS = 10
-    var contentItems = [
-      { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: '0:45', fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '' },
-      { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)' },
-      { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: '1:12', fileSize: '18.7 MB', status: 'pending', daysRemaining: 5, avatarStyle: '' },
-      { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '' },
-      { id: 4, type: 'Video', icon: '\u25B6', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: '0:33', fileSize: '9.8 MB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)' }
-    ];
+    // contentItems stores both demo and real data — real API data replaces demos when available
+    var contentItems = [];
+
+    // Track whether we loaded real data from the API
+    var isRealData = false;
+    // The real MongoDB submission ID (when navigated from content.html)
+    var realSubmissionId = null;
+    // All submissions for the brand (for prev/next navigation)
+    var allSubmissions = [];
 
     var AUTO_APPROVE_DAYS = 10;
     var params = new URLSearchParams(window.location.search);
-    var currentIndex = parseInt(params.get('id')) || 0;
+    var currentIndex = 0;
 
-    // ========== Load Content ==========
+    // Check if `?id=` looks like a MongoDB ObjectId (24 hex chars)
+    var paramId = params.get('id');
+    var isMongoId = paramId && /^[a-f0-9]{24}$/i.test(paramId);
+
+    // ========== Load Real Submission from API ==========
+    async function loadRealSubmission(submissionId) {
+      try {
+        var data = await kupApi.get('/api/content/' + submissionId);
+        if (!data || !data.submission) {
+          console.warn('Submission not found, falling back to demo');
+          loadDemoData();
+          return;
+        }
+
+        var sub = data.submission;
+        isRealData = true;
+        realSubmissionId = sub._id;
+
+        // Convert API submission to our contentItems format
+        var influencer = sub.influencerProfileId || {};
+        var displayName = influencer.displayName || 'Unknown';
+        var handle = influencer.handle ? '@' + influencer.handle : '@unknown';
+        var initials = getInitials(displayName);
+        var tier = influencer.influenceTier || 'Creator';
+        var campaign = sub.campaignId ? sub.campaignId.title : 'General';
+        var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+
+        // Calculate days remaining (auto-approve after 10 days)
+        var daysRemaining = null;
+        if (sub.status === 'submitted') {
+          var submitted = new Date(sub.submittedAt || sub.createdAt);
+          var now = new Date();
+          var daysPassed = Math.floor((now - submitted) / (1000 * 60 * 60 * 24));
+          daysRemaining = Math.max(0, AUTO_APPROVE_DAYS - daysPassed);
+        }
+
+        // Map API status to our UI status
+        var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
+
+        var item = {
+          id: 0,
+          mongoId: sub._id,
+          type: contentType,
+          icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
+          influencer: handle,
+          name: displayName,
+          initials: initials,
+          tier: tier,
+          campaign: campaign,
+          date: timeAgo(sub.submittedAt || sub.createdAt),
+          duration: null,
+          fileSize: '--',
+          status: uiStatus,
+          daysRemaining: daysRemaining,
+          avatarStyle: '',
+          mediaUrls: sub.mediaUrls || [],
+          caption: sub.caption || '',
+          rejectionReason: sub.rejectionReason || ''
+        };
+
+        contentItems = [item];
+        currentIndex = 0;
+        loadContent(0);
+
+        // Also try loading all submissions for this brand (for prev/next nav)
+        loadAllBrandSubmissions(sub.brandId);
+
+      } catch (err) {
+        console.error('Error loading submission:', err);
+        loadDemoData();
+      }
+    }
+
+    // Load all submissions for the brand (enables prev/next navigation)
+    async function loadAllBrandSubmissions(brandId) {
+      try {
+        var data = await kupApi.get('/api/content?brandId=' + brandId);
+        if (!data || !data.submissions || data.submissions.length <= 1) return;
+
+        allSubmissions = data.submissions;
+        contentItems = allSubmissions.map(function(sub, idx) {
+          var influencer = sub.influencerProfileId || {};
+          var displayName = influencer.displayName || 'Unknown';
+          var handle = influencer.handle ? '@' + influencer.handle : '@unknown';
+          var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+          var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
+          var daysRemaining = null;
+          if (sub.status === 'submitted') {
+            var submitted = new Date(sub.submittedAt || sub.createdAt);
+            var daysPassed = Math.floor((new Date() - submitted) / (1000 * 60 * 60 * 24));
+            daysRemaining = Math.max(0, AUTO_APPROVE_DAYS - daysPassed);
+          }
+          return {
+            id: idx,
+            mongoId: sub._id,
+            type: contentType,
+            icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
+            influencer: handle,
+            name: displayName,
+            initials: getInitials(displayName),
+            tier: influencer.influenceTier || 'Creator',
+            campaign: sub.campaignId ? sub.campaignId.title : 'General',
+            date: timeAgo(sub.submittedAt || sub.createdAt),
+            duration: null,
+            fileSize: '--',
+            status: uiStatus,
+            daysRemaining: daysRemaining,
+            avatarStyle: '',
+            mediaUrls: sub.mediaUrls || [],
+            caption: sub.caption || '',
+            rejectionReason: sub.rejectionReason || ''
+          };
+        });
+
+        // Find the current submission's index in the full list
+        for (var i = 0; i < contentItems.length; i++) {
+          if (contentItems[i].mongoId === realSubmissionId) {
+            currentIndex = i;
+            break;
+          }
+        }
+        // Re-render with full navigation
+        loadContent(currentIndex);
+      } catch (err) {
+        console.warn('Could not load all brand submissions:', err);
+      }
+    }
+
+    // ========== Demo Data Fallback ==========
+    function loadDemoData() {
+      contentItems = [
+        { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: '0:45', fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '', mediaUrls: [], caption: '' },
+        { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)', mediaUrls: [], caption: '' },
+        { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: '1:12', fileSize: '18.7 MB', status: 'pending', daysRemaining: 5, avatarStyle: '', mediaUrls: [], caption: '' },
+        { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '', mediaUrls: [], caption: '' },
+        { id: 4, type: 'Video', icon: '\u25B6', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: '0:33', fileSize: '9.8 MB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)', mediaUrls: [], caption: '' }
+      ];
+      currentIndex = parseInt(paramId) || 0;
+      loadContent(currentIndex);
+    }
+
+    // ========== Helper: Get initials from name ==========
+    function getInitials(name) {
+      if (!name) return '?';
+      var parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+
+    // ========== Helper: Time ago ==========
+    function timeAgo(dateStr) {
+      if (!dateStr) return 'Unknown';
+      var date = new Date(dateStr);
+      var now = new Date();
+      var diffMs = now - date;
+      var diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return diffMins + ' min ago';
+      var diffHrs = Math.floor(diffMins / 60);
+      if (diffHrs < 24) return diffHrs + ' hour' + (diffHrs > 1 ? 's' : '') + ' ago';
+      var diffDays = Math.floor(diffHrs / 24);
+      if (diffDays < 30) return diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+      return date.toLocaleDateString();
+    }
+
+    // ========== Load Content into UI ==========
     function loadContent(index) {
       if (index < 0 || index >= contentItems.length) return;
       var item = contentItems[index];
 
-      // Preview
-      document.getElementById('previewIcon').innerHTML = item.icon;
-      document.getElementById('previewTypeLabel').textContent = item.type.toUpperCase();
+      // === MEDIA PREVIEW (the main content area) ===
+      var frame = document.querySelector('.content-frame');
+      // Clear previous media (keep crop grid)
+      var existingMedia = frame.querySelectorAll('img, video, .content-type-icon, .content-type-text, .caption-overlay');
+      existingMedia.forEach(function(el) { el.remove(); });
+
+      if (item.mediaUrls && item.mediaUrls.length > 0) {
+        var mediaUrl = item.mediaUrls[0]; // Show first media item
+        var isVideo = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm|avi)$/i.test(mediaUrl);
+
+        if (isVideo) {
+          var video = document.createElement('video');
+          video.src = mediaUrl;
+          video.controls = true;
+          video.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px;';
+          video.setAttribute('playsinline', '');
+          frame.insertBefore(video, frame.firstChild);
+        } else {
+          var img = document.createElement('img');
+          img.src = mediaUrl;
+          img.alt = 'Submitted content';
+          img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px;';
+          frame.insertBefore(img, frame.firstChild);
+        }
+
+        // Show caption overlay if exists
+        if (item.caption) {
+          var captionDiv = document.createElement('div');
+          captionDiv.className = 'caption-overlay';
+          captionDiv.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:0.85rem;line-height:1.4;border-radius:0 0 12px 12px;';
+          captionDiv.textContent = item.caption;
+          frame.appendChild(captionDiv);
+        }
+      } else {
+        // No media — show placeholder icon
+        var iconDiv = document.createElement('div');
+        iconDiv.className = 'content-type-icon';
+        iconDiv.id = 'previewIcon';
+        iconDiv.innerHTML = item.icon;
+        frame.insertBefore(iconDiv, frame.firstChild);
+
+        var labelDiv = document.createElement('div');
+        labelDiv.className = 'content-type-text';
+        labelDiv.id = 'previewTypeLabel';
+        labelDiv.textContent = item.type.toUpperCase();
+        iconDiv.insertAdjacentElement('afterend', labelDiv);
+      }
+
+      // === MULTIPLE MEDIA INDICATOR ===
+      if (item.mediaUrls && item.mediaUrls.length > 1) {
+        var multiIndicator = document.createElement('div');
+        multiIndicator.className = 'caption-overlay';
+        multiIndicator.style.cssText = 'position:absolute;top:12px;right:12px;padding:4px 10px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:600;border-radius:50px;';
+        multiIndicator.textContent = '1 of ' + item.mediaUrls.length;
+        frame.appendChild(multiIndicator);
+      }
 
       // Influencer
       document.getElementById('cmAvatar').textContent = item.initials;
@@ -1088,7 +1314,7 @@
       // Status badge
       var badge = document.getElementById('cmStatusBadge');
       badge.className = 'status-badge ' + item.status;
-      var statusLabels = { pending: 'Pending Review', approved: 'Approved', rejected: 'Rejected' };
+      var statusLabels = { pending: 'Pending Review', approved: 'Approved', rejected: 'Rejected', postd: 'Postd' };
       document.getElementById('cmStatusText').textContent = statusLabels[item.status] || item.status;
 
       // Countdown
@@ -1128,6 +1354,15 @@
           document.getElementById('cmDecisionIcon').className = 'decision-icon rejected-icon';
           document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-x"></i>';
           document.getElementById('cmDecisionText').textContent = 'Content Rejected';
+          if (item.rejectionReason) {
+            document.getElementById('cmDecisionText').textContent = 'Rejected: ' + item.rejectionReason;
+          }
+        } else if (item.status === 'postd') {
+          decision.className = 'cm-decision-recorded';
+          document.getElementById('cmDecisionIcon').className = 'decision-icon approved';
+          document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-share-network"></i>';
+          document.getElementById('cmDecisionText').textContent = 'Content Postd';
+          downloadBtn.style.display = 'none';
         }
       }
 
@@ -1141,7 +1376,7 @@
       if (counterEl) counterEl.textContent = 'Reviewing ' + (index + 1) + ' of ' + contentItems.length + ' items \u00B7 ' + pendingCount + ' pending';
 
       // Update URL without reload
-      var newUrl = window.location.pathname + '?id=' + index;
+      var newUrl = window.location.pathname + '?id=' + (item.mongoId || index);
       window.history.replaceState(null, '', newUrl);
 
       resetEditTools();
@@ -1155,25 +1390,88 @@
       if (currentIndex < contentItems.length - 1) { currentIndex++; loadContent(currentIndex); }
     }
 
-    // ========== Approve / Reject ==========
-    function approveContent() {
-      contentItems[currentIndex].status = 'approved';
-      contentItems[currentIndex].daysRemaining = null;
+    // ========== Approve / Reject (API-connected) ==========
+    async function approveContent() {
+      var item = contentItems[currentIndex];
+
+      // If real data, call the API
+      if (isRealData && item.mongoId) {
+        try {
+          var result = await kupApi.put('/api/content/' + item.mongoId + '/approve');
+          if (result && result.submission) {
+            item.status = 'approved';
+            item.daysRemaining = null;
+            loadContent(currentIndex);
+            kupToast('Content approved!', 'success');
+            setTimeout(function() { openRatingModal(item.influencer); }, 800);
+            return;
+          } else {
+            kupToast(result.message || 'Could not approve content', 'error');
+            return;
+          }
+        } catch (err) {
+          console.error('Approve error:', err);
+          kupToast('Error approving content', 'error');
+          return;
+        }
+      }
+
+      // Demo mode fallback
+      item.status = 'approved';
+      item.daysRemaining = null;
       loadContent(currentIndex);
       kupToast('Content approved!', 'success');
-      setTimeout(function() { openRatingModal(contentItems[currentIndex].influencer); }, 800);
+      setTimeout(function() { openRatingModal(item.influencer); }, 800);
     }
 
-    function rejectContent() {
-      contentItems[currentIndex].status = 'rejected';
-      contentItems[currentIndex].daysRemaining = null;
+    async function rejectContent() {
+      var reason = prompt('Why are you rejecting this content? (required)');
+      if (!reason || !reason.trim()) {
+        kupToast('Rejection reason is required', 'error');
+        return;
+      }
+
+      var item = contentItems[currentIndex];
+
+      // If real data, call the API
+      if (isRealData && item.mongoId) {
+        try {
+          var result = await kupApi.put('/api/content/' + item.mongoId + '/reject', { reason: reason.trim() });
+          if (result && result.submission) {
+            item.status = 'rejected';
+            item.daysRemaining = null;
+            item.rejectionReason = reason.trim();
+            loadContent(currentIndex);
+            kupToast('Content rejected', 'error');
+            return;
+          } else {
+            kupToast(result.message || 'Could not reject content', 'error');
+            return;
+          }
+        } catch (err) {
+          console.error('Reject error:', err);
+          kupToast('Error rejecting content', 'error');
+          return;
+        }
+      }
+
+      // Demo mode fallback
+      item.status = 'rejected';
+      item.daysRemaining = null;
+      item.rejectionReason = reason.trim();
       loadContent(currentIndex);
       kupToast('Content rejected', 'error');
     }
 
     function undoDecision() {
-      contentItems[currentIndex].status = 'pending';
-      contentItems[currentIndex].daysRemaining = 5; // restore a default
+      // Note: undo only works in demo mode — API doesn't have an undo endpoint
+      var item = contentItems[currentIndex];
+      if (isRealData && item.mongoId) {
+        kupToast('Undo is not available for real submissions yet', 'warning');
+        return;
+      }
+      item.status = 'pending';
+      item.daysRemaining = 5;
       loadContent(currentIndex);
       kupToast('Decision undone', 'info');
     }
@@ -1630,9 +1928,21 @@
         card.setAttribute('data-campaign', item.campaign);
         var typeIcon = item.type === 'Video' ? '<i class="ph ph-play"></i>' : '<i class="ph ph-image"></i>';
         var avatarStyle = item.avatarStyle ? ' style="' + item.avatarStyle + '"' : '';
+        // Show real thumbnail if media available
+        var thumbContent = '';
+        if (item.mediaUrls && item.mediaUrls.length > 0) {
+          var isVid = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm)$/i.test(item.mediaUrls[0]);
+          if (isVid) {
+            thumbContent = '<video src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" muted></video>';
+          } else {
+            thumbContent = '<img src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" alt="Content thumbnail">';
+          }
+        } else {
+          thumbContent = '<span class="library-type-icon">' + typeIcon + '</span>';
+        }
         card.innerHTML =
           '<div class="library-card-thumb">' +
-            '<span class="library-type-icon">' + typeIcon + '</span>' +
+            thumbContent +
             '<span class="library-type-badge">' + item.type + '</span>' +
           '</div>' +
           '<div class="library-card-info">' +
@@ -1772,7 +2082,21 @@
     })();
 
     // ========== Init ==========
-    loadContent(currentIndex);
+    // Wait for Firebase auth, then load content
+    if (isMongoId) {
+      // Real submission ID from content.html — wait for Firebase auth then load from API
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          loadRealSubmission(paramId);
+        } else {
+          // Not logged in — redirect to login
+          window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.href);
+        }
+      });
+    } else {
+      // No valid ID or numeric index — load demo data
+      loadDemoData();
+    }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/brand-context.js"></script>

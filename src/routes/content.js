@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { ContentSubmission, Partnership, Campaign } = require('../models');
+const { ContentSubmission, Partnership, Campaign, InfluencerProfile } = require('../models');
 
 // POST /api/content — Submit new content
 // Called by influencers when they submit content for a brand
@@ -42,8 +42,17 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    // Look up the influencer profile for this user
+    const influencerProfile = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencerProfile) {
+      return res.status(403).json({
+        error: 'No influencer profile',
+        message: 'You need a creator account to submit content.',
+      });
+    }
+
     const submission = await ContentSubmission.create({
-      influencerProfileId: req.user._id, // will be the influencer's profile ID
+      influencerProfileId: influencerProfile._id,
       brandId,
       campaignId: campaignId || null,
       partnershipId: partnershipId || null,

@@ -24,50 +24,82 @@ router.post('/register', async (req, res) => {
 
     // Check if user already exists
     let user = await User.findOne({ firebaseUid });
+    let isExistingUser = false;
+
     if (user) {
-      return res.status(409).json({
-        error: 'User already exists',
-        message: 'An account with this Firebase UID already exists.',
-        user: { id: user._id, email: user.email },
+      isExistingUser = true;
+
+      // User exists — check if they're requesting a profile type they don't have yet
+      const wantsInfluencer = profileType === 'influencer' && !user.hasInfluencerProfile;
+      const wantsBrand = profileType === 'brand' && !user.hasBrandProfile;
+
+      if (wantsInfluencer) {
+        // Add influencer profile to existing account
+        const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await InfluencerProfile.create({
+          userId: user._id,
+          displayName: `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || null,
+          referralCode,
+        });
+        user.hasInfluencerProfile = true;
+        user.activeProfile = 'influencer';
+        await user.save();
+        console.log(`✅ Added influencer profile to existing user: ${user.email}`);
+      } else if (wantsBrand) {
+        // Add brand profile to existing account
+        const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await BrandProfile.create({
+          userId: user._id,
+          referralCode,
+        });
+        user.hasBrandProfile = true;
+        user.activeProfile = 'brand';
+        await user.save();
+        console.log(`✅ Added brand profile to existing user: ${user.email}`);
+      } else {
+        // They already have this profile type — just return success
+        console.log(`ℹ️ User ${user.email} already has ${profileType} profile`);
+      }
+    } else {
+      // Brand new user — create account
+      user = await User.create({
+        email: email.toLowerCase().trim(),
+        firebaseUid,
+        legalFirstName: firstName || null,
+        legalLastName: lastName || null,
+        lastLoginAt: new Date(),
+        loginCount: 1,
       });
+
+      // Create the requested profile type
+      if (profileType === 'influencer') {
+        const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await InfluencerProfile.create({
+          userId: user._id,
+          displayName: `${firstName || ''} ${lastName || ''}`.trim() || null,
+          referralCode,
+        });
+        user.hasInfluencerProfile = true;
+        user.activeProfile = 'influencer';
+        await user.save();
+      } else if (profileType === 'brand') {
+        const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await BrandProfile.create({
+          userId: user._id,
+          referralCode,
+        });
+        user.hasBrandProfile = true;
+        user.activeProfile = 'brand';
+        await user.save();
+      }
     }
 
-    // Create the user
-    user = await User.create({
-      email: email.toLowerCase().trim(),
-      firebaseUid,
-      legalFirstName: firstName || null,
-      legalLastName: lastName || null,
-      lastLoginAt: new Date(),
-      loginCount: 1,
-    });
-
-    // Create the requested profile type
-    if (profileType === 'influencer') {
-      const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      await InfluencerProfile.create({
-        userId: user._id,
-        displayName: `${firstName || ''} ${lastName || ''}`.trim() || null,
-        referralCode,
-      });
-      user.hasInfluencerProfile = true;
-      user.activeProfile = 'influencer';
-      await user.save();
-    } else if (profileType === 'brand') {
-      const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      await BrandProfile.create({
-        userId: user._id,
-        referralCode,
-      });
-      user.hasBrandProfile = true;
-      user.activeProfile = 'brand';
-      await user.save();
+    if (!isExistingUser) {
+      console.log(`✅ New user registered: ${email} (${profileType || 'no profile'})`);
     }
-
-    console.log(`✅ New user registered: ${email} (${profileType || 'no profile'})`);
 
     res.status(201).json({
-      message: 'Account created successfully',
+      message: isExistingUser ? 'Profile added successfully' : 'Account created successfully',
       user: {
         id: user._id,
         email: user.email,

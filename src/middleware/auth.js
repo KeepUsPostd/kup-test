@@ -2,7 +2,7 @@
 // Verifies the Firebase ID token from the Authorization header
 // and attaches the MongoDB User document to req.user
 const admin = require('../config/firebase');
-const { User } = require('../models');
+const { User, InfluencerProfile, BrandProfile } = require('../models');
 
 // requireAuth — blocks request if not authenticated (401)
 const requireAuth = async (req, res, next) => {
@@ -25,16 +25,45 @@ const requireAuth = async (req, res, next) => {
     let user = await User.findOne({ firebaseUid: decodedToken.uid });
 
     if (!user) {
-      // Auto-create user on first API call (they registered via Firebase client SDK)
-      user = await User.create({
-        email: decodedToken.email,
-        firebaseUid: decodedToken.uid,
-        authProvider: decodedToken.firebase.sign_in_provider === 'google.com' ? 'google' : 'email',
-        legalFirstName: decodedToken.name ? decodedToken.name.split(' ')[0] : null,
-        legalLastName: decodedToken.name ? decodedToken.name.split(' ').slice(1).join(' ') : null,
-        lastLoginAt: new Date(),
-        loginCount: 1,
-      });
+      // Try matching by email (handles case where user was seeded with placeholder UID)
+      user = await User.findOne({ email: decodedToken.email?.toLowerCase() });
+      if (user) {
+        // Link this Firebase UID to the existing MongoDB user
+        user.firebaseUid = decodedToken.uid;
+        await user.save();
+        console.log(`🔗 Linked Firebase UID to existing user: ${user.email}`);
+      } else {
+        // Auto-create user on first API call (they registered via Firebase client SDK)
+        const firstName = decodedToken.name ? decodedToken.name.split(' ')[0] : null;
+        const lastName = decodedToken.name ? decodedToken.name.split(' ').slice(1).join(' ') : null;
+        user = await User.create({
+          email: decodedToken.email,
+          firebaseUid: decodedToken.uid,
+          authProvider: decodedToken.firebase.sign_in_provider === 'google.com' ? 'google' : 'email',
+          legalFirstName: firstName,
+          legalLastName: lastName,
+          lastLoginAt: new Date(),
+          loginCount: 1,
+        });
+
+        // Auto-create both profiles so the user can operate as brand or creator
+        const displayName = [firstName, lastName].filter(Boolean).join(' ') || decodedToken.email.split('@')[0];
+        await InfluencerProfile.create({
+          userId: user._id,
+          displayName: displayName,
+          handle: decodedToken.email.split('@')[0],
+          referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        });
+        await BrandProfile.create({
+          userId: user._id,
+          referralCode: 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        });
+        user.hasInfluencerProfile = true;
+        user.hasBrandProfile = true;
+        user.activeProfile = 'brand';
+        await user.save();
+        console.log(`✅ Auto-created user + both profiles: ${decodedToken.email}`);
+      }
     }
 
     // Attach user to request

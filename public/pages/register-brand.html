@@ -42,7 +42,7 @@
     }
     .account-type-toggle .toggle-btn {
       flex: 1;
-      padding: 10px 20px;
+      padding: 10px 12px;
       border: none;
       background: transparent;
       font-family: var(--kup-font);
@@ -95,6 +95,7 @@
             <!-- Account Type Toggle -->
             <div class="account-type-toggle" id="accountToggle">
               <button type="button" class="toggle-btn active" data-type="brand">I'm a Brand</button>
+              <button type="button" class="toggle-btn" data-type="creator">I'm a Creator</button>
               <button type="button" class="toggle-btn" data-type="agency">I'm an Agency</button>
             </div>
 
@@ -166,9 +167,9 @@
               <span>I agree to KeepUsPostd's <a href="terms.html" target="_blank">Terms of Service</a> and <a href="policy.html" target="_blank">Privacy Policy</a>.</span>
             </label>
 
-            <!-- Login Link -->
+            <!-- Login Link (dynamically updated to preserve context) -->
             <p class="form-switch-txt">
-              Already have an account? <a href="login.html">Log in</a>
+              Already have an account? <a href="login.html" id="loginLink">Log in</a>
             </p>
 
           </div>
@@ -203,6 +204,12 @@
         placeholder: 'you@yourbrand.com',
         submit: 'Sign Up Free'
       },
+      creator: {
+        heading: 'Join as a Creator',
+        intro: 'Create content for brands you love. Earn rewards, build your portfolio, and get discovered.',
+        placeholder: 'you@email.com',
+        submit: 'Create Creator Account'
+      },
       agency: {
         heading: 'Set up your agency dashboard',
         intro: 'Manage multiple brands, run campaigns across clients, and streamline approvals — all from one place.',
@@ -225,16 +232,26 @@
       emailInput.placeholder = copy[type].placeholder;
       submitBtn.textContent = copy[type].submit;
       accountTypeInput.value = type;
+
+      // Update login link to preserve the account type after login
+      // After login, user comes back to this page with ?type= so the auto-redirect kicks in
+      const loginLink = document.getElementById('loginLink');
+      if (loginLink) {
+        const returnUrl = '/pages/register-brand.html?type=' + type;
+        loginLink.href = 'login.html?redirect=' + encodeURIComponent(returnUrl);
+      }
     }
 
     toggleBtns.forEach(btn => {
       btn.addEventListener('click', () => setAccountType(btn.dataset.type));
     });
 
-    // Auto-select agency if ?type=agency in URL
+    // Auto-select type from URL param (?type=creator or ?type=agency)
     const params = new URLSearchParams(window.location.search);
     if (params.get('type') === 'agency') {
       setAccountType('agency');
+    } else if (params.get('type') === 'creator') {
+      setAccountType('creator');
     }
 
     // Capture referral source from URL params
@@ -338,16 +355,21 @@
         const agreeTerms = document.getElementById('agreeTerms');
         const btn = document.getElementById('submitBtn');
 
-        // Validate terms checkbox
-        if (!agreeTerms.checked) {
-          showError('Please agree to the Terms of Service and Privacy Policy.');
-          return;
-        }
+        // Skip validation if user is already logged in (just adding a profile)
+        const alreadyLoggedIn = !!auth.currentUser;
 
-        // Validate password strength
-        if (!isPasswordValid(password)) {
-          showError('Please make sure your password meets all requirements.');
-          return;
+        if (!alreadyLoggedIn) {
+          // Validate terms checkbox
+          if (!agreeTerms.checked) {
+            showError('Please agree to the Terms of Service and Privacy Policy.');
+            return;
+          }
+
+          // Validate password strength
+          if (!isPasswordValid(password)) {
+            showError('Please make sure your password meets all requirements.');
+            return;
+          }
         }
 
         // Disable button while processing
@@ -357,8 +379,35 @@
         btn.style.opacity = '0.7';
 
         try {
-          // Create Firebase account + register in backend
-          const data = await kupSignUp(email, password, '', '', 'brand');
+          const profileType = (accountType === 'creator') ? 'influencer' : 'brand';
+
+          // Check if user is already logged into Firebase
+          const existingUser = auth.currentUser;
+
+          let data;
+          if (existingUser) {
+            // Already logged in — just add the new profile type to their account
+            const token = await existingUser.getIdToken();
+            const res = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({
+                email: existingUser.email,
+                firebaseUid: existingUser.uid,
+                firstName: '',
+                lastName: '',
+                profileType: profileType
+              })
+            });
+            data = await res.json();
+            if (!res.ok && res.status !== 201) throw new Error(data.message || 'Failed to add profile');
+          } else {
+            // Not logged in — create new Firebase account + register in backend
+            data = await kupSignUp(email, password, '', '', profileType);
+          }
 
           // Store user info for downstream pages
           localStorage.setItem('kupUser', JSON.stringify(data.user || {}));
@@ -371,8 +420,15 @@
             localStorage.setItem('kupReferral', refVal);
           }
 
-          // Redirect to onboarding wizard
-          window.location.href = 'onboarding.html';
+          // Redirect based on account type
+          if (accountType === 'creator') {
+            var brandIdParam = params.get('brandId');
+            window.location.href = brandIdParam
+              ? '/app/submit-content.html?brandId=' + brandIdParam
+              : '/app/submit-content.html';
+          } else {
+            window.location.href = 'onboarding.html';
+          }
         } catch (error) {
           btn.disabled = false;
           btn.textContent = originalText;
@@ -401,14 +457,58 @@
         googleBtn.style.opacity = '0.7';
 
         try {
-          const data = await kupSignInWithGoogle();
+          // Custom Google sign-in that respects the selected account type
+          const provider = new firebase.auth.GoogleAuthProvider();
+          const cred = await auth.signInWithPopup(provider);
+          const firebaseUser = cred.user;
+          const token = await firebaseUser.getIdToken();
+          const selectedType = document.getElementById('accountType').value;
+          const profileType = (selectedType === 'creator') ? 'influencer' : 'brand';
+
+          // Check if user exists
+          const meRes = await fetch('/api/auth/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+
+          let data;
+          if (meRes.ok) {
+            data = await meRes.json();
+            // Existing user — update login
+            const loginRes = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+            });
+            data = await loginRes.json();
+          } else {
+            // New user — register with correct profile type
+            const nameParts = (firebaseUser.displayName || '').split(' ');
+            const regRes = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+              body: JSON.stringify({
+                email: firebaseUser.email,
+                firebaseUid: firebaseUser.uid,
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || '',
+                profileType: profileType
+              })
+            });
+            data = await regRes.json();
+            data.isNewUser = true;
+          }
 
           localStorage.setItem('kupUser', JSON.stringify(data.user || {}));
           localStorage.setItem('kupProfile', JSON.stringify(data.profile || {}));
-          localStorage.setItem('kupAccountType', document.getElementById('accountType').value);
+          localStorage.setItem('kupAccountType', selectedType);
 
-          // Google sign-in — redirect to onboarding for new users, dashboard for existing
-          if (data.isNewUser || !data.user?.hasBrandProfile) {
+          // Google sign-in — redirect based on account type
+          const currentType = document.getElementById('accountType').value;
+          if (currentType === 'creator') {
+            var brandIdParam = params.get('brandId');
+            window.location.href = brandIdParam
+              ? '/app/submit-content.html?brandId=' + brandIdParam
+              : '/app/submit-content.html';
+          } else if (data.isNewUser || !data.user?.hasBrandProfile) {
             window.location.href = 'onboarding.html';
           } else {
             window.location.href = '/app/manage-brands.html';
@@ -423,10 +523,9 @@
       });
     }
 
-    // ---- If already logged in, redirect ----
+    // ---- If already logged in, handle profile addition or redirect ----
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // Check if they already have a profile in our backend
         try {
           const token = await user.getIdToken();
           const res = await fetch('/api/auth/me', {
@@ -434,8 +533,48 @@
           });
           if (res.ok) {
             const data = await res.json();
-            if (data.user?.hasBrandProfile) {
-              window.location.href = '/app/manage-brands.html';
+            const requestedType = params.get('type');
+
+            // If they came here with ?type=creator and don't have an influencer profile yet,
+            // add it automatically and redirect to submit
+            if (requestedType === 'creator' && !data.user?.hasInfluencerProfile) {
+              const addRes = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                  email: user.email,
+                  firebaseUid: user.uid,
+                  firstName: data.user?.firstName || '',
+                  lastName: data.user?.lastName || '',
+                  profileType: 'influencer'
+                })
+              });
+              const addData = await addRes.json();
+              localStorage.setItem('kupUser', JSON.stringify(addData.user || {}));
+              var brandIdParam = params.get('brandId');
+              window.location.href = brandIdParam
+                ? '/app/submit-content.html?brandId=' + brandIdParam
+                : '/app/submit-content.html';
+              return;
+            }
+
+            // If they came with ?type=creator and already have influencer profile, go to submit
+            if (requestedType === 'creator' && data.user?.hasInfluencerProfile) {
+              var brandIdParam2 = params.get('brandId');
+              window.location.href = brandIdParam2
+                ? '/app/submit-content.html?brandId=' + brandIdParam2
+                : '/app/submit-content.html';
+              return;
+            }
+
+            // Default redirects for logged-in users without a specific type request
+            if (!requestedType) {
+              if (data.user?.hasBrandProfile) {
+                window.location.href = '/app/manage-brands.html';
+              }
             }
           }
         } catch (err) {

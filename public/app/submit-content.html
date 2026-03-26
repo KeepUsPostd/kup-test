@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Submit Content — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ============== MOBILE HEADER ============== */
+    .submit-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      padding: 0 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .submit-header .back-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      color: #555;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+    }
+    .submit-header .back-btn:hover { background: #f0f0f0; }
+    .submit-header h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .submit-header .logo-small {
+      height: 28px;
+    }
+
+    /* ============== MAIN CONTAINER ============== */
+    .submit-container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+    }
+
+    /* ============== AUTH LOADING ============== */
+    .auth-loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .auth-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #eee;
+      border-top-color: var(--kup-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============== CAPTURE ZONE ============== */
+    .capture-zone {
+      background: var(--kup-white);
+      border: 2px dashed #ddd;
+      border-radius: var(--radius-md);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 20px;
+    }
+    .capture-zone:hover, .capture-zone.dragover {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+    .capture-zone .capture-icon {
+      font-size: 3rem;
+      color: var(--kup-blue);
+      margin-bottom: 12px;
+    }
+    .capture-zone h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+    .capture-zone p {
+      font-size: 0.8rem;
+      color: #888;
+      margin: 0;
+    }
+    .capture-zone .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: #bbb;
+      font-size: 0.75rem;
+    }
+    .capture-zone .or-divider::before,
+    .capture-zone .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+    .gallery-btn {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 8px 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      font-family: var(--kup-font);
+    }
+    .gallery-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+
+    /* Hidden file inputs */
+    .hidden-input { display: none; }
+
+    /* ============== PREVIEW GRID ============== */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .preview-item {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: #f0f0f0;
+    }
+    .preview-item img,
+    .preview-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-item .remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-item .file-type-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    /* ============== FORM FIELDS ============== */
+    .form-section {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .form-section label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .form-section select,
+    .form-section input,
+    .form-section textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: var(--kup-font);
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+    .form-section select:focus,
+    .form-section input:focus,
+    .form-section textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      background: white;
+    }
+    .form-section textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .char-count {
+      text-align: right;
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    /* ============== CONTENT TYPE PILLS ============== */
+    .type-pills {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .type-pill {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: none;
+      font-family: var(--kup-font);
+      color: #555;
+    }
+    .type-pill.active {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.08);
+      color: var(--kup-blue);
+    }
+    .type-pill:hover { border-color: var(--kup-blue); }
+
+    /* ============== SUBMIT BUTTON ============== */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: var(--kup-font);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+    .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .submit-btn .spinner-sm {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    /* ============== SUCCESS STATE ============== */
+    .success-state {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .success-state .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #d1e7dd;
+      color: #16a34a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 16px;
+    }
+    .success-state h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .success-state p {
+      font-size: 0.85rem;
+      color: #888;
+      margin: 0 0 24px;
+    }
+    .success-state .action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-another {
+      padding: 12px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--kup-font);
+    }
+    .btn-my-content {
+      padding: 12px;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--kup-font);
+      color: #555;
+    }
+
+    /* ============== TOAST ============== */
+    .kup-toast-container {
+      position: fixed;
+      top: 68px;
+      right: 16px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kup-toast {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      font-family: var(--kup-font);
+      max-width: 340px;
+      animation: slideIn 0.3s ease;
+    }
+    .kup-toast.error { border-left: 4px solid #dc2626; }
+    .kup-toast.success { border-left: 4px solid #16a34a; }
+    .kup-toast.info { border-left: 4px solid var(--kup-blue); }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* ============== RESPONSIVE ============== */
+    @media (min-width: 768px) {
+      .submit-container { padding: 32px 24px 60px; }
+      .capture-zone { padding: 48px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============== HEADER ============== -->
+  <header class="submit-header">
+    <button class="back-btn" id="backBtn" title="Go back">
+      <i class="ph ph-arrow-left"></i>
+    </button>
+    <h1>Submit Content</h1>
+    <img src="/images/logos/kup-logo.svg" alt="KUP" class="logo-small" onerror="this.style.display='none'">
+  </header>
+
+  <!-- ============== AUTH LOADING ============== -->
+  <div class="auth-loading" id="authLoading">
+    <div class="spinner"></div>
+    <p style="font-size:0.85rem;color:#888;">Checking your account...</p>
+  </div>
+
+  <!-- ============== MAIN FORM ============== -->
+  <div class="submit-container" id="submitForm" style="display:none;">
+
+    <!-- Capture Zone -->
+    <div class="capture-zone" id="captureZone">
+      <div class="capture-icon"><i class="ph ph-camera"></i></div>
+      <h3>Take a Photo or Record a Video</h3>
+      <p>Tap to open your camera</p>
+      <div class="or-divider">or</div>
+      <button class="gallery-btn" id="galleryBtn">Choose from Gallery</button>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" accept="image/*,video/*" capture="environment" multiple class="hidden-input" id="cameraInput">
+    <input type="file" accept="image/*,video/*" multiple class="hidden-input" id="galleryInput">
+
+    <!-- Preview Grid -->
+    <div class="preview-grid" id="previewGrid"></div>
+
+    <!-- Brand Selection -->
+    <div class="form-section">
+      <label>Brand</label>
+      <select id="brandSelect">
+        <option value="">Select a brand...</option>
+      </select>
+      <div id="brandFromUrl" style="display:none; margin-top:6px; font-size:0.8rem; color:#16a34a; font-weight:600;">
+        <i class="ph ph-check-circle"></i> <span id="brandUrlName"></span>
+      </div>
+    </div>
+
+    <!-- Campaign Selection -->
+    <div class="form-section">
+      <label>Campaign <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+      <select id="campaignSelect">
+        <option value="">General Content (no campaign)</option>
+      </select>
+    </div>
+
+    <!-- Content Type -->
+    <div class="form-section">
+      <label>Content Type</label>
+      <div class="type-pills">
+        <button class="type-pill active" data-type="photo" id="typePhoto">
+          <i class="ph ph-image"></i> Photo
+        </button>
+        <button class="type-pill" data-type="video" id="typeVideo">
+          <i class="ph ph-play"></i> Video
+        </button>
+        <button class="type-pill" data-type="mixed" id="typeMixed">
+          <i class="ph ph-stack"></i> Mixed
+        </button>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <div class="form-section">
+      <label>Caption</label>
+      <textarea id="captionInput" maxlength="500" placeholder="Tell us about this content..."></textarea>
+      <div class="char-count"><span id="charCount">0</span>/500</div>
+    </div>
+
+    <!-- Hashtags -->
+    <div class="form-section">
+      <label>Hashtags <span style="font-weight:400;color:#aaa;">(comma-separated)</span></label>
+      <input type="text" id="hashtagsInput" placeholder="#keepuspostd, #brandname">
+    </div>
+
+    <!-- Submit Button -->
+    <button class="submit-btn" id="submitBtn" disabled>
+      Submit Content for Review
+    </button>
+    <p style="text-align:center;font-size:0.72rem;color:#aaa;margin-top:8px;">
+      Content will be reviewed by the brand before publishing.
+    </p>
+  </div>
+
+  <!-- ============== SUCCESS STATE ============== -->
+  <div class="submit-container success-state" id="successState">
+    <div class="success-icon"><i class="ph ph-check"></i></div>
+    <h2>Content Submitted!</h2>
+    <p>The brand will review your submission. You'll be notified when it's approved.</p>
+    <div class="action-btns">
+      <button class="btn-another" id="submitAnotherBtn">Submit Another</button>
+      <button class="btn-my-content" id="myContentBtn">View My Submissions</button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <!-- ============== SCRIPTS ============== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    // ================================================================
+    //  STATE
+    // ================================================================
+    let selectedFiles = [];       // Array of File objects
+    let selectedBrandId = null;   // MongoDB ObjectId of selected brand
+    let selectedContentType = 'photo';
+    let currentUser = null;
+
+    // ================================================================
+    //  TOAST HELPER
+    // ================================================================
+    function showToast(message, type) {
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + (type || 'info');
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 3500);
+    }
+
+    // ================================================================
+    //  AUTH GATE (with timeout fallback)
+    // ================================================================
+    var authResolved = false;
+
+    // If Firebase takes more than 8 seconds, redirect to login
+    setTimeout(function() {
+      if (!authResolved) {
+        console.warn('Firebase auth timed out — redirecting to login');
+        var returnUrl = encodeURIComponent(window.location.href);
+        window.location.href = '/pages/login.html?redirect=' + returnUrl;
+      }
+    }, 8000);
+
+    auth.onAuthStateChanged(async function(user) {
+      authResolved = true;
+      if (!user) {
+        // Not logged in — redirect to login with return URL
+        var returnUrl = encodeURIComponent(window.location.href);
+        window.location.href = '/pages/login.html?redirect=' + returnUrl;
+        return;
+      }
+
+      currentUser = user;
+      document.getElementById('authLoading').style.display = 'none';
+      document.getElementById('submitForm').style.display = 'block';
+
+      // Load brands for dropdown
+      await loadBrands();
+
+      // Check for brandId in URL (from QR code or direct link)
+      var params = new URLSearchParams(window.location.search);
+      var urlBrandId = params.get('brandId');
+      if (urlBrandId) {
+        selectedBrandId = urlBrandId;
+        document.getElementById('brandSelect').value = urlBrandId;
+        // Show "brand from URL" indicator
+        var brandOption = document.querySelector('#brandSelect option[value="' + urlBrandId + '"]');
+        if (brandOption) {
+          document.getElementById('brandFromUrl').style.display = 'block';
+          document.getElementById('brandUrlName').textContent = brandOption.textContent;
+        }
+        // Load campaigns for this brand
+        await loadCampaigns(urlBrandId);
+      }
+
+      updateSubmitBtn();
+    });
+
+    // ================================================================
+    //  LOAD BRANDS
+    // ================================================================
+    async function loadBrands() {
+      try {
+        var data = await kupApi.get('/api/brands');
+        var select = document.getElementById('brandSelect');
+
+        if (data && data.brands && data.brands.length > 0) {
+          data.brands.forEach(function(brand) {
+            var option = document.createElement('option');
+            option.value = brand._id;
+            option.textContent = brand.name;
+            select.appendChild(option);
+          });
+        } else {
+          // No brands from API — show a message
+          var option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No brands found — create one first';
+          option.disabled = true;
+          select.appendChild(option);
+        }
+      } catch (err) {
+        console.error('Failed to load brands:', err);
+        showToast('Could not load brands', 'error');
+      }
+    }
+
+    // ================================================================
+    //  LOAD CAMPAIGNS FOR BRAND
+    // ================================================================
+    async function loadCampaigns(brandId) {
+      var select = document.getElementById('campaignSelect');
+      // Reset to default
+      select.innerHTML = '<option value="">General Content (no campaign)</option>';
+
+      if (!brandId) return;
+
+      try {
+        var data = await kupApi.get('/api/campaigns?brandId=' + brandId + '&status=active');
+        if (data && data.campaigns) {
+          data.campaigns.forEach(function(campaign) {
+            var option = document.createElement('option');
+            option.value = campaign._id;
+            option.textContent = campaign.title;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.warn('Could not load campaigns:', err.message);
+        // Not critical — general content still works
+      }
+    }
+
+    // ================================================================
+    //  BRAND SELECTION CHANGE
+    // ================================================================
+    document.getElementById('brandSelect').addEventListener('change', async function() {
+      selectedBrandId = this.value || null;
+      document.getElementById('brandFromUrl').style.display = 'none';
+      if (selectedBrandId) {
+        await loadCampaigns(selectedBrandId);
+      }
+      updateSubmitBtn();
+    });
+
+    // ================================================================
+    //  FILE CAPTURE / GALLERY
+    // ================================================================
+    document.getElementById('captureZone').addEventListener('click', function(e) {
+      // Don't trigger camera if they clicked the gallery button
+      if (e.target.closest('.gallery-btn')) return;
+      document.getElementById('cameraInput').click();
+    });
+
+    document.getElementById('galleryBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('galleryInput').click();
+    });
+
+    document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
+    document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(e) {
+      var files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      // Max 5 files total
+      var remaining = 5 - selectedFiles.length;
+      if (remaining <= 0) {
+        showToast('Maximum 5 files allowed', 'error');
+        return;
+      }
+
+      var toAdd = files.slice(0, remaining);
+      if (files.length > remaining) {
+        showToast('Only ' + remaining + ' more file(s) allowed', 'info');
+      }
+
+      // Client-side size check (50MB max)
+      for (var i = 0; i < toAdd.length; i++) {
+        if (toAdd[i].size > 50 * 1024 * 1024) {
+          showToast(toAdd[i].name + ' is too large (max 50MB)', 'error');
+          toAdd.splice(i, 1);
+          i--;
+        }
+      }
+
+      selectedFiles = selectedFiles.concat(toAdd);
+      renderPreviews();
+      autoDetectContentType();
+      updateSubmitBtn();
+
+      // Reset input so same file can be re-selected
+      e.target.value = '';
+    }
+
+    // ================================================================
+    //  PREVIEW RENDERING
+    // ================================================================
+    function renderPreviews() {
+      var grid = document.getElementById('previewGrid');
+      grid.innerHTML = '';
+
+      selectedFiles.forEach(function(file, index) {
+        var item = document.createElement('div');
+        item.className = 'preview-item';
+
+        var url = URL.createObjectURL(file);
+        var isVideo = file.type.startsWith('video/');
+
+        if (isVideo) {
+          var video = document.createElement('video');
+          video.src = url;
+          video.muted = true;
+          video.playsInline = true;
+          video.preload = 'metadata';
+          item.appendChild(video);
+        } else {
+          var img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Preview';
+          item.appendChild(img);
+        }
+
+        // Type badge
+        var badge = document.createElement('span');
+        badge.className = 'file-type-badge';
+        badge.textContent = isVideo ? 'VIDEO' : 'PHOTO';
+        item.appendChild(badge);
+
+        // Remove button
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.setAttribute('data-index', index);
+        removeBtn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-index'));
+          selectedFiles.splice(idx, 1);
+          renderPreviews();
+          autoDetectContentType();
+          updateSubmitBtn();
+        });
+        item.appendChild(removeBtn);
+
+        grid.appendChild(item);
+      });
+
+      // Show/hide capture zone based on whether files are selected
+      document.getElementById('captureZone').style.display = selectedFiles.length >= 5 ? 'none' : '';
+    }
+
+    // ================================================================
+    //  AUTO-DETECT CONTENT TYPE
+    // ================================================================
+    function autoDetectContentType() {
+      var hasImage = false;
+      var hasVideo = false;
+
+      selectedFiles.forEach(function(f) {
+        if (f.type.startsWith('image/')) hasImage = true;
+        if (f.type.startsWith('video/')) hasVideo = true;
+      });
+
+      if (hasImage && hasVideo) {
+        setContentType('mixed');
+      } else if (hasVideo) {
+        setContentType('video');
+      } else {
+        setContentType('photo');
+      }
+    }
+
+    // ================================================================
+    //  CONTENT TYPE PILLS
+    // ================================================================
+    document.querySelectorAll('.type-pill').forEach(function(pill) {
+      pill.addEventListener('click', function() {
+        setContentType(this.getAttribute('data-type'));
+      });
+    });
+
+    function setContentType(type) {
+      selectedContentType = type;
+      document.querySelectorAll('.type-pill').forEach(function(p) {
+        p.classList.toggle('active', p.getAttribute('data-type') === type);
+      });
+    }
+
+    // ================================================================
+    //  CAPTION CHARACTER COUNT
+    // ================================================================
+    document.getElementById('captionInput').addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    // ================================================================
+    //  SUBMIT BUTTON STATE
+    // ================================================================
+    function updateSubmitBtn() {
+      var btn = document.getElementById('submitBtn');
+      var canSubmit = selectedFiles.length > 0 && selectedBrandId;
+      btn.disabled = !canSubmit;
+    }
+
+    // ================================================================
+    //  SUBMIT FLOW
+    // ================================================================
+    document.getElementById('submitBtn').addEventListener('click', async function() {
+      var btn = this;
+      if (btn.disabled) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span> Uploading...';
+
+      try {
+        // Step 1: Upload files via raw fetch (NOT kupApi — needs FormData)
+        var token = await getAuthToken();
+        var formData = new FormData();
+        selectedFiles.forEach(function(file) {
+          formData.append('media', file);
+        });
+
+        var uploadResp = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData,
+          // Note: Do NOT set Content-Type — browser sets it with multipart boundary
+        });
+
+        if (!uploadResp.ok) {
+          var uploadErr = await uploadResp.json();
+          throw new Error(uploadErr.error || 'Upload failed');
+        }
+
+        var uploadData = await uploadResp.json();
+
+        btn.innerHTML = '<span class="spinner-sm"></span> Submitting...';
+
+        // Step 2: Submit content metadata via kupApi (JSON)
+        var caption = document.getElementById('captionInput').value.trim();
+        var hashtags = document.getElementById('hashtagsInput').value.trim();
+        var campaignId = document.getElementById('campaignSelect').value || null;
+
+        // Parse hashtags into array
+        var hashtagsArr = [];
+        if (hashtags) {
+          hashtagsArr = hashtags.split(',').map(function(h) {
+            return h.trim().replace(/^#/, '');
+          }).filter(function(h) { return h.length > 0; });
+        }
+
+        var payload = {
+          brandId: selectedBrandId,
+          campaignId: campaignId,
+          contentType: selectedContentType,
+          mediaUrls: uploadData.urls,
+          caption: caption || null,
+          hashtags: hashtagsArr,
+        };
+
+        var result = await kupApi.post('/api/content', payload);
+
+        if (result && result.submission) {
+          // Success! Show success state
+          document.getElementById('submitForm').style.display = 'none';
+          document.getElementById('successState').style.display = 'block';
+          showToast('Content submitted for review!', 'success');
+        } else {
+          throw new Error(result?.error || 'Submission failed');
+        }
+
+      } catch (err) {
+        console.error('Submit error:', err);
+        showToast(err.message || 'Something went wrong', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Submit Content for Review';
+      }
+    });
+
+    // ================================================================
+    //  SUCCESS STATE BUTTONS
+    // ================================================================
+    document.getElementById('submitAnotherBtn').addEventListener('click', function() {
+      // Reset form
+      selectedFiles = [];
+      selectedContentType = 'photo';
+      document.getElementById('previewGrid').innerHTML = '';
+      document.getElementById('captionInput').value = '';
+      document.getElementById('hashtagsInput').value = '';
+      document.getElementById('charCount').textContent = '0';
+      document.getElementById('campaignSelect').innerHTML = '<option value="">General Content (no campaign)</option>';
+      document.getElementById('captureZone').style.display = '';
+      setContentType('photo');
+      updateSubmitBtn();
+
+      // Switch back to form
+      document.getElementById('successState').style.display = 'none';
+      document.getElementById('submitForm').style.display = 'block';
+      document.getElementById('submitBtn').textContent = 'Submit Content for Review';
+    });
+
+    document.getElementById('myContentBtn').addEventListener('click', function() {
+      window.location.href = '/app/content.html';
+    });
+
+    // ================================================================
+    //  BACK BUTTON
+    // ================================================================
+    document.getElementById('backBtn').addEventListener('click', function() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/app/brand-home.html';
+      }
+    });
+
+    // ================================================================
+    //  DRAG & DROP (desktop convenience)
+    // ================================================================
+    var captureZone = document.getElementById('captureZone');
+
+    captureZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('dragover');
+    });
+
+    captureZone.addEventListener('dragleave', function() {
+      this.classList.remove('dragover');
+    });
+
+    captureZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+      var files = Array.from(e.dataTransfer.files).filter(function(f) {
+        return f.type.startsWith('image/') || f.type.startsWith('video/');
+      });
+      if (files.length > 0) {
+        // Simulate file input change
+        var remaining = 5 - selectedFiles.length;
+        var toAdd = files.slice(0, remaining);
+        selectedFiles = selectedFiles.concat(toAdd);
+        renderPreviews();
+        autoDetectContentType();
+        updateSubmitBtn();
+      }
+    });
+  </script>
+
+</body>
+</html>

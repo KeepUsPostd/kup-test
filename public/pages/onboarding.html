@@ -763,9 +763,9 @@
 
       <p class="success-nudge">Smart defaults are applied to your rewards. Customize point values, thresholds, and more anytime.</p>
       <div class="success-actions">
-        <button class="success-btn-primary" onclick="window.location.href='inner/brand-reward-settings.html'">Customize Your Rewards</button>
-        <button class="success-btn-secondary" onclick="window.location.href='inner/market-code.html'">View Your Market Code</button>
-        <button class="success-btn-secondary" onclick="window.location.href='inner/activity.html'">Go to Dashboard</button>
+        <button class="success-btn-primary" id="successRewardsBtn">Customize Your Rewards</button>
+        <button class="success-btn-secondary" id="successMarketCodeBtn">View Your Market Code</button>
+        <button class="success-btn-secondary" id="successDashboardBtn">Go to Dashboard</button>
       </div>
     </div>
   </div>
@@ -1315,6 +1315,132 @@
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase SDK + API helper — needed to create brand in MongoDB -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <!-- Wire Publish button to create brand via API -->
+  <script>
+  (function() {
+    // Override the publish button to actually create the brand in the database
+    var publishBtn = document.getElementById('publishBtn');
+    if (!publishBtn) return;
+
+    // Remove existing click listeners by cloning
+    var newPublishBtn = publishBtn.cloneNode(true);
+    publishBtn.parentNode.replaceChild(newPublishBtn, publishBtn);
+
+    newPublishBtn.addEventListener('click', async function() {
+      var btn = this;
+
+      // Collect form data
+      var brandName = (document.getElementById('brandName') ? document.getElementById('brandName').value : '').trim();
+      var brandIndustry = document.getElementById('brandIndustry') ? document.getElementById('brandIndustry').value : '';
+      var brandDescription = (document.getElementById('brandDescription') ? document.getElementById('brandDescription').value : '').trim();
+      var brandLocation = (document.getElementById('brandLocation') ? document.getElementById('brandLocation').value : '').trim();
+
+      if (!brandName) {
+        if (typeof kupToast === 'function') kupToast('Please enter a brand name', 'error');
+        return;
+      }
+
+      // Show loading state
+      btn.disabled = true;
+      var originalText = btn.textContent;
+      btn.textContent = 'Creating your brand...';
+
+      try {
+        // Check if user is logged in
+        var user = auth.currentUser;
+        if (!user) {
+          if (typeof kupToast === 'function') kupToast('Please log in first', 'error');
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        // Call the API to create the brand in MongoDB
+        var result = await kupApi.post('/api/brands', {
+          name: brandName,
+          category: brandIndustry || null,
+          description: brandDescription || null,
+        });
+
+        if (result && result.error) {
+          throw new Error(result.message || result.error);
+        }
+
+        console.log('✅ Brand created in MongoDB:', result.brand ? result.brand._id : 'success');
+
+        // Store the MongoDB brand ID in localStorage for other pages
+        if (result.brand) {
+          try {
+            var brandData = {
+              id: result.brand._id.substring(0, 6),
+              name: result.brand.name,
+              abbreviation: brandName.split(/\s+/).map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3),
+              color: '#2EA5DD',
+              plan: 'starter',
+              isAnchor: true,
+              state: 'active',
+              mongoId: result.brand._id
+            };
+            localStorage.setItem('kup_active_brand', JSON.stringify(brandData));
+            localStorage.setItem('kup_brands_list', JSON.stringify([brandData]));
+          } catch(e) {
+            console.warn('Could not save brand to localStorage:', e);
+          }
+        }
+
+        // Now show the success overlay (original behavior)
+        var brandSlug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        var brandUrl = 'keepuspostd.com/brand/' + brandSlug;
+        var urlDisplay = document.getElementById('successLinkUrl');
+        if (urlDisplay) urlDisplay.textContent = brandUrl;
+
+        var overlay = document.getElementById('publishSuccessOverlay');
+        if (overlay) overlay.classList.add('visible');
+
+        // Copy button
+        var copyBtn = document.getElementById('successCopyBtn');
+        if (copyBtn) {
+          copyBtn.onclick = function() {
+            var fullUrl = 'https://' + brandUrl;
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(fullUrl).then(function() {
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = '#16a34a';
+                setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.style.background = ''; }, 2000);
+              });
+            }
+          };
+        }
+
+      } catch (err) {
+        console.error('Brand creation failed:', err);
+        if (typeof kupToast === 'function') kupToast(err.message || 'Failed to create brand', 'error');
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  })();
+  </script>
+
+  <!-- Success popup button handlers (CSP blocks inline onclick) -->
+  <script>
+  document.getElementById('successRewardsBtn').addEventListener('click', function() {
+    window.location.href = '/app/brand-reward-settings.html';
+  });
+  document.getElementById('successMarketCodeBtn').addEventListener('click', function() {
+    window.location.href = '/app/manage-brands.html';
+  });
+  document.getElementById('successDashboardBtn').addEventListener('click', function() {
+    window.location.href = '/app/brand-home.html';
+  });
+  </script>
     <!-- brand-context.js excluded — first-time user has no brands yet -->
 </body>
 </html>

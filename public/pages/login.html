@@ -699,8 +699,11 @@
           localStorage.setItem('kupUser', JSON.stringify(result.user));
           localStorage.setItem('kupProfile', JSON.stringify(result.profile));
 
-          // Redirect to brand dashboard
-          if (result.user.activeProfile === 'brand') {
+          // Redirect — honor ?redirect= param if present, else default dashboard
+          var redirectParam = new URLSearchParams(window.location.search).get('redirect');
+          if (redirectParam) {
+            window.location.href = decodeURIComponent(redirectParam);
+          } else if (result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
             window.location.href = '/app/activity.html';
@@ -735,7 +738,10 @@
           localStorage.setItem('kupUser', JSON.stringify(result.user));
           localStorage.setItem('kupProfile', JSON.stringify(result.profile));
 
-          if (result.user && result.user.activeProfile === 'brand') {
+          var redirectParam = new URLSearchParams(window.location.search).get('redirect');
+          if (redirectParam) {
+            window.location.href = decodeURIComponent(redirectParam);
+          } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
             window.location.href = '/app/activity.html';
@@ -754,7 +760,12 @@
     // ---- Check if already logged in ----
     auth.onAuthStateChanged(function(user) {
       if (user) {
-        // Already logged in — redirect
+        // Already logged in — honor redirect param or go to dashboard
+        var redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        if (redirectParam) {
+          window.location.href = decodeURIComponent(redirectParam);
+          return;
+        }
         const kupUser = localStorage.getItem('kupUser');
         if (kupUser) {
           const parsed = JSON.parse(kupUser);
