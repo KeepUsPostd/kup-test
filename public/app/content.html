@@ -2335,6 +2335,151 @@
       KUP_PLATFORM.CONTENT_STATUSES, .CONTENT_TRANSITIONS, .CONTENT_RULES
       KUP_PLATFORM.RATING_SYSTEM
   -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    // Auth gate + load content
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+
+      let brandId = null;
+      try {
+        const stored = localStorage.getItem('kup_active_brand');
+        if (stored) brandId = JSON.parse(stored).id;
+      } catch(e) {}
+
+      if (!brandId) { window.location.href = 'manage-brands.html'; return; }
+
+      try {
+        const data = await kupApi.get('/api/content?brandId=' + brandId);
+        updateContentStats(data.stats || {});
+        renderContentRows(data.submissions || []);
+      } catch (err) {
+        console.error('Failed to load content:', err);
+      }
+
+      // Wire logout
+      const logoutLink = document.querySelector('.logout');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
+      }
+    });
+
+    function updateContentStats(stats) {
+      // Update stat cards if they exist
+      const statValues = document.querySelectorAll('.stat-value, .kup-stat-value');
+      // The page may have different stat card structures — update what we can
+      const pendingBadge = document.querySelector('.pending-count, .badge');
+      if (pendingBadge) pendingBadge.textContent = stats.submitted || 0;
+    }
+
+    function renderContentRows(submissions) {
+      const tbody = document.querySelector('tbody, .content-table-body');
+      if (!tbody || submissions.length === 0) return;
+
+      // Clear existing demo rows
+      tbody.innerHTML = '';
+
+      submissions.forEach(sub => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-status', sub.status);
+        row.setAttribute('data-campaign', sub.campaignId?.title || 'General');
+
+        const timeAgo = getTimeAgo(sub.submittedAt);
+        const statusBadge = getStatusBadge(sub.status);
+        const influencer = sub.influencerProfileId;
+        const handle = influencer?.handle || 'Unknown';
+        const initials = influencer?.displayName?.substring(0, 2).toUpperCase() || '??';
+        const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
+
+        row.innerHTML = `
+          <td style="width:40px"><input type="checkbox" class="content-check"></td>
+          <td>
+            <div class="content-thumb">
+              <div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>
+              <div class="thumb-info">
+                <span class="thumb-type">${sub.contentType.charAt(0).toUpperCase() + sub.contentType.slice(1)}</span>
+              </div>
+            </div>
+          </td>
+          <td>${sub.campaignId?.title || 'General'}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar-xs" style="width:28px;height:28px;border-radius:50%;background:#2EA5DD;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
+              <span>@${handle}</span>
+            </div>
+          </td>
+          <td>${timeAgo}</td>
+          <td>${statusBadge}</td>
+          <td>
+            ${sub.status === 'submitted' ? `
+              <button class="btn-approve-content" data-id="${sub._id}" onclick="approveContent('${sub._id}', this)" style="background:#16a34a;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;margin-right:4px">Approve</button>
+              <button class="btn-reject-content" data-id="${sub._id}" onclick="rejectContent('${sub._id}', this)" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Reject</button>
+            ` : ''}
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    }
+
+    function getTimeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return mins + ' min ago';
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      const days = Math.floor(hours / 24);
+      return days + 'd ago';
+    }
+
+    function getStatusBadge(status) {
+      const badges = {
+        submitted: '<span style="background:#fef3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Pending</span>',
+        approved: '<span style="background:#d1e7dd;color:#0f5132;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Approved</span>',
+        rejected: '<span style="background:#f8d7da;color:#842029;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Rejected</span>',
+        postd: '<span style="background:#cfe2ff;color:#1a5e99;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Postd</span>',
+      };
+      return badges[status] || status;
+    }
+
+    async function approveContent(submissionId, btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/approve', {});
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('approved');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content approved', 'success');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Approve';
+        kupToast(err.message || 'Failed to approve', 'error');
+      }
+    }
+
+    async function rejectContent(submissionId, btn) {
+      const reason = prompt('Rejection reason (required):');
+      if (!reason) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/reject', { reason });
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('rejected');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content rejected with feedback', 'info');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Reject';
+        kupToast(err.message || 'Failed to reject', 'error');
+      }
+    }
+  </script>
+
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
