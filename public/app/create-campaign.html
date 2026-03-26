@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Campaign &mdash; KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+    a{text-decoration:none;color:inherit;transition:all .2s}
+
+    /* ========== AUTH HEADER ========== */
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
+    .auth-logo img{height:32px}
+    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
+    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
+    .auth-right{display:flex;align-items:center;gap:20px}
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none;transition:background .2s}
+    .profile-trigger:hover{background:#f0f0f0}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+    .profile-info{text-align:left}
+    .profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}
+    .profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+
+    /* ========== TWO-COLUMN WIZARD LAYOUT ========== */
+    .wizard-layout{display:grid;grid-template-columns:440px 1fr;min-height:calc(100vh - 64px - 57px);flex:1;width:100%}
+
+    /* LEFT FORM PANEL */
+    .wizard-form{background:var(--kup-white);border-right:1px solid #eee;padding:36px 32px;overflow-y:auto}
+    .form-logo{margin-bottom:24px}
+    .form-logo img{height:28px}
+    .breadcrumb-text{font-size:.78rem;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .breadcrumb-text a{color:#888}
+    .breadcrumb-text a:hover{color:var(--kup-blue)}
+    .breadcrumb-text span{color:var(--kup-blue)}
+    .form-heading{font-size:1.4rem;font-weight:800;margin:0 0 8px;color:#1a1a1a}
+    .form-subtitle{font-size:.85rem;color:#666;line-height:1.7;margin-bottom:24px}
+
+    /* Progress Bar */
+    .wizard-progress{display:flex;gap:8px;margin:0 0 28px}
+    .progress-step{flex:1;height:4px;border-radius:4px;background:#eee}
+    .progress-step.active{background:var(--kup-blue)}
+    .progress-step.done{background:#16a34a}
+
+    /* Form */
+    .form-section{display:none}
+    .form-section.active-step{display:block}
+    .step-label{font-size:.78rem;color:#888;margin-bottom:20px;font-weight:600}
+    .form-group{margin-bottom:20px}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;color:#444;margin-bottom:6px}
+    .form-group input,
+    .form-group textarea,
+    .form-group select{width:100%;padding:12px 16px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.88rem;background:#fff;color:#1a1a1a;transition:border-color .2s,box-shadow .2s}
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .form-group input::placeholder,
+    .form-group textarea::placeholder{color:#bbb}
+    .form-group textarea{resize:vertical;min-height:100px}
+    .form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer}
+    .form-group .char-count{font-size:.72rem;color:#bbb;text-align:right;margin-top:4px}
+    .form-group .char-count.warn{color:var(--kup-orange)}
+    .form-group .helper{font-size:.75rem;color:#999;margin-top:4px}
+
+    /* Wizard Actions */
+    .wizard-actions{display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #eee}
+    .btn-wizard{padding:12px 24px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;border:none;transition:all .2s}
+    .btn-wizard.primary{background:var(--kup-blue);color:#fff;flex:1}
+    .btn-wizard.primary:hover{background:#258fc4}
+    .btn-wizard.secondary{background:#f0f0f0;color:#666}
+    .btn-wizard.secondary:hover{background:#e4e4e4}
+    .btn-wizard.success{background:#16a34a;color:#fff;flex:1}
+    .btn-wizard.success:hover{background:#15803d}
+
+    /* Save & Exit */
+    .save-exit-link{float:right;font-size:.82rem;font-weight:600;color:#888}
+    .save-exit-link:hover{color:var(--kup-blue)}
+
+    /* ============== IMAGE UPLOAD ============== */
+    .upload-zone{border:2px dashed #ddd;border-radius:var(--radius-md);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+    .upload-zone:hover{border-color:var(--kup-blue);background:rgba(46,165,221,.03)}
+    .upload-zone.dragover{border-color:var(--kup-blue);background:rgba(46,165,221,.06)}
+    .upload-zone .upload-icon{font-size:2rem;color:#ccc;margin-bottom:8px}
+    .upload-zone .upload-text{font-size:.82rem;color:#888;margin-bottom:4px}
+    .upload-zone .upload-hint{font-size:.72rem;color:#bbb}
+    .upload-zone input[type="file"]{display:none}
+    .upload-preview{margin-top:12px;position:relative;display:none}
+    .upload-preview img{width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid #eee}
+    .upload-preview .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center}
+
+    /* ============== OFFER CARDS (Step 2) ============== */
+    .offer-cards{display:flex;flex-direction:column;gap:12px}
+    .offer-card{display:flex;align-items:flex-start;gap:16px;padding:20px;border:2px solid #eee;border-radius:var(--radius-md);cursor:pointer;transition:all .2s;position:relative}
+    .offer-card:hover{border-color:#ccc;background:#fafbfc}
+    .offer-card.selected{border-color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .offer-card-icon{width:44px;height:44px;border-radius:var(--radius-sm);background:#f5f6fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem}
+    .offer-card.selected .offer-card-icon{background:rgba(46,165,221,.1)}
+    .offer-card-body{flex:1}
+    .offer-card-title{font-size:.95rem;font-weight:700;margin:0 0 4px}
+    .offer-card-desc{font-size:.82rem;color:#888;margin:0 0 8px}
+    .offer-card-check{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;transition:all .2s}
+    .offer-card.selected .offer-card-check{background:var(--kup-blue);border-color:var(--kup-blue)}
+    .offer-card.selected .offer-card-check::after{content:'';width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px}
+
+    /* Reward Amount Input (inline) */
+    .reward-detail{display:none;margin-top:12px;padding:12px 16px;background:#f8f9fa;border-radius:var(--radius-sm);border:1px solid #eee}
+    .offer-card.selected .reward-detail{display:block}
+    .reward-detail label{font-size:.78rem;font-weight:600;color:#666;margin-bottom:6px;display:block}
+    .reward-detail input,
+    .reward-detail textarea{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.85rem;background:#fff}
+    .reward-detail input:focus,
+    .reward-detail textarea:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .reward-detail textarea{resize:vertical;min-height:60px}
+    .amount-input-wrap{position:relative}
+    .amount-input-wrap::before{content:'$';position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:.85rem;font-weight:600;color:#888}
+    .amount-input-wrap input{padding-left:28px}
+
+    /* Toggle Switch */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid #eee;margin-top:8px}
+    .toggle-row .toggle-label{font-size:.85rem;font-weight:600;color:#444}
+    .toggle-row .toggle-hint{font-size:.72rem;color:#999;margin-top:2px}
+    .toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0}
+    .toggle-switch input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:26px;transition:.3s}
+    .toggle-slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+    .toggle-switch input:checked+.toggle-slider{background:var(--kup-blue)}
+    .toggle-switch input:checked+.toggle-slider::before{transform:translateX(22px)}
+
+    /* Custom Date Range */
+    .date-range-row{display:none;gap:12px;margin-top:12px}
+    .date-range-row.visible{display:flex}
+    .date-range-row .form-group{flex:1;margin-bottom:0}
+    .date-range-row input[type="date"]{padding:10px 14px;font-size:.85rem}
+
+    /* ============== REVIEW SUMMARY (Step 3) ============== */
+    .review-summary{background:#f8f9fa;border:1px solid #eee;border-radius:var(--radius-md);padding:24px;margin-bottom:20px}
+    .review-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.85rem}
+    .review-row:last-child{border-bottom:none}
+    .review-row .review-label{color:#888;font-weight:500}
+    .review-row .review-value{font-weight:600;color:#1a1a1a;text-align:right;max-width:240px;word-wrap:break-word;overflow-wrap:break-word}
+    .review-image-thumb{width:60px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #eee}
+
+    /* Publish Actions */
+    .wizard-actions-publish{flex-direction:column;align-items:stretch;text-align:center;border-top:none;padding-top:0}
+    .btn-publish{padding:16px;font-size:1rem}
+    .publish-hint,.draft-hint{font-size:.78rem;color:#999;margin:6px 0 16px}
+
+    /* Terms checkbox */
+    .terms-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;font-size:.82rem;color:#666}
+    .terms-check input[type="checkbox"]{margin-top:3px;width:18px;height:18px;accent-color:var(--kup-blue);flex-shrink:0}
+    .terms-check a{color:var(--kup-blue);font-weight:600}
+
+    /* Review card inline (mobile) */
+    .review-card-inline{display:none;margin-bottom:24px}
+
+    /* ============== RIGHT PREVIEW PANEL ============== */
+    .wizard-preview{padding:32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+    .preview-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:12px;text-align:center;width:310px}
+
+    /* Preview layout: tips + phone side by side */
+    .preview-inner{display:flex;align-items:flex-start;gap:28px;width:100%}
+
+    /* Step Tips Panel */
+    .step-tips{flex:1;min-width:0;max-width:260px}
+    .step-tips-card{background:#fff;border:1px solid #eee;border-radius:var(--radius-md);padding:20px;margin-bottom:16px}
+    .step-tips-card h4{font-size:.85rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+    .step-tips-card h4 .tip-icon{font-size:1rem}
+    .step-tips-card p{font-size:.78rem;color:#888;line-height:1.6;margin:0}
+    .step-tips-card ul{margin:8px 0 0;padding:0 0 0 16px;font-size:.75rem;color:#666;line-height:1.7}
+    .step-tips-card ul li{margin-bottom:4px}
+    .step-tips-card .tip-highlight{color:var(--kup-blue);font-weight:600}
+    .step-tips-group{display:none}
+    .step-tips-group.active{display:block}
+
+    /* Phone Column — label + phone + hint stacked */
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+
+    /* Phone Frame */
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+
+    /* Phone Status Bar */
+    .phone-status-bar{display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px;font-size:.7rem;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:45;height:44px;pointer-events:none}
+    .phone-status-bar .status-time{font-size:.78rem;font-weight:700;padding-bottom:4px}
+    .phone-status-bar .status-icons{display:flex;gap:4px;align-items:center;font-size:.6rem;padding-bottom:5px}
+
+    /* Phone Screen */
+    .phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .phone-screen::-webkit-scrollbar{display:none}
+
+    /* Discover Feed Header */
+    .feed-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:52px 16px 16px;color:#fff}
+    .feed-header-title{font-size:1.1rem;font-weight:800;margin:0 0 4px}
+    .feed-header-sub{font-size:.68rem;color:rgba(255,255,255,.6)}
+    .feed-search{margin:12px 0 0;padding:8px 12px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;gap:8px;font-size:.72rem;color:rgba(255,255,255,.5)}
+
+    /* Category Chips */
+    .feed-chips{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+    .feed-chips::-webkit-scrollbar{display:none}
+    .feed-chip{padding:6px 14px;border-radius:20px;font-size:.68rem;font-weight:600;white-space:nowrap;background:#f0f0f0;color:#666;flex-shrink:0}
+    .feed-chip.active{background:var(--kup-blue);color:#fff}
+
+    /* Section Header */
+    .feed-section-header{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px;font-size:.82rem;font-weight:700}
+    .feed-section-action{font-size:.72rem;color:var(--kup-blue);font-weight:600}
+
+    /* Campaign Cards (replicating discover-feed.html) */
+    .campaign-card{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;margin:0 16px 8px;border-radius:var(--radius-md);box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:default;transition:transform .15s}
+    .campaign-card.user-campaign{border-left:3px solid var(--kup-blue);background:rgba(46,165,221,.03)}
+    .campaign-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.75rem;flex-shrink:0}
+    .campaign-card-content{flex:1;min-width:0}
+    .campaign-card-title{font-size:.78rem;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .campaign-card-meta{display:flex;align-items:center;gap:6px;font-size:.65rem;color:#999}
+    .campaign-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.58rem;font-weight:700;background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .campaign-bonus{font-size:.78rem;font-weight:700;color:var(--kup-orange);white-space:nowrap}
+
+    /* Bottom Nav */
+    .app-preview-nav{position:absolute;bottom:14px;left:0;right:0;height:50px;background:#fff;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:30}
+    .app-preview-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.52rem;color:#ccc;font-weight:600}
+    .app-preview-nav-item.active{color:var(--kup-blue)}
+    .app-preview-nav-item .nav-icon-mock{font-size:.9rem}
+    .app-preview-nav-fab{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;box-shadow:0 3px 10px rgba(46,165,221,.3);margin-top:-10px}
+
+    .preview-hint{font-size:.78rem;color:#bbb;text-align:center;margin-top:12px;font-style:italic;width:310px}
+    .phone-home-bar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#ccc;border-radius:4px;z-index:60}
+
+    /* FOOTER */
+    .auth-footer{text-align:center;padding:16px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white);margin-top:auto;flex-shrink:0}
+    .auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    /* ============== NOTIFICATIONS ============== */
+    .notif-wrap{position:relative}
+    .notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:8px;border-radius:50%;transition:background .15s}
+    .notif-btn:hover{background:#f0f0f0}
+    .notif-btn svg{width:22px;height:22px}
+    .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#e74c3c;border-radius:50%;border:2px solid var(--kup-white)}
+    .profile-menu{position:relative}
+    .profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #eee;border-radius:var(--radius-md);box-shadow:0 8px 30px rgba(0,0,0,.1);min-width:220px;display:none;z-index:200;overflow:hidden}
+    .profile-dropdown.show{display:block}
+    .profile-dropdown a{display:block;padding:12px 20px;font-size:.85rem;color:#444}
+    .profile-dropdown a:hover{background:#f8f9fa;color:var(--kup-blue)}
+    .profile-dropdown .divider{border-top:1px solid #eee;margin:4px 0}
+    .profile-dropdown a.logout{color:#e74c3c}
+
+    /* Toast */
+    .kup-toast-container{position:fixed;top:80px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .kup-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:14px 20px;background:#fff;border-radius:var(--radius-sm);box-shadow:0 8px 30px rgba(0,0,0,.12);font-family:var(--kup-font);font-size:.85rem;font-weight:600;color:#1a1a1a;min-width:280px;max-width:400px;transform:translateX(120%);animation:kupToastIn .3s ease forwards;border-left:4px solid var(--kup-blue)}
+    .kup-toast.success{border-left-color:#16a34a}
+    .kup-toast.error{border-left-color:#dc2626}
+    .kup-toast.warning{border-left-color:#f59e0b}
+    .kup-toast.dismissing{animation:kupToastOut .3s ease forwards}
+    @keyframes kupToastIn{to{transform:translateX(0)}}
+    @keyframes kupToastOut{to{transform:translateX(120%);opacity:0}}
+
+    /* ========== RESPONSIVE ========== */
+    @media(max-width:1024px){
+      .wizard-layout{grid-template-columns:380px 1fr}
+      .wizard-preview{padding:24px 16px 24px 12px}
+    }
+    @media(max-width:768px){
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-preview{display:none}
+      .review-card-inline{display:block}
+      .wizard-form{padding:24px 20px}
+      .auth-header-inner{padding:0 16px}
+      .auth-nav li a{padding:0 14px;font-size:.82rem}
+      .profile-info{display:none}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== AUTH HEADER ========== -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html" class="active">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+            <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== TWO-COLUMN WIZARD ========== -->
+  <div class="wizard-layout">
+
+    <!-- LEFT: Form Panel -->
+    <div class="wizard-form">
+      <div class="form-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </div>
+
+      <p class="breadcrumb-text"><a href="brand-campaign.html">Campaigns</a> &nbsp;|&nbsp; <span>Create New</span></p>
+
+      <!-- Progress Bar -->
+      <div class="wizard-progress">
+        <div class="progress-step active" id="prog1"></div>
+        <div class="progress-step" id="prog2"></div>
+        <div class="progress-step" id="prog3"></div>
+      </div>
+
+      <!-- ============ STEP 1: Campaign Basics ============ -->
+      <div id="step1" class="form-section active-step">
+        <a href="brand-campaign.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 1 of 3</p>
+
+        <h1 class="form-heading" id="stepHeading">Campaign Basics</h1>
+        <p class="form-subtitle" id="stepSubtitle">Tell creators what your campaign is about.</p>
+
+        <div class="form-group">
+          <label for="campaignTitle">Campaign Title *</label>
+          <input type="text" id="campaignTitle" maxlength="50" placeholder="e.g., Summer Product Review, Holiday Unboxing">
+          <div class="char-count" id="titleCount">0 / 50</div>
+        </div>
+
+        <div class="form-group">
+          <label for="campaignCategory">Category *</label>
+          <select id="campaignCategory">
+            <option value="" disabled selected>Select a category</option>
+            <option value="Food & Drink">Food &amp; Drink</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Tech">Tech</option>
+            <option value="Home">Home</option>
+            <option value="Travel">Travel</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="campaignDesc">Description *</label>
+          <textarea id="campaignDesc" maxlength="200" placeholder="Describe what you want creators to review or promote..."></textarea>
+          <div class="char-count" id="descCount">0 / 200</div>
+        </div>
+
+        <div class="form-group">
+          <label>Campaign Image</label>
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon"><i class="ph ph-camera"></i></div>
+            <div class="upload-text">Drop an image here or click to upload</div>
+            <div class="upload-hint">JPG, PNG, or WebP &bull; Recommended 1200 &times; 630 px &bull; Max 5 MB</div>
+            <input type="file" id="campaignImage" accept="image/*">
+          </div>
+          <div class="upload-preview" id="uploadPreview">
+            <img id="uploadThumb" src="" alt="Campaign image preview">
+            <button class="remove-img" id="removeImg" type="button">&times;</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="campaignDuration">Duration *</label>
+          <select id="campaignDuration">
+            <option value="3 days">3 Days</option>
+            <option value="7 days" selected>7 Days</option>
+            <option value="14 days">14 Days</option>
+            <option value="30 days">30 Days</option>
+            <option value="custom">Custom Date Range</option>
+          </select>
+        </div>
+
+        <div class="date-range-row" id="dateRangeRow">
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard primary" id="step1Next">Continue</button>
+        </div>
+      </div>
+
+      <!-- ============ STEP 2: Rewards & Budget ============ -->
+      <div id="step2" class="form-section">
+        <a href="brand-campaign.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 2 of 3</p>
+
+        <h1 class="form-heading">Rewards &amp; Budget</h1>
+        <p class="form-subtitle">Choose how you'll reward creators for their content.</p>
+
+        <div class="offer-cards" id="offerCards">
+          <!-- Cash Reward -->
+          <div class="offer-card" data-offer="cash">
+            <div class="offer-card-icon"><i class="ph ph-coins"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Cash Reward</h4>
+              <p class="offer-card-desc">Pay creators a set amount per approved review</p>
+              <div class="reward-detail">
+                <label for="cashAmount">Amount per review</label>
+                <div class="amount-input-wrap">
+                  <input type="number" id="cashAmount" min="1" max="50" value="5" placeholder="5">
+                </div>
+                <p class="helper" style="margin-top:6px">Platform sweet spot: $3 &ndash; $10 per review</p>
+              </div>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <!-- Product / Service -->
+          <div class="offer-card" data-offer="product">
+            <div class="offer-card-icon"><i class="ph ph-gift"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Product or Service</h4>
+              <p class="offer-card-desc">Send your product in exchange for an honest review</p>
+              <div class="reward-detail">
+                <label for="productDesc">What will creators receive?</label>
+                <textarea id="productDesc" placeholder="e.g., Free appetizer, Full-size skincare set, 1 month free subscription"></textarea>
+              </div>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <!-- Points / Loyalty -->
+          <div class="offer-card" data-offer="points">
+            <div class="offer-card-icon"><i class="ph ph-trophy"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Points / Loyalty</h4>
+              <p class="offer-card-desc">Award loyalty points or store credit per review</p>
+              <div class="reward-detail">
+                <label for="pointsAmount">Points per review</label>
+                <input type="number" id="pointsAmount" min="1" max="10000" value="100" placeholder="100">
+              </div>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:24px">
+          <label for="budgetCap">Budget Cap (optional)</label>
+          <div class="amount-input-wrap">
+            <input type="number" id="budgetCap" min="0" placeholder="Total campaign spend limit">
+          </div>
+          <p class="helper">Leave blank for no limit. Campaign pauses when budget is reached.</p>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Approve Submissions</div>
+            <div class="toggle-hint">Automatically approve creator content without manual review</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoApprove">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-top:20px">
+          <label for="contentGuidelines">Content Guidelines</label>
+          <textarea id="contentGuidelines" placeholder="What should creators include in their review? (e.g., 'Show the product in use, mention the brand name, at least 30 seconds')"></textarea>
+          <p class="helper">Clear guidelines result in better, more usable content</p>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" id="step2Back"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard primary" id="step2Next">Continue</button>
+        </div>
+      </div>
+
+      <!-- ============ STEP 3: Review & Launch ============ -->
+      <div id="step3" class="form-section">
+        <a href="brand-campaign.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 3 of 3</p>
+
+        <h1 class="form-heading">Review &amp; Launch</h1>
+        <p class="form-subtitle">Double-check your campaign details before going live.</p>
+
+        <!-- Inline review card (visible on mobile when right panel hides) -->
+        <div class="review-card-inline">
+          <div class="campaign-card user-campaign" style="margin:0 0 16px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+            <div class="campaign-avatar" id="reviewAvatar" style="background:var(--kup-gradient);">ST</div>
+            <div class="campaign-card-content">
+              <div class="campaign-card-title" id="reviewTitle">Your Campaign Title</div>
+              <div class="campaign-card-meta">
+                <span class="campaign-badge" id="reviewBadge">Bonus Active</span>
+                <span id="reviewDuration">Ends in 7 days</span>
+              </div>
+            </div>
+            <span class="campaign-bonus" id="reviewReward">+ $5</span>
+          </div>
+        </div>
+
+        <div class="review-summary" id="reviewSummary">
+          <div class="review-row">
+            <span class="review-label">Title</span>
+            <span class="review-value" id="revTitle">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Category</span>
+            <span class="review-value" id="revCategory">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Description</span>
+            <span class="review-value" id="revDesc">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Duration</span>
+            <span class="review-value" id="revDuration">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Reward</span>
+            <span class="review-value" id="revReward">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Budget Cap</span>
+            <span class="review-value" id="revBudget">—</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Auto-Approve</span>
+            <span class="review-value" id="revAutoApprove">—</span>
+          </div>
+          <div class="review-row" id="revImageRow" style="display:none">
+            <span class="review-label">Image</span>
+            <span class="review-value"><img class="review-image-thumb" id="revImage" src="" alt="Campaign image"></span>
+          </div>
+        </div>
+
+        <div class="terms-check">
+          <input type="checkbox" id="termsCheck">
+          <label for="termsCheck">I confirm this campaign follows <a href="#">KUP community guidelines</a> and I have the rights to all uploaded content.</label>
+        </div>
+
+        <div class="wizard-actions wizard-actions-publish">
+          <button class="btn-wizard success btn-publish" id="publishBtn">Publish Campaign</button>
+          <p class="publish-hint">Your campaign will be visible to creators in the Discover feed</p>
+          <button class="btn-wizard secondary" id="draftBtn" style="width:100%">Save as Draft</button>
+          <p class="draft-hint">Save for later &mdash; publish when you're ready</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Preview Panel -->
+    <div class="wizard-preview">
+      <div class="preview-inner">
+        <!-- Step Tips (contextual guidance) -->
+        <div class="step-tips">
+          <!-- Tips for Step 1 -->
+          <div class="step-tips-group active" id="tips1">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-lightbulb"></i></span> Strong Titles Convert</h4>
+              <p>Use action words like <span class="tip-highlight">"Review", "Unbox", "Try"</span>. Include your brand name for recognition.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-clipboard-text"></i></span> Category Matters</h4>
+              <p>Creators <span class="tip-highlight">filter by category</span> in the Discover feed. Pick the one that fits best for maximum visibility.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-clock"></i></span> Duration Sweet Spot</h4>
+              <p><span class="tip-highlight">7&ndash;14 day campaigns</span> get 3x more submissions than 3-day ones. Give creators time to find you.</p>
+            </div>
+          </div>
+
+          <!-- Tips for Step 2 -->
+          <div class="step-tips-group" id="tips2">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-coins"></i></span> Cash is King</h4>
+              <p><span class="tip-highlight">$3&ndash;$5 per review</span> is the platform sweet spot. Higher rewards = more submissions.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-target"></i></span> Mix Reward Types</h4>
+              <p>Combine <span class="tip-highlight">cash + product</span> for 2x creator engagement. Creators love getting the product AND being paid.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-clipboard-text"></i></span> Be Specific</h4>
+              <ul>
+                <li>Content guidelines that mention <strong>"show the product in use"</strong> get better results</li>
+                <li>Specify minimum video length (30s recommended)</li>
+                <li>Mention if you want honest vs. positive reviews</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Tips for Step 3 -->
+          <div class="step-tips-group" id="tips3">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-confetti"></i></span> Almost There!</h4>
+              <p>Review your campaign details below. You can <span class="tip-highlight">edit after publishing</span> if anything needs changing.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-chart-line-up"></i></span> What Happens Next</h4>
+              <ul>
+                <li><strong>Publish</strong> &mdash; Campaign goes live in Discover</li>
+                <li>Creators can find and submit content</li>
+                <li>You'll get notified on each submission</li>
+                <li>Review, approve, and reward from your dashboard</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone Preview Column -->
+        <div class="phone-column">
+          <p class="preview-label">App Display Preview</p>
+          <div class="phone-frame">
+            <!-- Status Bar -->
+            <div class="phone-status-bar">
+              <span class="status-time">9:41</span>
+              <span class="status-icons"><span>&#9679;&#9679;&#9679;&#9679;</span> <span>&#128246;</span> <span>&#128267;</span></span>
+            </div>
+
+            <div class="phone-screen">
+              <!-- Discover Feed Header -->
+              <div class="feed-header">
+                <div class="feed-header-title">Discover</div>
+                <div class="feed-header-sub">Find brands &amp; earn rewards</div>
+                <div class="feed-search">&#128269; Search brands, campaigns...</div>
+              </div>
+
+              <!-- Category Chips -->
+              <div class="feed-chips">
+                <div class="feed-chip active">All</div>
+                <div class="feed-chip">Food</div>
+                <div class="feed-chip">Fashion</div>
+                <div class="feed-chip">Beauty</div>
+                <div class="feed-chip">Tech</div>
+              </div>
+
+              <!-- Earn Extra Section -->
+              <div class="feed-section-header">
+                <span>Earn Extra &#128293;</span>
+                <span class="feed-section-action">See All</span>
+              </div>
+
+              <!-- Static Campaign Card 1 (Context) -->
+              <div class="campaign-card">
+                <div class="campaign-avatar" style="background:#1A1A1A;">N</div>
+                <div class="campaign-card-content">
+                  <div class="campaign-card-title">Nike Spring Collection Review</div>
+                  <div class="campaign-card-meta">
+                    <span class="campaign-badge">Bonus Active</span>
+                    <span>Ends in 2 days</span>
+                  </div>
+                </div>
+                <span class="campaign-bonus">+ $5</span>
+              </div>
+
+              <!-- USER'S CAMPAIGN CARD (live-updating) -->
+              <div class="campaign-card user-campaign">
+                <div class="campaign-avatar" id="previewAvatar" style="background:var(--kup-gradient);">ST</div>
+                <div class="campaign-card-content">
+                  <div class="campaign-card-title" id="previewCampaignTitle">Your Campaign Title</div>
+                  <div class="campaign-card-meta">
+                    <span class="campaign-badge" id="previewBadge">Bonus Active</span>
+                    <span id="previewDuration">Ends in 7 days</span>
+                  </div>
+                </div>
+                <span class="campaign-bonus" id="previewReward">+ $5</span>
+              </div>
+
+              <!-- Static Campaign Card 2 (Context) -->
+              <div class="campaign-card">
+                <div class="campaign-avatar" style="background:#000;">S</div>
+                <div class="campaign-card-content">
+                  <div class="campaign-card-title">Sephora New Arrivals Unboxing</div>
+                  <div class="campaign-card-meta">
+                    <span class="campaign-badge">Bonus Active</span>
+                    <span>Ends in 5 days</span>
+                  </div>
+                </div>
+                <span class="campaign-bonus">+ $8</span>
+              </div>
+
+              <!-- Spacer -->
+              <div style="height:80px"></div>
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="app-preview-nav">
+              <div class="app-preview-nav-item active"><span class="nav-icon-mock">&#127968;</span>Discover</div>
+              <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128176;</span>Earn</div>
+              <div class="app-preview-nav-fab">+</div>
+              <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128172;</span>Activity</div>
+              <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128100;</span>Profile</div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+          <p class="preview-hint">This is how your campaign appears to creators in the Discover feed.</p>
+        </div><!-- /.phone-column -->
+      </div><!-- /.preview-inner -->
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <!-- ========== WIZARD LOGIC ========== -->
+  <script>
+  var currentStep = 1;
+  var uploadedImageSrc = null;
+
+  /* ── Toast ────────────────────────────────── */
+  function kupToast(msg, type) {
+    type = type || 'info';
+    var container = document.getElementById('toastContainer');
+    var toast = document.createElement('div');
+    toast.className = 'kup-toast ' + type;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(function() {
+      toast.classList.add('dismissing');
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 3500);
+  }
+
+  /* ── Step Navigation ────────────────────────── */
+  function goToStep(step) {
+    if (step > currentStep && !validateStep(currentStep)) return;
+
+    document.querySelectorAll('.form-section').forEach(function(s) {
+      s.classList.remove('active-step');
+    });
+    document.getElementById('step' + step).classList.add('active-step');
+
+    document.querySelectorAll('.progress-step').forEach(function(p, i) {
+      p.className = 'progress-step';
+      if (i < step - 1) p.classList.add('done');
+      if (i === step - 1) p.classList.add('active');
+    });
+
+    currentStep = step;
+    window.scrollTo(0, 0);
+
+    // Switch contextual tips panel
+    document.querySelectorAll('.step-tips-group').forEach(function(g) { g.classList.remove('active'); });
+    var tipsEl = document.getElementById('tips' + step);
+    if (tipsEl) tipsEl.classList.add('active');
+
+    // On step 3 — populate review summary
+    if (step === 3) populateReview();
+  }
+
+  document.getElementById('step1Next').addEventListener('click', function() { goToStep(2); });
+  document.getElementById('step2Back').addEventListener('click', function() { goToStep(1); });
+  document.getElementById('step2Next').addEventListener('click', function() { goToStep(3); });
+
+  /* ── Validation ─────────────────────────────── */
+  function validateStep(step) {
+    if (step === 1) {
+      if (!document.getElementById('campaignTitle').value.trim()) { focusAndError('campaignTitle'); return false; }
+      if (!document.getElementById('campaignCategory').value) { focusAndError('campaignCategory'); return false; }
+      if (!document.getElementById('campaignDesc').value.trim()) { focusAndError('campaignDesc'); return false; }
+      // Check custom date range
+      var dur = document.getElementById('campaignDuration').value;
+      if (dur === 'custom') {
+        if (!document.getElementById('startDate').value || !document.getElementById('endDate').value) {
+          kupToast('Please select start and end dates', 'warning');
+          return false;
+        }
+      }
+      return true;
+    }
+    if (step === 2) {
+      var selected = document.querySelectorAll('.offer-card.selected');
+      if (selected.length === 0) {
+        kupToast('Please select at least one reward type', 'warning');
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  function focusAndError(id) {
+    var el = document.getElementById(id);
+    el.focus();
+    el.style.borderColor = '#e74c3c';
+    kupToast('Please fill in all required fields', 'warning');
+    setTimeout(function() { el.style.borderColor = '#ddd'; }, 2000);
+  }
+
+  /* ── Character Counters ─────────────────────── */
+  document.getElementById('campaignTitle').addEventListener('input', function() {
+    var count = this.value.length;
+    var el = document.getElementById('titleCount');
+    el.textContent = count + ' / 50';
+    el.className = count >= 45 ? 'char-count warn' : 'char-count';
+
+    // Live preview update
+    document.getElementById('previewCampaignTitle').textContent = this.value || 'Your Campaign Title';
+  });
+
+  document.getElementById('campaignDesc').addEventListener('input', function() {
+    var count = this.value.length;
+    var el = document.getElementById('descCount');
+    el.textContent = count + ' / 200';
+    el.className = count >= 180 ? 'char-count warn' : 'char-count';
+  });
+
+  /* ── Duration → Preview ─────────────────────── */
+  document.getElementById('campaignDuration').addEventListener('change', function() {
+    var val = this.value;
+    var dateRow = document.getElementById('dateRangeRow');
+
+    if (val === 'custom') {
+      dateRow.classList.add('visible');
+      document.getElementById('previewDuration').textContent = 'Custom dates';
+    } else {
+      dateRow.classList.remove('visible');
+      document.getElementById('previewDuration').textContent = 'Ends in ' + val;
+    }
+  });
+
+  /* ── Category → Preview Badge ───────────────── */
+  document.getElementById('campaignCategory').addEventListener('change', function() {
+    var text = this.options[this.selectedIndex].text;
+    document.getElementById('previewBadge').textContent = text;
+  });
+
+  /* ── Offer Card Selection ───────────────────── */
+  document.querySelectorAll('.offer-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      // Don't toggle if clicking inside reward-detail inputs
+      if (e.target.closest('.reward-detail')) return;
+      this.classList.toggle('selected');
+      updateRewardPreview();
+    });
+  });
+
+  /* ── Cash Amount → Preview ──────────────────── */
+  document.getElementById('cashAmount').addEventListener('input', function() {
+    updateRewardPreview();
+  });
+
+  function updateRewardPreview() {
+    var cashCard = document.querySelector('.offer-card[data-offer="cash"]');
+    var pointsCard = document.querySelector('.offer-card[data-offer="points"]');
+    var productCard = document.querySelector('.offer-card[data-offer="product"]');
+
+    if (cashCard.classList.contains('selected')) {
+      var amount = document.getElementById('cashAmount').value || '0';
+      document.getElementById('previewReward').textContent = '+ $' + amount;
+    } else if (pointsCard.classList.contains('selected')) {
+      var pts = document.getElementById('pointsAmount').value || '0';
+      document.getElementById('previewReward').textContent = pts + ' pts';
+    } else if (productCard.classList.contains('selected')) {
+      document.getElementById('previewReward').textContent = 'Free Product';
+    } else {
+      document.getElementById('previewReward').textContent = '+ $0';
+    }
+  }
+
+  /* ── Image Upload ───────────────────────────── */
+  var uploadZone = document.getElementById('uploadZone');
+  var fileInput = document.getElementById('campaignImage');
+  var uploadPreview = document.getElementById('uploadPreview');
+  var uploadThumb = document.getElementById('uploadThumb');
+
+  uploadZone.addEventListener('click', function() { fileInput.click(); });
+
+  uploadZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+  });
+  uploadZone.addEventListener('dragleave', function() {
+    this.classList.remove('dragover');
+  });
+  uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      handleImageUpload(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', function() {
+    if (this.files.length) handleImageUpload(this.files[0]);
+  });
+
+  function handleImageUpload(file) {
+    if (file.size > 5 * 1024 * 1024) {
+      kupToast('Image must be under 5 MB', 'error');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedImageSrc = e.target.result;
+      uploadThumb.src = uploadedImageSrc;
+      uploadPreview.style.display = 'block';
+      uploadZone.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('removeImg').addEventListener('click', function() {
+    uploadedImageSrc = null;
+    uploadThumb.src = '';
+    uploadPreview.style.display = 'none';
+    uploadZone.style.display = 'block';
+    fileInput.value = '';
+  });
+
+  /* ── Populate Review (Step 3) ───────────────── */
+  function populateReview() {
+    var title = document.getElementById('campaignTitle').value || '—';
+    var category = document.getElementById('campaignCategory').value || '—';
+    var desc = document.getElementById('campaignDesc').value || '—';
+    var duration = document.getElementById('campaignDuration').value;
+    if (duration === 'custom') {
+      var start = document.getElementById('startDate').value;
+      var end = document.getElementById('endDate').value;
+      duration = (start && end) ? start + ' to ' + end : 'Custom';
+    }
+
+    // Determine reward text
+    var rewardParts = [];
+    if (document.querySelector('.offer-card[data-offer="cash"].selected')) {
+      rewardParts.push('$' + (document.getElementById('cashAmount').value || '0') + ' cash per review');
+    }
+    if (document.querySelector('.offer-card[data-offer="product"].selected')) {
+      var prodDesc = document.getElementById('productDesc').value;
+      rewardParts.push(prodDesc ? 'Product: ' + prodDesc : 'Free product');
+    }
+    if (document.querySelector('.offer-card[data-offer="points"].selected')) {
+      rewardParts.push((document.getElementById('pointsAmount').value || '0') + ' points per review');
+    }
+    var rewardText = rewardParts.length ? rewardParts.join(' + ') : '—';
+
+    var budget = document.getElementById('budgetCap').value;
+    var autoApprove = document.getElementById('autoApprove').checked ? 'Yes' : 'No';
+
+    // Update review summary
+    document.getElementById('revTitle').textContent = title;
+    document.getElementById('revCategory').textContent = category;
+    document.getElementById('revDesc').textContent = desc;
+    document.getElementById('revDuration').textContent = duration;
+    document.getElementById('revReward').textContent = rewardText;
+    document.getElementById('revBudget').textContent = budget ? '$' + budget : 'No limit';
+    document.getElementById('revAutoApprove').textContent = autoApprove;
+
+    // Image
+    if (uploadedImageSrc) {
+      document.getElementById('revImage').src = uploadedImageSrc;
+      document.getElementById('revImageRow').style.display = 'flex';
+    } else {
+      document.getElementById('revImageRow').style.display = 'none';
+    }
+
+    // Update inline review card (mobile)
+    document.getElementById('reviewTitle').textContent = title;
+    document.getElementById('reviewDuration').textContent = 'Ends in ' + document.getElementById('campaignDuration').value;
+    if (document.querySelector('.offer-card[data-offer="cash"].selected')) {
+      document.getElementById('reviewReward').textContent = '+ $' + (document.getElementById('cashAmount').value || '0');
+    }
+  }
+
+  /* ── Publish & Draft ────────────────────────── */
+  document.getElementById('publishBtn').addEventListener('click', function() {
+    if (!document.getElementById('termsCheck').checked) {
+      kupToast('Please accept the community guidelines', 'warning');
+      return;
+    }
+    var title = document.getElementById('campaignTitle').value;
+    kupToast('Campaign "' + title + '" published successfully!', 'success');
+    setTimeout(function() {
+      window.location.href = 'brand-campaign.html';
+    }, 2000);
+  });
+
+  document.getElementById('draftBtn').addEventListener('click', function() {
+    var title = document.getElementById('campaignTitle').value || 'Untitled';
+    kupToast('Campaign "' + title + '" saved as draft', 'info');
+    setTimeout(function() {
+      window.location.href = 'brand-campaign.html';
+    }, 2000);
+  });
+
+  /* ── Profile Dropdown ───────────────────────── */
+  document.getElementById('profileTrigger').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('profileDropdown').classList.toggle('show');
+  });
+  document.addEventListener('click', function() {
+    document.getElementById('profileDropdown').classList.remove('show');
+  });
+  </script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Manager — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}body{font-family:var(--kup-font);background:#1a1a2e;color:#fff;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}
+
+    /* Content Manager has its own dark header — different from main app */
+    .cm-header{background:#111;border-bottom:1px solid #333;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .cm-header-left{display:flex;align-items:center;gap:20px}
+    .cm-header-left img{height:28px}
+    .cm-header-left .title{font-size:.9rem;font-weight:700;color:var(--kup-blue)}
+    .cm-header-left .nav-link{font-size:.82rem;color:#888;cursor:pointer;padding:4px 12px;border-radius:var(--radius-sm)}.cm-header-left .nav-link:hover{color:#fff;background:rgba(255,255,255,.06)}
+    .cm-header-left .saved{font-size:.75rem;color:#4ade80;display:flex;align-items:center;gap:4px}
+    /* View Tabs */
+    .cm-view-tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.06); border-radius: 8px; padding: 3px; }
+    .cm-view-tab { padding: 6px 16px; border: none; background: none; color: #888; font-family: var(--kup-font); font-size: 0.78rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .cm-view-tab:hover { color: #fff; }
+    .cm-view-tab.active { background: var(--kup-blue); color: #fff; }
+    .cm-header-right{display:flex;align-items:center;gap:16px}
+    .cm-header-right .btn-cm{padding:6px 16px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;cursor:pointer;border:none;font-family:var(--kup-font)}
+    .btn-cm.approve{background:#16a34a;color:#fff}.btn-cm.approve:hover{background:#15803d}
+    .btn-cm.reject{background:#dc2626;color:#fff}.btn-cm.reject:hover{background:#b91c1c}
+    .btn-cm.postd{background:var(--kup-blue);color:#fff}.btn-cm.postd:hover{background:#258fc4}
+    .btn-cm.outline{background:transparent;color:#888;border:1px solid #444}.btn-cm.outline:hover{color:#fff;border-color:#888}
+
+    /* Content Manager Layout — Two columns */
+    .cm-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 56px);overflow:hidden}
+
+    /* Left: Content Preview */
+    .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:16px 60px;position:relative;overflow:hidden;height:100%}
+    .cm-preview .content-frame{width:auto;height:calc(100% - 50px);aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0}
+    .cm-preview .content-frame .play-btn{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
+    .cm-preview .content-frame .play-btn:hover{background:rgba(255,255,255,.25);transform:scale(1.05)}
+    .cm-preview .content-frame .play-btn svg{width:32px;height:32px;fill:#fff;margin-left:4px}
+
+    /* Navigation arrows */
+    .nav-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;transition:all .2s}
+    .nav-arrow:hover{background:rgba(255,255,255,.15)}
+    .nav-arrow svg{width:20px;height:20px;stroke:#fff}
+    .nav-arrow.prev{left:20px}
+    .nav-arrow.next{right:20px}
+
+    /* ============== EDITING TOOLBAR ============== */
+    .edit-toolbar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:2px;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border-radius:10px;padding:4px;z-index:10}
+    .edit-tool-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:none;border:none;color:rgba(255,255,255,0.7);font-family:var(--kup-font);font-size:0.78rem;font-weight:600;cursor:pointer;border-radius:8px;transition:all 0.15s}
+    .edit-tool-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}
+    .edit-tool-btn.active{color:#fff;background:var(--kup-blue)}
+    .edit-tool-btn svg{width:16px;height:16px}
+
+    /* Trim Panel */
+    .edit-trim-panel{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);width:80%;max-width:600px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border-radius:10px;padding:16px 20px;z-index:10}
+    .trim-timeline{position:relative;height:40px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:visible;margin-bottom:8px}
+    .trim-selection{position:absolute;top:0;left:10%;right:10%;height:100%;background:rgba(46,165,221,0.3);border-left:3px solid var(--kup-blue);border-right:3px solid var(--kup-blue)}
+    .trim-handle{position:absolute;top:-2px;width:14px;height:44px;background:var(--kup-blue);border-radius:3px;cursor:ew-resize;z-index:2}
+    .trim-handle.left{left:calc(10% - 7px)}
+    .trim-handle.right{right:calc(10% - 7px)}
+    .trim-handle::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:16px;background:rgba(255,255,255,0.7);border-radius:1px}
+    .trim-playhead{position:absolute;top:0;left:50%;width:2px;height:100%;background:#fff;z-index:3}
+    .trim-waveform{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-around;padding:0 4px;pointer-events:none}
+    .trim-waveform span{display:block;width:3px;background:rgba(255,255,255,0.2);border-radius:2px}
+    .trim-info{display:flex;justify-content:space-between;font-size:0.72rem;color:#888}
+    .trim-info span:nth-child(2){color:var(--kup-blue);font-weight:600}
+
+    /* Crop Panel */
+    .edit-crop-panel{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border-radius:10px;padding:6px 10px;z-index:10}
+    .crop-preset{padding:6px 14px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.6);font-family:var(--kup-font);font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+    .crop-preset:hover{color:#fff;border-color:rgba(255,255,255,0.3)}
+    .crop-preset.active{color:#fff;background:var(--kup-blue);border-color:var(--kup-blue)}
+
+    /* Crop overlay grid (rule of thirds) */
+    .crop-grid{position:absolute;inset:0;pointer-events:none;display:none}
+    .crop-grid.show{display:block}
+    .crop-grid::before,.crop-grid::after{content:'';position:absolute;background:rgba(255,255,255,0.15)}
+    .crop-grid::before{left:33.33%;top:0;width:1px;height:100%;box-shadow:calc(33.33vw) 0 0 0 rgba(255,255,255,0.15)}
+    .crop-grid-h{position:absolute;left:0;width:100%;height:1px;background:rgba(255,255,255,0.15)}
+    .crop-grid-h:first-child{top:33.33%}
+    .crop-grid-h:last-child{top:66.66%}
+
+    /* Text Panel */
+    .edit-text-panel{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border-radius:10px;padding:6px 12px;z-index:10}
+    .text-overlay-input{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 12px;color:#fff;font-family:var(--kup-font);font-size:0.82rem;width:220px;outline:none}
+    .text-overlay-input:focus{border-color:var(--kup-blue)}
+    .text-overlay-input::placeholder{color:rgba(255,255,255,0.3)}
+    .text-position-select{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#fff;font-family:var(--kup-font);font-size:0.78rem;outline:none;cursor:pointer}
+    .text-position-select option{background:#222;color:#fff}
+    .text-apply-btn{padding:8px 16px;background:var(--kup-blue);border:none;border-radius:6px;color:#fff;font-family:var(--kup-font);font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap}
+    .text-apply-btn:hover{background:#258fc4}
+
+    /* Text overlays on the content frame */
+    .text-overlay-item{position:absolute;left:0;right:0;padding:10px 16px;background:rgba(0,0,0,0.6);color:#fff;font-family:var(--kup-font);font-size:1rem;font-weight:700;text-align:center;cursor:move;display:flex;align-items:center;justify-content:center;gap:8px}
+    .text-overlay-item.pos-top{top:16px}
+    .text-overlay-item.pos-center{top:50%;transform:translateY(-50%)}
+    .text-overlay-item.pos-bottom{bottom:16px}
+    .text-overlay-remove{background:rgba(255,255,255,0.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .text-overlay-remove:hover{background:rgba(239,68,68,0.6)}
+
+    /* ============== LOGO PANEL ============== */
+    .edit-logo-panel { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); border-radius: 10px; padding: 10px 16px; z-index: 10; }
+    .logo-preview-thumb { width: 40px; height: 40px; background: var(--kup-gradient); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.65rem; color: #fff; }
+    .logo-controls { display: flex; align-items: center; gap: 12px; }
+    .logo-position-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+    .logo-pos { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.15); background: none; color: rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+    .logo-pos:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+    .logo-pos.active { background: var(--kup-blue); border-color: var(--kup-blue); color: #fff; }
+    .logo-slider-wrap { display: flex; align-items: center; gap: 6px; }
+    .logo-slider-wrap label { font-size: 0.72rem; color: #888; white-space: nowrap; }
+    .logo-slider { width: 80px; accent-color: var(--kup-blue); }
+    .logo-apply-btn { padding: 6px 14px; background: var(--kup-blue); border: none; border-radius: 6px; color: #fff; font-family: var(--kup-font); font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .logo-apply-btn:hover { background: #258fc4; }
+
+    /* Logo Overlay on Content Frame */
+    .logo-overlay-item { position: absolute; z-index: 5; pointer-events: none; }
+    .logo-overlay-item.pos-top-left { top: 12px; left: 12px; }
+    .logo-overlay-item.pos-top-right { top: 12px; right: 12px; }
+    .logo-overlay-item.pos-bottom-left { bottom: 12px; left: 12px; }
+    .logo-overlay-item.pos-bottom-right { bottom: 12px; right: 12px; }
+    .logo-overlay-item .logo-mark { background: rgba(255,255,255,0.9); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--kup-font); color: #1a1a2e; padding: 4px 8px; }
+
+    /* Right: Details Panel */
+    .cm-details{background:#111;border-left:1px solid #333;display:flex;flex-direction:column;height:100%;overflow:hidden}
+    .cm-details h4{font-size:1rem;font-weight:700;margin:0 0 14px}
+    .cm-details-scroll{flex:1;overflow-y:auto;padding:20px 24px}
+    .cm-details-footer{flex-shrink:0;padding:16px 24px;border-top:1px solid rgba(255,255,255,0.08);background:#111}
+
+    /* Influencer info */
+    .cm-influencer{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:var(--radius-md);margin-bottom:14px}
+    .cm-influencer .avatar{width:48px;height:48px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+    .cm-influencer .info .name{font-weight:600;font-size:.9rem}.cm-influencer .info .tier{font-size:.75rem;color:#888}
+
+    /* Detail rows */
+    .detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.85rem}
+    .detail-row .label{color:#888}.detail-row .value{font-weight:600}
+
+    /* Status badge */
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;font-size:.75rem;font-weight:600}
+    .status-badge.pending{background:rgba(255,243,205,.15);color:#fbbf24}
+    .status-badge.approved{background:rgba(74,222,128,.15);color:#4ade80}
+    .status-badge.rejected{background:rgba(248,113,113,.15);color:#f87171}
+    .status-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+    /* Send Feedback button */
+    .cm-feedback-action { margin-top: 16px; }
+    .btn-cm-feedback {
+      width: 100%;
+      padding: 11px 20px;
+      background: rgba(237, 132, 68, 0.08);
+      border: 1px solid rgba(237, 132, 68, 0.3);
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #ED8444;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-cm-feedback:hover {
+      background: rgba(237, 132, 68, 0.15);
+      border-color: #ED8444;
+    }
+    .btn-cm-feedback svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ============== FEEDBACK MODAL ============== */
+    .feedback-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .feedback-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .feedback-user-name { font-weight: 700; font-size: 0.92rem; color: #1a1a1a; }
+    .feedback-user-handle { font-size: 0.78rem; color: #888; }
+
+    /* Content reference card */
+    .feedback-content-ref {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+    .feedback-content-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--kup-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .feedback-content-info { flex: 1; }
+    .feedback-content-title { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; }
+    .feedback-content-campaign {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+      margin-top: 4px;
+    }
+
+    /* Feedback form */
+    .feedback-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .feedback-field { display: flex; flex-direction: column; gap: 6px; }
+    .feedback-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .feedback-field select,
+    .feedback-field input[type="text"],
+    .feedback-field textarea {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .feedback-field select:focus,
+    .feedback-field input[type="text"]:focus,
+    .feedback-field textarea:focus {
+      outline: none;
+      border-color: var(--kup-orange);
+    }
+    .feedback-field textarea { resize: vertical; min-height: 90px; }
+    .feedback-field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+    /* Feedback footer */
+    .feedback-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .feedback-preview-text {
+      font-size: 0.75rem;
+      color: #999;
+      flex: 1;
+    }
+    .btn-send-feedback {
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-orange);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-send-feedback:hover { background: #d97438; }
+
+    /* Feedback modal overlay (reuse KUP modal pattern) */
+    .kup-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+
+    /* Action buttons */
+    .cm-actions{display:flex;flex-direction:column;gap:10px;margin-top:0;padding-top:0}
+    .cm-actions .btn-action{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;transition:all .2s}
+    .btn-action.approve{background:#16a34a;color:#fff}.btn-action.approve:hover{background:#15803d}
+    .btn-action.reject{background:rgba(220,38,38,.15);color:#f87171;border:1px solid rgba(220,38,38,.3)}.btn-action.reject:hover{background:rgba(220,38,38,.25)}
+    .btn-action.postd{background:var(--kup-blue);color:#fff}.btn-action.postd:hover{background:#258fc4}
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: rgba(255,255,255,0.08); }
+    .notif-btn svg { width: 22px; height: 22px; stroke: #ccc; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid #111; }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; color: #1a1a1a; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: #2EA5DD; font-weight: 600; cursor: pointer; }
+    .notif-tabs-row { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab-btn { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .notif-tab-btn.active { color: #2EA5DD; border-bottom-color: #2EA5DD; }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: #2EA5DD; }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: #ED8444; }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: 6px; border: none; background: none; transition: background 0.2s; }
+    .profile-trigger:hover { background: rgba(255,255,255,0.06); }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #fff; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: #2EA5DD; }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid #2EA5DD; }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: #2EA5DD; }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ============== CONTENT TYPE ICON / TEXT ============== */
+    .content-type-icon { font-size: 3rem; color: rgba(255,255,255,0.6); }
+    .content-type-text { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-top: 8px; }
+    .content-frame { position:relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transition:aspect-ratio 0.3s ease; }
+
+    /* ============== COUNTDOWN BAR ============== */
+    .cm-countdown { margin: 16px 0; }
+    .countdown-bar { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+    .countdown-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; }
+    .countdown-fill.safe { background: #22c55e; }
+    .countdown-fill.warning { background: #f59e0b; }
+    .countdown-fill.critical { background: #ef4444; }
+    .countdown-text { font-size: 0.72rem; color: #888; margin-top: 4px; display: block; }
+    .countdown-text.warning { color: #f59e0b; }
+    .countdown-text.critical { color: #ef4444; font-weight: 600; }
+
+    /* ============== DECISION RECORDED ============== */
+    .cm-decision-recorded { display: flex; align-items: center; gap: 10px; padding: 16px; background: #f8fdf9; border: 1px solid #d1e7dd; border-radius: 6px; margin-top: 16px; }
+    .cm-decision-recorded.rejected { background: #fef8f8; border-color: #f8d7da; }
+    .cm-decision-recorded .decision-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .cm-decision-recorded .decision-icon.approved { background: rgba(34,197,94,0.1); color: #22c55e; }
+    .cm-decision-recorded .decision-icon.rejected-icon { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .cm-decision-recorded .decision-text { font-size: 0.85rem; font-weight: 600; color: #444; }
+    .cm-decision-recorded .undo-link { font-size: 0.78rem; color: #2EA5DD; font-weight: 600; cursor: pointer; margin-left: auto; background: none; border: none; font-family: 'Montserrat', sans-serif; }
+    .cm-decision-recorded .undo-link:hover { text-decoration: underline; }
+
+    /* ============== CAMPAIGN TAG ============== */
+    .cm-campaign { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; background: rgba(46,165,221,0.08); color: #2EA5DD; margin-bottom: 8px; }
+
+    /* ============== NAV ARROW STATES ============== */
+    .nav-arrow:disabled, .nav-arrow.disabled { opacity: 0.2; pointer-events: none; cursor: default; }
+
+    /* ============== PARTNERSHIP RATING MODAL ============== */
+    .rating-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:2000; align-items:center; justify-content:center; }
+    .rating-modal-overlay.show { display:flex; }
+    .rating-modal { background:#fff; border-radius:12px; width:90%; max-width:520px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; animation:ratingSlideIn 0.3s ease; }
+    @keyframes ratingSlideIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .rating-modal-close { position:absolute; top:16px; right:16px; width:32px; height:32px; border:none; background:#f0f0f0; border-radius:50%; font-size:1.2rem; color:#666; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; z-index:1; }
+    .rating-modal-close:hover { background:#e0e0e0; color:#333; }
+    .rating-modal-header { text-align:center; padding:28px 28px 0; position:relative; }
+    .rating-success-icon { width:56px; height:56px; border-radius:50%; background:rgba(34,197,94,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; }
+    .rating-success-icon svg { width:28px; height:28px; color:#22c55e; }
+    .rating-modal-header h3 { font-size:1.15rem; font-weight:700; margin:0 0 4px; color:#1a1a1a; }
+    .rating-modal-header p { font-size:0.82rem; color:#888; margin:0; }
+    .rating-modal-body { padding:20px 28px; }
+    .rating-influencer-info { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#f8f9fa; border-radius:8px; margin-bottom:20px; }
+    .rating-inf-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+    .rating-inf-name { font-weight:600; font-size:0.88rem; color:#1a1a1a; }
+    .rating-inf-handle { font-size:0.75rem; color:#888; }
+    .rating-criteria-list { display:flex; flex-direction:column; gap:16px; }
+    .rating-criteria-row { display:flex; align-items:center; justify-content:space-between; }
+    .rating-criteria-label .label-text { font-size:0.85rem; font-weight:600; color:#1a1a1a; }
+    .rating-criteria-label .label-desc { font-size:0.72rem; color:#999; margin-top:1px; }
+    .rating-stars { display:flex; gap:4px; }
+    .rating-star { width:32px; height:32px; border:none; background:none; cursor:pointer; padding:2px; border-radius:4px; transition:transform 0.15s; }
+    .rating-star:hover { transform:scale(1.15); }
+    .rating-star svg { width:28px; height:28px; }
+    .rating-star .star-empty { fill:#e0e0e0; stroke:#ccc; stroke-width:1; }
+    .rating-star .star-filled { fill:#f59e0b; stroke:#f59e0b; stroke-width:1; }
+    .rating-star .star-hover { fill:#fbbf24; stroke:#fbbf24; stroke-width:1; }
+    .rating-feedback-wrap { margin-top:20px; }
+    .rating-feedback-wrap label { font-size:0.82rem; font-weight:600; color:#444; display:block; margin-bottom:6px; }
+    .rating-feedback-wrap textarea { width:100%; padding:10px 14px; border:2px solid #eee; border-radius:8px; font-family:'Montserrat',sans-serif; font-size:0.82rem; resize:none; max-height:70px; outline:none; transition:border-color 0.2s; }
+    .rating-feedback-wrap textarea:focus { border-color:#2EA5DD; }
+    .rating-feedback-wrap .char-count { text-align:right; font-size:0.68rem; color:#bbb; margin-top:4px; }
+    .rating-modal-footer { padding:0 28px 24px; display:flex; gap:12px; }
+    .btn-rating-submit { flex:1; padding:12px; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; transition:all 0.2s; background:#ED8444; color:#fff; }
+    .btn-rating-submit:disabled { opacity:0.4; cursor:not-allowed; }
+    .btn-rating-submit:not(:disabled):hover { background:#d97535; }
+    .btn-rating-skip { padding:12px 24px; border:2px solid #eee; border-radius:8px; background:none; font-family:'Montserrat',sans-serif; font-weight:600; font-size:0.85rem; color:#888; cursor:pointer; transition:all 0.2s; }
+    .btn-rating-skip:hover { border-color:#ccc; color:#555; }
+    .rating-submitted-state { padding:48px 28px; text-align:center; display:none; }
+    .rating-submitted-state .check-circle { width:64px; height:64px; border-radius:50%; background:rgba(34,197,94,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+    .rating-submitted-state .check-circle svg { width:32px; height:32px; color:#22c55e; }
+    .rating-submitted-state h3 { font-size:1.2rem; font-weight:700; margin:0 0 8px; }
+    .rating-submitted-state p { font-size:0.85rem; color:#888; margin:0 0 24px; }
+    .btn-rating-done { padding:12px 32px; background:#2EA5DD; color:#fff; border:none; border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; }
+    .btn-rating-done:hover { background:#2590c4; }
+
+    /* ============== CONTENT LIBRARY ============== */
+    .cm-library { height: calc(100vh - 56px); overflow-y: auto; padding: 24px 32px; background: #0d0d1a; }
+    .library-filters { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .library-filter-group { display: flex; gap: 4px; background: rgba(255,255,255,0.06); border-radius: 8px; padding: 3px; }
+    .library-filter { padding: 6px 14px; border: none; background: none; color: #888; font-family: var(--kup-font); font-size: 0.78rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .library-filter:hover { color: #fff; }
+    .library-filter.active { background: rgba(255,255,255,0.12); color: #fff; }
+    .library-campaign-filter { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px 12px; color: #fff; font-family: var(--kup-font); font-size: 0.78rem; }
+    .library-campaign-filter option { background: #1a1a2e; color: #fff; }
+    .library-count { font-size: 0.78rem; color: #666; margin-left: auto; }
+    .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .library-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; transition: all 0.2s; }
+    .library-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .library-card-thumb { aspect-ratio: 9/16; max-height: 220px; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .library-type-icon { font-size: 2.5rem; color: rgba(255,255,255,0.4); }
+    .library-type-badge { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: 50px; font-size: 0.68rem; font-weight: 600; background: rgba(0,0,0,0.6); color: rgba(255,255,255,0.8); }
+    .library-card-info { padding: 14px; }
+    .library-card-influencer { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .library-card-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
+    .library-card-name { font-weight: 600; font-size: 0.82rem; }
+    .library-card-campaign { font-size: 0.7rem; color: #888; }
+    .library-card-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: #666; margin-bottom: 12px; }
+    .library-card-actions { display: flex; gap: 8px; }
+    .library-open-btn { flex: 1; padding: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #fff; font-family: var(--kup-font); font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .library-open-btn:hover { background: rgba(255,255,255,0.1); }
+    .library-download-btn { flex: 1; padding: 8px; background: var(--kup-blue); border: none; border-radius: 6px; color: #fff; font-family: var(--kup-font); font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .library-download-btn:hover { background: #258fc4; }
+
+    /* ============== DOWNLOAD MODAL ============== */
+    .download-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:2000; align-items:center; justify-content:center; }
+    .download-modal-overlay.show { display:flex; }
+    .download-modal { background:#fff; border-radius:12px; width:90%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; animation:ratingSlideIn 0.3s ease; position:relative; }
+    .download-modal-close { position:absolute; top:16px; right:16px; width:32px; height:32px; border:none; background:#f0f0f0; border-radius:50%; font-size:1.2rem; color:#666; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; z-index:1; }
+    .download-modal-close:hover { background:#e0e0e0; color:#333; }
+    .download-modal-header { text-align:center; padding:28px 28px 0; }
+    .download-modal-header h3 { font-size:1.15rem; font-weight:700; margin:0 0 4px; color:#1a1a1a; }
+    .download-modal-header p { font-size:0.82rem; color:#888; margin:0; }
+    .download-modal-body { padding:20px 28px; }
+    .download-content-info { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#f8f9fa; border-radius:8px; margin-bottom:20px; }
+    .download-content-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+    .download-content-name { font-weight:600; font-size:0.88rem; color:#1a1a1a; }
+    .download-content-type { font-size:0.75rem; color:#888; }
+    .download-format-section { margin-bottom:20px; }
+    .download-label { font-size:0.82rem; font-weight:600; color:#444; display:block; margin-bottom:8px; }
+    .download-format-options { display:flex; gap:6px; flex-wrap:wrap; }
+    .download-format { padding:8px 16px; border:2px solid #eee; border-radius:50px; background:none; font-family:var(--kup-font); font-size:0.78rem; font-weight:600; color:#666; cursor:pointer; transition:all 0.15s; }
+    .download-format:hover { border-color:#ccc; color:#333; }
+    .download-format.active { border-color:var(--kup-blue); background:rgba(46,165,221,0.08); color:var(--kup-blue); }
+    .download-signature-section { margin-bottom:0; }
+    .download-signature-info { background:#f8f9fa; border:1px solid #eee; border-radius:8px; padding:14px 16px; font-family:'Courier New',monospace; margin-bottom:10px; }
+    .sig-row { display:flex; justify-content:space-between; padding:4px 0; font-size:0.78rem; }
+    .sig-key { color:#888; }
+    .sig-value { font-weight:600; color:#1a1a1a; }
+    .sig-note { font-size:0.72rem; color:#999; line-height:1.5; }
+    .download-modal-footer { padding:0 28px 24px; }
+    .btn-download-action { width:100%; padding:14px; border:none; border-radius:8px; font-family:var(--kup-font); font-weight:700; font-size:0.88rem; cursor:pointer; background:var(--kup-blue); color:#fff; transition:all 0.2s; }
+    .btn-download-action:hover { background:#258fc4; }
+
+    /* ============== MOBILE RESPONSIVE ============== */
+    @media(max-width:768px){
+      /* Header compact */
+      .cm-header { padding: 0 12px; height: 48px; }
+      .cm-header-left .title { display: none; }
+      .cm-header-left .saved { display: none; }
+      .cm-header-left .nav-link { display: none; }
+      .cm-header-left img { height: 22px; }
+      .cm-header-right > span { display: none; }
+      .cm-header-right .btn-cm.outline { padding: 6px 12px; font-size: 0.78rem; }
+      .profile-info { display: none !important; }
+      .cm-view-tabs { gap: 2px; }
+      .cm-view-tab { padding: 5px 10px; font-size: 0.7rem; }
+
+      /* Layout: single column, preview fills viewport */
+      .cm-layout { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 48px); position: relative; }
+      .cm-preview { height: calc(100vh - 48px - 140px); min-height: 300px; padding: 12px 20px; }
+      .content-frame { max-height: 100%; }
+
+      /* Edit toolbar compact */
+      .edit-toolbar { gap: 0; padding: 3px; }
+      .edit-tool-btn { padding: 8px 10px; font-size: 0.7rem; gap: 4px; }
+      .edit-trim-panel { width: 92%; bottom: 60px; }
+      .edit-crop-panel { flex-wrap: wrap; gap: 4px; }
+      .edit-text-panel { flex-direction: column; gap: 6px; width: 90%; }
+      .text-overlay-input { width: 100%; }
+      .edit-logo-panel { flex-direction: column; gap: 8px; width: 90%; }
+
+      /* Nav arrows smaller */
+      .nav-arrow { width: 36px; height: 36px; }
+      .nav-arrow.prev { left: 8px; }
+      .nav-arrow.next { right: 8px; }
+      .nav-arrow svg { width: 16px; height: 16px; }
+
+      /* Details panel → slide-up bottom sheet */
+      .cm-details {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        max-height: 85vh;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #444;
+        border-radius: 16px 16px 0 0;
+        transform: translateY(calc(100% - 140px));
+        transition: transform 0.3s ease;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
+      }
+      .cm-details.expanded {
+        transform: translateY(0);
+      }
+
+      /* Pull handle for slide-up */
+      .cm-details::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: #555;
+        border-radius: 2px;
+        margin: 10px auto 6px;
+        flex-shrink: 0;
+        cursor: grab;
+      }
+
+      /* Footer always visible (actions strip) */
+      .cm-details-footer {
+        order: -1;
+        border-top: none;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding: 8px 16px;
+      }
+      .cm-actions { flex-direction: row; gap: 8px; }
+      .cm-actions .btn-action { padding: 10px; font-size: 0.82rem; }
+
+      /* Scroll area */
+      .cm-details-scroll { padding: 12px 16px; }
+      .cm-details h4 { font-size: 0.9rem; }
+      .cm-influencer { padding: 10px; margin-bottom: 10px; }
+      .cm-message textarea { min-height: 50px; }
+
+      /* Adjust preview height when sheet is collapsed */
+      .cm-preview { height: calc(100vh - 48px - 140px); }
+
+      /* Library grid on mobile */
+      .cm-library { padding: 16px; }
+      .library-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+      .library-filters { gap: 8px; }
+      .library-card-thumb { max-height: 160px; }
+    }
+    @media(max-width:480px){
+      .cm-preview { padding: 8px 12px; }
+      .edit-tool-btn span { display: none; }
+      .library-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .library-card-info { padding: 10px; }
+      .cm-actions .btn-action { font-size: 0.75rem; padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- CONTENT MANAGER HEADER (different from main app nav) -->
+  <header class="cm-header">
+    <div class="cm-header-left">
+      <a href="activity.html"><img src="/images/kup_WHT_new_logo.png" alt="KeepUsPostd"></a>
+      <span class="title">Content Manager</span>
+      <div class="cm-view-tabs">
+        <button class="cm-view-tab active" data-view="review" onclick="switchView('review')">Review Queue</button>
+        <button class="cm-view-tab" data-view="library" onclick="switchView('library')">Content Library</button>
+      </div>
+      <a class="nav-link" href="content.html">Home</a>
+      <span class="saved">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        All changes saved
+      </span>
+    </div>
+    <div class="cm-header-right">
+      <span style="font-size:.82rem;color:#888">Reviewing 3 of 24 items</span>
+      <div class="notif-wrap">
+        <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+        <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+          <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+          <div class="notif-tabs-row"><button class="notif-tab-btn active" data-tab="all">All</button><button class="notif-tab-btn" data-tab="unread">Unread</button></div>
+          <ul class="notif-list" id="notifList">
+            <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+            <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+            <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+          </ul>
+        </div>
+      </div>
+      <div class="profile-menu">
+        <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+          <div class="profile-avatar">ST</div>
+          <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <a href="manage-brands.html">Manage Brands</a>
+          <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+          <a href="pricing-upgrade.html">Pricing</a>
+          <a href="owner-account.html">Owners Account</a>
+          <div class="divider"></div>
+          <a href="help-center.html">Help Center</a>
+          <div class="divider"></div>
+          <a href="/pages/login.html" class="logout">Log Out</a>
+        </div>
+      </div>
+      <button class="btn-cm outline" onclick="window.location='content.html'">Exit</button>
+    </div>
+  </header>
+
+  <!-- CONTENT MANAGER LAYOUT -->
+  <div class="cm-layout" id="cmLayout">
+    <!-- LEFT: Content Preview -->
+    <div class="cm-preview">
+      <button class="nav-arrow prev" id="prevBtn" aria-label="Previous content" onclick="navigatePrev()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="content-frame">
+        <div class="content-type-icon" id="previewIcon"><i class="ph ph-play"></i></div>
+        <div class="content-type-text" id="previewTypeLabel">VIDEO</div>
+        <div class="crop-grid" id="cropGrid">
+          <div class="crop-grid-h" style="top:33.33%"></div>
+          <div class="crop-grid-h" style="top:66.66%"></div>
+        </div>
+      </div>
+      <!-- Editing Toolbar -->
+      <div class="edit-toolbar" id="editToolbar">
+        <button class="edit-tool-btn" id="trimBtn" onclick="toggleTool('trim')" title="Trim video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+          Trim
+        </button>
+        <button class="edit-tool-btn" id="cropBtn" onclick="toggleTool('crop')" title="Crop & reframe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg>
+          Crop
+        </button>
+        <button class="edit-tool-btn" id="textBtn" onclick="toggleTool('text')" title="Add text overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          Text
+        </button>
+        <button class="edit-tool-btn" id="logoBtn" onclick="toggleTool('logo')" title="Add logo watermark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Logo
+        </button>
+      </div>
+
+      <!-- Trim Panel -->
+      <div class="edit-trim-panel" id="trimPanel" style="display:none;">
+        <div class="trim-timeline" id="trimTimeline">
+          <div class="trim-selection" id="trimSelection"></div>
+          <div class="trim-handle left" id="trimHandleLeft"></div>
+          <div class="trim-handle right" id="trimHandleRight"></div>
+          <div class="trim-playhead" id="trimPlayhead"></div>
+          <div class="trim-waveform" id="trimWaveform"></div>
+        </div>
+        <div class="trim-info">
+          <span id="trimStart">0:00</span>
+          <span id="trimDuration">Duration: 0:45</span>
+          <span id="trimEnd">0:45</span>
+        </div>
+      </div>
+
+      <!-- Crop Panel -->
+      <div class="edit-crop-panel" id="cropPanel" style="display:none;">
+        <button class="crop-preset active" data-ratio="9:16" onclick="setCropRatio(this,'9/16')">9:16 Story</button>
+        <button class="crop-preset" data-ratio="1:1" onclick="setCropRatio(this,'1/1')">1:1 Feed</button>
+        <button class="crop-preset" data-ratio="4:5" onclick="setCropRatio(this,'4/5')">4:5 Portrait</button>
+        <button class="crop-preset" data-ratio="16:9" onclick="setCropRatio(this,'16/9')">16:9 Landscape</button>
+      </div>
+
+      <!-- Text Overlay Panel -->
+      <div class="edit-text-panel" id="textPanel" style="display:none;">
+        <input type="text" class="text-overlay-input" id="textOverlayInput" placeholder="Add text overlay...">
+        <select class="text-position-select" id="textPosition">
+          <option value="top">Top</option>
+          <option value="center">Center</option>
+          <option value="bottom" selected>Bottom</option>
+        </select>
+        <button class="text-apply-btn" id="textApplyBtn" onclick="applyTextOverlay()">Apply</button>
+      </div>
+
+      <!-- Logo Watermark Panel -->
+      <div class="edit-logo-panel" id="logoPanel" style="display:none;">
+        <div class="logo-preview-wrap">
+          <div class="logo-preview-thumb" id="logoPreviewThumb">LOGO</div>
+        </div>
+        <div class="logo-controls">
+          <div class="logo-position-grid">
+            <button class="logo-pos active" data-pos="top-left" onclick="setLogoPosition(this,'top-left')" title="Top Left">&#9700;</button>
+            <button class="logo-pos" data-pos="top-right" onclick="setLogoPosition(this,'top-right')" title="Top Right">&#9701;</button>
+            <button class="logo-pos" data-pos="bottom-left" onclick="setLogoPosition(this,'bottom-left')" title="Bottom Left">&#9703;</button>
+            <button class="logo-pos" data-pos="bottom-right" onclick="setLogoPosition(this,'bottom-right')" title="Bottom Right">&#9702;</button>
+          </div>
+          <div class="logo-slider-wrap">
+            <label>Opacity</label>
+            <input type="range" class="logo-slider" id="logoOpacity" min="20" max="100" value="70" oninput="updateLogoOverlay()">
+            <span id="logoOpacityVal">70%</span>
+          </div>
+          <div class="logo-slider-wrap">
+            <label>Size</label>
+            <input type="range" class="logo-slider" id="logoSize" min="30" max="120" value="60" oninput="updateLogoOverlay()">
+          </div>
+        </div>
+        <button class="logo-apply-btn" onclick="applyLogoOverlay()">Apply Logo</button>
+      </div>
+
+      <button class="nav-arrow next" id="nextBtn" aria-label="Next content" onclick="navigateNext()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- RIGHT: Details Panel -->
+    <div class="cm-details">
+      <div class="cm-details-scroll">
+        <h4>Content Details</h4>
+
+        <div class="cm-influencer">
+          <div class="avatar" id="cmAvatar">JD</div>
+          <div class="info">
+            <div class="name" id="cmInfluencer">@jessicadavis</div>
+            <div class="tier" id="cmTier">Micro Influencer</div>
+          </div>
+        </div>
+
+        <div id="cmCampaignWrap"><span class="cm-campaign" id="cmCampaign">Summer Promo</span></div>
+
+        <div class="detail-row"><span class="label">Type</span><span class="value" id="cmType">Video</span></div>
+        <div class="detail-row"><span class="label">Submitted</span><span class="value" id="cmDate">2 hours ago</span></div>
+        <div class="detail-row" id="cmDurationRow"><span class="label">Duration</span><span class="value" id="cmDuration">0:45</span></div>
+        <div class="detail-row"><span class="label">File Size</span><span class="value" id="cmFileSize">12.4 MB</span></div>
+        <div class="detail-row">
+          <span class="label">Status</span>
+          <span class="status-badge pending" id="cmStatusBadge"><span class="dot"></span><span id="cmStatusText">Pending Review</span></span>
+        </div>
+
+        <!-- Countdown Bar (pending only) -->
+        <div class="cm-countdown" id="cmCountdown">
+          <div class="countdown-bar"><div class="countdown-fill safe" id="cmCountdownFill" style="width:80%"></div></div>
+          <span class="countdown-text" id="cmCountdownText">8 of 10 days remaining</span>
+        </div>
+
+        <!-- Send Feedback -->
+        <div class="cm-feedback-action">
+          <button class="btn-cm-feedback" id="cmFeedbackBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+            Send Feedback
+          </button>
+        </div>
+      </div>
+
+      <div class="cm-details-footer">
+        <!-- Action Buttons (pending only) -->
+        <p style="font-size:.68rem;color:#999;line-height:1.4;margin-bottom:10px;">Approving grants you a license to use this content per KeepUsPostd's <a href="terms.html" target="_blank" style="color:#2EA5DD;font-weight:600;text-decoration:none;">Terms</a>. Ensure FTC disclosure is included.</p>
+        <div class="cm-actions" id="cmActions">
+          <button class="btn-action approve" onclick="approveContent()"><i class="ph ph-check"></i> Approve Content</button>
+          <button class="btn-action reject" onclick="rejectContent()"><i class="ph ph-x"></i> Reject Content</button>
+        </div>
+
+        <!-- Decision Recorded (hidden by default, shown after action) -->
+        <div class="cm-decision-recorded" id="cmDecision" style="display:none;">
+          <span class="decision-icon approved" id="cmDecisionIcon"><i class="ph ph-check"></i></span>
+          <span class="decision-text" id="cmDecisionText">Content Approved</span>
+          <button class="undo-link" onclick="undoDecision()">Undo</button>
+        </div>
+
+        <!-- Download for Posting (approved only) -->
+        <button class="btn-action postd" id="cmDownloadBtn" onclick="openDownloadModal()" style="display:none;"><i class="ph ph-download-simple"></i> Download for Posting</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== FEEDBACK MODAL ============== -->
+  <div class="kup-modal-overlay" id="cmFeedbackModal" role="dialog" aria-modal="true" aria-labelledby="cmFeedbackName">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="cmFeedbackModalClose" aria-label="Close">&times;</button>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Feedback</h3>
+      <div class="feedback-header">
+        <div class="feedback-avatar" id="cmFeedbackAvatar">JD</div>
+        <div>
+          <div class="feedback-user-name" id="cmFeedbackName">Jessica Davis</div>
+          <div class="feedback-user-handle" id="cmFeedbackHandle">@jessicadavis</div>
+        </div>
+      </div>
+      <!-- Content reference card -->
+      <div class="feedback-content-ref">
+        <div class="feedback-content-icon" id="cmFeedbackContentIcon"><i class="ph ph-play"></i></div>
+        <div class="feedback-content-info">
+          <div class="feedback-content-title" id="cmFeedbackContentTitle">Video Submission</div>
+          <span class="feedback-content-campaign" id="cmFeedbackContentCampaign">Summer Promo</span>
+        </div>
+      </div>
+      <div class="feedback-form">
+        <div class="feedback-field">
+          <label for="cmFeedbackType">Feedback Type</label>
+          <select id="cmFeedbackType">
+            <option value="" disabled selected>Select feedback type...</option>
+            <option value="revision-needed">Revision Needed</option>
+            <option value="guideline-reminder">Guideline Reminder</option>
+            <option value="great-work">Great Work</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="feedback-field">
+          <label for="cmFeedbackBody">Feedback</label>
+          <textarea id="cmFeedbackBody" rows="4" placeholder="What feedback do you have on this content?"></textarea>
+        </div>
+        <div class="feedback-field">
+          <label for="cmFeedbackInstructions">Specific Instructions (optional)</label>
+          <textarea id="cmFeedbackInstructions" rows="2" placeholder="What should they change or improve?"></textarea>
+        </div>
+      </div>
+      <div class="feedback-footer">
+        <span class="feedback-preview-text">Influencer will receive this as a content feedback notification</span>
+        <button class="btn-send-feedback" id="cmBtnSendFeedback">Send Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== CONTENT LIBRARY VIEW ============== -->
+  <div class="cm-library" id="cmLibrary" style="display:none;">
+    <div class="library-filters">
+      <div class="library-filter-group">
+        <button class="library-filter active" data-filter="all" onclick="filterLibrary('all')">All Content</button>
+        <button class="library-filter" data-filter="video" onclick="filterLibrary('video')">Videos</button>
+        <button class="library-filter" data-filter="image" onclick="filterLibrary('image')">Images</button>
+      </div>
+      <div class="library-filter-group">
+        <select class="library-campaign-filter" id="libraryCampaignFilter" onchange="filterLibrary()">
+          <option value="all">All Campaigns</option>
+          <option value="Summer Promo">Summer Promo</option>
+          <option value="Brand Launch">Brand Launch</option>
+          <option value="General">General</option>
+        </select>
+      </div>
+      <span class="library-count" id="libraryCount">0 items</span>
+    </div>
+    <div class="library-grid" id="libraryGrid"></div>
+  </div>
+
+  <!-- ============== PARTNERSHIP RATING MODAL ============== -->
+  <div class="rating-modal-overlay" id="ratingModalOverlay">
+    <div class="rating-modal">
+      <button class="rating-modal-close" id="ratingModalClose" aria-label="Close">&times;</button>
+      <div class="rating-form-state" id="ratingFormState">
+        <div class="rating-modal-header">
+          <div class="rating-success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3>Content Approved!</h3>
+          <p>How was your experience working with this influencer?</p>
+        </div>
+        <div class="rating-modal-body">
+          <div class="rating-influencer-info">
+            <div class="rating-inf-avatar" id="ratingAvatar">JD</div>
+            <div>
+              <div class="rating-inf-name" id="ratingName">Jessica Davis</div>
+              <div class="rating-inf-handle" id="ratingHandle">@jessicadavis</div>
+            </div>
+          </div>
+          <div class="rating-criteria-list">
+            <div class="rating-criteria-row" data-criteria="content-quality">
+              <div class="rating-criteria-label"><div class="label-text">Content Quality</div><div class="label-desc">Creativity, production value, on-brand</div></div>
+              <div class="rating-stars" data-criteria="content-quality">
+                <button class="rating-star" data-value="1" aria-label="1 star"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="2" aria-label="2 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="3" aria-label="3 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="4" aria-label="4 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="5" aria-label="5 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              </div>
+            </div>
+            <div class="rating-criteria-row" data-criteria="timeliness">
+              <div class="rating-criteria-label"><div class="label-text">Timeliness</div><div class="label-desc">Met deadlines, delivered on time</div></div>
+              <div class="rating-stars" data-criteria="timeliness">
+                <button class="rating-star" data-value="1" aria-label="1 star"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="2" aria-label="2 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="3" aria-label="3 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="4" aria-label="4 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="5" aria-label="5 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              </div>
+            </div>
+            <div class="rating-criteria-row" data-criteria="communication">
+              <div class="rating-criteria-label"><div class="label-text">Communication</div><div class="label-desc">Responsive, professional, easy to work with</div></div>
+              <div class="rating-stars" data-criteria="communication">
+                <button class="rating-star" data-value="1" aria-label="1 star"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="2" aria-label="2 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="3" aria-label="3 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="4" aria-label="4 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="5" aria-label="5 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              </div>
+            </div>
+            <div class="rating-criteria-row" data-criteria="brief-compliance">
+              <div class="rating-criteria-label"><div class="label-text">Brief Compliance</div><div class="label-desc">Followed campaign brief and guidelines</div></div>
+              <div class="rating-stars" data-criteria="brief-compliance">
+                <button class="rating-star" data-value="1" aria-label="1 star"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="2" aria-label="2 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="3" aria-label="3 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="4" aria-label="4 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button class="rating-star" data-value="5" aria-label="5 stars"><svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="rating-feedback-wrap">
+            <label for="ratingFeedback">Additional feedback <span style="color:#bbb;font-weight:400">(optional)</span></label>
+            <textarea id="ratingFeedback" placeholder="Share any additional thoughts about this partnership..." maxlength="300"></textarea>
+            <div class="char-count"><span id="ratingCharCount">0</span> / 300</div>
+          </div>
+        </div>
+        <div class="rating-modal-footer">
+          <button class="btn-rating-submit" id="ratingSubmitBtn" disabled>Submit Rating</button>
+          <button class="btn-rating-skip" id="ratingSkipBtn">Skip</button>
+        </div>
+      </div>
+      <div class="rating-submitted-state" id="ratingSubmittedState">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>Rating Submitted!</h3>
+        <p>Your feedback helps build trust across the KeepUsPostd platform.</p>
+        <button class="btn-rating-done" id="ratingDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== DOWNLOAD FOR POSTING MODAL ============== -->
+  <div class="download-modal-overlay" id="downloadModalOverlay">
+    <div class="download-modal">
+      <button class="download-modal-close" onclick="closeDownloadModal()">&times;</button>
+      <div class="download-modal-header">
+        <h3>Download for Posting</h3>
+        <p>Content will include embedded KeepUsPostd Content Signature</p>
+      </div>
+      <div class="download-modal-body">
+        <div class="download-content-info">
+          <div class="download-content-avatar" id="dlAvatar">MK</div>
+          <div>
+            <div class="download-content-name" id="dlInfluencer">@marcusking</div>
+            <div class="download-content-type" id="dlType">Image &middot; 3.2 MB</div>
+          </div>
+        </div>
+        <div class="download-format-section">
+          <label class="download-label">Format</label>
+          <div class="download-format-options">
+            <button class="download-format active" data-format="original" onclick="selectDownloadFormat(this)">Original</button>
+            <button class="download-format" data-format="instagram" onclick="selectDownloadFormat(this)">Instagram</button>
+            <button class="download-format" data-format="tiktok" onclick="selectDownloadFormat(this)">TikTok</button>
+            <button class="download-format" data-format="facebook" onclick="selectDownloadFormat(this)">Facebook</button>
+          </div>
+        </div>
+        <div class="download-signature-section">
+          <label class="download-label">KeepUsPostd Content Signature</label>
+          <div class="download-signature-info">
+            <div class="sig-row"><span class="sig-key">Content ID</span><span class="sig-value" id="dlKupId">KP-2026-00847</span></div>
+            <div class="sig-row"><span class="sig-key">Influencer</span><span class="sig-value" id="dlSigInfluencer">@marcusking</span></div>
+            <div class="sig-row"><span class="sig-key">Campaign</span><span class="sig-value" id="dlSigCampaign">General</span></div>
+            <div class="sig-row"><span class="sig-key">Approved</span><span class="sig-value" id="dlSigDate">Mar 5, 2026</span></div>
+          </div>
+          <div class="sig-note">This metadata is embedded in the file and enables post-distribution tracking across all platforms.</div>
+        </div>
+      </div>
+      <div class="download-modal-footer">
+        <button class="btn-download-action" onclick="executeDownload()"><i class="ph ph-download-simple"></i> Download with Content Signature</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kup-toast-container" id="toastContainer"></div>
+  <script>
+    // ========== Content Data ==========
+    // Platform Config Reference: KUP_PLATFORM.CONTENT_RULES.AUTO_APPROVE_DAYS = 10
+    var contentItems = [
+      { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: '0:45', fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '' },
+      { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)' },
+      { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: '1:12', fileSize: '18.7 MB', status: 'pending', daysRemaining: 5, avatarStyle: '' },
+      { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '' },
+      { id: 4, type: 'Video', icon: '\u25B6', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: '0:33', fileSize: '9.8 MB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)' }
+    ];
+
+    var AUTO_APPROVE_DAYS = 10;
+    var params = new URLSearchParams(window.location.search);
+    var currentIndex = parseInt(params.get('id')) || 0;
+
+    // ========== Load Content ==========
+    function loadContent(index) {
+      if (index < 0 || index >= contentItems.length) return;
+      var item = contentItems[index];
+
+      // Preview
+      document.getElementById('previewIcon').innerHTML = item.icon;
+      document.getElementById('previewTypeLabel').textContent = item.type.toUpperCase();
+
+      // Influencer
+      document.getElementById('cmAvatar').textContent = item.initials;
+      if (item.avatarStyle) { document.getElementById('cmAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('cmAvatar').removeAttribute('style'); }
+      document.getElementById('cmInfluencer').textContent = item.influencer;
+      document.getElementById('cmTier').textContent = item.tier;
+
+      // Campaign
+      document.getElementById('cmCampaign').textContent = item.campaign;
+
+      // Details
+      document.getElementById('cmType').textContent = item.type;
+      document.getElementById('cmDate').textContent = item.date;
+      document.getElementById('cmFileSize').textContent = item.fileSize;
+
+      // Duration row
+      var durationRow = document.getElementById('cmDurationRow');
+      if (item.duration) { durationRow.style.display = ''; document.getElementById('cmDuration').textContent = item.duration; } else { durationRow.style.display = 'none'; }
+
+      // Status badge
+      var badge = document.getElementById('cmStatusBadge');
+      badge.className = 'status-badge ' + item.status;
+      var statusLabels = { pending: 'Pending Review', approved: 'Approved', rejected: 'Rejected' };
+      document.getElementById('cmStatusText').textContent = statusLabels[item.status] || item.status;
+
+      // Countdown
+      var countdown = document.getElementById('cmCountdown');
+      if (item.status === 'pending' && item.daysRemaining !== null) {
+        countdown.style.display = '';
+        var pct = (item.daysRemaining / AUTO_APPROVE_DAYS) * 100;
+        var fill = document.getElementById('cmCountdownFill');
+        fill.style.width = pct + '%';
+        fill.className = 'countdown-fill ' + (item.daysRemaining >= 7 ? 'safe' : item.daysRemaining >= 4 ? 'warning' : 'critical');
+        var text = document.getElementById('cmCountdownText');
+        text.textContent = item.daysRemaining + ' of ' + AUTO_APPROVE_DAYS + ' days remaining';
+        text.className = 'countdown-text ' + (item.daysRemaining >= 7 ? '' : item.daysRemaining >= 4 ? 'warning' : 'critical');
+      } else {
+        countdown.style.display = 'none';
+      }
+
+      // Actions vs Decision
+      var actions = document.getElementById('cmActions');
+      var decision = document.getElementById('cmDecision');
+      var downloadBtn = document.getElementById('cmDownloadBtn');
+      if (item.status === 'pending') {
+        actions.style.display = '';
+        decision.style.display = 'none';
+        downloadBtn.style.display = 'none';
+      } else {
+        actions.style.display = 'none';
+        decision.style.display = 'flex';
+        downloadBtn.style.display = item.status === 'approved' ? '' : 'none';
+        if (item.status === 'approved') {
+          decision.className = 'cm-decision-recorded';
+          document.getElementById('cmDecisionIcon').className = 'decision-icon approved';
+          document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-check"></i>';
+          document.getElementById('cmDecisionText').textContent = 'Content Approved';
+        } else if (item.status === 'rejected') {
+          decision.className = 'cm-decision-recorded rejected';
+          document.getElementById('cmDecisionIcon').className = 'decision-icon rejected-icon';
+          document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-x"></i>';
+          document.getElementById('cmDecisionText').textContent = 'Content Rejected';
+        }
+      }
+
+      // Nav arrows
+      document.getElementById('prevBtn').disabled = (index <= 0);
+      document.getElementById('nextBtn').disabled = (index >= contentItems.length - 1);
+
+      // Header counter
+      var pendingCount = contentItems.filter(function(c) { return c.status === 'pending'; }).length;
+      var counterEl = document.querySelector('.cm-header-right span');
+      if (counterEl) counterEl.textContent = 'Reviewing ' + (index + 1) + ' of ' + contentItems.length + ' items \u00B7 ' + pendingCount + ' pending';
+
+      // Update URL without reload
+      var newUrl = window.location.pathname + '?id=' + index;
+      window.history.replaceState(null, '', newUrl);
+
+      resetEditTools();
+    }
+
+    // ========== Navigation ==========
+    function navigatePrev() {
+      if (currentIndex > 0) { currentIndex--; loadContent(currentIndex); }
+    }
+    function navigateNext() {
+      if (currentIndex < contentItems.length - 1) { currentIndex++; loadContent(currentIndex); }
+    }
+
+    // ========== Approve / Reject ==========
+    function approveContent() {
+      contentItems[currentIndex].status = 'approved';
+      contentItems[currentIndex].daysRemaining = null;
+      loadContent(currentIndex);
+      kupToast('Content approved!', 'success');
+      setTimeout(function() { openRatingModal(contentItems[currentIndex].influencer); }, 800);
+    }
+
+    function rejectContent() {
+      contentItems[currentIndex].status = 'rejected';
+      contentItems[currentIndex].daysRemaining = null;
+      loadContent(currentIndex);
+      kupToast('Content rejected', 'error');
+    }
+
+    function undoDecision() {
+      contentItems[currentIndex].status = 'pending';
+      contentItems[currentIndex].daysRemaining = 5; // restore a default
+      loadContent(currentIndex);
+      kupToast('Decision undone', 'info');
+    }
+
+    // ========== Feedback Modal ==========
+    document.getElementById('cmFeedbackBtn').addEventListener('click', function() {
+      var item = contentItems[currentIndex];
+      // Populate header
+      document.getElementById('cmFeedbackAvatar').textContent = item.initials;
+      document.getElementById('cmFeedbackName').textContent = item.name;
+      document.getElementById('cmFeedbackHandle').textContent = item.influencer;
+      // Populate content reference
+      var iconEl = document.getElementById('cmFeedbackContentIcon');
+      iconEl.innerHTML = item.type === 'Video' ? '<i class="ph ph-play"></i>' : '<i class="ph ph-image"></i>';
+      document.getElementById('cmFeedbackContentTitle').textContent = item.type + ' Submission';
+      document.getElementById('cmFeedbackContentCampaign').textContent = item.campaign;
+      // Reset form
+      resetCmFeedbackForm();
+      // Open modal
+      document.getElementById('cmFeedbackModal').classList.add('show');
+    });
+
+    document.getElementById('cmFeedbackModalClose').addEventListener('click', function() {
+      document.getElementById('cmFeedbackModal').classList.remove('show');
+    });
+
+    document.getElementById('cmBtnSendFeedback').addEventListener('click', function() {
+      var type = document.getElementById('cmFeedbackType').value;
+      var body = document.getElementById('cmFeedbackBody').value.trim();
+      if (!type) {
+        kupToast('Please select a feedback type', 'error');
+        return;
+      }
+      if (!body) {
+        kupToast('Please enter your feedback', 'error');
+        return;
+      }
+      var name = document.getElementById('cmFeedbackName').textContent;
+      kupToast('Feedback sent to ' + name, 'success');
+      document.getElementById('cmFeedbackModal').classList.remove('show');
+    });
+
+    // Close feedback modal on overlay click
+    document.getElementById('cmFeedbackModal').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+
+    function resetCmFeedbackForm() {
+      document.getElementById('cmFeedbackType').selectedIndex = 0;
+      document.getElementById('cmFeedbackBody').value = '';
+      document.getElementById('cmFeedbackInstructions').value = '';
+    }
+
+    // ========== Toast ==========
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'\u2713', error:'\u2717', info:'\u2139', warning:'\u26A0' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    // ========== Rating Modal ==========
+    var ratingState = { 'content-quality': 0, 'timeliness': 0, 'communication': 0, 'brief-compliance': 0 };
+
+    function openRatingModal(influencerHandle) {
+      // Reset state
+      ratingState = { 'content-quality': 0, 'timeliness': 0, 'communication': 0, 'brief-compliance': 0 };
+      document.getElementById('ratingFeedback').value = '';
+      document.getElementById('ratingCharCount').textContent = '0';
+      document.getElementById('ratingFormState').style.display = '';
+      document.getElementById('ratingSubmittedState').style.display = 'none';
+      document.getElementById('ratingSubmitBtn').disabled = true;
+
+      // Find influencer data
+      var item = contentItems[currentIndex];
+      document.getElementById('ratingAvatar').textContent = item.initials;
+      document.getElementById('ratingName').textContent = item.name;
+      document.getElementById('ratingHandle').textContent = item.influencer;
+
+      // Reset all stars
+      document.querySelectorAll('.rating-star svg polygon').forEach(function(p) { p.className.baseVal = 'star-empty'; });
+
+      document.getElementById('ratingModalOverlay').classList.add('show');
+    }
+
+    function closeRatingModal() {
+      document.getElementById('ratingModalOverlay').classList.remove('show');
+    }
+
+    function updateStarsUI(criteriaKey, value) {
+      var stars = document.querySelector('.rating-stars[data-criteria="' + criteriaKey + '"]');
+      if (!stars) return;
+      stars.querySelectorAll('.rating-star').forEach(function(star) {
+        var v = parseInt(star.getAttribute('data-value'));
+        star.querySelector('polygon').className.baseVal = v <= value ? 'star-filled' : 'star-empty';
+      });
+    }
+
+    function checkSubmitEnabled() {
+      var allRated = Object.keys(ratingState).every(function(k) { return ratingState[k] > 0; });
+      document.getElementById('ratingSubmitBtn').disabled = !allRated;
+    }
+
+    // Star interactions
+    document.addEventListener('click', function(e) {
+      var star = e.target.closest('.rating-star');
+      if (!star) return;
+      var row = star.closest('.rating-criteria-row') || star.closest('.rating-stars');
+      var criteria = (row && row.getAttribute('data-criteria')) || star.closest('.rating-stars').getAttribute('data-criteria');
+      var value = parseInt(star.getAttribute('data-value'));
+      ratingState[criteria] = value;
+      updateStarsUI(criteria, value);
+      checkSubmitEnabled();
+    });
+
+    document.querySelectorAll('.rating-star').forEach(function(star) {
+      star.addEventListener('mouseenter', function() {
+        var starsWrap = this.closest('.rating-stars');
+        var hoverVal = parseInt(this.getAttribute('data-value'));
+        starsWrap.querySelectorAll('.rating-star').forEach(function(s) {
+          var v = parseInt(s.getAttribute('data-value'));
+          s.querySelector('polygon').className.baseVal = v <= hoverVal ? 'star-hover' : 'star-empty';
+        });
+      });
+    });
+
+    document.querySelectorAll('.rating-stars').forEach(function(wrap) {
+      wrap.addEventListener('mouseleave', function() {
+        var criteria = this.getAttribute('data-criteria');
+        var saved = ratingState[criteria] || 0;
+        this.querySelectorAll('.rating-star').forEach(function(s) {
+          var v = parseInt(s.getAttribute('data-value'));
+          s.querySelector('polygon').className.baseVal = v <= saved ? 'star-filled' : 'star-empty';
+        });
+      });
+    });
+
+    // Feedback char count
+    document.getElementById('ratingFeedback').addEventListener('input', function() {
+      document.getElementById('ratingCharCount').textContent = this.value.length;
+    });
+
+    // Submit rating
+    document.getElementById('ratingSubmitBtn').addEventListener('click', function() {
+      document.getElementById('ratingFormState').style.display = 'none';
+      document.getElementById('ratingSubmittedState').style.display = '';
+    });
+
+    // Skip / Done / Close
+    document.getElementById('ratingSkipBtn').addEventListener('click', closeRatingModal);
+    document.getElementById('ratingDoneBtn').addEventListener('click', closeRatingModal);
+    document.getElementById('ratingModalClose').addEventListener('click', closeRatingModal);
+    document.getElementById('ratingModalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeRatingModal();
+    });
+
+    // ========== Notification Popover ==========
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab-btn').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab-btn').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    // ========== Profile Dropdown ==========
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { closeAllPopovers(); closeRatingModal(); closeDownloadModal(); document.getElementById('cmFeedbackModal').classList.remove('show'); }
+    });
+
+    // ========== Editing Tools ==========
+    var activeTool = null;
+
+    function toggleTool(tool) {
+      var panels = { trim: 'trimPanel', crop: 'cropPanel', text: 'textPanel', logo: 'logoPanel' };
+      var btns = { trim: 'trimBtn', crop: 'cropBtn', text: 'textBtn', logo: 'logoBtn' };
+
+      // If same tool, deactivate
+      if (activeTool === tool) {
+        document.getElementById(panels[tool]).style.display = 'none';
+        document.getElementById(btns[tool]).classList.remove('active');
+        if (tool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); resetCropRatio(); }
+        activeTool = null;
+        return;
+      }
+
+      // Deactivate current tool
+      if (activeTool) {
+        document.getElementById(panels[activeTool]).style.display = 'none';
+        document.getElementById(btns[activeTool]).classList.remove('active');
+        if (activeTool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); resetCropRatio(); }
+      }
+
+      // Activate new tool
+      document.getElementById(panels[tool]).style.display = '';
+      document.getElementById(btns[tool]).classList.add('active');
+      if (tool === 'crop') document.getElementById('cropGrid').classList.add('show');
+      if (tool === 'trim') initTrimPanel();
+      activeTool = tool;
+    }
+
+    function resetEditTools() {
+      if (activeTool) {
+        var panels = { trim: 'trimPanel', crop: 'cropPanel', text: 'textPanel', logo: 'logoPanel' };
+        var btns = { trim: 'trimBtn', crop: 'cropBtn', text: 'textBtn', logo: 'logoBtn' };
+        document.getElementById(panels[activeTool]).style.display = 'none';
+        document.getElementById(btns[activeTool]).classList.remove('active');
+        if (activeTool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); }
+        activeTool = null;
+      }
+      resetCropRatio();
+      clearTextOverlays();
+      clearLogoOverlay();
+      // Update trim button visibility (only for video)
+      var item = contentItems[currentIndex];
+      var trimBtn = document.getElementById('trimBtn');
+      if (item && item.type === 'Video') { trimBtn.style.display = ''; } else { trimBtn.style.display = 'none'; }
+    }
+
+    // ---- TRIM ----
+    function initTrimPanel() {
+      var item = contentItems[currentIndex];
+      if (!item || !item.duration) return;
+      document.getElementById('trimStart').textContent = '0:00';
+      document.getElementById('trimEnd').textContent = item.duration;
+      document.getElementById('trimDuration').textContent = 'Duration: ' + item.duration;
+
+      // Generate waveform bars
+      var waveform = document.getElementById('trimWaveform');
+      waveform.innerHTML = '';
+      for (var i = 0; i < 60; i++) {
+        var bar = document.createElement('span');
+        var h = Math.floor(Math.random() * 24) + 6;
+        bar.style.height = h + 'px';
+        waveform.appendChild(bar);
+      }
+
+      // Reset handle positions
+      document.getElementById('trimHandleLeft').style.left = 'calc(10% - 7px)';
+      document.getElementById('trimHandleRight').style.right = 'calc(10% - 7px)';
+      document.getElementById('trimSelection').style.left = '10%';
+      document.getElementById('trimSelection').style.right = '10%';
+    }
+
+    // Trim handle dragging
+    (function() {
+      var dragging = null;
+      var timeline = null;
+
+      function onMouseDown(e) {
+        if (e.target.classList.contains('trim-handle')) {
+          dragging = e.target;
+          timeline = document.getElementById('trimTimeline');
+          e.preventDefault();
+        }
+      }
+      function onMouseMove(e) {
+        if (!dragging || !timeline) return;
+        var rect = timeline.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        var sel = document.getElementById('trimSelection');
+        var item = contentItems[currentIndex];
+        if (!item) return;
+
+        // Parse duration to seconds
+        var parts = (item.duration || '0:00').split(':');
+        var totalSec = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+
+        if (dragging.classList.contains('left')) {
+          var rightPct = 100 - parseFloat(sel.style.right || '10');
+          if (pct >= rightPct - 5) pct = rightPct - 5;
+          dragging.style.left = 'calc(' + pct + '% - 7px)';
+          sel.style.left = pct + '%';
+          var startSec = Math.round(totalSec * pct / 100);
+          document.getElementById('trimStart').textContent = formatTime(startSec);
+          var endSec = Math.round(totalSec * rightPct / 100);
+          document.getElementById('trimDuration').textContent = 'Duration: ' + formatTime(endSec - startSec);
+        } else {
+          var leftPct = parseFloat(sel.style.left || '10');
+          if (pct <= leftPct + 5) pct = leftPct + 5;
+          dragging.style.right = 'calc(' + (100 - pct) + '% - 7px)';
+          sel.style.right = (100 - pct) + '%';
+          var endSec2 = Math.round(totalSec * pct / 100);
+          document.getElementById('trimEnd').textContent = formatTime(endSec2);
+          var startSec2 = Math.round(totalSec * leftPct / 100);
+          document.getElementById('trimDuration').textContent = 'Duration: ' + formatTime(endSec2 - startSec2);
+        }
+      }
+      function onMouseUp() { dragging = null; timeline = null; }
+
+      document.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    })();
+
+    function formatTime(sec) {
+      if (sec < 0) sec = 0;
+      var m = Math.floor(sec / 60);
+      var s = sec % 60;
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // ---- CROP ----
+    var originalAspectRatio = '9/16';
+
+    function setCropRatio(btn, ratio) {
+      document.querySelectorAll('.crop-preset').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.querySelector('.content-frame').style.aspectRatio = ratio;
+    }
+
+    function resetCropRatio() {
+      document.querySelector('.content-frame').style.aspectRatio = originalAspectRatio;
+      document.querySelectorAll('.crop-preset').forEach(function(b) { b.classList.remove('active'); });
+      var defaultBtn = document.querySelector('.crop-preset[data-ratio="9:16"]');
+      if (defaultBtn) defaultBtn.classList.add('active');
+    }
+
+    // ---- TEXT OVERLAY ----
+    var textOverlayCount = 0;
+
+    function applyTextOverlay() {
+      var input = document.getElementById('textOverlayInput');
+      var text = input.value.trim();
+      if (!text) return;
+
+      var position = document.getElementById('textPosition').value;
+      var frame = document.querySelector('.content-frame');
+
+      var overlay = document.createElement('div');
+      overlay.className = 'text-overlay-item pos-' + position;
+      overlay.innerHTML = '<span>' + text + '</span><button class="text-overlay-remove" onclick="this.parentElement.remove()" title="Remove">&times;</button>';
+      textOverlayCount++;
+      frame.appendChild(overlay);
+
+      input.value = '';
+      kupToast('Text overlay added', 'info');
+    }
+
+    function clearTextOverlays() {
+      document.querySelectorAll('.text-overlay-item').forEach(function(el) { el.remove(); });
+      textOverlayCount = 0;
+    }
+
+    // Enter key applies text
+    document.addEventListener('DOMContentLoaded', function() {
+      var textInput = document.getElementById('textOverlayInput');
+      if (textInput) {
+        textInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); applyTextOverlay(); }
+        });
+      }
+    });
+
+    // ---- LOGO WATERMARK ----
+    var logoState = { position: 'top-left', opacity: 70, size: 60 };
+
+    function setLogoPosition(btn, pos) {
+      document.querySelectorAll('.logo-pos').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      logoState.position = pos;
+      updateLogoOverlay();
+    }
+
+    function updateLogoOverlay() {
+      logoState.opacity = parseInt(document.getElementById('logoOpacity').value);
+      logoState.size = parseInt(document.getElementById('logoSize').value);
+      document.getElementById('logoOpacityVal').textContent = logoState.opacity + '%';
+      var existing = document.querySelector('.logo-overlay-item');
+      if (existing) {
+        existing.style.opacity = logoState.opacity / 100;
+        existing.querySelector('.logo-mark').style.fontSize = (logoState.size / 60 * 0.7) + 'rem';
+        existing.className = 'logo-overlay-item pos-' + logoState.position;
+      }
+    }
+
+    function applyLogoOverlay() {
+      var old = document.querySelector('.logo-overlay-item');
+      if (old) old.remove();
+      var frame = document.querySelector('.content-frame');
+      var overlay = document.createElement('div');
+      overlay.className = 'logo-overlay-item pos-' + logoState.position;
+      overlay.style.opacity = logoState.opacity / 100;
+      overlay.innerHTML = '<div class="logo-mark" style="font-size:' + (logoState.size / 60 * 0.7) + 'rem">LOGO</div>';
+      frame.appendChild(overlay);
+      kupToast('Logo watermark applied', 'info');
+    }
+
+    function clearLogoOverlay() {
+      var logo = document.querySelector('.logo-overlay-item');
+      if (logo) logo.remove();
+    }
+
+    // ========== Content Library View ==========
+    function switchView(view) {
+      document.querySelectorAll('.cm-view-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-view') === view); });
+      document.getElementById('cmLayout').style.display = view === 'review' ? '' : 'none';
+      document.getElementById('cmLibrary').style.display = view === 'library' ? '' : 'none';
+      if (view === 'library') renderLibrary();
+    }
+
+    function renderLibrary() {
+      var grid = document.getElementById('libraryGrid');
+      grid.innerHTML = '';
+      var approvedItems = contentItems.filter(function(item) { return item.status === 'approved'; });
+
+      var typeFilter = document.querySelector('.library-filter.active');
+      var typeVal = typeFilter ? typeFilter.getAttribute('data-filter') : 'all';
+      var campaignVal = document.getElementById('libraryCampaignFilter').value;
+
+      var filtered = approvedItems.filter(function(item) {
+        if (typeVal !== 'all' && item.type.toLowerCase() !== typeVal) return false;
+        if (campaignVal !== 'all' && item.campaign !== campaignVal) return false;
+        return true;
+      });
+
+      document.getElementById('libraryCount').textContent = filtered.length + ' item' + (filtered.length !== 1 ? 's' : '');
+
+      filtered.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = 'library-card';
+        card.setAttribute('data-id', item.id);
+        card.setAttribute('data-type', item.type.toLowerCase());
+        card.setAttribute('data-campaign', item.campaign);
+        var typeIcon = item.type === 'Video' ? '<i class="ph ph-play"></i>' : '<i class="ph ph-image"></i>';
+        var avatarStyle = item.avatarStyle ? ' style="' + item.avatarStyle + '"' : '';
+        card.innerHTML =
+          '<div class="library-card-thumb">' +
+            '<span class="library-type-icon">' + typeIcon + '</span>' +
+            '<span class="library-type-badge">' + item.type + '</span>' +
+          '</div>' +
+          '<div class="library-card-info">' +
+            '<div class="library-card-influencer">' +
+              '<div class="library-card-avatar"' + avatarStyle + '>' + item.initials + '</div>' +
+              '<div>' +
+                '<div class="library-card-name">' + item.influencer + '</div>' +
+                '<div class="library-card-campaign">' + item.campaign + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="library-card-meta">' +
+              '<span>' + item.fileSize + '</span>' +
+              '<span>Approved ' + item.date + '</span>' +
+            '</div>' +
+            '<div class="library-card-actions">' +
+              '<button class="library-open-btn" onclick="openInWorkspace(' + item.id + ')">Open</button>' +
+              '<button class="library-download-btn" onclick="downloadContent(' + item.id + ')"><i class="ph ph-download-simple"></i> Download</button>' +
+            '</div>' +
+          '</div>';
+        grid.appendChild(card);
+      });
+    }
+
+    function filterLibrary(type) {
+      if (type) {
+        document.querySelectorAll('.library-filter').forEach(function(f) { f.classList.toggle('active', f.getAttribute('data-filter') === type); });
+      }
+      renderLibrary();
+    }
+
+    function openInWorkspace(id) {
+      currentIndex = id;
+      switchView('review');
+      loadContent(currentIndex);
+    }
+
+    function downloadContent(id) {
+      openDownloadModal(id);
+    }
+
+    // ========== Download Modal ==========
+    function openDownloadModal(itemId) {
+      var id = itemId !== undefined ? itemId : currentIndex;
+      var item = contentItems[id];
+      if (!item) return;
+
+      // Populate modal
+      document.getElementById('dlAvatar').textContent = item.initials;
+      if (item.avatarStyle) { document.getElementById('dlAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('dlAvatar').style.background = ''; }
+      document.getElementById('dlInfluencer').textContent = item.influencer;
+      document.getElementById('dlType').textContent = item.type + ' \u00B7 ' + item.fileSize;
+
+      // Generate KUP ID
+      var kupNum = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+      document.getElementById('dlKupId').textContent = 'KP-2026-' + kupNum;
+      document.getElementById('dlSigInfluencer').textContent = item.influencer;
+      document.getElementById('dlSigCampaign').textContent = item.campaign;
+      document.getElementById('dlSigDate').textContent = 'Mar 5, 2026';
+
+      // Reset format selection
+      document.querySelectorAll('.download-format').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelector('.download-format[data-format="original"]').classList.add('active');
+
+      document.getElementById('downloadModalOverlay').classList.add('show');
+    }
+
+    function closeDownloadModal() {
+      document.getElementById('downloadModalOverlay').classList.remove('show');
+    }
+
+    function selectDownloadFormat(btn) {
+      document.querySelectorAll('.download-format').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    function executeDownload() {
+      closeDownloadModal();
+      kupToast('Content downloaded with Content Signature', 'success');
+    }
+
+    // Download modal overlay click to close
+    document.getElementById('downloadModalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeDownloadModal();
+    });
+
+    // ========== Keyboard Navigation ==========
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('ratingModalOverlay').classList.contains('show')) return;
+      if (document.getElementById('downloadModalOverlay').classList.contains('show')) return;
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT')) return;
+      if (e.key === 'ArrowLeft') navigatePrev();
+      if (e.key === 'ArrowRight') navigateNext();
+    });
+
+    // ========== Mobile Slide-Up Panel ==========
+    (function() {
+      var details = document.querySelector('.cm-details');
+      if (!details) return;
+      var startY = 0, currentY = 0, isDragging = false;
+
+      details.addEventListener('touchstart', function(e) {
+        // Only start drag from the pull handle area (top 40px)
+        var rect = details.getBoundingClientRect();
+        var touchY = e.touches[0].clientY - rect.top;
+        if (touchY > 40) return;
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        details.style.transition = 'none';
+      });
+
+      details.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        e.preventDefault();
+      }, { passive: false });
+
+      details.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        details.style.transition = '';
+        var diff = startY - currentY;
+        if (diff > 50) {
+          details.classList.add('expanded');
+        } else if (diff < -50) {
+          details.classList.remove('expanded');
+        }
+      });
+
+      // Tap pull handle to toggle
+      details.addEventListener('click', function(e) {
+        var rect = details.getBoundingClientRect();
+        var clickY = e.clientY - rect.top;
+        if (clickY <= 30) {
+          details.classList.toggle('expanded');
+        }
+      });
+    })();
+
+    // ========== Init ==========
+    loadContent(currentIndex);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

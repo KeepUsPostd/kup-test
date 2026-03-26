@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash Transactions — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       BRAND VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange:    #ED8444;
+      --kup-blue:      #2EA5DD;
+      --kup-black:     #000;
+      --kup-body-bg:   #F5F6FA;
+      --kup-gradient:  linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:     #FFF;
+      --kup-font:      'Montserrat', sans-serif;
+      --radius-sm:     6px;
+      --radius-md:     12px;
+    }
+
+    /* =============================================
+       RESET & BASE
+       ============================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; transition: all 0.2s ease; }
+    img { max-width: 100%; height: auto; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #E8E8E8;
+      padding: 0;
+    }
+
+    .auth-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+    }
+
+    .auth-logo img {
+      height: 32px;
+    }
+
+    .auth-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .auth-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--kup-white);
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .auth-user-info {
+      line-height: 1.2;
+    }
+
+    .auth-user-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #1a1a1a;
+    }
+
+    .auth-user-brand {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .auth-tab {
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .auth-tab:hover {
+      color: #555;
+    }
+
+    .auth-tab.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       PAGE HEADER
+       ============================================= */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 8px;
+    }
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+
+    /* =============================================
+       DATE FILTER
+       ============================================= */
+    .date-filter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .date-filter label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .date-filter input[type="date"] {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-family: var(--kup-font);
+      border: 2px solid #E8E8E8;
+      border-radius: var(--radius-sm);
+      outline: none;
+      color: #1a1a1a;
+      background: var(--kup-white);
+      transition: border-color 0.2s ease;
+    }
+
+    .date-filter input[type="date"]:focus {
+      border-color: var(--kup-blue);
+    }
+
+    .btn-filter {
+      padding: 8px 20px;
+      background: var(--kup-blue);
+      color: var(--kup-white);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-filter:hover {
+      background: #1a8cc0;
+    }
+
+    /* =============================================
+       CARDS
+       ============================================= */
+    .card-kup {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #E8E8E8;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .card-kup-body {
+      padding: 28px;
+    }
+
+    /* Info Cards */
+    .info-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .info-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .info-card-icon.plan {
+      background: rgba(46, 165, 221, 0.1);
+    }
+
+    .info-card-icon.rates {
+      background: rgba(237, 132, 68, 0.1);
+    }
+
+    .info-card-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .info-card-content {
+      flex: 1;
+    }
+
+    .info-card-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .info-card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+    }
+
+    .info-card-price {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .info-card-price strong {
+      font-weight: 700;
+      color: var(--kup-blue);
+    }
+
+    .btn-card-action {
+      display: inline-block;
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--kup-font);
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-card-action.upgrade {
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+    }
+
+    .btn-card-action.upgrade:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(46, 165, 221, 0.3);
+    }
+
+    .btn-card-action.view-rates {
+      background: rgba(237, 132, 68, 0.1);
+      color: var(--kup-orange);
+    }
+
+    .btn-card-action.view-rates:hover {
+      background: rgba(237, 132, 68, 0.18);
+    }
+
+    /* =============================================
+       TRANSACTION TABLE
+       ============================================= */
+    .table-card {
+      margin-top: 24px;
+    }
+
+    .table-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      border-bottom: 1px solid #EFEFEF;
+    }
+
+    .table-card-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .table-card-header .tx-count {
+      font-size: 0.8rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .tx-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tx-table thead th {
+      padding: 14px 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #888;
+      border-bottom: 1px solid #EFEFEF;
+      text-align: left;
+      background: #FAFBFC;
+    }
+
+    .tx-table thead th:last-child {
+      text-align: center;
+    }
+
+    .tx-table thead th:nth-child(4) {
+      text-align: right;
+    }
+
+    .tx-table tbody tr {
+      transition: background 0.15s ease;
+    }
+
+    .tx-table tbody tr:hover {
+      background: #F8F9FB;
+    }
+
+    .tx-table tbody td {
+      padding: 16px 20px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #F2F2F2;
+      vertical-align: middle;
+    }
+
+    .tx-table tbody td:nth-child(4) {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .tx-table tbody td:last-child {
+      text-align: center;
+    }
+
+    .tx-date-cell {
+      color: #555;
+      font-weight: 500;
+    }
+
+    .tx-desc-cell {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .tx-influencer-cell {
+      color: var(--kup-blue);
+      font-weight: 500;
+    }
+
+    .tx-amount-cell {
+      font-weight: 700;
+    }
+
+    .tx-amount-cell.negative {
+      color: #e74c3c;
+    }
+
+    .tx-amount-cell.positive {
+      color: #27ae60;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .status-badge.completed {
+      background: rgba(39, 174, 96, 0.1);
+      color: #27ae60;
+    }
+
+    .status-badge.pending {
+      background: rgba(243, 156, 18, 0.1);
+      color: #f39c12;
+    }
+
+    .status-badge.failed {
+      background: rgba(231, 76, 60, 0.1);
+      color: #e74c3c;
+    }
+
+    /* =============================================
+       PAGINATION
+       ============================================= */
+    .pagination-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .pagination-info {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .pagination-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .pg-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: 1px solid #E8E8E8;
+      background: var(--kup-white);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--kup-font);
+    }
+
+    .pg-btn:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+    }
+
+    .pg-btn.active {
+      background: var(--kup-blue);
+      border-color: var(--kup-blue);
+      color: var(--kup-white);
+    }
+
+    .pg-btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pg-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 0;
+      margin-top: 48px;
+      border-top: 1px solid #E8E8E8;
+    }
+
+    .auth-footer p {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin: 0;
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; transition: background 0.2s; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       INFLUENCER PAY RATES MODAL
+       ============================================= */
+    .rates-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .rates-overlay.open {
+      display: flex;
+    }
+
+    .rates-modal {
+      background: var(--kup-body-bg);
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 960px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+      overflow: hidden;
+      animation: ratesSlideIn 0.3s ease;
+    }
+
+    @keyframes ratesSlideIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .rates-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: rgba(255,255,255,0.25);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      transition: background 0.2s;
+      z-index: 2;
+    }
+
+    .rates-modal-close:hover {
+      background: rgba(255,255,255,0.4);
+    }
+
+    .rates-hero {
+      background: linear-gradient(135deg, #2EA5DD 0%, #3B8FCC 50%, #2A7CB8 100%);
+      padding: 36px 36px 32px;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      color: #fff;
+      position: relative;
+    }
+
+    .rates-hero-left {
+      flex: 0 0 240px;
+    }
+
+    .rates-hero-left h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin: 0 0 4px;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    .rates-subtitle {
+      font-size: 0.78rem;
+      font-style: italic;
+      opacity: 0.7;
+      margin: 0 0 20px;
+    }
+
+    .rates-tagline {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.4;
+      color: #fff;
+    }
+
+    .rates-hero-right {
+      flex: 1;
+    }
+
+    /* Startup tier card (inside hero) */
+    .rate-card-hero {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      color: #fff;
+    }
+
+    .rate-card-hero .rc-tier-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin: 0 0 2px;
+      color: #fff;
+    }
+
+    .rate-card-hero .rc-tier-range {
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin: 0 0 14px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .rate-card-hero .rc-prices {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 14px;
+    }
+
+    .rate-card-hero .rc-price-block .rc-amount {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .rate-card-hero .rc-price-block .rc-currency {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-left: 4px;
+    }
+
+    .rate-card-hero .rc-price-block .rc-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.85);
+      margin-top: 2px;
+    }
+
+    .rate-card-hero .rc-price-block .rc-label svg {
+      width: 13px;
+      height: 13px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .rate-card-hero .rc-bonus {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      margin: 0 0 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .rate-card-hero .rc-bonus strong {
+      color: #fff;
+    }
+
+    .rate-card-hero .rc-desc {
+      font-size: 0.78rem;
+      line-height: 1.55;
+      margin: 0;
+      color: rgba(255,255,255,0.75);
+    }
+
+    /* Tier cards grid */
+    .rates-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      background: #fff;
+    }
+
+    .rate-card {
+      padding: 24px 22px;
+      border-right: 1px solid #F0F0F0;
+      border-bottom: 1px solid #F0F0F0;
+    }
+
+    .rate-card:nth-child(3n) {
+      border-right: none;
+    }
+
+    .rate-card:nth-child(n+4) {
+      border-bottom: none;
+    }
+
+    .rate-card .rc-tier-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--kup-blue);
+      margin: 0 0 2px;
+    }
+
+    .rate-card .rc-tier-range {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #888;
+      margin: 0 0 14px;
+    }
+
+    .rate-card .rc-prices {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+
+    .rc-price-block .rc-amount {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+
+    .rc-price-block .rc-currency {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #aaa;
+      margin-left: 3px;
+    }
+
+    .rc-price-block .rc-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .rc-price-block .rc-label svg {
+      width: 13px;
+      height: 13px;
+      color: #bbb;
+    }
+
+    .rate-card .rc-bonus {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #888;
+      margin: 0 0 12px;
+      padding-top: 12px;
+      border-top: 1px solid #F0F0F0;
+    }
+
+    .rate-card .rc-bonus strong {
+      font-weight: 700;
+      color: #555;
+    }
+
+    .rate-card .rc-desc {
+      font-size: 0.78rem;
+      line-height: 1.55;
+      color: #888;
+      margin: 0;
+    }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 991px) {
+      .auth-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .auth-tab {
+        white-space: nowrap;
+        padding: 12px 18px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 991px) {
+      .rates-overlay {
+        padding: 24px 12px;
+      }
+      .rates-hero {
+        flex-direction: column;
+        gap: 20px;
+        padding: 28px 24px;
+      }
+      .rates-hero-left {
+        flex: none;
+        text-align: center;
+      }
+      .rates-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .rate-card:nth-child(3n) {
+        border-right: 1px solid #F0F0F0;
+      }
+      .rate-card:nth-child(2n) {
+        border-right: none;
+      }
+      .rate-card:nth-child(n+4) {
+        border-bottom: 1px solid #F0F0F0;
+      }
+      .rate-card:nth-child(n+5) {
+        border-bottom: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .date-filter {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .card-kup-body {
+        padding: 20px 16px;
+      }
+      .info-card {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .table-wrap {
+        overflow-x: visible;
+      }
+      .tx-table {
+        min-width: 0;
+      }
+      .table-card-header {
+        padding: 16px 20px;
+      }
+      .tx-table thead th,
+      .tx-table tbody td {
+        padding: 12px 14px;
+      }
+      .pagination-wrap {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 20px;
+      }
+      /* Transaction amount bold in card view */
+      .data-table .tx-amount-cell { font-weight: 700; font-size: 1rem; }
+      .data-table .tx-amount-cell.negative { color: #dc2626; }
+      .data-table .tx-amount-cell.positive { color: #16a34a; }
+      .rates-overlay {
+        padding: 16px 8px;
+      }
+      .rates-grid {
+        grid-template-columns: 1fr;
+      }
+      .rate-card {
+        border-right: none !important;
+        border-bottom: 1px solid #F0F0F0 !important;
+      }
+      .rate-card:last-child {
+        border-bottom: none !important;
+      }
+      .rates-hero {
+        padding: 24px 20px;
+      }
+      .rate-card-hero {
+        padding: 20px;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="auth-header">
+    <div class="container">
+      <div class="auth-header-top">
+        <a href="activity.html" class="auth-logo">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <div class="auth-right">
+          <div class="notif-wrap">
+            <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+            <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+              <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+              <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+              <ul class="notif-list" id="notifList">
+                <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+                <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+                <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+                <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="profile-menu">
+            <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+              <div class="profile-avatar">ST</div>
+              <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="manage-brands.html">Manage Brands</a>
+              <a href="cash-account.html" style="color: var(--kup-blue); font-weight: 600;">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+              <a href="pricing-upgrade.html">Pricing</a>
+              <a href="owner-account.html">Owners Account</a>
+              <div class="divider"></div>
+              <a href="help-center.html">Help Center</a>
+              <div class="divider"></div>
+              <a href="/pages/login.html" class="logout">Log Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-tabs">
+        <a class="auth-tab" href="activity.html">Activity</a>
+        <a class="auth-tab" href="campaigns.html">Campaigns</a>
+        <a class="auth-tab" href="content.html">Content</a>
+        <a class="auth-tab" href="influencers.html">Influencers</a>
+        <a class="auth-tab active" href="cash-rewards.html">Cash &amp; Rewards</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       PAGE HEADER + DATE FILTER
+       ============================================ -->
+  <div class="container">
+    <div class="page-header">
+      <h1>Cash Transactions</h1>
+      <div class="date-filter">
+        <label>From</label>
+        <input type="date" value="2026-01-01">
+        <label>To</label>
+        <input type="date" value="2026-03-03">
+        <button class="btn-filter">Apply Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       INFO CARDS ROW
+       ============================================ -->
+  <div class="container" style="margin-top: 20px;">
+    <div class="row g-4">
+
+      <!-- Current Plan Card -->
+      <div class="col-md-6">
+        <div class="card-kup">
+          <div class="card-kup-body">
+            <div class="info-card">
+              <div class="info-card-icon plan">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+              </div>
+              <div class="info-card-content">
+                <div class="info-card-label">Current Plan</div>
+                <div class="info-card-title">Growth Plan</div>
+                <div class="info-card-price"><strong>$29</strong>/monthly</div>
+                <a href="pricing-upgrade.html" class="btn-card-action upgrade" style="text-decoration:none;">Upgrade Plan</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Influencer Pay Rates Card -->
+      <div class="col-md-6">
+        <div class="card-kup">
+          <div class="card-kup-body">
+            <div class="info-card">
+              <div class="info-card-icon rates">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ED8444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div class="info-card-content">
+                <div class="info-card-label">Know More</div>
+                <div class="info-card-title">Influencer Pay Rates</div>
+                <div class="info-card-price">See current rates by tier and content type</div>
+                <button class="btn-card-action view-rates" onclick="openRatesModal()">View Rates</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================
+       TRANSACTION TABLE
+       ============================================ -->
+  <div class="container" style="padding-bottom: 40px;">
+    <div class="card-kup table-card">
+      <div class="table-card-header">
+        <h3>Transaction History</h3>
+        <span class="tx-count">Showing 5 of 23 transactions</span>
+      </div>
+
+      <div class="table-wrap data-table">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Influencer</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Date" class="tx-date-cell">Mar 2, 2026</td>
+              <td data-label="Description" class="tx-desc-cell">Instagram Reel - Spring Collection</td>
+              <td data-label="Influencer" class="tx-influencer-cell">@jessicadavis</td>
+              <td data-label="Amount" class="tx-amount-cell negative">-$45.00</td>
+              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Date" class="tx-date-cell">Mar 1, 2026</td>
+              <td data-label="Description" class="tx-desc-cell">TikTok Review - Product Launch</td>
+              <td data-label="Influencer" class="tx-influencer-cell">@mikejohnson</td>
+              <td data-label="Amount" class="tx-amount-cell negative">-$30.00</td>
+              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Date" class="tx-date-cell">Feb 28, 2026</td>
+              <td data-label="Description" class="tx-desc-cell">Account Balance Top-Up</td>
+              <td data-label="Influencer" class="tx-influencer-cell">--</td>
+              <td data-label="Amount" class="tx-amount-cell positive">+$200.00</td>
+              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Date" class="tx-date-cell">Feb 25, 2026</td>
+              <td data-label="Description" class="tx-desc-cell">YouTube Short - Brand Story</td>
+              <td data-label="Influencer" class="tx-influencer-cell">@alexchen</td>
+              <td data-label="Amount" class="tx-amount-cell negative">-$55.00</td>
+              <td data-label="Status"><span class="status-badge pending">Pending</span></td>
+            </tr>
+            <tr>
+              <td data-label="Date" class="tx-date-cell">Feb 20, 2026</td>
+              <td data-label="Description" class="tx-desc-cell">Instagram Story - Campaign XYZ</td>
+              <td data-label="Influencer" class="tx-influencer-cell">@sarahlee</td>
+              <td data-label="Amount" class="tx-amount-cell negative">-$25.00</td>
+              <td data-label="Status"><span class="status-badge failed">Failed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrap">
+        <div class="pagination-info">Page 1 of 5</div>
+        <div class="pagination-btns">
+          <button class="pg-btn disabled" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn">2</button>
+          <button class="pg-btn">3</button>
+          <button class="pg-btn">4</button>
+          <button class="pg-btn">5</button>
+          <button class="pg-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       INFLUENCER PAY RATES MODAL
+       ============================================ -->
+  <div id="ratesOverlay" class="rates-overlay" onclick="if(event.target===this)closeRatesModal()">
+    <div class="rates-modal">
+
+      <!-- Blue Hero with Startup Tier -->
+      <div class="rates-hero">
+        <button class="rates-modal-close" onclick="closeRatesModal()" aria-label="Close">&times;</button>
+        <div class="rates-hero-left">
+          <h2>KeepUsPostd Influencer Pay Rates</h2>
+          <p class="rates-subtitle">(Subject to change)</p>
+          <p class="rates-tagline">Paying partners at their level of influence.</p>
+        </div>
+        <div class="rates-hero-right">
+          <div class="rate-card-hero">
+            <h3 class="rc-tier-name">Startup tier</h3>
+            <p class="rc-tier-range">(0-5k) Social Followers</p>
+            <div class="rc-prices">
+              <div class="rc-price-block">
+                <span class="rc-amount">$4.13</span><span class="rc-currency">USD</span>
+                <div class="rc-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  per video approval
+                </div>
+              </div>
+              <div class="rc-price-block">
+                <span class="rc-amount">$2.06</span><span class="rc-currency">USD</span>
+                <div class="rc-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  per image approval
+                </div>
+              </div>
+            </div>
+            <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+            <p class="rc-desc">Paying startup-tier influencers financially corresponding with their growing social influence fosters genuine partnerships.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6 Tier Cards Grid -->
+      <div class="rates-grid">
+
+        <!-- Nano Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Nano tier</h3>
+          <p class="rc-tier-range">(5k-10k) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$7.76</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$3.88</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying nano-tier influencers in proportion to their social influence ensures cost-effective and authentic brand promotion.</p>
+        </div>
+
+        <!-- Micro Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Micro tier</h3>
+          <p class="rc-tier-range">(10k-50k) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$11.39</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$5.69</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying micro-tier influencers in line with their social influence provides an efficient middle ground for targeted audience engagement.</p>
+        </div>
+
+        <!-- Mid Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Mid tier</h3>
+          <p class="rc-tier-range">(50k-500k) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$18.12</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$9.31</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying mid tier influencers according to their social influence can yield a balanced ROI in influencer marketing campaigns.</p>
+        </div>
+
+        <!-- Macro Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Macro tier</h3>
+          <p class="rc-tier-range">(500k-1m) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$26.67</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$13.46</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying macro-tier influencers in alignment with their social influence is key for reaching broad audiences and maximizing brand visibility.</p>
+        </div>
+
+        <!-- Mega Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Mega tier</h3>
+          <p class="rc-tier-range">(1m-5m) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$34.70</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$16.57</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying mega tier influencers commensurate with their social influence can lead to wide reaching, high-impact brand exposure.</p>
+        </div>
+
+        <!-- Celebrity Tier -->
+        <div class="rate-card">
+          <h3 class="rc-tier-name">Celebrity tier</h3>
+          <p class="rc-tier-range">(5m+) Social Followers</p>
+          <div class="rc-prices">
+            <div class="rc-price-block">
+              <span class="rc-amount">$47.65</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                per video approval
+              </div>
+            </div>
+            <div class="rc-price-block">
+              <span class="rc-amount">$24.34</span><span class="rc-currency">USD</span>
+              <div class="rc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                per image approval
+              </div>
+            </div>
+          </div>
+          <p class="rc-bonus"><strong>Bonus Cash:</strong> Additional 30% of total pay</p>
+          <p class="rc-desc">Paying celebrity-tier influencers in accordance with their social influence harnesses their immense reach for premium brand endorsements.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="auth-footer">
+    <div class="container">
+      <p>Copyright &copy;2026. All Rights Reserved by KeepUsPostd</p>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ---- Rates Modal ---- */
+    function openRatesModal() {
+      document.getElementById('ratesOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeRatesModal() {
+      document.getElementById('ratesOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    // Auto-open if hash is #influencer-rates (from brand-reward links)
+    if (window.location.hash === '#influencer-rates') {
+      openRatesModal();
+      // Clear hash so refresh doesn't re-trigger
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    // Also handle hash changes (back/forward navigation)
+    window.addEventListener('hashchange', function() {
+      if (window.location.hash === '#influencer-rates') {
+        openRatesModal();
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    });
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('ratesOverlay').classList.contains('open')) {
+        closeRatesModal();
+      }
+    });
+
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

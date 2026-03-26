@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KeepUsPostd">
+  <meta property="og:title" content="Influencer Marketing Made Simple — KeepUsPostd for Brands">
+  <meta property="og:description" content="Turn your customers into brand advocates. Get authentic video reviews and only pay for content you approve.">
+  <meta property="og:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+  <meta property="og:url" content="https://keepuspostd.com/influencer-marketing">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Keepuspostd">
+  <meta name="twitter:title" content="Influencer Marketing Made Simple — KeepUsPostd for Brands">
+  <meta name="twitter:description" content="Turn your customers into brand advocates. Get authentic video reviews and only pay for content you approve.">
+  <meta name="twitter:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+
+  <title>Influencer Marketing Platform for Brands | KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- KUP Custom Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <style>
+
+    /* =============================================
+       HERO — Full-width centered, white bg with colored accents
+       ============================================= */
+    .kup-experts-hero {
+      background: #fff;
+      padding: 120px 0 80px;
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+    }
+    /* Subtle colored glow accents */
+    .kup-experts-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(46,165,221,0.06) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 30%, rgba(112,123,187,0.06) 0%, transparent 50%),
+                  radial-gradient(circle at 50% 80%, rgba(232,106,51,0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .kup-experts-hero .hero-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--kup-orange);
+      margin-bottom: 20px;
+    }
+    .kup-experts-hero h1 {
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      font-weight: 800;
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+      color: #12151e;
+      margin: 0 auto 22px;
+      max-width: 800px;
+    }
+    .kup-experts-hero .hero-sub {
+      font-size: 1.15rem;
+      color: rgba(0,0,0,0.50);
+      max-width: 560px;
+      line-height: 1.72;
+      margin: 0 auto 40px;
+    }
+    .kup-experts-hero .hero-ctas {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 56px;
+    }
+    /* Stats bar */
+    .hero-stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      padding-top: 48px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-num {
+      font-size: 2.2rem;
+      font-weight: 600;
+      background: var(--kup-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .hero-stat-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: rgba(0,0,0,0.40);
+      letter-spacing: 0.04em;
+    }
+    /* Count-up animation for stat numbers */
+    @keyframes statFadeUp {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .hero-stat {
+      animation: statFadeUp 0.8s ease-out both;
+    }
+    .hero-stat:nth-child(1) { animation-delay: 0.1s; }
+    .hero-stat:nth-child(2) { animation-delay: 0.25s; }
+    .hero-stat:nth-child(3) { animation-delay: 0.4s; }
+    .hero-stat:nth-child(4) { animation-delay: 0.55s; }
+    /* Featured cards section below hero */
+    .hero-featured-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-feature-card {
+      background: linear-gradient(145deg, #edf5ff 0%, #f0ecff 100%);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: left;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .hero-feature-card:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      border-color: rgba(0,0,0,0.08);
+    }
+    .hero-feature-card .fc-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .hero-feature-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #12151e;
+      margin-bottom: 8px;
+    }
+    .hero-feature-card p {
+      font-size: 0.82rem;
+      color: rgba(0,0,0,0.50);
+      line-height: 1.55;
+      margin: 0;
+    }
+    @media (max-width: 767px) {
+      .kup-experts-hero { padding: 90px 0 60px; }
+      .hero-stats-bar { gap: 28px; }
+      .hero-stat-num { font-size: 1.6rem; }
+      .hero-featured-cards { grid-template-columns: 1fr; max-width: 340px; }
+      .blade-float-card { display: none !important; }
+    }
+    /* =============================================
+       NICHE TAG CLOUD + HEADLINE SECTION
+       ============================================= */
+    .kup-niche-intro {
+      padding: 100px 0;
+      background: #fff;
+    }
+    .niche-tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .niche-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(0,0,0,0.65);
+      background: #fff;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      cursor: default;
+    }
+    .niche-pill:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46,165,221,0.05);
+    }
+    .niche-intro-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 40px;
+    }
+    .niche-intro-right h2 {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #12151e;
+      margin-bottom: 24px;
+      line-height: 1.1;
+    }
+    .feature-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 36px;
+    }
+    .feature-bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 1rem;
+      color: rgba(0,0,0,0.62);
+      font-weight: 500;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .feature-bullets li .bullet-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.6rem;
+    }
+    @media (max-width: 991px) {
+      .niche-intro-right { padding-left: 0; padding-top: 40px; }
+    }
+
+    /* =============================================
+       DARK STATEMENT SECTION
+       ============================================= */
+    .kup-dark-section {
+      background: #12151e;
+      padding: 100px 0 80px;
+    }
+    .kup-dark-section .dark-headline {
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 0;
+    }
+    .dark-testimonial-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 32px 36px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .dark-testimonial-card blockquote {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.75;
+      margin: 0 0 28px;
+      font-style: normal;
+    }
+    .dark-testimonial-attrib {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .attrib-logo {
+      height: 36px;
+      width: auto;
+      opacity: 0.85;
+      filter: brightness(0) invert(1);
+    }
+    .attrib-info .attrib-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+    .attrib-info .attrib-title {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin: 2px 0 0;
+    }
+    .dark-stats-row {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 80px;
+      padding-top: 60px;
+    }
+    .dark-stat-item { text-align: center; }
+    .dark-stat-num {
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .dark-stat-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 500;
+      max-width: 200px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .dark-stat-divider {
+      width: 1px;
+      height: 80px;
+      background: rgba(255,255,255,0.1);
+      margin: auto;
+    }
+    @media (max-width: 767px) {
+      .dark-stat-divider { display: none; }
+      .dark-stat-item { padding: 16px 0; }
+    }
+
+    /* =============================================
+       BLADE SYSTEM (reused from how-it-works)
+       ============================================= */
+    .blade-section { background: #fff; padding: 20px 0; }
+    .blade-section:first-of-type { padding-top: 80px; }
+    .kup-blade {
+      border-radius: 32px;
+      overflow: hidden;
+    }
+    .kup-blade.blade-a { background: linear-gradient(145deg, #edf5ff 0%, #ede8ff 100%); }
+    .kup-blade.blade-b { background: linear-gradient(145deg, #ede8ff 0%, #edf5ff 100%); }
+    .kup-blade .blade-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 500px;
+    }
+    .kup-blade .blade-grid.reverse { direction: rtl; }
+    .kup-blade .blade-grid.reverse > * { direction: ltr; }
+    .blade-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 72px 64px 80px;
+    }
+    .blade-step-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .blade-step-tag .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .blade-step-tag span {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.45);
+    }
+    .blade-text h2 {
+      font-size: clamp(1.9rem, 3vw, 3rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #12151e;
+      margin-bottom: 18px;
+    }
+    .blade-text p {
+      font-size: 1.05rem;
+      line-height: 1.78;
+      color: rgba(0,0,0,0.56);
+      margin-bottom: 36px;
+      max-width: 400px;
+    }
+    .blade-cta-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 30px;
+      border: 2px solid rgba(0,0,0,0.16);
+      border-radius: 100px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #12151e;
+      text-decoration: none;
+      width: fit-content;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .blade-cta-link:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46,165,221,0.06);
+    }
+    .blade-image {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 60px 48px 0;
+      overflow: hidden;
+    }
+    .blade-image img {
+      width: 100%;
+      max-width: 460px;
+      display: block;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 60px rgba(0,0,0,0.10);
+      transform: translateY(2px);
+    }
+    @media (max-width: 991px) {
+      .kup-blade .blade-grid,
+      .kup-blade .blade-grid.reverse { grid-template-columns: 1fr; direction: ltr; }
+      .blade-text { padding: 52px 36px 36px; }
+      .blade-text p { max-width: none; }
+      .blade-image { padding: 0 36px; }
+      .blade-image img { max-width: 380px; border-radius: 12px 12px 0 0; }
+      .kup-blade { border-radius: 24px; }
+    }
+    @media (max-width: 575px) {
+      .blade-text { padding: 40px 24px 28px; }
+      .blade-image { padding: 0 24px; }
+    }
+
+    /* =============================================
+       FULL-WIDTH LARGE STATEMENT
+       ============================================= */
+    .kup-large-statement {
+      padding: 100px 0;
+      background: #fff;
+      text-align: center;
+    }
+    .kup-large-statement .statement-text {
+      font-size: clamp(2.2rem, 5vw, 5.2rem);
+      font-weight: 500;
+      letter-spacing: -0.04em;
+      color: #12151e;
+      line-height: 1.06;
+      max-width: 960px;
+      margin: 0 auto 36px;
+    }
+    .kup-large-statement .statement-text em {
+      font-style: normal;
+      background: var(--kup-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .kup-large-statement .statement-sub {
+      font-size: 1.05rem;
+      color: rgba(0,0,0,0.5);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    /* =============================================
+       3 PLATFORM BENEFITS — Icon grid
+       ============================================= */
+    .kup-benefits-grid {
+      padding: 0 0 100px;
+      background: #fff;
+    }
+    .benefit-card {
+      background: #F5F6F9;
+      border-radius: 16px;
+      padding: 40px 36px;
+      height: 100%;
+    }
+    .benefit-card .benefit-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .benefit-card .benefit-icon svg,
+    .benefit-card .benefit-icon i {
+      width: 20px;
+      height: 20px;
+      color: var(--kup-blue);
+    }
+    .benefit-card h4 {
+      font-size: 0.93rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .benefit-card p {
+      font-size: 0.85rem;
+      color: #6B7280;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    /* =============================================
+       NICHE CATEGORY GRID (full width)
+       ============================================= */
+    .kup-niche-grid {
+      padding: 100px 0;
+      background: #fafafa;
+    }
+    .kup-niche-grid .grid-headline {
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      color: #12151e;
+      margin-bottom: 12px;
+    }
+    .kup-niche-grid .grid-sub {
+      font-size: 1rem;
+      color: rgba(0,0,0,0.5);
+      margin-bottom: 52px;
+      max-width: 520px;
+    }
+    .full-niche-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .niche-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(0,0,0,0.6);
+      background: #fff;
+      white-space: nowrap;
+      cursor: default;
+      transition: all 0.2s;
+    }
+    .niche-tag:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46,165,221,0.05);
+    }
+
+    /* =============================================
+       FAQ — Left headline, right accordion
+       ============================================= */
+    .kup-faq {
+      padding: 100px 0;
+      background: #fff;
+    }
+    .faq-headline {
+      font-size: clamp(2rem, 3.5vw, 3.4rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #12151e;
+      line-height: 1.1;
+      position: sticky;
+      top: 120px;
+    }
+    .faq-item {
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 0;
+    }
+    .faq-item:first-child {
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 24px 0;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #12151e;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-family: inherit;
+      transition: color 0.2s;
+    }
+    .faq-question:hover { color: var(--kup-blue); }
+    .faq-question .faq-chevron {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      transition: transform 0.25s, border-color 0.2s;
+    }
+    .faq-question.open .faq-chevron {
+      transform: rotate(180deg);
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+    }
+    .faq-answer {
+      display: none;
+      padding: 0 0 24px;
+      font-size: 0.97rem;
+      color: rgba(0,0,0,0.58);
+      line-height: 1.75;
+      max-width: 580px;
+    }
+    .faq-answer.open { display: block; }
+
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       ANNOUNCEMENT BAR
+       ============================================ -->
+  <div class="kup-announce">
+    <p>Always free for influencers. Brands start free. No credit card required. <a href="register-brand.html">Get started →</a></p>
+  </div>
+
+  <!-- ============================================
+       NAVIGATION
+       ============================================ -->
+  <nav class="kup-nav" id="kupNav">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="home.html" class="nav-logo">
+          <img src="/images/kup_gradient_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <ul class="nav-links">
+          <li><a href="how-it-works.html">How It Works</a></li>
+          <li><a href="influencer-marketing.html" class="nav-active">For Brands</a></li>
+          <li><a href="for-agencies.html">For Agencies</a></li>
+          <li><a href="download-app.html">For Influencers</a></li>
+        </ul>
+        <div class="nav-cta">
+          <a href="login.html" class="nav-login">Log In</a>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">Sign Up Free</a>
+        </div>
+        <button class="nav-hamburger" id="navToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <ul>
+        <li><a href="how-it-works.html">How It Works</a></li>
+        <li><a href="influencer-marketing.html">For Brands</a></li>
+        <li><a href="for-agencies.html">For Agencies</a></li>
+        <li><a href="download-app.html">For Influencers</a></li>
+      </ul>
+      <div class="d-flex flex-column gap-3 mt-4">
+        <a href="login.html" style="text-align:center; color:rgba(0,0,0,0.75); font-weight:600;">Log In</a>
+        <a href="register-brand.html" class="btn-kup btn-kup-gradient text-center">Sign Up Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       SECTION 1 — HERO (Two-column)
+       ============================================ -->
+  <section class="kup-experts-hero">
+    <div class="container" style="position: relative; z-index: 1;">
+      <span class="hero-eyebrow">For Brands</span>
+      <h1>Your best marketing is already in your customer&nbsp;base.</h1>
+      <p class="hero-sub">KeepUsPostd turns your real customers into a paid creator network. You set the terms, approve everything, and only pay for content you&nbsp;love.</p>
+      <div class="hero-ctas">
+        <a href="register-brand.html" class="btn-kup btn-kup-gradient">+ Add Your Brand Free</a>
+        <a href="how-it-works.html" class="btn-kup-outline-dark">See How It Works</a>
+      </div>
+
+      <!-- Featured capability cards -->
+      <div class="hero-featured-cards">
+        <div class="hero-feature-card">
+          <div class="fc-icon-wrap"><i class="ph-fill ph-qr-code" style="font-size:18px;"></i></div>
+          <h4>Deploy Market Codes</h4>
+          <p>Generate unique QR codes for your brand. Customers scan, record, and submit — all from their phone.</p>
+        </div>
+        <div class="hero-feature-card">
+          <div class="fc-icon-wrap"><i class="ph-fill ph-shield-check" style="font-size:18px;"></i></div>
+          <h4>Approve Everything</h4>
+          <p>Every piece of content lands in your review queue. Nothing goes live without your green light.</p>
+        </div>
+        <div class="hero-feature-card">
+          <div class="fc-icon-wrap"><i class="ph-fill ph-currency-dollar" style="font-size:18px;"></i></div>
+          <h4>Pay Only What You Love</h4>
+          <p>Set cash rewards, gift cards, or product trades. Creators get paid instantly when you approve.</p>
+        </div>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="hero-stats-bar">
+        <div class="hero-stat">
+          <div class="hero-stat-num" data-count="4" data-suffix="K+">0</div>
+          <div class="hero-stat-label">Active Creators</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" data-count="12" data-suffix="K+">0</div>
+          <div class="hero-stat-label">Content Created</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" data-count="4.8" data-suffix="%" data-decimals="1">0</div>
+          <div class="hero-stat-label">Avg Engagement</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" data-count="350" data-suffix="+">0</div>
+          <div class="hero-stat-label">Brands Onboarded</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       LIVE DASHBOARD PREVIEW
+       ============================================ -->
+  <section style="padding: 40px 0; background: #F9FAFB;">
+    <div class="container text-center">
+      <span class="section-label">Your Dashboard</span>
+      <h3 style="font-family: var(--kup-font); font-weight: 700; color: #111827; margin-bottom: 30px;">See what you'll get — a real look inside</h3>
+      <div class="browser-frame-embed" style="max-width: 720px;">
+        <div class="browser-chrome">
+          <span class="dot" style="background:#FF5F57"></span>
+          <span class="dot" style="background:#FEBC2E"></span>
+          <span class="dot" style="background:#28C840"></span>
+          <span class="url-bar">app.keepuspostd.com/dashboard</span>
+        </div>
+        <iframe src="/pages/inner/brand-home.html" title="Brand Dashboard" loading="lazy" scrolling="no" style="height:450px;"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 3 — NICHE TAG CLOUD + HEADLINE
+       ============================================ -->
+  <section class="kup-niche-intro">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <!-- Tag cloud left -->
+        <div class="col-lg-6">
+          <div class="niche-tag-cloud">
+            <span class="niche-pill">Fashion & Style</span>
+            <span class="niche-pill">Beauty & Skincare</span>
+            <span class="niche-pill">Fitness & Wellness</span>
+            <span class="niche-pill">Food & Beverage</span>
+            <span class="niche-pill">Travel & Lifestyle</span>
+            <span class="niche-pill">Tech & Gadgets</span>
+            <span class="niche-pill">Gaming</span>
+            <span class="niche-pill">Home & Garden</span>
+            <span class="niche-pill">Parenting & Family</span>
+            <span class="niche-pill">Finance & Business</span>
+            <span class="niche-pill">Entertainment</span>
+            <span class="niche-pill">Sports & Athletics</span>
+            <span class="niche-pill">Music & Arts</span>
+            <span class="niche-pill">Health & Nutrition</span>
+            <span class="niche-pill">Pet Care</span>
+            <span class="niche-pill">Automotive</span>
+            <span class="niche-pill">Books & Education</span>
+            <span class="niche-pill">DIY & Crafts</span>
+            <span class="niche-pill">Comedy & Humor</span>
+            <span class="niche-pill">Sustainability</span>
+            <span class="niche-pill">Real Estate</span>
+            <span class="niche-pill">Outdoor & Adventure</span>
+          </div>
+        </div>
+        <!-- Headline + bullets right -->
+        <div class="col-lg-6 niche-intro-right">
+          <h2>The right creator for every brand, every niche.</h2>
+          <ul class="feature-bullets">
+            <li>
+              <span class="bullet-dot"><i class="ph-fill ph-check-circle" style="font-size:18px;"></i></span>
+              <span>Access vetted creators across every major content category</span>
+            </li>
+            <li>
+              <span class="bullet-dot"><i class="ph-fill ph-check-circle" style="font-size:18px;"></i></span>
+              <span>Creators are ranked by authority level: nano, micro, and mid-tier</span>
+            </li>
+            <li>
+              <span class="bullet-dot"><i class="ph-fill ph-check-circle" style="font-size:18px;"></i></span>
+              <span>Every creator has a real track record, not just a follower count</span>
+            </li>
+          </ul>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">+ Add Your Brand Free</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 4 — DARK SECTION: Headline + Testimonial + Stats
+       ============================================ -->
+  <section class="kup-dark-section">
+    <div class="container">
+      <div class="row align-items-center g-5 mb-0">
+        <!-- Headline left -->
+        <div class="col-lg-6">
+          <h2 class="dark-headline">How brands grow their creator community with KeepUsPostd</h2>
+        </div>
+        <!-- Testimonial right -->
+        <div class="col-lg-6">
+          <div class="dark-testimonial-card">
+            <blockquote>
+              "Using KeepUsPostd we were able to capture candid brand reviews from our affiliates at an event with little to no effort. The content was authentic, the process was seamless, and we had full control over everything that went out."
+            </blockquote>
+            <div class="dark-testimonial-attrib">
+              <img src="/images/JA-Logo.png" alt="Junior Achievement" class="attrib-logo">
+              <div class="attrib-info">
+                <p class="attrib-name">Keshia Bruno</p>
+                <p class="attrib-title">Educational Manager, Junior Achievement of Dallas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="dark-stats-row">
+        <div class="row align-items-center justify-content-center">
+          <div class="col-6 col-md-3">
+            <div class="dark-stat-item">
+              <div class="dark-stat-num" data-count="100" data-suffix="%">100%</div>
+              <p class="dark-stat-label">content approval before anything goes&nbsp;live</p>
+            </div>
+          </div>
+          <div class="col-md-auto d-none d-md-block">
+            <div class="dark-stat-divider"></div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="dark-stat-item">
+              <div class="dark-stat-num">$0</div>
+              <p class="dark-stat-label">to get started. No credit card, no&nbsp;retainer.</p>
+            </div>
+          </div>
+          <div class="col-md-auto d-none d-md-block">
+            <div class="dark-stat-divider"></div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="dark-stat-item">
+              <div class="dark-stat-num" data-count="6.7" data-suffix="×" data-decimals="1">6.7×</div>
+              <p class="dark-stat-label">more cost-effective than traditional&nbsp;campaigns</p>
+            </div>
+          </div>
+          <div class="col-md-auto d-none d-md-block">
+            <div class="dark-stat-divider"></div>
+          </div>
+          <div class="col-6 col-md-2">
+            <div class="dark-stat-item">
+              <div class="dark-stat-num" data-count="92" data-suffix="%">92%</div>
+              <p class="dark-stat-label">of consumers trust peer reviews over paid&nbsp;ads</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 5 — BLADE: Customer Community
+       [Text left · Image right]
+       ============================================ -->
+  <section class="blade-section" style="padding-top: 80px;">
+    <div class="container">
+      <div class="kup-blade blade-a" style="overflow: visible;">
+        <div class="blade-grid">
+          <div class="blade-text">
+            <div class="blade-step-tag">
+              <span class="step-num">→</span>
+              <span>Your Community</span>
+            </div>
+            <h2>Start with people who already love your brand.</h2>
+            <p>Your happiest customers are already posting about you for free. KeepUsPostd gives them a reason to do it on purpose, with your Market Code as the entry point. Share it with your email list, event attendees, employees, or affiliates and start building a creator network that belongs entirely to your brand.</p>
+            <a href="register-brand.html" class="blade-cta-link">Generate Your Market Code →</a>
+          </div>
+          <div class="blade-image" style="align-items: center; padding: 40px; overflow: visible;">
+            <div style="position: relative; width: 100%;">
+              <img src="/images/KUP_Influencers.png" alt="Your creator community on KeepUsPostd" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.10); transform: none;">
+              <!-- Floating Cards -->
+              <div class="blade-float-card" style="position: absolute; top: 8%; left: -18px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2;">
+                <span style="font-size: 1rem;">👥</span>
+                <span style="font-weight: 600; color: #12151e;">2.4K Creators</span>
+              </div>
+              <div class="blade-float-card" style="position: absolute; top: 45%; right: -14px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 2s;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                <span style="font-weight: 600; color: #12151e;">Your Network</span>
+              </div>
+              <div class="blade-float-card" style="position: absolute; bottom: 10%; left: -12px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 4s;">
+                <span style="font-size: 1rem;">📧</span>
+                <span style="font-weight: 600; color: #12151e;">Share via Email</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 6 — BLADE: Vetted Creator Reach
+       [Image left · Text right]
+       ============================================ -->
+  <section class="blade-section">
+    <div class="container">
+      <div class="kup-blade blade-b" style="overflow: visible;">
+        <div class="blade-grid reverse">
+          <div class="blade-text">
+            <div class="blade-step-tag">
+              <span class="step-num">→</span>
+              <span>New Audience Reach</span>
+            </div>
+            <h2>Reach new customers through voices they already trust.</h2>
+            <p>Nano and micro-influencers drive up to 60% higher engagement than celebrity accounts. KeepUsPostd gives you access to a vetted network of these creators, categorized by niche and authority level, so you're never guessing who you're paying or what you're getting. Real people. Real reach. Real results.</p>
+            <a href="register-brand.html" class="blade-cta-link">Browse Creator Categories →</a>
+          </div>
+          <div class="blade-image" style="align-items: center; padding: 40px; overflow: visible;">
+            <div style="position: relative; width: 100%;">
+              <img src="/images/KUP_CAMPAIGNS2.png" alt="Reach new audiences with KUP campaigns" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.10); transform: none;">
+              <!-- Floating Cards -->
+              <div class="blade-float-card" style="position: absolute; top: 6%; right: -12px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2;">
+                <span style="font-size: 1rem;">📊</span>
+                <span style="font-weight: 600; color: #12151e;">60% More Engagement</span>
+              </div>
+              <div class="blade-float-card" style="position: absolute; top: 50%; left: -14px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 2s;">
+                <span style="font-size: 1rem;">🎯</span>
+                <span style="font-weight: 600; color: #12151e;">Niche Targeting</span>
+              </div>
+              <div class="blade-float-card" style="position: absolute; bottom: 8%; right: -8px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 4s;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                <span style="font-weight: 600; color: #12151e;">3 Active Campaigns</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 7 — FULL-WIDTH LARGE STATEMENT
+       ============================================ -->
+  <section class="kup-large-statement">
+    <div class="container">
+      <p class="statement-text">Stop renting access to<br>someone else's audience.<br><em>Own your creator network.</em></p>
+      <p class="statement-sub">Every brand that joins KeepUsPostd builds a creator pipeline they keep forever, not one they have to repurchase every campaign.</p>
+      <a href="register-brand.html" class="btn-kup btn-kup-gradient" style="font-size: 1.05rem; padding: 16px 40px;">Start Building Free →</a>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 8 — 3 PLATFORM BENEFITS
+       ============================================ -->
+  <section class="kup-benefits-grid">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-label">Platform Features</span>
+        <h2 class="section-title" style="max-width: 480px; margin: 12px auto 0;">Built for brands that want control</h2>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <i class="ph ph-share-network" style="font-size:24px;"></i>
+            </div>
+            <h4>Own Your Creator Pipeline</h4>
+            <p>Your Market Code is your gateway. Share it with anyone: customers, employees, affiliates, event attendees. Build a creator network that belongs to your brand, not a third-party platform.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <i class="ph ph-shield-check" style="font-size:24px;"></i>
+            </div>
+            <h4>Vetted, Ranked Creators</h4>
+            <p>Every creator is vetted and ranked by influence level. No bots. No inflated follower counts. Just real, engaged people who've earned their authority and can earn for your brand.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <i class="ph ph-note-pencil" style="font-size:24px;"></i>
+            </div>
+            <h4>Approve Before It Posts</h4>
+            <p>Review every submission before it reaches your audience. Add commercial edits, branding overlays, or intros, then publish directly to all your channels from one dashboard.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       WHAT INFLUENCERS SEE — Phone Frame
+       ============================================ -->
+  <section style="padding: 40px 0;">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-5 text-center">
+          <div style="position: relative; display: inline-block; max-width: 280px; width: 100%;">
+            <img src="/images/KUP_APP_BRANDPROFILE.png" alt="KUP App - Brand Profile" style="width: 100%; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.12);">
+            <!-- Floating Cards -->
+            <div class="blade-float-card" style="position: absolute; top: 10%; right: -48px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2;">
+              <span style="font-size: 1rem;">⭐</span>
+              <span style="font-weight: 600; color: #12151e;">4.6 Rating</span>
+            </div>
+            <div class="blade-float-card" style="position: absolute; top: 48%; left: -36px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 2s;">
+              <span style="font-size: 1rem;">🎬</span>
+              <span style="font-weight: 600; color: #12151e;">1.2K Reviews</span>
+            </div>
+            <div class="blade-float-card" style="position: absolute; bottom: 12%; right: -40px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; z-index: 2; animation-delay: 4s;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #2ea5dd; display: inline-block;"></span>
+              <span style="font-weight: 600; color: #12151e;">Partner Now</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <span class="section-label">The Influencer Experience</span>
+          <h3 style="font-family: var(--kup-font); font-weight: 700; color: #111827; margin-bottom: 16px;">Your brand, in every creator's pocket</h3>
+          <p style="color: #6B7280; line-height: 1.7; max-width: 480px;">When creators open the KeepUsPostd app, your brand shows up in the Discover feed — complete with your campaign details, rewards, and a one-tap way to start creating content for you.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 9 — INFLUENCER NICHE CATEGORY GRID
+       ============================================ -->
+  <section class="kup-niche-grid">
+    <div class="container">
+      <h2 class="grid-headline">Find creators across every niche, every industry.</h2>
+      <p class="grid-sub">Your Market Code attracts the creators that already align with your brand, and our vetted network fills the gaps.</p>
+      <div class="full-niche-grid">
+        <span class="niche-tag">Nano Influencers</span>
+        <span class="niche-tag">Micro Influencers</span>
+        <span class="niche-tag">Lifestyle Creators</span>
+        <span class="niche-tag">Food Reviewers</span>
+        <span class="niche-tag">Fitness Coaches</span>
+        <span class="niche-tag">Beauty Gurus</span>
+        <span class="niche-tag">Tech Reviewers</span>
+        <span class="niche-tag">Travel Vloggers</span>
+        <span class="niche-tag">Fashion Bloggers</span>
+        <span class="niche-tag">Gaming Creators</span>
+        <span class="niche-tag">Health Coaches</span>
+        <span class="niche-tag">Pet Influencers</span>
+        <span class="niche-tag">Business Content</span>
+        <span class="niche-tag">Home Décor</span>
+        <span class="niche-tag">Parenting Creators</span>
+        <span class="niche-tag">Entertainment</span>
+        <span class="niche-tag">Sports Creators</span>
+        <span class="niche-tag">Music Influencers</span>
+        <span class="niche-tag">Automotive</span>
+        <span class="niche-tag">Book Reviewers</span>
+        <span class="niche-tag">Comedy Creators</span>
+        <span class="niche-tag">DIY & Crafts</span>
+        <span class="niche-tag">Sustainability</span>
+        <span class="niche-tag">Real Estate</span>
+        <span class="niche-tag">Outdoor & Adventure</span>
+        <span class="niche-tag">Finance Creators</span>
+        <span class="niche-tag">Event Influencers</span>
+        <span class="niche-tag">Student Creators</span>
+        <span class="niche-tag">Local Influencers</span>
+        <span class="niche-tag">Nonprofit Advocates</span>
+        <span class="niche-tag">Product Reviewers</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 10 — FAQ
+       ============================================ -->
+  <section class="kup-faq">
+    <div class="container">
+      <div class="row g-5">
+        <!-- Left: sticky headline -->
+        <div class="col-lg-4">
+          <h2 class="faq-headline">Frequently asked questions</h2>
+        </div>
+        <!-- Right: accordion -->
+        <div class="col-lg-8">
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              How much does it cost to add my brand to KeepUsPostd?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              Free to start. You can add your brand, generate your Market Code, and begin receiving creator applications at no cost. Paid plans unlock additional campaign tools, analytics, and higher review volume.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              Do I have to pay for reviews I don't like?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              Never. You only pay for content you explicitly approve. If a review doesn't meet your standards, simply decline it. The creator is notified and you are not charged. Every transaction requires your green light.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              How do I find influencers on KeepUsPostd?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              Two ways: (1) Share your Market Code with existing customers, employees, affiliates, or event attendees who already know your brand. (2) Get discovered by our vetted network of creators who browse active brand campaigns in the marketplace and apply directly to you.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              What types of creators are on the platform?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              KeepUsPostd hosts nano, micro, and mid-tier influencers across every major niche: fitness, food, fashion, tech, gaming, lifestyle, beauty, and more. Every creator is vetted and categorized by authority level before they can participate in active campaigns.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              Can I use approved content across my own channels?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              Yes. Once you approve a review, you have the rights to use it across your marketing channels: social media, website, email campaigns, ads, and more. You can also add commercial edits, intros, and branding directly in the Content Manager before publishing.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              What is a Market Code and how does it work?
+              <span class="faq-chevron"><i class="ph ph-caret-down" style="font-size:16px;"></i></span>
+            </button>
+            <div class="faq-answer">
+              A Market Code is your brand's unique entry point on KeepUsPostd. Share it with anyone you want to invite into your creator network: customers, employees, affiliates, or event attendees. When someone uses your code, they apply to become a creator for your brand, and you review their profile before any content is submitted.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 11 — FINAL CTA
+       ============================================ -->
+  <section class="kup-cta-center dark">
+    <div class="container">
+      <span class="section-label">No Risk. No Retainer. No Agency.</span>
+      <h2>Your first campaign is free.<br>Your second will pay for itself.</h2>
+      <p style="max-width: 520px; margin: 0 auto 36px; color: rgba(255,255,255,0.7); font-size: 1.05rem;">Stop paying for borrowed audiences. Build a creator network your brand owns and only pay for content you actually love.</p>
+      <a href="register-brand.html" class="btn-kup btn-kup-gradient" style="font-size: 1.05rem; padding: 16px 40px;">Start Building Your Network →</a>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="kup-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd" style="height: 36px; margin-bottom: 20px;">
+          <p style="font-size: 0.9rem; max-width: 260px;">
+            Everyone has influence. Turn your community into your best marketing team.
+          </p>
+                    <div class="footer-social mt-3">
+            <a href="https://www.facebook.com/keepuspostd" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+            <a href="https://www.instagram.com/keepuspostd/" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="https://x.com/Keepuspostd" aria-label="X/Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.linkedin.com/company/keepuspostd-corporation/" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://www.tiktok.com/@keepuspostd" aria-label="TikTok"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>About</h5>
+          <a href="how-it-works.html">How It Works</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Platform</h5>
+          <a href="influencer-marketing.html">For Brands</a>
+          <a href="for-agencies.html">For Agencies</a>
+          <a href="download-app.html">For Influencers</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Support</h5>
+          <a href="#" data-contact>Contact Us</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="policy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom mt-4">
+      <div class="container">
+        <p>©2026 All Rights Reserved. KeepUsPostd® is a Registered Trademark of KeepUsPostd Corporation. <a href="policy.html" style="color: rgba(255,255,255,0.5);">Privacy</a> and <a href="terms.html" style="color: rgba(255,255,255,0.5);">Terms</a>.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navMobile = document.getElementById('navMobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        navMobile.classList.toggle('open');
+        navToggle.classList.toggle('active');
+      });
+    }
+
+    // Nav scroll effect
+    const kupNav = document.getElementById('kupNav');
+    window.addEventListener('scroll', () => {
+      kupNav.classList.toggle('nav-scrolled', window.scrollY > 40);
+    });
+
+    // Count-up animation
+    function animateCountUp(el) {
+      const target   = parseFloat(el.dataset.count);
+      const suffix   = el.dataset.suffix   || '';
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const duration = 1600;
+      const startTime = performance.now();
+      function tick(now) {
+        const elapsed  = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        el.textContent = (target * eased).toFixed(decimals) + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+    const countEls = document.querySelectorAll('.dark-stat-num[data-count]');
+    if ('IntersectionObserver' in window && countEls.length) {
+      const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCountUp(entry.target);
+            countObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      countEls.forEach(el => countObserver.observe(el));
+    }
+
+    // FAQ accordion
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const isOpen = answer.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-answer.open').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('.faq-question.open').forEach(b => b.classList.remove('open'));
+      // Open clicked if it was closed
+      if (!isOpen) {
+        answer.classList.add('open');
+        btn.classList.add('open');
+      }
+    }
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function setupAppIframe(iframe) {
+      try {
+        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        var authOverlay = iframeDoc.getElementById('authOverlay');
+        if (authOverlay) { authOverlay.classList.remove('visible'); authOverlay.style.display = 'none'; }
+        var onboarding = iframeDoc.getElementById('onboardingOverlay');
+        if (onboarding) onboarding.style.display = 'none';
+        var shellInfo = iframeDoc.querySelector('.shell-info');
+        if (shellInfo) shellInfo.style.display = 'none';
+        var protoLabel = iframeDoc.querySelector('.prototype-label');
+        if (protoLabel) protoLabel.style.display = 'none';
+        var appFrame = iframeDoc.querySelector('.app-frame');
+        if (appFrame) { appFrame.style.position = 'absolute'; appFrame.style.top = '0'; appFrame.style.left = '0'; appFrame.style.width = '100%'; appFrame.style.height = '100%'; appFrame.style.margin = '0'; appFrame.style.borderRadius = '0'; appFrame.style.border = 'none'; appFrame.style.boxShadow = 'none'; }
+      } catch(e) {}
+    }
+    document.querySelectorAll('.phone-frame-embed iframe').forEach(function(iframe) {
+      iframe.addEventListener('load', function() { setupAppIframe(iframe); });
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        setTimeout(function() { setupAppIframe(iframe); }, 300);
+      }
+    });
+  });
+
+  // Count-up animation for hero stats
+  function animateCount(el) {
+    var target = parseFloat(el.getAttribute('data-count'));
+    var suffix = el.getAttribute('data-suffix') || '';
+    var decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+    var duration = 1800;
+    var startTime = null;
+
+    function tick(now) {
+      if (!startTime) startTime = now;
+      var elapsed = now - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = eased * target;
+      el.textContent = (decimals ? current.toFixed(decimals) : Math.floor(current)) + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Run after a short delay to ensure elements are rendered
+  setTimeout(function() {
+    var els = document.querySelectorAll('.hero-stat-num[data-count]');
+    for (var i = 0; i < els.length; i++) {
+      (function(el, delay) {
+        setTimeout(function() { animateCount(el); }, delay);
+      })(els[i], i * 200);
+    }
+  }, 500);
+  </script>
+
+  <!-- ============================================
+       CONTACT MODAL
+       ============================================ -->
+  <div class="contact-overlay" id="contactOverlay"></div>
+  <div class="contact-modal" id="contactModal">
+    <button class="contact-modal-close" id="contactClose">&times;</button>
+
+    <!-- Form -->
+    <div id="contactFormWrap">
+      <h3>Get in touch</h3>
+      <p class="contact-sub">We'll get back to you within one business day.</p>
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Name</label>
+          <input type="text" id="contactName" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="contactTopic">Topic</label>
+          <select id="contactTopic" name="topic" required>
+            <option value="" disabled selected>Select a topic</option>
+            <option value="general">General Inquiry</option>
+            <option value="brand-sales">Brand Sales</option>
+            <option value="creator-support">Creator Support</option>
+            <option value="partnership">Partnership</option>
+            <option value="press">Press</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" name="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn-contact-submit">Send Message</button>
+      </form>
+    </div>
+
+    <!-- Success State -->
+    <div class="contact-success" id="contactSuccess">
+      <div class="contact-success-icon">&#10003;</div>
+      <h4>Message sent!</h4>
+      <p>Thanks for reaching out. We'll get back to you soon.</p>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const overlay = document.getElementById('contactOverlay');
+    const modal = document.getElementById('contactModal');
+    const closeBtn = document.getElementById('contactClose');
+    const form = document.getElementById('contactForm');
+    const formWrap = document.getElementById('contactFormWrap');
+    const success = document.getElementById('contactSuccess');
+
+    function openContact() {
+      overlay.classList.add('active');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeContact() {
+      overlay.classList.remove('active');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Attach to all contact triggers
+    document.querySelectorAll('[data-contact]').forEach(el => {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        openContact();
+      });
+    });
+
+    overlay.addEventListener('click', closeContact);
+    closeBtn.addEventListener('click', closeContact);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeContact();
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+      setTimeout(closeContact, 3000);
+      setTimeout(function() {
+        formWrap.style.display = '';
+        success.classList.remove('show');
+        form.reset();
+      }, 3500);
+    });
+  })();
+  </script>
+
+</body>
+</html>

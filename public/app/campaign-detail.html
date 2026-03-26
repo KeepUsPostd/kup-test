@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaign Detail — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       KUP DESIGN SYSTEM VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000;
+      --kup-body-bg: #F5F6FA;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --kup-purple: #707BBB;
+      --kup-light-gray: #E8E8E8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { max-width: 100%; height: auto; }
+    a { text-decoration: none; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .kup-auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .kup-auth-header .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+    }
+
+    .kup-auth-header .header-logo img {
+      height: 32px;
+      width: auto;
+    }
+
+    .kup-auth-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-notification {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--kup-body-bg);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #555;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+
+    .header-notification:hover {
+      background: #eaeaea;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 10px;
+      height: 10px;
+      background: var(--kup-orange);
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+    }
+
+    /* =============================================
+       NOTIFICATION CENTER POPOVER
+       ============================================= */
+    .notif-wrap {
+      position: relative;
+    }
+
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+
+    .kup-notif-popover.show { display: block; }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+
+    .notif-mark-read:hover { text-decoration: underline; }
+
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
+
+    /* =============================================
+       PROFILE DROPDOWN
+       ============================================= */
+    .profile-menu {
+      position: relative;
+    }
+
+    .header-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s;
+      border: none;
+      background: none;
+      font-family: var(--kup-font);
+    }
+
+    .header-profile:hover {
+      background: var(--kup-body-bg);
+    }
+
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+      text-align: left;
+    }
+
+    .profile-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--kup-black);
+    }
+
+    .profile-brand {
+      font-size: 0.72rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .profile-chevron {
+      color: #999;
+      font-size: 0.7rem;
+      margin-left: 2px;
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      min-width: 220px;
+      display: none;
+      z-index: 200;
+      overflow: hidden;
+    }
+
+    .profile-dropdown.show { display: block; }
+
+    .profile-dropdown a {
+      display: block;
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    .profile-dropdown a:hover {
+      background: #f8f9fa;
+      color: var(--kup-blue);
+    }
+
+    .profile-dropdown .divider {
+      border-top: 1px solid #eee;
+      margin: 4px 0;
+    }
+
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* Tab Navigation */
+    .kup-auth-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .kup-auth-tabs a {
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .kup-auth-tabs a:hover {
+      color: var(--kup-black);
+    }
+
+    .kup-auth-tabs a.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       MAIN CONTENT AREA
+       ============================================= */
+    .kup-inner-main {
+      padding: 24px;
+      min-height: calc(100vh - 130px);
+    }
+
+    .kup-inner-row {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* =============================================
+       LEFT SIDEBAR
+       ============================================= */
+    .kup-sidebar {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      align-self: start;
+      position: sticky;
+      top: 120px;
+    }
+
+    .sidebar-header {
+      padding: 20px 20px 0;
+    }
+
+    .sidebar-header h5 {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0 0 8px;
+      color: var(--kup-black);
+    }
+
+    .sidebar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--kup-blue);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-back:hover {
+      color: var(--kup-purple);
+    }
+
+    .sidebar-breadcrumb {
+      font-size: 0.75rem;
+      color: #999;
+      font-weight: 500;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Campaign List */
+    .campaign-list {
+      list-style: none;
+      margin: 0;
+      padding: 8px 0 16px;
+    }
+
+    .campaign-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .campaign-list li:hover {
+      background: var(--kup-body-bg);
+    }
+
+    .campaign-list li.active {
+      background: rgba(46, 165, 221, 0.06);
+      border-left-color: var(--kup-blue);
+    }
+
+    .campaign-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--kup-body-bg);
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+
+    .campaign-list li.active .campaign-number {
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+    }
+
+    .campaign-list-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .campaign-list-title {
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--kup-black);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .campaign-list-status {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .campaign-list-status.status-active {
+      color: #22c55e;
+    }
+
+    .campaign-list-status.status-draft {
+      color: #f59e0b;
+    }
+
+    .campaign-list-status.status-paused {
+      color: #ef4444;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .status-active .status-dot { background: #22c55e; }
+    .status-draft .status-dot { background: #f59e0b; }
+    .status-paused .status-dot { background: #ef4444; }
+
+    /* =============================================
+       RIGHT CONTENT — CAMPAIGN DETAIL
+       ============================================= */
+    .campaign-detail-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Detail Hero Image */
+    .detail-hero {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 50%, #ede9fe 100%);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .detail-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .detail-hero .hero-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: linear-gradient(transparent 0%, rgba(0,0,0,0.65) 100%);
+    }
+
+    .hero-category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: var(--kup-white);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: var(--kup-white);
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    /* Detail Body Card */
+    .detail-body-card {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* Actions Row */
+    .detail-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-status-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .detail-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .detail-status-pill.pill-active {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .detail-status-pill.pill-draft {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+
+    .detail-status-pill.pill-paused {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .detail-status-pill .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .detail-created-date {
+      font-size: 0.78rem;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .detail-action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-detail-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-detail-edit {
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+    }
+
+    .btn-detail-edit:hover {
+      opacity: 0.9;
+    }
+
+    .btn-detail-delete {
+      background: rgba(239, 68, 68, 0.08);
+      color: #dc2626;
+      border: 1.5px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-detail-delete:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    /* Description Section */
+    .detail-section {
+      margin-bottom: 24px;
+    }
+
+    .detail-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+
+    .detail-section-value {
+      font-size: 0.9rem;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    /* Stats Grid */
+    .detail-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .detail-stat-card {
+      background: var(--kup-body-bg);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      color: var(--kup-white);
+    }
+
+    .stat-icon.icon-influencers {
+      background: var(--kup-gradient);
+    }
+
+    .stat-icon.icon-content {
+      background: linear-gradient(135deg, #ED8444 0%, #f0a060 100%);
+    }
+
+    .stat-icon.icon-reach {
+      background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+    }
+
+    .stat-number {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--kup-black);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: #999;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Category & Meta Info */
+    .detail-meta-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .detail-meta-item {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* Influencer Avatars Row */
+    .influencer-avatars {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 4px;
+    }
+
+    .influencer-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.62rem;
+      color: var(--kup-white);
+      margin-left: -8px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .influencer-avatar:first-child {
+      margin-left: 0;
+    }
+
+    .influencer-avatar:hover {
+      transform: scale(1.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 2;
+    }
+
+    .influencer-avatar.av-1 { background: #ED8444; }
+    .influencer-avatar.av-2 { background: #2EA5DD; }
+    .influencer-avatar.av-3 { background: #707BBB; }
+    .influencer-avatar.av-4 { background: #22c55e; }
+
+    .influencer-avatar.av-more {
+      background: #e0e0e0;
+      color: #666;
+      font-size: 0.6rem;
+      cursor: default;
+    }
+
+    .influencer-avatar.av-more:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .influencer-names {
+      margin-left: 10px;
+      font-size: 0.78rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .influencer-names .inf-name-link {
+      color: var(--kup-blue);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .influencer-names .inf-name-link:hover {
+      text-decoration: underline;
+    }
+
+    /* =============================================
+       KUP MODAL SYSTEM (Standardized)
+       ============================================= */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kup-modal-overlay.show {
+      display: flex;
+    }
+
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+
+    /* =============================================
+       DELETE CONFIRMATION MODAL
+       ============================================= */
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .kup-modal h4 {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin: 0 0 8px;
+    }
+
+    .kup-modal p {
+      font-size: 0.85rem;
+      color: #777;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-modal-cancel {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid #e0e0e0;
+      background: var(--kup-white);
+      color: #555;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-cancel:hover {
+      background: var(--kup-body-bg);
+    }
+
+    .btn-modal-confirm-delete {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: #dc2626;
+      color: var(--kup-white);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-confirm-delete:hover {
+      background: #b91c1c;
+    }
+
+    /* =============================================
+       INFLUENCER PROFILE MODAL
+       ============================================= */
+    .ip-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+    .ip-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0 auto 12px;
+    }
+    .ip-handle { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: #1a1a1a; }
+    .ip-name { font-size: 0.85rem; color: #888; margin: 0 0 8px; }
+    .ip-tier {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .ip-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .ip-stat strong { display: block; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+    .ip-stat span { display: block; font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .ip-socials {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ip-social-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ip-social-icon:hover { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .ip-bio { font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0 0 20px; text-align: center; }
+    .ip-submissions-label { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .ip-submissions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .ip-thumb {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-sm);
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #bbb;
+      overflow: hidden;
+    }
+    .ip-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-ip-outline {
+      padding: 10px 20px;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-outline:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-ip-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-primary:hover { background: #258fc4; }
+
+    /* Tier badges (for profile modal) */
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .tier-badge.nano { background: #E8F5E9; color: #2e7d32; }
+    .tier-badge.micro { background: #E3F2FD; color: #1565c0; }
+    .tier-badge.macro { background: #FFF3E0; color: #e65100; }
+    .tier-badge.mega { background: #F3E5F5; color: #7b1fa2; }
+
+    /* =============================================
+       TOAST NOTIFICATIONS
+       ============================================= */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .kup-inner-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.75rem;
+      color: #aaa;
+      font-weight: 500;
+    }
+
+    /* =============================================
+       CAMPAIGN BRIEF SECTION
+       ============================================= */
+    .campaign-brief-section {
+      margin-top: 28px;
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+    }
+    .brief-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .brief-section-header h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    .btn-send-brief {
+      padding: 9px 20px;
+      background: var(--kup-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-send-brief:hover { background: #258fc4; }
+    .btn-send-brief:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-send-brief svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* Saved brief card */
+    .brief-card {
+      background: #f8fafb;
+      border: 1px solid #e8ecef;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .brief-card.show { display: block; }
+    .brief-card-subject { font-weight: 700; font-size: 0.95rem; color: #1a1a1a; margin-bottom: 8px; }
+    .brief-card-body { font-size: 0.85rem; color: #444; line-height: 1.7; margin-bottom: 12px; white-space: pre-wrap; }
+    .brief-card-deliverables { margin-bottom: 12px; }
+    .brief-card-deliverables h5 { font-size: 0.78rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.3px; margin: 0 0 8px; }
+    .brief-card-deliverables ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+    .brief-card-deliverables li { font-size: 0.82rem; color: #444; display: flex; align-items: center; gap: 8px; }
+    .brief-card-deliverables li::before { content: ''; width: 16px; height: 16px; border: 2px solid #ddd; border-radius: 3px; flex-shrink: 0; }
+    .brief-card-meta { display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: #999; }
+    .brief-card-meta .sent-badge { display: inline-flex; padding: 2px 8px; border-radius: 10px; background: rgba(22,163,74,0.1); color: #16a34a; font-weight: 600; font-size: 0.68rem; }
+
+    /* AI Assist */
+    .ai-assist-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.04) 0%, rgba(112,123,187,0.04) 100%);
+      border: 1px solid rgba(46,165,221,0.15);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 16px;
+    }
+    .ai-assist-toggle:hover { background: linear-gradient(135deg, rgba(46,165,221,0.08) 0%, rgba(112,123,187,0.08) 100%); }
+    .ai-assist-toggle.active { border-color: var(--kup-blue); background: rgba(46,165,221,0.06); }
+    .ai-icon { font-size: 1rem; }
+    .ai-label { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; }
+    .ai-hint { font-size: 0.75rem; color: #888; margin-left: auto; }
+    .ai-assist-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+      margin-bottom: 0;
+    }
+    .ai-assist-panel.show { max-height: 300px; margin-bottom: 16px; padding: 16px; background: rgba(46,165,221,0.03); border: 1px solid rgba(46,165,221,0.1); border-radius: var(--radius-sm); }
+    .ai-assist-panel textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+    .ai-assist-panel textarea:focus { outline: none; border-color: var(--kup-blue); }
+    .btn-generate-brief {
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--kup-blue), var(--kup-purple));
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-generate-brief:hover { opacity: 0.9; }
+    .btn-generate-brief.generating { pointer-events: none; opacity: 0.7; }
+    @keyframes aiDots { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+    .ai-generating-dots::after { content: '...'; animation: aiDots 1.4s infinite; }
+
+    /* Brief form */
+    .brief-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .brief-field { display: flex; flex-direction: column; gap: 6px; }
+    .brief-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .brief-field select,
+    .brief-field input[type="text"],
+    .brief-field input[type="date"],
+    .brief-field textarea {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .brief-field select:focus,
+    .brief-field input[type="text"]:focus,
+    .brief-field input[type="date"]:focus,
+    .brief-field textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+    }
+    .brief-field textarea { resize: vertical; min-height: 120px; }
+    .brief-field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+    /* Deliverables checklist */
+    .brief-deliverables-label { font-size: 0.78rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+    .brief-deliverables-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .brief-deliverable-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brief-deliverable-item input[type="text"] {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+    }
+    .brief-deliverable-item input[type="text"]:focus { outline: none; border-color: var(--kup-blue); }
+    .btn-remove-deliverable {
+      width: 28px; height: 28px;
+      border: none;
+      background: rgba(220,38,38,0.08);
+      color: #dc2626;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .btn-remove-deliverable:hover { background: rgba(220,38,38,0.15); }
+    .btn-add-deliverable {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border: 1px dashed #ccc;
+      border-radius: var(--radius-sm);
+      background: none;
+      color: #888;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-add-deliverable:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+
+    /* Brief footer */
+    .brief-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .brief-preview-text { font-size: 0.75rem; color: #999; flex: 1; }
+    .btn-compose-brief {
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-compose-brief:hover { background: #258fc4; }
+
+    /* Notice Composer Modal (for profile modal) */
+    .notice-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .notice-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .notice-user-name { font-weight: 700; font-size: 0.92rem; color: #1a1a1a; }
+    .notice-user-handle { font-size: 0.78rem; color: #888; }
+    .notice-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .notice-field { display: flex; flex-direction: column; gap: 6px; }
+    .notice-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .notice-field select,
+    .notice-field input[type="text"],
+    .notice-field textarea {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .notice-field select:focus,
+    .notice-field input[type="text"]:focus,
+    .notice-field textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+    }
+    .notice-field textarea { resize: vertical; min-height: 90px; }
+    .notice-field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .notice-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .notice-chips-label { font-size: 0.78rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
+    .notice-chip {
+      padding: 7px 14px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+    }
+    .notice-chip:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .notice-chip.active { background: var(--kup-blue); color: white; border-color: var(--kup-blue); }
+    .notice-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .notice-preview-text { font-size: 0.75rem; color: #999; flex: 1; }
+    .btn-send-notice {
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-send-notice:hover { background: #258fc4; }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 992px) {
+      .kup-inner-row {
+        grid-template-columns: 1fr;
+      }
+
+      .kup-sidebar {
+        position: static;
+      }
+
+      .detail-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .kup-auth-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .kup-auth-tabs a {
+        padding: 10px 14px;
+        font-size: 0.8rem;
+      }
+
+      .header-profile .profile-info {
+        display: none;
+      }
+
+      .kup-inner-main {
+        padding: 16px;
+      }
+
+      .detail-body-card {
+        padding: 20px;
+      }
+
+      .detail-actions-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .detail-stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-hero {
+        height: 200px;
+      }
+
+      .detail-meta-row {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .kup-notif-popover {
+        width: calc(100vw - 32px);
+        right: -120px;
+      }
+
+      .ip-actions {
+        flex-wrap: wrap;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="kup-auth-header" role="banner">
+    <div class="header-top">
+      <!-- Logo -->
+      <a href="activity.html" class="header-logo" aria-label="KeepUsPostd Home">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+
+      <!-- Actions -->
+      <div class="header-actions">
+        <!-- Notifications (wrapped in notif-wrap for popover positioning) -->
+        <div class="notif-wrap">
+          <button class="header-notification" id="notifBtn" aria-label="Notifications" aria-expanded="false" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notification-badge" id="notifBadge" aria-hidden="true"></span>
+          </button>
+
+          <!-- Notification Center Popover -->
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
+                  <div class="notif-time">2 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item unread">
+                <div class="notif-icon approval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
+                  <div class="notif-time">15 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon joined">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
+                  <div class="notif-time">5 hours ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Profile (wrapped in profile-menu for dropdown positioning) -->
+        <div class="profile-menu">
+          <button class="header-profile" id="profileTrigger" role="button" aria-label="Account menu" aria-expanded="false" tabindex="0">
+            <div class="profile-avatar" aria-hidden="true">ST</div>
+            <div class="profile-info">
+              <span class="profile-name">Santana T.</span>
+              <span class="profile-brand">KeepUsPostd</span>
+            </div>
+            <span class="profile-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="kup-auth-tabs" role="tablist" aria-label="Main navigation">
+      <a href="activity.html" role="tab" aria-selected="false">Activity</a>
+      <a href="campaigns.html" role="tab" aria-selected="true" class="active">Campaigns</a>
+      <a href="content.html" role="tab" aria-selected="false">Content</a>
+      <a href="influencers.html" role="tab" aria-selected="false">Influencers</a>
+      <a href="cash-rewards.html" role="tab" aria-selected="false">Cash &amp; Rewards</a>
+    </nav>
+  </header>
+
+  <!-- ============================================
+       MAIN CONTENT
+       ============================================ -->
+  <main class="kup-inner-main" role="main" aria-label="Campaign detail">
+    <div class="kup-inner-row">
+
+      <!-- ==========================================
+           LEFT SIDEBAR — Campaign List
+           ========================================== -->
+      <aside class="kup-sidebar" role="complementary" aria-label="Campaign sidebar">
+        <div class="sidebar-header">
+          <h5>Manage Brand</h5>
+          <a href="campaigns.html" class="sidebar-back" aria-label="Back to campaigns">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Campaigns
+          </a>
+          <div class="sidebar-breadcrumb" aria-label="Breadcrumb">
+            Campaign &nbsp;|&nbsp; Page 1 of 1
+          </div>
+        </div>
+
+        <!-- Campaign Items -->
+        <ul class="campaign-list" role="list" aria-label="Campaign list">
+          <li class="active" role="listitem" aria-current="true" tabindex="0" data-campaign="summer">
+            <span class="campaign-number" aria-hidden="true">1</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Summer Promo 2026</div>
+              <div class="campaign-list-status status-active">
+                <span class="status-dot" aria-hidden="true"></span>Active
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0" data-campaign="launch">
+            <span class="campaign-number" aria-hidden="true">2</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Brand Launch</div>
+              <div class="campaign-list-status status-active">
+                <span class="status-dot" aria-hidden="true"></span>Active
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0" data-campaign="holiday">
+            <span class="campaign-number" aria-hidden="true">3</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Holiday Special</div>
+              <div class="campaign-list-status status-draft">
+                <span class="status-dot" aria-hidden="true"></span>Draft
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0" data-campaign="spring">
+            <span class="campaign-number" aria-hidden="true">4</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Spring Flash Sale</div>
+              <div class="campaign-list-status status-paused">
+                <span class="status-dot" aria-hidden="true"></span>Paused
+              </div>
+            </div>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- ==========================================
+           RIGHT CONTENT — Campaign Detail View
+           ========================================== -->
+      <div class="campaign-detail-panel">
+
+        <!-- Hero Image -->
+        <div class="detail-hero" aria-label="Campaign hero image">
+          <img src="/images/inf-mark-banner.png" alt="Summer Promo 2026 campaign banner">
+          <div class="hero-overlay">
+            <span class="hero-category-badge">Fashion &amp; Beauty</span>
+            <h2 class="hero-title" id="detailHeroTitle">Summer Promo 2026</h2>
+          </div>
+        </div>
+
+        <!-- Detail Body -->
+        <div class="detail-body-card">
+
+          <!-- Actions Row -->
+          <div class="detail-actions-row">
+            <div class="detail-status-group">
+              <span class="detail-status-pill pill-active" id="detailStatusPill" aria-label="Campaign status: Active">
+                <span class="pill-dot" aria-hidden="true"></span>
+                Active
+              </span>
+              <span class="detail-created-date">Created Feb 15, 2026</span>
+            </div>
+            <div class="detail-action-btns">
+              <button type="button" class="btn-detail-action btn-detail-edit" id="editCampaignBtn" aria-label="Edit campaign">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+              <button type="button" class="btn-detail-action btn-detail-delete" id="deleteCampaignBtn" aria-label="Delete campaign">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="detail-stats-grid" aria-label="Campaign statistics">
+            <div class="detail-stat-card">
+              <div class="stat-icon icon-influencers" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="stat-number">12</div>
+              <div class="stat-label">Influencers</div>
+            </div>
+            <div class="detail-stat-card">
+              <div class="stat-icon icon-content" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div class="stat-number">34</div>
+              <div class="stat-label">Content</div>
+            </div>
+            <div class="detail-stat-card">
+              <div class="stat-icon icon-reach" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="stat-number">8.2K</div>
+              <div class="stat-label">Est. Reach</div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="detail-section">
+            <div class="detail-section-label">Description</div>
+            <div class="detail-section-value" id="detailDescription">
+              Promote our Summer 2026 collection across Instagram and TikTok. We are looking for fashion and lifestyle influencers who can create authentic content featuring our new seasonal product line. Deliverables include 2 Instagram posts, 3 Stories, and 1 TikTok video per influencer.
+            </div>
+          </div>
+
+          <!-- Campaign Brief -->
+          <div class="campaign-brief-section" id="campaignBriefSection">
+            <div class="brief-section-header">
+              <h4>Campaign Brief</h4>
+              <button class="btn-send-brief" id="btnSendBrief" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send to All Influencers
+              </button>
+            </div>
+
+            <!-- Saved brief (hidden until composed) -->
+            <div class="brief-card" id="briefCard">
+              <div class="brief-card-subject" id="briefCardSubject"></div>
+              <div class="brief-card-body" id="briefCardBody"></div>
+              <div class="brief-card-deliverables" id="briefCardDeliverables" style="display:none;">
+                <h5>Deliverables</h5>
+                <ul id="briefCardDeliverablesList"></ul>
+              </div>
+              <div class="brief-card-meta">
+                <span id="briefCardDate"></span>
+                <span class="sent-badge" id="briefSentBadge" style="display:none;">Sent</span>
+              </div>
+            </div>
+
+            <!-- AI Assist -->
+            <div class="ai-assist-toggle" id="briefAiToggle">
+              <span class="ai-icon">&#10024;</span>
+              <span class="ai-label">AI Assist</span>
+              <span class="ai-hint">Describe your brief, AI writes it</span>
+            </div>
+            <div class="ai-assist-panel" id="briefAiPanel">
+              <textarea id="briefAiInput" placeholder="Describe what you need from influencers in plain language...&#10;&#10;Example: &quot;We need 3 Instagram Reels showcasing our summer collection. Each should feature at least 2 products, use brand colors, and include the hashtag #SummerWithUs. Deadline is March 30th.&quot;"></textarea>
+              <button class="btn-generate-brief" id="briefAiGenerate">
+                <span class="ai-icon">&#10024;</span> Generate Brief
+              </button>
+            </div>
+
+            <!-- Brief form -->
+            <div class="brief-form" id="briefForm">
+              <div class="brief-field">
+                <label for="briefType">Brief Type</label>
+                <select id="briefType">
+                  <option value="" disabled selected>Select brief type...</option>
+                  <option value="content-guidelines">Content Guidelines</option>
+                  <option value="campaign-kickoff">Campaign Kickoff</option>
+                  <option value="deliverable-reminder">Deliverable Reminder</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              <div class="brief-field">
+                <label for="briefSubject">Subject</label>
+                <input type="text" id="briefSubject" placeholder="Brief subject line...">
+              </div>
+              <div class="brief-field">
+                <label for="briefDetails">Details</label>
+                <textarea id="briefDetails" rows="6" placeholder="Provide detailed instructions, guidelines, and expectations for this campaign..."></textarea>
+              </div>
+              <div class="brief-field">
+                <div class="brief-deliverables-label">Deliverables</div>
+                <div class="brief-deliverables-list" id="briefDeliverablesList">
+                  <div class="brief-deliverable-item">
+                    <input type="text" placeholder="e.g. 2 Instagram Reels" class="deliverable-input">
+                    <button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>
+                  </div>
+                </div>
+                <button class="btn-add-deliverable" id="btnAddDeliverable">+ Add Deliverable</button>
+              </div>
+              <div class="brief-field">
+                <label for="briefDeadline">Deadline</label>
+                <input type="date" id="briefDeadline">
+              </div>
+            </div>
+            <div class="brief-footer">
+              <span class="brief-preview-text" id="briefPreviewText">Will be sent to 12 influencers as a notification</span>
+              <button class="btn-compose-brief" id="btnComposeBrief">Save Brief</button>
+            </div>
+          </div>
+
+          <!-- Meta Info Row -->
+          <div class="detail-meta-row">
+            <div class="detail-meta-item detail-section">
+              <div class="detail-section-label">Category</div>
+              <div class="detail-section-value" id="detailCategory">Fashion &amp; Beauty</div>
+            </div>
+            <div class="detail-meta-item detail-section">
+              <div class="detail-section-label">Duration</div>
+              <div class="detail-section-value">Feb 15 &mdash; Jun 30, 2026</div>
+            </div>
+            <div class="detail-meta-item detail-section">
+              <div class="detail-section-label">Budget</div>
+              <div class="detail-section-value">$2,500 / month</div>
+            </div>
+          </div>
+
+          <!-- Associated Influencers -->
+          <div class="detail-section">
+            <div class="detail-section-label">Associated Influencers</div>
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:6px;">
+              <div class="influencer-avatars" aria-label="Influencer avatars">
+                <div class="influencer-avatar av-1" title="Alex M." aria-label="Alex M." data-influencer="alex_m">AM</div>
+                <div class="influencer-avatar av-2" title="Jordan K." aria-label="Jordan K." data-influencer="jordan_k">JK</div>
+                <div class="influencer-avatar av-3" title="Taylor R." aria-label="Taylor R." data-influencer="taylor_r">TR</div>
+                <div class="influencer-avatar av-4" title="Casey L." aria-label="Casey L." data-influencer="casey_l">CL</div>
+                <div class="influencer-avatar av-more" title="8 more influencers" aria-label="8 more influencers">+8</div>
+              </div>
+              <span class="influencer-names">
+                <span class="inf-name-link" data-influencer="alex_m">Alex M.</span>,
+                <span class="inf-name-link" data-influencer="jordan_k">Jordan K.</span>,
+                <span class="inf-name-link" data-influencer="taylor_r">Taylor R.</span>,
+                <span class="inf-name-link" data-influencer="casey_l">Casey L.</span>
+                and 8 others
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============================================
+       DELETE CONFIRMATION MODAL (Standardized)
+       ============================================ -->
+  <div class="kup-modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalDesc">
+    <div class="kup-modal" style="max-width: 420px; text-align: center;">
+      <div class="modal-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </div>
+      <h4 id="deleteModalTitle">Delete Campaign?</h4>
+      <p id="deleteModalDesc">Are you sure you want to delete <strong>"Summer Promo 2026"</strong>? This action cannot be undone. All associated content and influencer assignments will be removed.</p>
+      <div class="modal-btns">
+        <button type="button" class="btn-modal-cancel" id="cancelDeleteBtn" aria-label="Cancel deletion">Cancel</button>
+        <button type="button" class="btn-modal-confirm-delete" id="confirmDeleteBtn" aria-label="Confirm deletion">Delete Campaign</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       INFLUENCER PROFILE MODAL
+       ============================================ -->
+  <div class="kup-modal-overlay" id="influencerProfileModal" role="dialog" aria-modal="true" aria-labelledby="ipModalHandle">
+    <div class="kup-modal" style="max-width: 520px; position:relative;">
+      <div class="ip-brand-badge" id="ipBrandBadge" style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#F8F9FB;border-radius:20px;border:1px solid #E5E7EB;z-index:1;">
+        <div id="ipBrandLogo" style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;background:#2EA5DD;">KP</div>
+        <span id="ipBrandName" style="font-size:.78rem;font-weight:600;color:#1A1A2E;">KeepUsPostd</span>
+      </div>
+      <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
+      <div class="ip-header">
+        <div class="ip-avatar" id="ipAvatar">AM</div>
+        <h3 class="ip-handle" id="ipModalHandle">@alex_m</h3>
+        <p class="ip-name" id="ipName">Alex Martinez</p>
+        <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
+      </div>
+      <div class="ip-stats">
+        <div class="ip-stat"><strong id="ipFollowers">18.3K</strong><span>Followers</span></div>
+        <div class="ip-stat"><strong id="ipEngagement">4.1%</strong><span>Engagement</span></div>
+        <div class="ip-stat"><strong id="ipPosts">27</strong><span>Posts</span></div>
+      </div>
+      <div class="ip-socials">
+        <div class="ip-social-icon" title="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <div class="ip-social-icon" title="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></div>
+        <div class="ip-social-icon" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></div>
+      </div>
+      <p class="ip-bio" id="ipBio">Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.</p>
+      <div class="ip-submissions-label">Recent Submissions</div>
+      <div class="ip-submissions">
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+      </div>
+      <div class="ip-actions">
+        <button class="btn-ip-outline" id="ipNoticeBtn">Send Notice</button>
+        <button class="btn-ip-primary">Send Reward</button>
+        <button class="btn-ip-outline">View Content</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       NOTICE COMPOSER MODAL (from profile modal)
+       ============================================ -->
+  <div class="kup-modal-overlay" id="cdNoticeModal" role="dialog" aria-modal="true" aria-labelledby="cdNoticeModalName">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="cdNoticeModalClose" aria-label="Close">&times;</button>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
+      <div class="notice-header">
+        <div class="notice-avatar" id="cdNoticeAvatar">AM</div>
+        <div>
+          <div class="notice-user-name" id="cdNoticeModalName">Alex Martinez</div>
+          <div class="notice-user-handle" id="cdNoticeHandle">@alex_m</div>
+        </div>
+      </div>
+      <div class="notice-form">
+        <div class="notice-field">
+          <label for="cdNoticeType">Notice Type</label>
+          <select id="cdNoticeType">
+            <option value="" disabled selected>Select notice type...</option>
+            <option value="content-request">Content Request</option>
+            <option value="guideline-update">Guideline Update</option>
+            <option value="performance-note">Performance Note</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="notice-field">
+          <label for="cdNoticeSubject">Subject</label>
+          <input type="text" id="cdNoticeSubject" placeholder="Notice subject line...">
+        </div>
+        <div class="notice-field">
+          <label for="cdNoticeBody">Details</label>
+          <textarea id="cdNoticeBody" rows="4" placeholder="What do you need to communicate?"></textarea>
+        </div>
+        <div class="notice-field">
+          <label for="cdNoticeCampaign">Campaign (optional)</label>
+          <select id="cdNoticeCampaign">
+            <option value="">— None —</option>
+            <option value="summer-promo" selected>Summer Promo 2026</option>
+            <option value="brand-launch">Brand Launch</option>
+            <option value="holiday-special">Holiday Special</option>
+            <option value="spring-flash">Spring Flash Sale</option>
+          </select>
+        </div>
+        <div>
+          <div class="notice-chips-label">Response Options</div>
+          <div class="notice-chips">
+            <span class="notice-chip active">Acknowledged</span>
+            <span class="notice-chip">Question</span>
+            <span class="notice-chip">Can't Complete</span>
+          </div>
+        </div>
+      </div>
+      <div class="notice-footer">
+        <span class="notice-preview-text">Influencer will receive this as a notification</span>
+        <button class="btn-send-notice" id="cdBtnSendNotice">Send Notice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       TOAST CONTAINER
+       ============================================ -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="kup-inner-footer" role="contentinfo">
+    Copyright &copy;2026. All Rights Reserved by KeepUsPostd
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /* ============================================
+       TOAST NOTIFICATION SYSTEM
+       ============================================ */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* ============================================
+       MODAL HELPERS (Standardized)
+       ============================================ */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Global: Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+    });
+
+    // Global: Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* ============================================
+       CAMPAIGN DATA (prototype mock)
+       ============================================ */
+    var campaigns = {
+      summer: {
+        title: 'Summer Promo 2026',
+        description: 'Promote our Summer 2026 collection across Instagram and TikTok. We are looking for fashion and lifestyle influencers who can create authentic content featuring our new seasonal product line. Deliverables include 2 Instagram posts, 3 Stories, and 1 TikTok video per influencer.',
+        category: 'Fashion & Beauty',
+        status: 'Active',
+        statusClass: 'pill-active',
+        created: 'Feb 15, 2026',
+        influencers: 12,
+        content: 34,
+        reach: '8.2K'
+      },
+      launch: {
+        title: 'Brand Launch',
+        description: 'Introduce KeepUsPostd to new audiences through targeted micro-influencer partnerships. Content should focus on brand awareness, app downloads, and community building across all major social platforms.',
+        category: 'Tech & Gadgets',
+        status: 'Active',
+        statusClass: 'pill-active',
+        created: 'Jan 10, 2026',
+        influencers: 8,
+        content: 21,
+        reach: '5.4K'
+      },
+      holiday: {
+        title: 'Holiday Special',
+        description: 'End-of-year holiday campaign targeting seasonal shoppers. Influencers will showcase gift guides, unboxing content, and limited-time promotional codes for the holiday season.',
+        category: 'Entertainment',
+        status: 'Draft',
+        statusClass: 'pill-draft',
+        created: 'Mar 1, 2026',
+        influencers: 0,
+        content: 0,
+        reach: '0'
+      },
+      spring: {
+        title: 'Spring Flash Sale',
+        description: 'A 48-hour flash sale promotion leveraging influencer stories and live streams. Quick-turn content with urgency-driven messaging and exclusive discount codes.',
+        category: 'Food & Beverage',
+        status: 'Paused',
+        statusClass: 'pill-paused',
+        created: 'Feb 28, 2026',
+        influencers: 5,
+        content: 11,
+        reach: '2.1K'
+      }
+    };
+
+    /* ============================================
+       CAMPAIGN LIST — Switch detail view
+       ============================================ */
+    var campaignItems = document.querySelectorAll('.campaign-list li');
+    var heroTitle = document.getElementById('detailHeroTitle');
+    var detailDescription = document.getElementById('detailDescription');
+    var detailCategory = document.getElementById('detailCategory');
+    var detailStatusPill = document.getElementById('detailStatusPill');
+
+    function updateDetail(key) {
+      var data = campaigns[key];
+      if (!data) return;
+
+      heroTitle.textContent = data.title;
+      detailDescription.textContent = data.description;
+      detailCategory.textContent = data.category;
+
+      // Update status pill
+      detailStatusPill.className = 'detail-status-pill ' + data.statusClass;
+      detailStatusPill.innerHTML = '<span class="pill-dot" aria-hidden="true"></span> ' + data.status;
+      detailStatusPill.setAttribute('aria-label', 'Campaign status: ' + data.status);
+
+      // Update created date
+      document.querySelector('.detail-created-date').textContent = 'Created ' + data.created;
+
+      // Update stats
+      var statNumbers = document.querySelectorAll('.stat-number');
+      statNumbers[0].textContent = data.influencers;
+      statNumbers[1].textContent = data.content;
+      statNumbers[2].textContent = data.reach;
+
+      // Update hero category badge
+      document.querySelector('.hero-category-badge').textContent = data.category;
+
+      // Update delete modal text
+      document.querySelector('#deleteModalDesc strong').textContent = '"' + data.title + '"';
+    }
+
+    campaignItems.forEach(function(item) {
+      item.addEventListener('click', function() {
+        campaignItems.forEach(function(li) {
+          li.classList.remove('active');
+          li.removeAttribute('aria-current');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-current', 'true');
+
+        var key = this.getAttribute('data-campaign');
+        updateDetail(key);
+      });
+
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    /* ============================================
+       EDIT BUTTON — Redirect to campaign form
+       ============================================ */
+    document.getElementById('editCampaignBtn').addEventListener('click', function() {
+      // In a real app this would navigate to the edit form
+      kupToast('Navigating to edit form...', 'info');
+    });
+
+    /* ============================================
+       DELETE BUTTON — Show confirmation modal
+       (Standardized: uses openModal/closeModal + toast)
+       ============================================ */
+    document.getElementById('deleteCampaignBtn').addEventListener('click', function() {
+      openModal('deleteModal');
+      // Focus the cancel button for accessibility
+      document.getElementById('cancelDeleteBtn').focus();
+    });
+
+    document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
+      closeModal('deleteModal');
+    });
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+      closeModal('deleteModal');
+      kupToast('Campaign deleted successfully', 'success');
+    });
+
+    /* ============================================
+       PROFILE DROPDOWN
+       ============================================ */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+      // Close notification popover if open
+      document.getElementById('notifPopover').classList.remove('show');
+      document.getElementById('notifBtn').setAttribute('aria-expanded', 'false');
+    });
+
+    /* ============================================
+       NOTIFICATION CENTER
+       ============================================ */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+      document.getElementById('profileTrigger').setAttribute('aria-expanded', 'false');
+    });
+
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.getElementById('notifBadge').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* ============================================
+       INFLUENCER PROFILE MODAL
+       ============================================ */
+    var influencerData = {
+      alex_m:   { initials: 'AM', handle: '@alex_m', name: 'Alex Martinez', tier: 'Micro Influencer', tierClass: 'micro', followers: '18.3K', engagement: '4.1%', posts: '27', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
+      jordan_k: { initials: 'JK', handle: '@jordan_k', name: 'Jordan Kim', tier: 'Macro Influencer', tierClass: 'macro', followers: '156K', engagement: '2.9%', posts: '42', bio: 'Tech and lifestyle vlogger covering the latest trends. Known for high-quality production and honest brand partnerships.' },
+      taylor_r: { initials: 'TR', handle: '@taylor_r', name: 'Taylor Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '24.7K', engagement: '3.8%', posts: '31', bio: 'Beauty and skincare creator sharing daily routines and product reviews. Clean beauty advocate and wellness enthusiast.' },
+      casey_l:  { initials: 'CL', handle: '@casey_l', name: 'Casey Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '9.1K', engagement: '5.4%', posts: '18', bio: 'Food and travel micro-influencer creating authentic content for boutique brands. Community-first approach to partnerships.' }
+    };
+
+    document.querySelectorAll('[data-influencer]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var key = this.getAttribute('data-influencer');
+        var data = influencerData[key];
+        if (!data) return;
+        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipModalHandle').textContent = data.handle;
+        document.getElementById('ipName').textContent = data.name;
+        var tierEl = document.getElementById('ipTier');
+        tierEl.textContent = data.tier;
+        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+        document.getElementById('ipFollowers').textContent = data.followers;
+        document.getElementById('ipEngagement').textContent = data.engagement;
+        document.getElementById('ipPosts').textContent = data.posts;
+        document.getElementById('ipBio').textContent = data.bio;
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          document.getElementById('ipBrandLogo').textContent = ab.abbreviation || 'KP';
+          document.getElementById('ipBrandLogo').style.background = ab.color || '#2EA5DD';
+          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+        }
+        openModal('influencerProfileModal');
+      });
+    });
+
+    document.getElementById('ipModalClose').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+    });
+
+    // Profile modal → Notice Composer
+    document.getElementById('ipNoticeBtn').addEventListener('click', function() {
+      var name = document.getElementById('ipName').textContent;
+      var handle = document.getElementById('ipModalHandle').textContent;
+      var initials = document.getElementById('ipAvatar').textContent;
+      closeModal('influencerProfileModal');
+      document.getElementById('cdNoticeAvatar').textContent = initials;
+      document.getElementById('cdNoticeModalName').textContent = name;
+      document.getElementById('cdNoticeHandle').textContent = handle;
+      resetCdNoticeForm();
+      openModal('cdNoticeModal');
+    });
+
+    // Notice chip toggles
+    document.querySelectorAll('.notice-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('active');
+      });
+    });
+
+    // Close notice modal
+    document.getElementById('cdNoticeModalClose').addEventListener('click', function() {
+      closeModal('cdNoticeModal');
+    });
+
+    // Send notice
+    document.getElementById('cdBtnSendNotice').addEventListener('click', function() {
+      var type = document.getElementById('cdNoticeType').value;
+      var subject = document.getElementById('cdNoticeSubject').value.trim();
+      if (!type) { kupToast('Please select a notice type', 'error'); return; }
+      if (!subject) { kupToast('Please enter a subject line', 'error'); return; }
+      var name = document.getElementById('cdNoticeModalName').textContent;
+      kupToast('Notice sent to ' + name, 'success');
+      closeModal('cdNoticeModal');
+    });
+
+    function resetCdNoticeForm() {
+      document.getElementById('cdNoticeType').selectedIndex = 0;
+      document.getElementById('cdNoticeSubject').value = '';
+      document.getElementById('cdNoticeBody').value = '';
+      document.getElementById('cdNoticeCampaign').selectedIndex = 0;
+    }
+
+    // Auto-suggest subject on notice type change
+    document.getElementById('cdNoticeType').addEventListener('change', function() {
+      var subjectInput = document.getElementById('cdNoticeSubject');
+      if (subjectInput.value.trim()) return;
+      var suggestions = {
+        'content-request': 'New content request for your review',
+        'guideline-update': 'Updated brand guidelines — please review',
+        'performance-note': 'Performance update on your recent content',
+        'custom': ''
+      };
+      if (suggestions[this.value]) subjectInput.value = suggestions[this.value];
+    });
+
+    /* ============================================
+       CAMPAIGN BRIEF — AI ASSIST
+       ============================================ */
+    var briefAiToggle = document.getElementById('briefAiToggle');
+    var briefAiPanel = document.getElementById('briefAiPanel');
+    var briefAiInput = document.getElementById('briefAiInput');
+
+    briefAiToggle.addEventListener('click', function() {
+      var isOpen = briefAiPanel.classList.contains('show');
+      if (isOpen) {
+        briefAiPanel.classList.remove('show');
+        briefAiToggle.classList.remove('active');
+        briefAiToggle.querySelector('.ai-hint').textContent = 'Describe your brief, AI writes it';
+      } else {
+        briefAiPanel.classList.add('show');
+        briefAiToggle.classList.add('active');
+        briefAiToggle.querySelector('.ai-hint').textContent = 'Close AI Assist';
+        briefAiInput.focus();
+      }
+    });
+
+    document.getElementById('briefAiGenerate').addEventListener('click', function() {
+      var prompt = briefAiInput.value.trim();
+      if (!prompt) { kupToast('Describe what you need first', 'error'); return; }
+      var btn = this;
+      var originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="ai-icon">&#10024;</span> Generating<span class="ai-generating-dots"></span>';
+      btn.classList.add('generating');
+
+      setTimeout(function() {
+        var promptLower = prompt.toLowerCase();
+
+        // Auto-detect brief type
+        var type = 'content-guidelines';
+        if (promptLower.indexOf('kickoff') !== -1 || promptLower.indexOf('launch') !== -1 || promptLower.indexOf('start') !== -1) type = 'campaign-kickoff';
+        else if (promptLower.indexOf('reminder') !== -1 || promptLower.indexOf('deadline') !== -1 || promptLower.indexOf('overdue') !== -1) type = 'deliverable-reminder';
+        document.getElementById('briefType').value = type;
+
+        // Generate subject
+        var typeLabels = { 'content-guidelines': 'Content Guidelines', 'campaign-kickoff': 'Campaign Kickoff', 'deliverable-reminder': 'Deliverable Reminder' };
+        var campaignTitle = document.querySelector('.hero-title') ? document.querySelector('.hero-title').textContent.trim() : 'Campaign';
+        document.getElementById('briefSubject').value = (typeLabels[type] || 'Brief') + ': ' + campaignTitle;
+
+        // Generate body from prompt
+        document.getElementById('briefDetails').value = prompt;
+
+        // Extract deliverables
+        var deliverableKeywords = ['reel', 'reels', 'post', 'posts', 'story', 'stories', 'video', 'videos', 'photo', 'photos', 'tiktok', 'review'];
+        var deliverables = [];
+        var sentences = prompt.split(/[.,;!?]+/);
+        sentences.forEach(function(s) {
+          var sLower = s.toLowerCase().trim();
+          deliverableKeywords.forEach(function(kw) {
+            if (sLower.indexOf(kw) !== -1) {
+              var cleaned = s.trim();
+              if (cleaned && deliverables.indexOf(cleaned) === -1) deliverables.push(cleaned);
+            }
+          });
+        });
+
+        // Populate deliverables
+        var listEl = document.getElementById('briefDeliverablesList');
+        listEl.innerHTML = '';
+        if (deliverables.length > 0) {
+          deliverables.forEach(function(d) {
+            var item = document.createElement('div');
+            item.className = 'brief-deliverable-item';
+            item.innerHTML = '<input type="text" class="deliverable-input" value="' + d.replace(/"/g, '&quot;') + '"><button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>';
+            listEl.appendChild(item);
+          });
+        } else {
+          var item = document.createElement('div');
+          item.className = 'brief-deliverable-item';
+          item.innerHTML = '<input type="text" placeholder="e.g. 2 Instagram Reels" class="deliverable-input"><button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>';
+          listEl.appendChild(item);
+        }
+
+        // Extract deadline if mentioned
+        var dateMatch = prompt.match(/(?:march|april|may|june|july|august|september|october|november|december|january|february)\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s*\d{4})?/i);
+        if (dateMatch) {
+          var cleanDate = dateMatch[0].replace(/(st|nd|rd|th)/i, '');
+          if (!/\d{4}/.test(cleanDate)) cleanDate += ', 2026';
+          var parsedDate = new Date(cleanDate);
+          if (!isNaN(parsedDate.getTime())) {
+            var y = parsedDate.getFullYear();
+            var m = String(parsedDate.getMonth() + 1).padStart(2, '0');
+            var dd = String(parsedDate.getDate()).padStart(2, '0');
+            document.getElementById('briefDeadline').value = y + '-' + m + '-' + dd;
+          }
+        }
+
+        // Close AI panel
+        briefAiPanel.classList.remove('show');
+        briefAiToggle.classList.remove('active');
+        briefAiToggle.querySelector('.ai-hint').textContent = 'Describe your brief, AI writes it';
+
+        btn.innerHTML = originalText;
+        btn.classList.remove('generating');
+        kupToast('Brief generated — review and save!', 'success');
+      }, 1500);
+    });
+
+    /* ============================================
+       CAMPAIGN BRIEF — COMPOSE & SEND
+       ============================================ */
+    // Add deliverable
+    document.getElementById('btnAddDeliverable').addEventListener('click', function() {
+      var item = document.createElement('div');
+      item.className = 'brief-deliverable-item';
+      item.innerHTML = '<input type="text" placeholder="e.g. 1 TikTok video" class="deliverable-input"><button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>';
+      document.getElementById('briefDeliverablesList').appendChild(item);
+    });
+
+    // Save brief
+    document.getElementById('btnComposeBrief').addEventListener('click', function() {
+      var type = document.getElementById('briefType').value;
+      var subject = document.getElementById('briefSubject').value.trim();
+      if (!type) { kupToast('Please select a brief type', 'error'); return; }
+      if (!subject) { kupToast('Please enter a subject line', 'error'); return; }
+
+      var details = document.getElementById('briefDetails').value.trim();
+      var deadline = document.getElementById('briefDeadline').value;
+
+      // Gather deliverables
+      var deliverables = [];
+      document.querySelectorAll('.deliverable-input').forEach(function(input) {
+        if (input.value.trim()) deliverables.push(input.value.trim());
+      });
+
+      // Populate brief card
+      document.getElementById('briefCardSubject').textContent = subject;
+      document.getElementById('briefCardBody').textContent = details;
+
+      var delSection = document.getElementById('briefCardDeliverables');
+      var delList = document.getElementById('briefCardDeliverablesList');
+      delList.innerHTML = '';
+      if (deliverables.length > 0) {
+        deliverables.forEach(function(d) {
+          var li = document.createElement('li');
+          li.textContent = d;
+          delList.appendChild(li);
+        });
+        delSection.style.display = 'block';
+      } else {
+        delSection.style.display = 'none';
+      }
+
+      var now = new Date();
+      document.getElementById('briefCardDate').textContent = 'Saved ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      document.getElementById('briefSentBadge').style.display = 'none';
+
+      // Show card, enable send button
+      document.getElementById('briefCard').classList.add('show');
+      document.getElementById('btnSendBrief').disabled = false;
+
+      // Hide form
+      document.getElementById('briefForm').style.display = 'none';
+      document.querySelector('.brief-footer').style.display = 'none';
+      briefAiToggle.style.display = 'none';
+
+      kupToast('Brief saved — ready to send to influencers', 'success');
+    });
+
+    // Send to all influencers
+    document.getElementById('btnSendBrief').addEventListener('click', function() {
+      if (this.disabled) return;
+      var influencerCount = document.querySelectorAll('.influencer-avatar:not(.av-more)').length;
+      var moreEl = document.querySelector('.influencer-avatar.av-more');
+      if (moreEl) {
+        var moreNum = parseInt(moreEl.textContent.replace('+', ''));
+        if (!isNaN(moreNum)) influencerCount += moreNum;
+      }
+      kupToast('Brief sent to ' + influencerCount + ' influencers', 'success');
+      document.getElementById('briefSentBadge').style.display = 'inline-flex';
+      this.disabled = true;
+      this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Sent';
+    });
+
+    // Brief type auto-suggest
+    document.getElementById('briefType').addEventListener('change', function() {
+      var subjectInput = document.getElementById('briefSubject');
+      if (subjectInput.value.trim()) return;
+      var campaignTitle = document.querySelector('.hero-title') ? document.querySelector('.hero-title').textContent.trim() : 'Campaign';
+      var suggestions = {
+        'content-guidelines': 'Content Guidelines: ' + campaignTitle,
+        'campaign-kickoff': 'Campaign Kickoff: ' + campaignTitle,
+        'deliverable-reminder': 'Deliverable Reminder: ' + campaignTitle,
+        'custom': ''
+      };
+      if (suggestions[this.value]) subjectInput.value = suggestions[this.value];
+    });
+
+    /* ============================================
+       CLOSE OUTSIDE CLICKS
+       ============================================ */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (profileMenu && !profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+        document.getElementById('profileTrigger').setAttribute('aria-expanded', 'false');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (notifWrap && !notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+        document.getElementById('notifBtn').setAttribute('aria-expanded', 'false');
+      }
+    });
+  </script>
+
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>
