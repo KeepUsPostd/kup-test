@@ -1219,9 +1219,142 @@
       }
     }
 
-    /* ============ SAVE ACTIONS ============ */
-    function handleSaveReward() { kupToast('Reward created successfully!', 'success'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
-    function handleSaveDraft() { kupToast('Reward saved as draft', 'info'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
+    /* ============ SAVE ACTIONS (wired to API) ============ */
+    function collectRewardPayload(saveAsDraft) {
+      // Get active brand from localStorage
+      var brandId = null;
+      try {
+        var stored = localStorage.getItem('kup_active_brand');
+        if (stored) brandId = JSON.parse(stored).id;
+      } catch(e) {}
+      if (!brandId) { kupToast('No brand selected.', 'error'); return null; }
+
+      // Map UI type names to API enum values
+      var typeMap = {
+        'points': 'points_store_credit',
+        'free-product': 'free_product',
+        'discount': 'discount',
+        'cash-per-approval': 'cash_per_approval',
+        'bonus-cash': 'bonus_cash',
+        'postd-pay': 'postd_pay'
+      };
+
+      var apiType = typeMap[selectedType] || selectedType;
+      var apiEarning = null;
+      if (earningMethod === 'point-based') apiEarning = 'point_based';
+      else if (earningMethod === 'per-approval') apiEarning = 'per_approval';
+
+      // Collect title/desc based on type
+      var title = '', desc = '';
+      if (selectedType === 'points') {
+        title = (document.getElementById('ptTitle') || {}).value || 'Points Reward';
+        desc = (document.getElementById('ptDesc') || {}).value || '';
+      } else if (selectedType === 'free-product') {
+        title = (document.getElementById('fpTitle') || {}).value || 'Free Product';
+        desc = (document.getElementById('fpDesc') || {}).value || '';
+      } else if (selectedType === 'discount') {
+        title = (document.getElementById('dcTitle') || {}).value || 'Discount';
+        desc = '';
+      } else if (isCashType(selectedType)) {
+        title = 'Cash Reward';
+        desc = (document.getElementById('cpaMemo') || {}).value || '';
+      }
+
+      var payload = {
+        brandId: brandId,
+        type: apiType,
+        earningMethod: apiEarning,
+        title: title.substring(0, 21),
+        description: desc.substring(0, 85),
+      };
+
+      // Point config
+      if (apiEarning === 'point_based') {
+        payload.pointConfig = {
+          contentEnabled: document.getElementById('toggleContent') ? document.getElementById('toggleContent').checked : false,
+          contentPoints: {
+            submitted: parseInt((document.getElementById('ptContentSubmit') || {}).value) || 10,
+            approved: parseInt((document.getElementById('ptContentApprove') || {}).value) || 25,
+            published: parseInt((document.getElementById('ptContentPublish') || {}).value) || 40,
+            bonus: parseInt((document.getElementById('ptContentBonus') || {}).value) || 15,
+          },
+          purchaseEnabled: document.getElementById('togglePurchase') ? document.getElementById('togglePurchase').checked : false,
+          purchaseTiers: [],
+          gratitudeEnabled: document.getElementById('toggleGratitude') ? document.getElementById('toggleGratitude').checked : false,
+          gratitudePoints: {
+            join: parseInt((document.getElementById('ptGratJoin') || {}).value) || 50,
+            birthday: parseInt((document.getElementById('ptGratBday') || {}).value) || 25,
+            anniversary: parseInt((document.getElementById('ptGratAnniv') || {}).value) || 100,
+          },
+          unlockThreshold: parseInt((document.getElementById('unlockThreshold') || {}).value) || 500,
+        };
+        // Collect purchase tiers
+        for (var ti = 1; ti <= 3; ti++) {
+          var spend = parseInt((document.getElementById('ptPurchaseSpend' + ti) || {}).value);
+          var earn = parseInt((document.getElementById('ptPurchaseEarn' + ti) || {}).value);
+          if (spend && earn) {
+            payload.pointConfig.purchaseTiers.push({ spendThreshold: spend, pointsEarned: earn });
+          }
+        }
+      }
+
+      // Cash config
+      if (isCashType(selectedType)) {
+        payload.cashConfig = {
+          budgetCap: parseInt((document.getElementById('budgetCap') || {}).value) || null,
+        };
+      }
+
+      // Discount config
+      if (selectedType === 'discount') {
+        var dcTypeEl = document.querySelector('input[name="discountType"]:checked');
+        payload.discountConfig = {
+          discountType: dcTypeEl ? dcTypeEl.value : 'percentage',
+          discountValue: parseFloat((document.getElementById('dcValue') || {}).value) || 0,
+          discountCode: (document.getElementById('dcCode') || {}).value || null,
+        };
+      }
+
+      // Product config
+      if (selectedType === 'free-product') {
+        payload.productConfig = {
+          productName: (document.getElementById('fpTitle') || {}).value || '',
+          productValue: parseFloat((document.getElementById('fpValue') || {}).value) || null,
+        };
+      }
+
+      return payload;
+    }
+
+    async function handleSaveReward() {
+      var payload = collectRewardPayload(false);
+      if (!payload) return;
+
+      try {
+        var data = await kupApi.post('/api/rewards', payload);
+        // Activate immediately
+        if (data.reward && data.reward._id) {
+          await kupApi.put('/api/rewards/' + data.reward._id + '/status', { status: 'active' });
+        }
+        kupToast('Reward created successfully!', 'success');
+        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
+      } catch (err) {
+        kupToast(err.message || 'Failed to save reward.', 'error');
+      }
+    }
+
+    async function handleSaveDraft() {
+      var payload = collectRewardPayload(true);
+      if (!payload) return;
+
+      try {
+        await kupApi.post('/api/rewards', payload);
+        kupToast('Reward saved as draft', 'info');
+        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
+      } catch (err) {
+        kupToast(err.message || 'Failed to save draft.', 'error');
+      }
+    }
 
     /* ============ LIVE PREVIEW LISTENERS ============ */
     document.addEventListener('input', function(e) {
@@ -1241,6 +1374,20 @@
       KUP_PLATFORM.isCashType(type), .needsPointConfig(type, method)
       KUP_PLATFORM.getWizardSteps(type, method), .canAccess(tier, feature)
   -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      var logoutLink = document.querySelector('.logout');
+      if (logoutLink) { logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); }); }
+    });
+  </script>
+
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/onboarding.js"></script>

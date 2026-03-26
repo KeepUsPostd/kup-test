@@ -887,6 +887,117 @@
     Key APIs for this page:
       KUP_PLATFORM.CAMPAIGN_STATUSES, .CAMPAIGN_TRANSITIONS, .CAMPAIGN_RULES
   -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    // Auth gate + load campaigns
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+
+      // Get active brand from localStorage
+      let brandId = null;
+      try {
+        const stored = localStorage.getItem('kup_active_brand');
+        if (stored) brandId = JSON.parse(stored).id;
+      } catch(e) {}
+
+      if (!brandId) { window.location.href = 'manage-brands.html'; return; }
+
+      try {
+        const data = await kupApi.get('/api/campaigns?brandId=' + brandId);
+        renderCampaignStats(data.stats || {});
+        renderCampaignCards(data.campaigns || []);
+      } catch (err) {
+        console.error('Failed to load campaigns:', err);
+      }
+
+      // Wire logout
+      const logoutLink = document.querySelector('.logout');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
+      }
+    });
+
+    // Update stats bar with real numbers
+    function renderCampaignStats(stats) {
+      const statValues = document.querySelectorAll('.stat-card .stat-value');
+      if (statValues[0]) statValues[0].textContent = stats.total || 0;
+      if (statValues[1]) statValues[1].textContent = stats.active || 0;
+      if (statValues[2]) statValues[2].textContent = stats.draft || 0;
+      if (statValues[3]) statValues[3].textContent = stats.paused || 0;
+    }
+
+    // Render campaign cards from API data
+    function renderCampaignCards(campaigns) {
+      const grid = document.getElementById('campaignsGrid');
+      if (!grid) return;
+
+      // Remove hardcoded demo cards
+      grid.innerHTML = '';
+
+      if (campaigns.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#888;"><p style="font-size:1.1rem;margin-bottom:8px;">No campaigns yet</p><p style="font-size:0.85rem;">Click <strong>New Campaign</strong> to create your first campaign.</p></div>';
+        return;
+      }
+
+      // Gradient colors for cards without images
+      const gradients = [
+        'linear-gradient(135deg,#1a1a3e 0%,#2d3a6e 100%)',
+        'linear-gradient(135deg,#0f3443 0%,#34e89e 100%)',
+        'linear-gradient(135deg,#2c3e50 0%,#4ca1af 100%)',
+        'linear-gradient(135deg,#654ea3 0%,#eaafc8 100%)',
+        'linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%)',
+        'linear-gradient(135deg,#ED8444 0%,#e06030 100%)',
+      ];
+
+      campaigns.forEach((campaign, i) => {
+        const gradient = gradients[i % gradients.length];
+        const statusClass = campaign.status === 'active' ? 'active' :
+                           campaign.status === 'draft' ? 'draft' :
+                           campaign.status === 'paused' ? 'paused' : 'ended';
+
+        const deadlineStr = campaign.deadline
+          ? new Date(campaign.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : 'No deadline';
+        const createdStr = new Date(campaign.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        const card = document.createElement('div');
+        card.className = 'campaign-card';
+        card.setAttribute('data-status', campaign.status);
+        card.setAttribute('data-name', campaign.title);
+        card.onclick = function() { window.location = 'brand-campaign.html?campaignId=' + campaign._id; };
+
+        card.innerHTML = `
+          <div class="campaign-card-image" style="background:${campaign.coverImageUrl ? 'url(' + campaign.coverImageUrl + ') center/cover' : gradient}">
+            ${!campaign.coverImageUrl ? '<span class="placeholder-icon"><i class="ph ph-flag-banner"></i></span>' : ''}
+            <span class="card-status-badge ${statusClass}"><span class="dot"></span> ${campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}</span>
+          </div>
+          <div class="campaign-card-body">
+            <div class="card-category">${campaign.category || 'General'}</div>
+            <h3 class="card-title">${campaign.title}</h3>
+            <p class="card-desc">${campaign.description || 'No description yet.'}</p>
+            <div class="card-stats">
+              <span class="card-stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+                <span class="val">${campaign.submissionCount || 0}</span> Submissions
+              </span>
+            </div>
+          </div>
+          <div class="campaign-card-footer">
+            <span class="card-date">${createdStr} &mdash; ${deadlineStr}</span>
+            <button class="card-view-btn">View Details &rarr;</button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+  </script>
+
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>

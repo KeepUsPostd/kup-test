@@ -1,6 +1,9 @@
 // Reward Model — Reward configurations created by brands
 // Rule R1: One earning method per reward
 // Rule R2: No point pooling across rewards
+// Rule R4: Cash rates are tier-based (not custom)
+// Rule R5: Cash types allow multi-select
+// Rule R6: Non-cash types exclusive per reward
 // Ref: DATABASE_SCHEMA.md → rewards
 const mongoose = require('mongoose');
 
@@ -33,36 +36,60 @@ const rewardSchema = new mongoose.Schema({
   // Details
   title: { type: String, required: true, maxlength: 21 },
   description: { type: String, maxlength: 85, default: null },
+  imageUrl: { type: String, default: null },
 
   // Point-based config (when earningMethod = "point_based")
+  // Ref: DATABASE_SCHEMA.md → rewards.point_config
   pointConfig: {
-    pointsPerAction: { type: Number, default: null },
-    pointsToRedeem: { type: Number, default: null },
-    rewardValue: { type: String, default: null },
+    contentEnabled: { type: Boolean, default: false },
+    contentPoints: {
+      submitted: { type: Number, default: 10 },
+      approved: { type: Number, default: 25 },
+      published: { type: Number, default: 40 },
+      bonus: { type: Number, default: 15 },
+    },
+    purchaseEnabled: { type: Boolean, default: false },
+    purchaseTiers: [{
+      spendThreshold: { type: Number },
+      pointsEarned: { type: Number },
+    }], // max 3 tiers
+    gratitudeEnabled: { type: Boolean, default: false },
+    gratitudePoints: {
+      join: { type: Number, default: 50 },
+      birthday: { type: Number, default: 25 },
+      anniversary: { type: Number, default: 100 },
+    },
+    unlockThreshold: { type: Number, default: null }, // must be > 0
   },
 
-  // Cash config (when type includes "cash")
+  // Cash config (for cash_per_approval, bonus_cash, postd_pay)
+  // CPA & Bonus rates resolved from influencer tier — not stored here
   cashConfig: {
-    amountPerApproval: { type: Number, default: null },
-    currency: { type: String, default: 'USD' },
+    budgetCap: { type: Number, default: null }, // optional spending limit
+    budgetSpent: { type: Number, default: 0 },
   },
 
   // Discount config
   discountConfig: {
     discountType: {
       type: String,
-      enum: ['percentage', 'fixed'],
+      enum: ['percentage', 'fixed', 'freeship'],
       default: null,
     },
     discountValue: { type: Number, default: null },
     discountCode: { type: String, default: null },
+    expirationDays: { type: Number, default: null }, // 30, 60, or null (no expiry)
   },
 
   // Product config
   productConfig: {
     productName: { type: String, default: null },
-    productDescription: { type: String, default: null },
-    productImageUrl: { type: String, default: null },
+    productValue: { type: Number, default: null },
+    shippingMethod: {
+      type: String,
+      enum: ['address', 'email', 'pickup'],
+      default: null,
+    },
   },
 
   // Status
@@ -83,5 +110,6 @@ const rewardSchema = new mongoose.Schema({
 // Indexes
 rewardSchema.index({ brandId: 1, status: 1 });
 rewardSchema.index({ type: 1 });
+rewardSchema.index({ earningMethod: 1 });
 
 module.exports = mongoose.model('Reward', rewardSchema);
