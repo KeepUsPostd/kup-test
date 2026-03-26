@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KUP Test Environment</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .container { text-align: center; max-width: 600px; padding: 40px; }
+    .logo { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #6366F1, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .subtitle { color: #888; font-size: 1rem; margin-bottom: 40px; }
+    .status-card { background: #1a1a1a; border: 1px solid #333; border-radius: 16px; padding: 24px; margin-bottom: 16px; text-align: left; }
+    .status-card h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 12px; }
+    .status-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; }
+    .status-item:last-child { border-bottom: none; }
+    .status-item span:first-child { color: #ccc; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-ok { background: #064e3b; color: #34d399; }
+    .badge-pending { background: #422006; color: #fbbf24; }
+    .badge-error { background: #450a0a; color: #f87171; }
+    #server-status { transition: all 0.3s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">KeepUsPostd</div>
+    <p class="subtitle">Test Environment Dashboard</p>
+
+    <div class="status-card">
+      <h3>System Status</h3>
+      <div class="status-item">
+        <span>Server</span>
+        <span id="server-status" class="badge badge-pending">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span>MongoDB</span>
+        <span id="db-status" class="badge badge-pending">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span>Firebase Auth</span>
+        <span id="firebase-status" class="badge badge-pending">Checking...</span>
+      </div>
+    </div>
+
+    <div class="status-card">
+      <h3>Quick Links</h3>
+      <div class="status-item">
+        <span>API Health</span>
+        <a href="/api/health" style="color: #8B5CF6; text-decoration: none;">/api/health</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check server health on page load
+    fetch('/api/health')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('server-status').textContent = 'Connected';
+        document.getElementById('server-status').className = 'badge badge-ok';
+        document.getElementById('db-status').textContent = 'Connected';
+        document.getElementById('db-status').className = 'badge badge-ok';
+        document.getElementById('firebase-status').textContent = 'Ready';
+        document.getElementById('firebase-status').className = 'badge badge-ok';
+      })
+      .catch(err => {
+        document.getElementById('server-status').textContent = 'Offline';
+        document.getElementById('server-status').className = 'badge badge-error';
+        document.getElementById('db-status').textContent = 'Unknown';
+        document.getElementById('db-status').className = 'badge badge-error';
+        document.getElementById('firebase-status').textContent = 'Unknown';
+        document.getElementById('firebase-status').className = 'badge badge-error';
+      });
+  </script>
+</body>
+</html>
