@@ -1085,9 +1085,15 @@
         realSubmissionId = sub._id;
 
         // Convert API submission to our contentItems format
+        // RULE: Every influencer must have displayName + handle. Reject incomplete data.
         var influencer = sub.influencerProfileId || {};
-        var displayName = influencer.displayName || 'Unknown';
-        var handle = influencer.handle ? '@' + influencer.handle : '@unknown';
+        if (!influencer.displayName || !influencer.handle) {
+          console.warn('Submission has incomplete influencer data — skipping:', sub._id);
+          loadDemoData();
+          return;
+        }
+        var displayName = influencer.displayName;
+        var handle = '@' + influencer.handle;
         var initials = getInitials(displayName);
         var tier = influencer.influenceTier || 'Creator';
         var campaign = sub.campaignId ? sub.campaignId.title : 'General';
@@ -1145,11 +1151,16 @@
         var data = await kupApi.get('/api/content?brandId=' + brandId);
         if (!data || !data.submissions || data.submissions.length <= 1) return;
 
-        allSubmissions = data.submissions;
+        // Filter out any submissions with incomplete influencer data
+        allSubmissions = data.submissions.filter(function(sub) {
+          var inf = sub.influencerProfileId;
+          return inf && inf.displayName && inf.handle;
+        });
+        if (allSubmissions.length === 0) return;
         contentItems = allSubmissions.map(function(sub, idx) {
-          var influencer = sub.influencerProfileId || {};
-          var displayName = influencer.displayName || 'Unknown';
-          var handle = influencer.handle ? '@' + influencer.handle : '@unknown';
+          var influencer = sub.influencerProfileId;
+          var displayName = influencer.displayName;
+          var handle = '@' + influencer.handle;
           var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
           var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
           var daysRemaining = null;

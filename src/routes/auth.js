@@ -35,10 +35,14 @@ router.post('/register', async (req, res) => {
 
       if (wantsInfluencer) {
         // Add influencer profile to existing account
+        // RULE: Every influencer must have displayName + handle. No "Unknown" creators.
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const infDisplayName = `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || user.email.split('@')[0];
+        const infHandle = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
         await InfluencerProfile.create({
           userId: user._id,
-          displayName: `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || null,
+          displayName: infDisplayName,
+          handle: infHandle,
           referralCode,
         });
         user.hasInfluencerProfile = true;
@@ -72,11 +76,15 @@ router.post('/register', async (req, res) => {
       });
 
       // Create the requested profile type
+      // RULE: Every influencer must have displayName + handle. No "Unknown" creators.
       if (profileType === 'influencer') {
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const newDisplayName = `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0];
+        const newHandle = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
         await InfluencerProfile.create({
           userId: user._id,
-          displayName: `${firstName || ''} ${lastName || ''}`.trim() || null,
+          displayName: newDisplayName,
+          handle: newHandle,
           referralCode,
         });
         user.hasInfluencerProfile = true;

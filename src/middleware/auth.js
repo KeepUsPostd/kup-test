@@ -47,11 +47,13 @@ const requireAuth = async (req, res, next) => {
         });
 
         // Auto-create both profiles so the user can operate as brand or creator
+        // RULE: Every influencer must have a displayName and handle. No "Unknown" creators.
         const displayName = [firstName, lastName].filter(Boolean).join(' ') || decodedToken.email.split('@')[0];
+        const handle = decodedToken.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
         await InfluencerProfile.create({
           userId: user._id,
           displayName: displayName,
-          handle: decodedToken.email.split('@')[0],
+          handle: handle,
           referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
         });
         await BrandProfile.create({

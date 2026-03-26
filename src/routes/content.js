@@ -51,6 +51,14 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
+    // RULE: No "Unknown" influencers. Profile must have displayName and handle.
+    if (!influencerProfile.displayName || !influencerProfile.handle) {
+      return res.status(400).json({
+        error: 'Incomplete creator profile',
+        message: 'Please complete your creator profile (display name and handle) before submitting content.',
+      });
+    }
+
     const submission = await ContentSubmission.create({
       influencerProfileId: influencerProfile._id,
       brandId,
