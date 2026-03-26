@@ -11,4 +11,6 @@ module.exports = {
   Reward: require('./Reward'),
   ContentSubmission: require('./ContentSubmission'),
   Partnership: require('./Partnership'),
+  GuestReviewer: require('./GuestReviewer'),
+  KioskReward: require('./KioskReward'),
 };

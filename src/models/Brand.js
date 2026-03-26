@@ -69,6 +69,24 @@ const brandSchema = new mongoose.Schema({
   averageRating: { type: Number, default: null },
   ratingCount: { type: Number, default: 0 },
 
+  // Kiosk Mode Configuration
+  kioskEnabled: { type: Boolean, default: false },
+  kioskOfferTitle: { type: String, default: 'Leave a review, get a reward!', maxlength: 60 },
+  kioskRewardType: {
+    type: String,
+    enum: ['free_item', 'discount_percent', 'discount_fixed', 'points'],
+    default: 'discount_percent',
+  },
+  kioskRewardValue: { type: String, default: '10% Off' },
+  kioskRecordingLimit: { type: Number, default: 60, min: 15, max: 120 }, // seconds
+  kioskAutoApprove: { type: Boolean, default: false },
+  kioskRequireSmsVerify: { type: Boolean, default: false },
+  kioskDailyRewardCap: { type: Number, default: 50, min: 1, max: 500 },
+  kioskBrandingColor: { type: String, default: '#FF6B35' }, // hex color
+  kioskBrandingLogo: { type: String, default: null }, // URL to logo for kiosk display
+  kioskActiveLocations: { type: Number, default: 0 }, // how many kiosks currently active
+  kioskBrandCode: { type: String, default: null, unique: true, sparse: true }, // short code for kiosk URL
+
   // System
   status: {
     type: String,
