@@ -10,14 +10,16 @@ const influencerProfileSchema = new mongoose.Schema({
     unique: true,
   },
 
-  // Public identity — displayName and handle are REQUIRED.
-  // Every creator must be identifiable. No "Unknown" influencers on the platform.
+  // Public identity — every creator needs these to be visible on the platform.
+  // Set from existing user data (name from registration, handle from email).
+  // Creators can enhance these later through the native app.
   displayName: { type: String, required: true, maxlength: 30 },
   handle: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
+    trim: true,
     maxlength: 20,
   },
   avatarUrl: { type: String, default: null },

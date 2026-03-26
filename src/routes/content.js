@@ -51,12 +51,19 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
-    // RULE: No "Unknown" influencers. Profile must have displayName and handle.
+    // RULE: No "Unknown" influencers. If profile is missing displayName or handle,
+    // auto-populate from the User record we already have — don't block the flow.
+    // The native app will prompt for profile enhancement later.
     if (!influencerProfile.displayName || !influencerProfile.handle) {
-      return res.status(400).json({
-        error: 'Incomplete creator profile',
-        message: 'Please complete your creator profile (display name and handle) before submitting content.',
-      });
+      const user = req.user;
+      const fallbackName = [user.legalFirstName, user.legalLastName].filter(Boolean).join(' ')
+        || user.email.split('@')[0];
+      const fallbackHandle = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+
+      if (!influencerProfile.displayName) influencerProfile.displayName = fallbackName;
+      if (!influencerProfile.handle) influencerProfile.handle = fallbackHandle;
+      await influencerProfile.save();
+      console.log(`🔧 Auto-completed creator profile for ${user.email}: "${influencerProfile.displayName}" @${influencerProfile.handle}`);
     }
 
     const submission = await ContentSubmission.create({

@@ -1085,15 +1085,11 @@
         realSubmissionId = sub._id;
 
         // Convert API submission to our contentItems format
-        // RULE: Every influencer must have displayName + handle. Reject incomplete data.
+        // Use real data from registration — displayName and handle are required now,
+        // but gracefully handle any older profiles that might be incomplete
         var influencer = sub.influencerProfileId || {};
-        if (!influencer.displayName || !influencer.handle) {
-          console.warn('Submission has incomplete influencer data — skipping:', sub._id);
-          loadDemoData();
-          return;
-        }
-        var displayName = influencer.displayName;
-        var handle = '@' + influencer.handle;
+        var displayName = influencer.displayName || influencer.handle || 'New Creator';
+        var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
         var initials = getInitials(displayName);
         var tier = influencer.influenceTier || 'Creator';
         var campaign = sub.campaignId ? sub.campaignId.title : 'General';
@@ -1151,16 +1147,12 @@
         var data = await kupApi.get('/api/content?brandId=' + brandId);
         if (!data || !data.submissions || data.submissions.length <= 1) return;
 
-        // Filter out any submissions with incomplete influencer data
-        allSubmissions = data.submissions.filter(function(sub) {
-          var inf = sub.influencerProfileId;
-          return inf && inf.displayName && inf.handle;
-        });
+        allSubmissions = data.submissions;
         if (allSubmissions.length === 0) return;
         contentItems = allSubmissions.map(function(sub, idx) {
-          var influencer = sub.influencerProfileId;
-          var displayName = influencer.displayName;
-          var handle = '@' + influencer.handle;
+          var influencer = sub.influencerProfileId || {};
+          var displayName = influencer.displayName || influencer.handle || 'New Creator';
+          var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
           var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
           var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
           var daysRemaining = null;

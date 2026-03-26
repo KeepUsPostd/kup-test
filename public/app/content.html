@@ -2401,14 +2401,12 @@
 
         const timeAgo = getTimeAgo(sub.submittedAt);
         const statusBadge = getStatusBadge(sub.status);
-        const influencer = sub.influencerProfileId;
-        // Every influencer MUST have a displayName and handle — if missing, skip this row
-        if (!influencer || !influencer.displayName || !influencer.handle) {
-          console.warn('Skipping submission with incomplete influencer profile:', sub._id);
-          return;
-        }
-        const handle = influencer.handle;
-        const displayName = influencer.displayName;
+        const influencer = sub.influencerProfileId || {};
+        // Use the real data we already collected — displayName from registration name,
+        // handle derived from email. Both are required fields now, but gracefully
+        // fall back just in case (e.g., old data before the enforcement).
+        const displayName = influencer.displayName || influencer.handle || 'New Creator';
+        const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
         const nameParts = displayName.trim().split(/\s+/);
         const initials = nameParts.length >= 2
           ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
@@ -2452,7 +2450,7 @@
           </td>
           <td>${sub.campaignId?.title || 'General'}</td>
           <td data-label="Submitted By">
-            <div class="influencer-cell" data-influencer-id="${influencer._id}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${influencer.influenceTier || 'Nano Influencer'}" style="cursor:pointer">
+            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${influencer.influenceTier || 'Nano Influencer'}" style="cursor:pointer">
               <div class="avatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
               <div>
                 <div class="name" style="font-size:0.82rem;font-weight:600;color:#2EA5DD">@${handle}</div>
