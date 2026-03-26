@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Brand &mdash; KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit;transition:all .2s}
+
+    /* ========== AUTH HEADER ========== */
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
+    .auth-logo img{height:32px}
+    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
+    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
+    .auth-right{display:flex;align-items:center;gap:20px}
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none;transition:background .2s}
+    .profile-trigger:hover{background:#f0f0f0}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+    .profile-info{text-align:left}
+    .profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}
+    .profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+
+    /* ========== TWO-COLUMN WIZARD LAYOUT ========== */
+    .wizard-layout{display:grid;grid-template-columns:440px 1fr;min-height:calc(100vh - 64px - 57px)}
+
+    /* LEFT FORM PANEL */
+    .wizard-form{background:var(--kup-white);border-right:1px solid #eee;padding:36px 32px;overflow-y:auto}
+    .form-logo{margin-bottom:24px}
+    .form-logo img{height:28px}
+    .breadcrumb-text{font-size:.78rem;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .breadcrumb-text span{color:var(--kup-blue)}
+    .form-heading{font-size:1.4rem;font-weight:800;margin:0 0 8px;color:#1a1a1a}
+    .form-subtitle{font-size:.85rem;color:#666;line-height:1.7;margin-bottom:24px}
+
+    /* Progress Bar */
+    .wizard-progress{display:flex;gap:8px;margin:0 0 28px}
+    .progress-step{flex:1;height:4px;border-radius:4px;background:#eee}
+    .progress-step.active{background:var(--kup-blue)}
+    .progress-step.done{background:#16a34a}
+
+    /* Form */
+    .form-section{display:none}
+    .form-section.active-step{display:block}
+    .step-label{font-size:.78rem;color:#888;margin-bottom:20px;font-weight:600}
+    .form-group{margin-bottom:20px}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;color:#444;margin-bottom:6px}
+    .form-group input,
+    .form-group textarea,
+    .form-group select{width:100%;padding:12px 16px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.88rem;background:#fff;color:#1a1a1a;transition:border-color .2s,box-shadow .2s}
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .form-group input::placeholder,
+    .form-group textarea::placeholder{color:#bbb}
+    .form-group textarea{resize:vertical;min-height:100px}
+    .form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer}
+    .form-group .char-count{font-size:.72rem;color:#bbb;text-align:right;margin-top:4px}
+    .form-group .char-count.warn{color:var(--kup-orange)}
+    .form-group .helper{font-size:.75rem;color:#999;margin-top:4px}
+    .helper-link{color:var(--kup-blue);font-weight:600}
+
+    /* Wizard Actions */
+    .wizard-actions{display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #eee}
+    .btn-wizard{padding:12px 24px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;border:none;transition:all .2s}
+    .btn-wizard.primary{background:var(--kup-blue);color:#fff;flex:1}
+    .btn-wizard.primary:hover{background:#258fc4}
+    .btn-wizard.secondary{background:#f0f0f0;color:#666}
+    .btn-wizard.secondary:hover{background:#e4e4e4}
+    .btn-wizard.success{background:#16a34a;color:#fff;flex:1}
+    .btn-wizard.success:hover{background:#15803d}
+
+    /* Save & Exit */
+    .save-exit-link{float:right;font-size:.82rem;font-weight:600;color:#888}
+    .save-exit-link:hover{color:var(--kup-blue)}
+
+    /* ============== URL INPUT + FIND MY BRAND ============== */
+    .url-input-row{display:flex;gap:8px}
+    .url-input-row input{flex:1}
+    .btn-find-brand{white-space:nowrap;padding:12px 20px;background:var(--kup-gradient);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;min-width:150px;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-find-brand:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 16px rgba(46,165,221,.3)}
+    .btn-find-brand:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+    .spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:kupSpin .6s linear infinite}
+    @keyframes kupSpin{to{transform:rotate(360deg)}}
+
+    /* AI Mode Tabs (3-mode input) */
+    .ai-mode-tabs{display:flex;gap:4px;background:#f5f6fa;border-radius:var(--radius-sm);padding:4px;margin-bottom:20px}
+    .ai-mode-tab{flex:1;padding:10px 8px;border:none;background:none;border-radius:4px;font-family:var(--kup-font);font-size:.78rem;font-weight:600;color:#888;cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap}
+    .ai-mode-tab:hover{color:#555;background:rgba(255,255,255,.5)}
+    .ai-mode-tab.active{background:#fff;color:var(--kup-blue);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .ai-mode-content{display:none}
+    .ai-mode-content.active{display:block}
+    .describe-textarea{resize:vertical;min-height:100px;width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.88rem;line-height:1.5;transition:border-color .2s}
+    .describe-textarea:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .describe-textarea::placeholder{color:#bbb}
+    .btn-build-profile{width:100%;margin-top:12px}
+    .describe-example{font-size:.78rem;color:#bbb;margin-top:8px;line-height:1.5;font-style:italic}
+
+    /* AI Results Banner */
+    .ai-results-banner{display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(46,165,221,.06);border:1px solid rgba(46,165,221,.15);border-radius:var(--radius-sm);margin-bottom:24px;font-size:.85rem;font-weight:600;color:var(--kup-blue)}
+    .ai-icon{font-size:1.2rem}
+
+    /* Logo Preview */
+    .logo-preview-row{display:flex;align-items:center;gap:12px}
+    .logo-preview-circle{width:48px;height:48px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.9rem;flex-shrink:0}
+    .logo-change-link{font-size:.82rem;color:#888}
+    .logo-change-link a{color:var(--kup-blue);font-weight:600}
+
+    /* Social Input */
+    .social-input{display:flex;gap:0;align-items:stretch;margin-bottom:8px}
+    .social-input .social-icon{width:44px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;border:1px solid #ddd;border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);font-size:.82rem;font-weight:700;color:#888}
+    .social-input input{border-radius:0 var(--radius-sm) var(--radius-sm) 0;flex:1}
+
+    /* ============== OFFER CARDS (Step 2) ============== */
+    .offer-cards{display:flex;flex-direction:column;gap:12px}
+    .offer-card{display:flex;align-items:flex-start;gap:16px;padding:20px;border:2px solid #eee;border-radius:var(--radius-md);cursor:pointer;transition:all .2s;position:relative}
+    .offer-card:hover{border-color:#ccc;background:#fafbfc}
+    .offer-card.selected{border-color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .offer-card-icon{width:44px;height:44px;border-radius:var(--radius-sm);background:#f5f6fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem}
+    .offer-card.selected .offer-card-icon{background:rgba(46,165,221,.1)}
+    .offer-card-body{flex:1}
+    .offer-card-title{font-size:.95rem;font-weight:700;margin:0 0 4px}
+    .offer-card-desc{font-size:.82rem;color:#888;margin:0 0 8px}
+    .offer-card-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .offer-card-badge.included{background:rgba(22,163,74,.08);color:#16a34a}
+    .offer-card-badge.upgrade{background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .offer-card-upsell{font-size:.82rem;color:#666;margin:10px 0 6px;font-style:italic}
+    .offer-card-upgrade-link{font-size:.82rem;color:var(--kup-blue);font-weight:600;display:block;margin-bottom:4px}
+    .offer-card-skip-link{font-size:.78rem;color:#aaa}
+    .offer-card-check{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;transition:all .2s}
+    .offer-card.selected .offer-card-check{background:var(--kup-blue);border-color:var(--kup-blue)}
+    .offer-card.selected .offer-card-check::after{content:'';width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px}
+    .offer-card-upgrade{border-style:dashed}
+
+    /* ============== PUBLISH/DRAFT (Step 3) ============== */
+    .wizard-actions-publish{flex-direction:column;align-items:stretch;text-align:center;border-top:none;padding-top:0}
+    .btn-publish{padding:16px;font-size:1rem}
+    .publish-hint,.draft-hint{font-size:.78rem;color:#999;margin:6px 0 16px}
+
+    /* ============== SUCCESS OVERLAY (Post-Publish) ============== */
+    .publish-success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+    .publish-success-overlay.visible{display:flex}
+    .publish-success-card{background:#fff;border-radius:16px;padding:40px 36px;max-width:480px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.15);animation:successSlideUp .4s ease}
+    @keyframes successSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .success-check{width:64px;height:64px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+    .success-check svg{width:32px;height:32px;color:#fff}
+    .success-title{font-size:1.4rem;font-weight:800;color:#1a1a1a;margin:0 0 6px}
+    .success-subtitle{font-size:.88rem;color:#666;margin:0 0 24px;line-height:1.5}
+    .success-link-box{display:flex;align-items:center;gap:8px;background:#f8f9fa;border:1px solid #eee;border-radius:10px;padding:12px 16px;margin-bottom:12px}
+    .success-link-url{flex:1;font-size:.85rem;font-weight:600;color:var(--kup-blue);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .success-link-copy{background:var(--kup-blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:var(--kup-font);font-size:.78rem;font-weight:700;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .success-link-copy:hover{background:#258fc4}
+    .success-link-hint{font-size:.75rem;color:#999;margin:0 0 24px;line-height:1.4}
+    .success-nudge{font-size:.8rem;color:#555;background:rgba(46,165,221,.06);border:1px solid rgba(46,165,221,.15);border-radius:var(--radius-sm);padding:12px 16px;margin:0 0 16px;line-height:1.5;text-align:left}
+    .success-actions{display:flex;flex-direction:column;gap:10px}
+    .success-btn-primary{padding:14px;background:var(--kup-gradient);color:#fff;border:none;border-radius:10px;font-family:var(--kup-font);font-size:.9rem;font-weight:700;cursor:pointer;transition:transform .15s}
+    .success-btn-primary:hover{transform:translateY(-1px)}
+    .success-btn-secondary{padding:12px;background:transparent;color:#888;border:1px solid #eee;border-radius:10px;font-family:var(--kup-font);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .success-btn-secondary:hover{border-color:var(--kup-blue);color:var(--kup-blue)}
+
+    /* Review card (inline for mobile) */
+    .review-card-inline{display:none;margin-bottom:24px}
+
+    /* ============== AGENCY BADGE ============== */
+    .agency-badge{display:inline-block;padding:3px 10px;background:rgba(46,165,221,.1);color:var(--kup-blue);border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+
+    /* ============== RIGHT PREVIEW PANEL ============== */
+    .wizard-preview{padding:32px 32px 32px 32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+    .preview-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:12px;text-align:center;width:310px}
+
+    /* Preview layout: tips + phone side by side */
+    .preview-inner{display:flex;align-items:flex-start;gap:28px;width:100%}
+
+    /* Step Tips Panel */
+    .step-tips{flex:1;min-width:0;max-width:260px}
+    .step-tips-card{background:#fff;border:1px solid #eee;border-radius:var(--radius-md);padding:20px;margin-bottom:16px}
+    .step-tips-card h4{font-size:.85rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+    .step-tips-card h4 .tip-icon{font-size:1rem}
+    .step-tips-card p{font-size:.78rem;color:#888;line-height:1.6;margin:0}
+    .step-tips-card ul{margin:8px 0 0;padding:0 0 0 16px;font-size:.75rem;color:#666;line-height:1.7}
+    .step-tips-card ul li{margin-bottom:4px}
+    .step-tips-card .tip-highlight{color:var(--kup-blue);font-weight:600}
+    .step-tips-group{display:none}
+    .step-tips-group.active{display:block}
+
+    /* Phone Column — label + phone + hint stacked */
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+
+    /* Phone Frame — clean, no black bezel */
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+
+    /* Phone Status Bar — sits inside banner via negative margin below */
+    .phone-status-bar{display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px;font-size:.7rem;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:45;height:44px;pointer-events:none}
+    .phone-status-bar .status-time{font-size:.78rem;font-weight:700;padding-bottom:4px}
+    .phone-status-bar .status-icons{display:flex;gap:4px;align-items:center;font-size:.6rem;padding-bottom:5px}
+    .phone-status-bar .status-icons span{display:inline-block}
+
+    /* Phone Screen (scrollable inner) */
+    .phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .phone-screen::-webkit-scrollbar{display:none}
+
+    /* Hero Banner */
+    .app-preview-banner{height:150px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative}
+    .app-preview-banner .back-btn-mock,.app-preview-banner .more-btn-mock{position:absolute;top:50px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    .app-preview-banner .back-btn-mock{left:12px}
+    .app-preview-banner .more-btn-mock{right:12px}
+
+    /* Centered Avatar */
+    .app-preview-avatar-wrap{display:flex;justify-content:center;margin-top:-32px;position:relative;z-index:10}
+    .app-preview-logo{width:64px;height:64px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+
+    /* Brand Info (centered) */
+    .app-preview-info{text-align:center;padding:8px 16px 0}
+    .app-preview-name{font-size:1.05rem;font-weight:800;margin:0 0 2px;color:#1a1a1a;min-height:22px;word-break:break-word;display:flex;align-items:center;justify-content:center;gap:4px}
+    .app-preview-category{font-size:.72rem;color:var(--kup-blue);font-weight:600;margin-bottom:1px;min-height:16px}
+    .app-preview-location{font-size:.68rem;color:#888;margin-bottom:6px;min-height:14px}
+    .app-preview-badge-row{display:flex;justify-content:center;margin-top:4px;margin-bottom:4px}
+    .app-preview-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:rgba(22,163,74,.08);color:#16a34a}
+
+    /* Stats Row */
+    .app-preview-stats{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-stat-box{flex:1;background:#f8f9fa;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center}
+    .app-preview-stat-box .stat-num{font-size:.9rem;font-weight:800;color:#1a1a1a;line-height:1.2}
+    .app-preview-stat-box .stat-label{font-size:.55rem;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px}
+
+    /* Action Buttons */
+    .app-preview-actions{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-actions .btn-mock{flex:1;padding:8px 0;border-radius:8px;font-family:var(--kup-font);font-size:.72rem;font-weight:700;text-align:center;border:none;cursor:default}
+    .app-preview-actions .btn-mock-primary{background:var(--kup-blue);color:#fff}
+    .app-preview-actions .btn-mock-secondary{background:#f0f0f0;color:#aaa;border:1px solid #e0e0e0}
+
+    /* Tab Bar */
+    .app-preview-tabs{display:flex;padding:12px 14px 0;border-bottom:1px solid #eee;gap:0}
+    .app-preview-tab{flex:1;text-align:center;padding:8px 0;font-size:.65rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;cursor:default}
+    .app-preview-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
+
+    /* Description area (inside About tab) */
+    .app-preview-body{padding:12px 16px 70px}
+    .app-preview-desc{font-size:.72rem;color:#888;line-height:1.6;min-height:36px;word-break:break-word}
+    .preview-offer-tag{display:inline-block;padding:3px 10px;background:rgba(237,132,68,.1);color:var(--kup-orange);border-radius:20px;font-size:.65rem;font-weight:700;margin-top:8px}
+
+    /* Bottom Nav — pinned to phone frame bottom */
+    .app-preview-nav{position:absolute;bottom:14px;left:0;right:0;height:50px;background:#fff;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:30}
+    .app-preview-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.52rem;color:#ccc;font-weight:600}
+    .app-preview-nav-item.active{color:var(--kup-blue)}
+    .app-preview-nav-item .nav-icon-mock{font-size:.9rem}
+    .app-preview-nav-fab{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;box-shadow:0 3px 10px rgba(46,165,221,.3);margin-top:-10px}
+
+    .preview-hint{font-size:.78rem;color:#bbb;text-align:center;margin-top:12px;font-style:italic;width:310px}
+
+    /* Home indicator bar at bottom of phone */
+    .phone-home-bar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#ccc;border-radius:4px;z-index:60}
+
+    /* FOOTER */
+    .auth-footer{text-align:center;padding:16px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}
+    .auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .profile-menu { position: relative; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ========== RESPONSIVE ========== */
+    @media(max-width:1024px){
+      .wizard-layout{grid-template-columns:380px 1fr}
+      .wizard-preview{padding:24px 16px 24px 12px}
+    }
+    @media(max-width:768px){
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-preview{display:none}
+      .review-card-inline{display:block}
+      .wizard-form{padding:24px 20px}
+      .auth-header-inner{padding:0 16px}
+      .auth-nav li a{padding:0 14px;font-size:.82rem}
+      .ai-mode-tabs{flex-direction:column}
+      .url-input-row{flex-direction:column}
+      .btn-find-brand{width:100%}
+      .profile-info{display:none}
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ========== AUTH HEADER ========== -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== TWO-COLUMN WIZARD ========== -->
+  <div class="wizard-layout">
+
+    <!-- LEFT: Form Panel -->
+    <div class="wizard-form">
+      <div class="form-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </div>
+
+      <p class="breadcrumb-text" id="breadcrumb">Brands &nbsp;|&nbsp; <span>Add Your Brand</span></p>
+
+      <!-- Progress Bar -->
+      <div class="wizard-progress">
+        <div class="progress-step active" id="prog1"></div>
+        <div class="progress-step" id="prog2"></div>
+        <div class="progress-step" id="prog3"></div>
+      </div>
+
+      <!-- ============ STEP 1: Find Your Brand ============ -->
+      <div id="step1" class="form-section active-step">
+        <a href="manage-brands.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 1 of 3</p>
+
+        <h1 class="form-heading" id="step1Heading">Let's find your brand</h1>
+        <p class="form-subtitle" id="step1Subtitle">Pick how you'd like to start — we'll set up your profile automatically.</p>
+
+        <!-- AI Mode Tabs -->
+        <div class="ai-mode-tabs" id="aiModeTabs">
+          <button class="ai-mode-tab active" data-mode="website">🌐 Website</button>
+          <button class="ai-mode-tab" data-mode="social">📱 Social Page</button>
+          <button class="ai-mode-tab" data-mode="describe">✍️ Describe It</button>
+        </div>
+
+        <!-- Mode: Website URL -->
+        <div class="ai-mode-content active" id="modeWebsite">
+          <div class="form-group">
+            <label for="brandUrl">Website URL</label>
+            <div class="url-input-row">
+              <input type="url" id="brandUrl" placeholder="https://yourbrand.com">
+              <button type="button" class="btn-find-brand" id="findBrandBtn">
+                <span class="btn-find-text">Find My Brand</span>
+                <span class="btn-find-spinner" style="display:none"><span class="spinner-sm"></span> Searching…</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode: Social Page -->
+        <div class="ai-mode-content" id="modeSocial">
+          <div class="form-group">
+            <label for="socialUrl">Social Media Page</label>
+            <div class="url-input-row">
+              <input type="url" id="socialUrl" placeholder="Paste your Instagram, Facebook, or TikTok URL">
+              <button type="button" class="btn-find-brand" id="findSocialBtn">
+                <span class="btn-find-text">Find My Brand</span>
+                <span class="btn-find-spinner" style="display:none"><span class="spinner-sm"></span> Scanning…</span>
+              </button>
+            </div>
+            <p class="helper">Works with Instagram, Facebook, TikTok, LinkedIn, and X profiles</p>
+          </div>
+        </div>
+
+        <!-- Mode: Describe It -->
+        <div class="ai-mode-content" id="modeDescribe">
+          <div class="form-group">
+            <label for="brandPrompt">Describe Your Brand</label>
+            <textarea class="describe-textarea" id="brandPrompt" placeholder="Tell us about your brand in a few sentences…" maxlength="500"></textarea>
+            <p class="describe-example">Example: "We're a vegan bakery in Brooklyn that ships nationwide. We focus on sustainable, organic ingredients."</p>
+          </div>
+          <button type="button" class="btn-find-brand btn-build-profile" id="buildProfileBtn">
+            <span class="btn-find-text">Build My Profile</span>
+            <span class="btn-find-spinner" style="display:none"><span class="spinner-sm"></span> Building…</span>
+          </button>
+        </div>
+
+        <p class="helper" style="margin-top:12px">Prefer to do it yourself? <a href="#" id="manualSetupLink" class="helper-link">Set up manually</a></p>
+
+        <!-- AI Results (initially hidden) -->
+        <div id="aiResultsSection" style="display:none">
+          <div class="ai-results-banner">
+            <span class="ai-icon"><i class="ph ph-sparkle"></i></span>
+            Here's what we found &mdash; edit anything that's not right.
+          </div>
+
+          <div class="form-group">
+            <label for="brandName">Brand Name *</label>
+            <input type="text" id="brandName" maxlength="40" placeholder="Brand name (required)">
+          </div>
+
+          <div class="form-group">
+            <label>Brand Logo</label>
+            <div class="logo-preview-row">
+              <div class="logo-preview-circle" id="logoPreviewCircle">KP</div>
+              <span class="logo-change-link">Auto-pulled from website. <a href="#">Click to change</a></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="brandIndustry">Industry *</label>
+            <select id="brandIndustry">
+              <option value="" disabled selected>Select an industry</option>
+              <option value="Fashion & Beauty">Fashion &amp; Beauty</option>
+              <option value="Food & Beverage">Food &amp; Beverage</option>
+              <option value="Technology & SaaS">Technology &amp; SaaS</option>
+              <option value="Health & Fitness">Health &amp; Fitness</option>
+              <option value="Travel & Lifestyle">Travel &amp; Lifestyle</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Education">Education</option>
+              <option value="Finance">Finance</option>
+              <option value="Retail & E-commerce">Retail &amp; E-commerce</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="brandDescription">Description *</label>
+            <textarea id="brandDescription" maxlength="250" placeholder="Tell influencers about your brand..."></textarea>
+            <div class="char-count" id="descCount">0 / 250</div>
+          </div>
+
+          <div class="form-group">
+            <label for="brandLocation">Location *</label>
+            <input type="text" id="brandLocation" placeholder="City, State or 'Online'">
+          </div>
+
+          <div class="form-group">
+            <label>Social Links</label>
+            <div class="social-input"><span class="social-icon">ig</span><input type="text" id="socialIg" placeholder="Instagram handle"></div>
+            <div class="social-input"><span class="social-icon">X</span><input type="text" id="socialX" placeholder="X handle"></div>
+            <div class="social-input"><span class="social-icon">tt</span><input type="text" id="socialTt" placeholder="TikTok handle"></div>
+            <div class="social-input"><span class="social-icon">f</span><input type="text" id="socialFb" placeholder="Facebook URL"></div>
+            <div class="social-input"><span class="social-icon">in</span><input type="text" id="socialLi" placeholder="LinkedIn URL"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactName">Contact Name *</label>
+            <input type="text" id="contactName" placeholder="Your first and last name">
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard primary" id="step1Next">Continue</button>
+        </div>
+      </div>
+
+      <!-- ============ STEP 2: What Are You Offering? ============ -->
+      <div id="step2" class="form-section">
+        <a href="manage-brands.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 2 of 3</p>
+
+        <h1 class="form-heading">What would you like to offer influencers?</h1>
+        <p class="form-subtitle">Select all that apply. You can change these later.</p>
+
+        <div class="offer-cards" id="offerCards">
+          <div class="offer-card" data-offer="free-product">
+            <div class="offer-card-icon"><i class="ph ph-gift"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Free Product or Service</h4>
+              <p class="offer-card-desc">Send your product or offer a service for an honest review</p>
+              <span class="offer-card-badge included">Included in Starter</span>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <div class="offer-card" data-offer="discount">
+            <div class="offer-card-icon"><i class="ph ph-tag"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Discount / Coupon</h4>
+              <p class="offer-card-desc">Offer a percentage off or dollar amount discount</p>
+              <span class="offer-card-badge included">Included in Starter</span>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <div class="offer-card" data-offer="points">
+            <div class="offer-card-icon"><i class="ph ph-star"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Points / Rewards</h4>
+              <p class="offer-card-desc">Redeemable points or store credit for reviews</p>
+              <span class="offer-card-badge included">Included in Starter</span>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <div class="offer-card offer-card-upgrade" data-offer="cash">
+            <div class="offer-card-icon"><i class="ph ph-money"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Cash Per Approval</h4>
+              <p class="offer-card-desc">Pay a set amount for each approved content submission</p>
+              <span class="offer-card-badge upgrade">Growth Plan</span>
+              <p class="offer-card-upsell">Cash payments attract 3x more influencer submissions.</p>
+              <a href="pricing-upgrade.html" class="offer-card-upgrade-link">See Growth Plan Details</a>
+              <a href="#" class="offer-card-skip-link" id="skipCashLink">Start with free offers for now</a>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+
+          <div class="offer-card offer-card-upgrade" data-offer="bonus-cash">
+            <div class="offer-card-icon"><i class="ph ph-target"></i></div>
+            <div class="offer-card-body">
+              <h4 class="offer-card-title">Bonus Cash</h4>
+              <p class="offer-card-desc">Automatic cash bonus when an influencer posts content</p>
+              <span class="offer-card-badge upgrade">Growth Plan</span>
+              <p class="offer-card-upsell">Bonus cash drives 5x more content production.</p>
+              <a href="pricing-upgrade.html" class="offer-card-upgrade-link">See Growth Plan Details</a>
+            </div>
+            <div class="offer-card-check"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:24px">
+          <label for="offerDescription">Offer Description</label>
+          <textarea id="offerDescription" placeholder="What will influencers receive? (e.g., 'Free appetizer for an honest video review')" maxlength="200"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="offerValue">Offer Value</label>
+          <input type="text" id="offerValue" placeholder="e.g., $25, 20% off, Free appetizer">
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" id="step2Back"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard primary" id="step2Next">Continue</button>
+        </div>
+      </div>
+
+      <!-- ============ STEP 3: Review & Publish ============ -->
+      <div id="step3" class="form-section">
+        <a href="manage-brands.html" class="save-exit-link">Save &amp; Exit</a>
+        <p class="step-label">Step 3 of 3</p>
+
+        <h1 class="form-heading">Here's how your brand will appear</h1>
+        <p class="form-subtitle">Review your brand profile below. Everything looks good?</p>
+
+        <!-- Inline review card (visible on mobile when right panel hides) -->
+        <div class="review-card-inline">
+          <div class="app-preview-card">
+            <div class="app-preview-banner"></div>
+            <div class="app-preview-body">
+              <div class="app-preview-logo" id="reviewLogo">KP</div>
+              <div class="app-preview-content">
+                <h3 class="app-preview-name" id="reviewName">Your Brand Name</h3>
+                <p class="app-preview-category" id="reviewCategory">Industry</p>
+                <p class="app-preview-location" id="reviewLocation"></p>
+                <p class="app-preview-desc" id="reviewDesc">Brand description...</p>
+                <div class="preview-offer-tag" id="reviewOffer" style="display:none"></div>
+              </div>
+              <div class="preview-footer">
+                <div class="preview-stat"><div class="stat-num">0</div><div class="stat-label">Influencers</div></div>
+                <div class="preview-stat"><div class="stat-num">0</div><div class="stat-label">Rewards</div></div>
+                <div class="preview-stat"><div class="stat-num">0</div><div class="stat-label">Campaigns</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions wizard-actions-publish">
+          <button class="btn-wizard success btn-publish" id="publishBtn">Publish to Marketplace</button>
+          <p class="publish-hint">Your brand will be visible to influencers</p>
+          <button class="btn-wizard secondary" id="draftBtn" style="width:100%">Save Draft &amp; Explore Platform</button>
+          <p class="draft-hint">Browse the platform first, publish when ready</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Preview Panel -->
+    <div class="wizard-preview">
+
+      <div class="preview-inner">
+        <!-- Step Tips (contextual guidance) -->
+        <div class="step-tips">
+          <!-- Tips for Step 1 -->
+          <div class="step-tips-group active" id="tips1">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-lightbulb"></i></span> Quick Tip</h4>
+              <p>Enter your website URL and we'll <span class="tip-highlight">auto-fill your brand info</span> using AI — saving you time on setup.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-target"></i></span> Stand Out</h4>
+              <ul>
+                <li>Use a <strong>clear, short brand name</strong></li>
+                <li>Write a description that <span class="tip-highlight">speaks to influencers</span></li>
+                <li>Add your social links — creators check these</li>
+                <li>Choose the right industry for discoverability</li>
+              </ul>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-chart-bar"></i></span> Did You Know?</h4>
+              <p>Brands with complete profiles get <span class="tip-highlight">4x more influencer partnerships</span> than incomplete ones.</p>
+            </div>
+          </div>
+
+          <!-- Tips for Step 2 -->
+          <div class="step-tips-group" id="tips2">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-gift"></i></span> What Works Best</h4>
+              <p>Combining <span class="tip-highlight">free product + cash</span> gets the most engagement. Start with what fits your budget.</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-chart-line-up"></i></span> By the Numbers</h4>
+              <ul>
+                <li><strong>Free product</strong> — Great for restaurants &amp; retail</li>
+                <li><strong>Cash per approval</strong> — 3x more submissions</li>
+                <li><strong>Bonus cash</strong> — 5x more content production</li>
+                <li>You can always upgrade later</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Tips for Step 3 -->
+          <div class="step-tips-group" id="tips3">
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-confetti"></i></span> Almost There!</h4>
+              <p>Review how your brand will appear to influencers in the marketplace. Everything look good?</p>
+            </div>
+            <div class="step-tips-card">
+              <h4><span class="tip-icon"><i class="ph ph-rocket-launch"></i></span> What Happens Next</h4>
+              <ul>
+                <li><strong>Publish</strong> — Brand goes live in the marketplace</li>
+                <li>Influencers can discover and partner with you</li>
+                <li>You'll get notified when creators apply</li>
+                <li>Or <strong>save as draft</strong> to explore first</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone Preview Column -->
+        <div class="phone-column">
+        <p class="preview-label">App Display Preview</p>
+        <div class="phone-frame">
+        <!-- Status Bar (absolute over banner) -->
+        <div class="phone-status-bar">
+          <span class="status-time">9:41</span>
+          <span class="status-icons"><span>&#9679;&#9679;&#9679;&#9679;</span> <span>&#128246;</span> <span>&#128267;</span></span>
+        </div>
+
+        <div class="phone-screen">
+          <!-- Hero Banner -->
+          <div class="app-preview-banner">
+            <span class="back-btn-mock">&#8592;</span>
+            <span class="more-btn-mock">&#8943;</span>
+          </div>
+
+          <!-- Centered Avatar -->
+          <div class="app-preview-avatar-wrap">
+            <div class="app-preview-logo" id="previewLogo">KP</div>
+          </div>
+
+          <!-- Brand Info -->
+          <div class="app-preview-info">
+            <h3 class="app-preview-name" id="previewName">Your Brand Name</h3>
+            <p class="app-preview-category" id="previewCategory">Select an industry</p>
+            <p class="app-preview-location" id="previewLocation"></p>
+            <div class="app-preview-badge-row">
+              <span class="app-preview-badge">&#10003; Verified Brand</span>
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="app-preview-stats">
+            <div class="app-preview-stat-box"><div class="stat-num">0</div><div class="stat-label">Reviews</div></div>
+            <div class="app-preview-stat-box"><div class="stat-num">0</div><div class="stat-label">Rating</div></div>
+            <div class="app-preview-stat-box"><div class="stat-num">0</div><div class="stat-label">Influencers</div></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="app-preview-actions">
+            <div class="btn-mock btn-mock-primary">Partner</div>
+            <div class="btn-mock btn-mock-secondary">+ Add Review</div>
+          </div>
+
+          <!-- Tab Bar -->
+          <div class="app-preview-tabs">
+            <div class="app-preview-tab active">About</div>
+            <div class="app-preview-tab">Content</div>
+            <div class="app-preview-tab">Rewards</div>
+            <div class="app-preview-tab">Campaigns</div>
+          </div>
+
+          <!-- About Tab Content (Description + Offer) -->
+          <div class="app-preview-body">
+            <p class="app-preview-desc" id="previewDesc">Your brand description will appear here as you type...</p>
+            <div class="preview-offer-tag" id="previewOffer" style="display:none"></div>
+          </div>
+
+        </div>
+        <!-- Bottom Nav (outside scroll, pinned to frame) -->
+        <div class="app-preview-nav">
+          <div class="app-preview-nav-item"><span class="nav-icon-mock">&#127968;</span>Home</div>
+          <div class="app-preview-nav-item active"><span class="nav-icon-mock">&#128269;</span>Discover</div>
+          <div class="app-preview-nav-fab">+</div>
+          <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128176;</span>Rewards</div>
+          <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128100;</span>Profile</div>
+        </div>
+        <div class="phone-home-bar"></div>
+      </div>
+      <p class="preview-hint">This is how your brand will appear in the KeepUsPostd Marketplace.</p>
+      </div><!-- /.phone-column -->
+      </div><!-- /.preview-inner -->
+    </div>
+  </div>
+
+  <!-- ========== PUBLISH SUCCESS OVERLAY ========== -->
+  <div class="publish-success-overlay" id="publishSuccessOverlay">
+    <div class="publish-success-card">
+      <div class="success-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="success-title">Your brand is live!</h2>
+      <p class="success-subtitle">Creators can now find you on KeepUsPostd. Add this link to your social media bio so creators come directly to you.</p>
+
+      <div class="success-link-box">
+        <span class="success-link-url" id="successLinkUrl">keepuspostd.com/brand/yourbrand</span>
+        <button class="success-link-copy" id="successCopyBtn">Copy</button>
+      </div>
+      <p class="success-link-hint">When creators tap this link, they'll download the app and land directly on your brand profile with your active campaigns.</p>
+
+      <p class="success-nudge">Smart defaults are applied to your rewards. Customize point values, thresholds, and more anytime.</p>
+      <div class="success-actions">
+        <button class="success-btn-primary" onclick="window.location.href='brand-reward-settings.html'">Customize Your Rewards</button>
+        <button class="success-btn-secondary" onclick="window.location.href='market-code.html'">View Your Market Code</button>
+        <button class="success-btn-secondary" onclick="window.location.href='activity.html'">Go to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- ========== WIZARD LOGIC ========== -->
+  <script>
+  var currentStep = 1;
+
+  /* ── Step Navigation ────────────────────────── */
+  function goToStep(step) {
+    if (step > currentStep && !validateStep(currentStep)) return;
+
+    document.querySelectorAll('.form-section').forEach(function(s) {
+      s.classList.remove('active-step');
+    });
+    document.getElementById('step' + step).classList.add('active-step');
+
+    document.querySelectorAll('.progress-step').forEach(function(p, i) {
+      p.className = 'progress-step';
+      if (i < step - 1) p.classList.add('done');
+      if (i === step - 1) p.classList.add('active');
+    });
+
+    currentStep = step;
+    window.scrollTo(0, 0);
+
+    // Switch contextual tips panel
+    document.querySelectorAll('.step-tips-group').forEach(function(g) { g.classList.remove('active'); });
+    var tipsEl = document.getElementById('tips' + step);
+    if (tipsEl) tipsEl.classList.add('active');
+
+    // On step 3 — populate inline review card
+    if (step === 3) populateReview();
+  }
+
+  document.getElementById('step1Next').addEventListener('click', function() { goToStep(2); });
+  document.getElementById('step2Back').addEventListener('click', function() { goToStep(1); });
+  document.getElementById('step2Next').addEventListener('click', function() { goToStep(3); });
+
+  /* ── Validation ─────────────────────────────── */
+  function validateStep(step) {
+    if (step === 1) {
+      var aiSection = document.getElementById('aiResultsSection');
+      if (aiSection.style.display === 'none') {
+        kupToast('Enter your website URL or click "Set up manually" to continue', 'warning');
+        return false;
+      }
+      if (!document.getElementById('brandName').value.trim()) { focusAndError('brandName'); return false; }
+      if (!document.getElementById('brandIndustry').value) { focusAndError('brandIndustry'); return false; }
+      if (!document.getElementById('brandDescription').value.trim()) { focusAndError('brandDescription'); return false; }
+      if (!document.getElementById('contactName').value.trim()) { focusAndError('contactName'); return false; }
+      return true;
+    }
+    if (step === 2) {
+      var selected = document.querySelectorAll('.offer-card.selected');
+      if (selected.length === 0) {
+        kupToast('Please select at least one offer type', 'warning');
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  function focusAndError(id) {
+    var el = document.getElementById(id);
+    el.focus();
+    el.style.borderColor = '#e74c3c';
+    kupToast('Please fill in all required fields', 'warning');
+  }
+
+  /* ── AI Mode Tab Switching ─────────────────── */
+  document.querySelectorAll('.ai-mode-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.ai-mode-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.ai-mode-content').forEach(function(c) { c.classList.remove('active'); });
+      tab.classList.add('active');
+      var mode = tab.getAttribute('data-mode');
+      var modeMap = { website:'modeWebsite', social:'modeSocial', describe:'modeDescribe' };
+      document.getElementById(modeMap[mode]).classList.add('active');
+    });
+  });
+
+  /* ── Shared: populate fields from data object ─ */
+  function populateFromAI(data, toastMsg) {
+    document.getElementById('brandName').value = data.name;
+    document.getElementById('brandIndustry').value = data.industry;
+    document.getElementById('brandDescription').value = data.description;
+    document.getElementById('brandLocation').value = data.location;
+    document.getElementById('socialIg').value = data.instagram || '';
+    document.getElementById('socialX').value = data.twitter || '';
+    document.getElementById('socialTt').value = data.tiktok || '';
+    document.getElementById('socialFb').value = data.facebook || '';
+    document.getElementById('socialLi').value = data.linkedin || '';
+    document.getElementById('logoPreviewCircle').textContent = data.initials;
+    document.getElementById('contactName').value = data.contact;
+
+    // Update char count
+    document.getElementById('descCount').textContent = data.description.length + ' / 250';
+
+    // Show AI results section
+    document.getElementById('aiResultsSection').style.display = 'block';
+
+    // Update banner based on source
+    var banner = document.querySelector('.ai-results-banner');
+    if (banner) {
+      banner.innerHTML = '<span class="ai-icon"><i class="ph ph-sparkle"></i></span> ' + (data.bannerText || "Here's what we found &mdash; edit anything that's not right.");
+    }
+
+    kupToast(toastMsg || 'Brand information found!', 'success');
+    updatePreview();
+  }
+
+  function spinButton(btn, spinning) {
+    btn.disabled = spinning;
+    btn.querySelector('.btn-find-text').style.display = spinning ? 'none' : 'inline';
+    btn.querySelector('.btn-find-spinner').style.display = spinning ? 'inline-flex' : 'none';
+  }
+
+  /* ── Mode 1: Website URL ─────────────────────── */
+  document.getElementById('findBrandBtn').addEventListener('click', function() {
+    var url = document.getElementById('brandUrl').value.trim();
+    if (!url) {
+      document.getElementById('brandUrl').focus();
+      document.getElementById('brandUrl').style.borderColor = '#e74c3c';
+      return;
+    }
+    var btn = this;
+    spinButton(btn, true);
+
+    setTimeout(function() {
+      var data = getDemoDataForUrl(url);
+      populateFromAI(data, 'Brand information found!');
+      spinButton(btn, false);
+    }, 1500);
+  });
+
+  function getDemoDataForUrl(url) {
+    var domain = url.replace(/https?:\/\//, '').replace(/www\./, '').split('/')[0].split('.')[0];
+    var cap = domain.charAt(0).toUpperCase() + domain.slice(1);
+    var initials = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
+
+    var industries = { 'nike':'Fashion & Beauty', 'starbucks':'Food & Beverage', 'apple':'Technology & SaaS', 'netflix':'Entertainment', 'airbnb':'Travel & Lifestyle', 'peloton':'Health & Fitness' };
+    var locations = { 'nike':'Portland, OR', 'starbucks':'Seattle, WA', 'apple':'Cupertino, CA', 'netflix':'Los Gatos, CA', 'airbnb':'San Francisco, CA' };
+    var industry = industries[domain.toLowerCase()] || 'Technology & SaaS';
+    var location = locations[domain.toLowerCase()] || 'Austin, TX';
+
+    return {
+      name: cap, initials: initials, industry: industry,
+      description: cap + ' is a forward-thinking brand dedicated to delivering exceptional experiences. We partner with authentic creators to share our story and connect with new audiences through genuine content.',
+      location: location,
+      instagram: '@' + domain.toLowerCase(), twitter: '@' + domain.toLowerCase(), tiktok: '@' + domain.toLowerCase(),
+      facebook: '', linkedin: '', contact: 'Santana Thrasybule',
+      bannerText: "Here's what we found from your website &mdash; edit anything that's not right."
+    };
+  }
+
+  /* ── Mode 2: Social Page ─────────────────────── */
+  document.getElementById('findSocialBtn').addEventListener('click', function() {
+    var url = document.getElementById('socialUrl').value.trim();
+    if (!url) {
+      document.getElementById('socialUrl').focus();
+      document.getElementById('socialUrl').style.borderColor = '#e74c3c';
+      return;
+    }
+    var btn = this;
+    spinButton(btn, true);
+
+    setTimeout(function() {
+      var data = getDemoDataForSocial(url);
+      populateFromAI(data, 'Brand pulled from social profile!');
+      spinButton(btn, false);
+    }, 1800);
+  });
+
+  function getDemoDataForSocial(url) {
+    // Detect platform from URL
+    var platform = 'social';
+    var handle = '';
+    var lUrl = url.toLowerCase();
+    if (lUrl.includes('instagram.com') || lUrl.includes('ig.')) { platform = 'Instagram'; handle = url.split('/').filter(Boolean).pop(); }
+    else if (lUrl.includes('facebook.com') || lUrl.includes('fb.com')) { platform = 'Facebook'; handle = url.split('/').filter(Boolean).pop(); }
+    else if (lUrl.includes('tiktok.com')) { platform = 'TikTok'; handle = url.split('/').filter(Boolean).pop().replace('@',''); }
+    else if (lUrl.includes('linkedin.com')) { platform = 'LinkedIn'; handle = url.split('/').filter(Boolean).pop(); }
+    else if (lUrl.includes('twitter.com') || lUrl.includes('x.com')) { platform = 'X'; handle = url.split('/').filter(Boolean).pop().replace('@',''); }
+    else { handle = url.split('/').filter(Boolean).pop() || 'brand'; }
+
+    handle = handle.replace(/[^a-zA-Z0-9_]/g, '');
+    var cap = handle.charAt(0).toUpperCase() + handle.slice(1);
+    var initials = handle.length >= 2 ? handle.substring(0, 2).toUpperCase() : handle.toUpperCase();
+
+    var result = {
+      name: cap, initials: initials, industry: 'Retail & E-commerce',
+      description: cap + ' creates authentic content and connects with their community through ' + platform + '. Partnering with influencers to share real experiences.',
+      location: 'United States', contact: 'Santana Thrasybule',
+      instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '',
+      bannerText: "Pulled from your " + platform + " profile &mdash; edit anything that's not right."
+    };
+
+    // Pre-fill the matching social field
+    if (platform === 'Instagram') result.instagram = '@' + handle;
+    else if (platform === 'TikTok') result.tiktok = '@' + handle;
+    else if (platform === 'X') result.twitter = '@' + handle;
+    else if (platform === 'Facebook') result.facebook = url;
+    else if (platform === 'LinkedIn') result.linkedin = url;
+
+    return result;
+  }
+
+  /* ── Mode 3: Describe It ─────────────────────── */
+  document.getElementById('buildProfileBtn').addEventListener('click', function() {
+    var prompt = document.getElementById('brandPrompt').value.trim();
+    if (!prompt) {
+      document.getElementById('brandPrompt').focus();
+      document.getElementById('brandPrompt').style.borderColor = '#e74c3c';
+      return;
+    }
+    var btn = this;
+    spinButton(btn, true);
+
+    setTimeout(function() {
+      var data = getDemoDataForPrompt(prompt);
+      populateFromAI(data, 'Brand profile built from your description!');
+      spinButton(btn, false);
+    }, 2000);
+  });
+
+  function getDemoDataForPrompt(prompt) {
+    var words = prompt.split(/\s+/).filter(function(w) { return w.length > 3; });
+    // Try to extract a brand name (first capitalized word or first 2 words)
+    var nameMatch = prompt.match(/(?:called|named|is)\s+["']?([A-Z][a-zA-Z\s&]+)/);
+    var brandName = nameMatch ? nameMatch[1].trim() : (words.slice(0, 2).join(' '));
+    brandName = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+    if (brandName.length > 25) brandName = brandName.substring(0, 25);
+    var initials = brandName.split(/\s+/).length >= 2
+      ? (brandName.split(/\s+/)[0][0] + brandName.split(/\s+/)[1][0]).toUpperCase()
+      : brandName.substring(0, 2).toUpperCase();
+
+    // Detect industry from keywords
+    var industry = 'Retail & E-commerce';
+    var pLower = prompt.toLowerCase();
+    if (/bake|food|restaurant|cafe|kitchen|cook|recipe|meal|vegan|organic/.test(pLower)) industry = 'Food & Beverage';
+    else if (/fashion|cloth|style|apparel|wear|outfit|boutique/.test(pLower)) industry = 'Fashion & Beauty';
+    else if (/beauty|skin|cosmetic|makeup|hair|salon|spa/.test(pLower)) industry = 'Fashion & Beauty';
+    else if (/tech|software|app|saas|platform|digital|ai|startup/.test(pLower)) industry = 'Technology & SaaS';
+    else if (/fitness|gym|health|wellness|yoga|workout/.test(pLower)) industry = 'Health & Fitness';
+    else if (/travel|hotel|tourism|adventure|destination/.test(pLower)) industry = 'Travel & Lifestyle';
+    else if (/film|movie|music|entertain|content|media|podcast/.test(pLower)) industry = 'Entertainment';
+    else if (/learn|education|course|teach|tutor|school/.test(pLower)) industry = 'Education';
+
+    // Detect location
+    var location = 'United States';
+    var locMatch = prompt.match(/in\s+([A-Z][a-zA-Z\s,]+)/);
+    if (locMatch) {
+      var loc = locMatch[1].trim();
+      if (loc.length <= 30) location = loc;
+    }
+
+    return {
+      name: brandName, initials: initials, industry: industry,
+      description: prompt.length <= 250 ? prompt : prompt.substring(0, 247) + '...',
+      location: location, contact: 'Santana Thrasybule',
+      instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '',
+      bannerText: "Built from your description &mdash; edit anything that's not right."
+    };
+  }
+
+  /* ── Manual Setup ───────────────────────────── */
+  document.getElementById('manualSetupLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('aiResultsSection').style.display = 'block';
+    document.getElementById('brandName').value = '';
+    document.getElementById('brandDescription').value = '';
+    document.getElementById('brandIndustry').selectedIndex = 0;
+    document.getElementById('brandLocation').value = '';
+    document.getElementById('contactName').value = '';
+    document.getElementById('brandName').focus();
+
+    // Change banner text
+    var banner = document.querySelector('.ai-results-banner');
+    if (banner) {
+      banner.innerHTML = '<span class="ai-icon">&#9998;</span> Fill in your brand details below.';
+      banner.style.background = 'rgba(112,123,187,.06)';
+      banner.style.borderColor = 'rgba(112,123,187,.15)';
+      banner.style.color = '#707BBB';
+    }
+  });
+
+  /* ── Offer Card Selection (multi-select) ────── */
+  document.querySelectorAll('.offer-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      // Don't toggle if clicking links inside the card
+      if (e.target.tagName === 'A') return;
+      this.classList.toggle('selected');
+      updatePreview();
+    });
+  });
+
+  // Skip cash link
+  var skipCash = document.getElementById('skipCashLink');
+  if (skipCash) {
+    skipCash.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var cashCard = document.querySelector('.offer-card[data-offer="cash"]');
+      if (cashCard) cashCard.classList.remove('selected');
+      kupToast('No worries! You can add cash payments later.', 'info');
+    });
+  }
+
+  /* ── Live Preview Updates ───────────────────── */
+  function updatePreview() {
+    // Name
+    var name = (document.getElementById('brandName') ? document.getElementById('brandName').value : '').trim();
+    document.getElementById('previewName').textContent = name || 'Your Brand Name';
+
+    // Logo initials
+    if (name) {
+      var words = name.split(/\s+/);
+      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+      document.getElementById('previewLogo').textContent = initials;
+      var lpc = document.getElementById('logoPreviewCircle');
+      if (lpc) lpc.textContent = initials;
+    } else {
+      document.getElementById('previewLogo').textContent = 'KP';
+    }
+
+    // Industry
+    var ind = document.getElementById('brandIndustry');
+    document.getElementById('previewCategory').textContent = (ind && ind.value) ? ind.value : 'Select an industry';
+
+    // Location
+    var loc = document.getElementById('brandLocation');
+    document.getElementById('previewLocation').textContent = (loc ? loc.value : '') || '';
+
+    // Description
+    var desc = (document.getElementById('brandDescription') ? document.getElementById('brandDescription').value : '').trim();
+    document.getElementById('previewDesc').textContent = desc || 'Your brand description will appear here as you type...';
+
+    // Char count
+    var descCount = document.getElementById('descCount');
+    if (descCount && document.getElementById('brandDescription')) {
+      var len = document.getElementById('brandDescription').value.length;
+      descCount.textContent = len + ' / 250';
+      descCount.className = 'char-count' + (len >= 220 ? ' warn' : '');
+    }
+
+    // Offer tags
+    var selectedOffers = [];
+    document.querySelectorAll('.offer-card.selected').forEach(function(c) {
+      selectedOffers.push(c.querySelector('.offer-card-title').textContent);
+    });
+    var offerTag = document.getElementById('previewOffer');
+    if (offerTag) {
+      if (selectedOffers.length > 0) {
+        offerTag.textContent = selectedOffers.join(' + ');
+        offerTag.style.display = 'inline-block';
+      } else {
+        offerTag.style.display = 'none';
+      }
+    }
+  }
+
+  // Attach listeners
+  ['brandName','brandDescription','brandLocation','contactName','offerDescription','offerValue'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', updatePreview);
+  });
+  var indSelect = document.getElementById('brandIndustry');
+  if (indSelect) indSelect.addEventListener('change', updatePreview);
+
+  // Reset border on focus
+  document.querySelectorAll('.form-group input, .form-group textarea, .form-group select').forEach(function(el) {
+    el.addEventListener('focus', function() { this.style.borderColor = ''; });
+  });
+
+  /* ── Populate Review Card (Step 3 inline) ───── */
+  function populateReview() {
+    var name = (document.getElementById('brandName').value || '').trim();
+    var ind = document.getElementById('brandIndustry');
+    var desc = (document.getElementById('brandDescription').value || '').trim();
+    var loc = (document.getElementById('brandLocation').value || '').trim();
+
+    document.getElementById('reviewName').textContent = name || 'Your Brand Name';
+    document.getElementById('reviewCategory').textContent = (ind && ind.value) || 'Industry';
+    document.getElementById('reviewLocation').textContent = loc;
+    document.getElementById('reviewDesc').textContent = desc || 'Brand description...';
+
+    // Logo
+    if (name) {
+      var words = name.split(/\s+/);
+      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+      document.getElementById('reviewLogo').textContent = initials;
+    }
+
+    // Offers
+    var selectedOffers = [];
+    document.querySelectorAll('.offer-card.selected').forEach(function(c) {
+      selectedOffers.push(c.querySelector('.offer-card-title').textContent);
+    });
+    var rt = document.getElementById('reviewOffer');
+    if (selectedOffers.length > 0) {
+      rt.textContent = selectedOffers.join(' + ');
+      rt.style.display = 'inline-block';
+    } else {
+      rt.style.display = 'none';
+    }
+  }
+
+  /* ── Publish / Save Draft ───────────────────── */
+  document.getElementById('publishBtn').addEventListener('click', function() {
+    // Generate the brand URL from the brand name field
+    var brandName = document.getElementById('brandName') ? document.getElementById('brandName').value.trim() : '';
+    var brandSlug = brandName ? brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'yourbrand';
+    var brandUrl = 'keepuspostd.com/brand/' + brandSlug;
+
+    // Update the success overlay with the actual brand URL
+    var urlDisplay = document.getElementById('successLinkUrl');
+    if (urlDisplay) urlDisplay.textContent = brandUrl;
+
+    // Show success overlay
+    var overlay = document.getElementById('publishSuccessOverlay');
+    if (overlay) overlay.classList.add('visible');
+
+    // Copy button functionality
+    var copyBtn = document.getElementById('successCopyBtn');
+    if (copyBtn) {
+      copyBtn.onclick = function() {
+        var fullUrl = 'https://' + brandUrl;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(fullUrl).then(function() {
+            copyBtn.textContent = 'Copied!';
+            copyBtn.style.background = '#16a34a';
+            setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.style.background = ''; }, 2000);
+          });
+        }
+      };
+    }
+  });
+
+  document.getElementById('draftBtn').addEventListener('click', function() {
+    kupToast('Brand saved as draft. You can publish anytime.', 'info');
+    setTimeout(function() { window.location.href = 'activity.html'; }, 2000);
+  });
+
+  /* ── Agency Variant Detection ───────────────── */
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var isAgency = params.get('type') === 'agency';
+
+    if (isAgency) {
+      // Add agency badge
+      var badge = document.createElement('div');
+      badge.className = 'agency-badge';
+      badge.textContent = 'AGENCY ACCOUNT';
+      var wizForm = document.querySelector('.wizard-form');
+      var progress = document.querySelector('.wizard-progress');
+      if (wizForm && progress) wizForm.insertBefore(badge, progress);
+
+      // Change headings
+      document.getElementById('breadcrumb').innerHTML = 'Agency &nbsp;|&nbsp; <span>Add Brand Client</span>';
+      document.getElementById('step1Heading').textContent = 'Add Your First Brand Client';
+      document.getElementById('step1Subtitle').textContent = "Pick how you'd like to start — we'll set up their profile automatically.";
+
+      // Change publish button
+      document.getElementById('publishBtn').textContent = 'Add to Agency Portfolio';
+    }
+  })();
+  </script>
+
+  <!-- ========== TOAST + NOTIFICATIONS + PROFILE DROPDOWN ========== -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

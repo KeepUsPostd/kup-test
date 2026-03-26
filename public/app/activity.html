@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js for Brand Growth chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* =============================================
+       INNER PAGE — SHARED VARIABLES
+       Re-uses KUP brand system from public pages
+       ============================================= */
+    :root {
+      --kup-orange:       #ED8444;
+      --kup-blue:         #2EA5DD;
+      --kup-black:        #000000;
+      --kup-body-bg:      #F5F6FA;
+      --kup-purple:       #707BBB;
+      --kup-gradient:     linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:        #FFFFFF;
+      --kup-light-gray:   #E8E8E8;
+      --kup-sidebar-bg:   #FAFBFC;
+      --kup-font:         'Montserrat', sans-serif;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   24px;
+    }
+
+    /* =============================================
+       RESET & BASE (inner page variant)
+       ============================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       Nielsen #6: Recognition over recall — persistent nav tabs
+       Nielsen #7: Flexibility — quick access to all sections
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0;
+    }
+
+    .auth-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .auth-logo img { height: 32px; }
+
+    /* Main nav tabs */
+    .auth-nav {
+      display: flex;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      height: 64px;
+    }
+
+    .auth-nav li a {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 64px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .auth-nav li a:hover {
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+
+    .auth-nav li a.active {
+      color: var(--kup-blue);
+      font-weight: 700;
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* Right side: notifications + profile */
+    .auth-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: none;
+      transition: background 0.2s;
+    }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       PAGE CONTENT AREA
+       ============================================= */
+    .page-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 4px;
+    }
+
+    .page-header .page-subtitle {
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    /* =============================================
+       KPI CARDS
+       Nielsen #1: Visibility of system status
+       — Users see their brand health at a glance
+       ============================================= */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      border: 1px solid #eee;
+      transition: box-shadow 0.2s;
+    }
+    .kpi-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .kpi-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-badge {
+      font-size: 0.72rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      background: #f0f0f0;
+      color: #666;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .kpi-badge:hover { background: #e8e8e8; }
+
+    .kpi-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .kpi-trend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kpi-trend .label {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .kpi-trend .change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .kpi-trend .change.up {
+      color: #16a34a;
+      background: #dcfce7;
+    }
+    .kpi-trend .change.down {
+      color: #dc2626;
+      background: #fee2e2;
+    }
+    .kpi-trend .change.improving {
+      color: #16a34a;
+      background: #dcfce7;
+    }
+    .kpi-trend .change.neutral {
+      color: #666;
+      background: #f0f0f0;
+    }
+
+    .kpi-trend .change svg {
+      width: 14px; height: 14px;
+    }
+
+    /* =============================================
+       BRAND GROWTH CHART
+       ============================================= */
+    .chart-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 28px;
+      border: 1px solid #eee;
+      margin-bottom: 32px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .chart-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .chart-header .date-range {
+      font-size: 0.82rem;
+      color: #888;
+    }
+
+    .chart-summary {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .chart-summary .summary-item .value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .chart-summary .summary-item .desc {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* =============================================
+       CONTENT PIPELINE FUNNEL
+       ============================================= */
+    .pipeline-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 28px;
+      border: 1px solid #eee;
+      margin-bottom: 32px;
+    }
+    .pipeline-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 24px;
+    }
+    .pipeline-funnel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+    .pipeline-stage {
+      flex: 1;
+      text-align: center;
+      padding: 24px 16px;
+      background: #f8f9fa;
+      border-radius: var(--radius-md);
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    .pipeline-stage:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .pipeline-stage .stage-count {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .pipeline-stage .stage-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+    .pipeline-stage.submitted { border-top: 3px solid var(--kup-blue); }
+    .pipeline-stage.approved  { border-top: 3px solid var(--kup-orange); }
+    .pipeline-stage.postd     { border-top: 3px solid var(--kup-purple); }
+
+    .pipeline-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+    .pipeline-connector .connector-arrow {
+      width: 40px;
+      height: 2px;
+      background: #ddd;
+      position: relative;
+    }
+    .pipeline-connector .connector-arrow::after {
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: -4px;
+      border: 5px solid transparent;
+      border-left: 6px solid #ddd;
+    }
+    .pipeline-connector .connector-rate {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--kup-blue);
+      margin-top: 6px;
+      white-space: nowrap;
+    }
+
+    /* =============================================
+       INFLUENCER LEADERBOARD (TABBED)
+       ============================================= */
+    .leaderboard-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      border: 1px solid #eee;
+      margin-bottom: 32px;
+    }
+    .leaderboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0;
+    }
+    .leaderboard-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .leaderboard-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .leaderboard-tab {
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .leaderboard-tab:hover { color: var(--kup-blue); }
+    .leaderboard-tab.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+      font-weight: 700;
+    }
+    .leaderboard-tab:focus-visible {
+      outline: 2px solid var(--kup-blue);
+      outline-offset: -2px;
+      border-radius: 4px 4px 0 0;
+    }
+    .leaderboard-panel { display: none; }
+    .leaderboard-panel.active { display: block; }
+
+    /* Brand Health Score */
+    .health-score {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .health-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .health-dot.green  { background: #16a34a; }
+    .health-dot.yellow { background: #eab308; }
+    .health-dot.red    { background: #dc2626; }
+
+    .influencer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .influencer-item:last-child { border-bottom: none; }
+
+    .influencer-item .avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .influencer-item .avatar-placeholder {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .influencer-item .info .username {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .influencer-item .info .tier {
+      font-size: 0.72rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .influencer-item .stat {
+      margin-left: auto;
+      text-align: right;
+    }
+    .influencer-item .stat .count {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--kup-blue);
+    }
+    .influencer-item .stat .label {
+      font-size: 0.68rem;
+      color: #999;
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 32px;
+      font-size: 0.78rem;
+      color: #999;
+      border-top: 1px solid #eee;
+      background: var(--kup-white);
+    }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* =============================================
+       EMPTY STATE
+       Nielsen #9: Help users recognize, diagnose, recover
+       ============================================= */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .empty-state svg { width: 64px; height: 64px; fill: #ddd; margin-bottom: 16px; }
+    .empty-state h4 { font-size: 1.1rem; color: #666; margin-bottom: 8px; }
+    .empty-state p { font-size: 0.85rem; max-width: 400px; margin: 0 auto; }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 1024px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .pipeline-funnel { flex-wrap: wrap; gap: 12px; }
+      .pipeline-connector { display: none; }
+      .pipeline-stage { flex: 1 1 calc(33% - 12px); min-width: 140px; }
+    }
+
+    @media (max-width: 768px) {
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .page-content { padding: 20px 16px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .pipeline-stage { flex: 1 1 100%; }
+      .profile-info { display: none; }
+      .chart-summary { gap: 20px; }
+      .leaderboard-tab { padding: 10px 16px; font-size: 0.82rem; }
+    }
+
+    @media (max-width: 480px) {
+      .auth-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .auth-nav li a { white-space: nowrap; padding: 0 12px; font-size: 0.78rem; }
+      .kpi-value { font-size: 2rem; }
+      .pipeline-stage .stage-count { font-size: 1.75rem; }
+      .leaderboard-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .leaderboard-tab { white-space: nowrap; padding: 10px 14px; }
+      .chart-summary {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .pipeline-funnel {
+        gap: 8px;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       Source: header.component.html (Angular reference)
+       UX: Persistent top-level nav with tab pattern
+       ============================================ -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <!-- Logo -->
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+
+      <!-- Main Nav Tabs -->
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" class="active" role="tab" aria-selected="true">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+
+      <!-- Right Side -->
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       PAGE CONTENT: ACTIVITY DASHBOARD
+       Nielsen #1: Visibility of system status
+       — KPI cards give instant brand health snapshot
+       Nielsen #10: Help & documentation
+       — Contextual labels explain each metric
+       ============================================ -->
+  <main class="page-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Activity</h1>
+      <p class="page-subtitle">Your brand performance overview for <strong>KeepUsPostd</strong></p>
+    </div>
+
+    <!-- Section 1: Content Pipeline Funnel -->
+    <div class="pipeline-card">
+      <h3>Content Pipeline</h3>
+      <div class="pipeline-funnel">
+        <div class="pipeline-stage submitted">
+          <div class="stage-count">620</div>
+          <div class="stage-label">Submitted</div>
+        </div>
+        <div class="pipeline-connector">
+          <div class="connector-arrow"></div>
+          <span class="connector-rate">75.3% approval</span>
+        </div>
+        <div class="pipeline-stage approved">
+          <div class="stage-count">467</div>
+          <div class="stage-label">Approved</div>
+        </div>
+        <div class="pipeline-connector">
+          <div class="connector-arrow"></div>
+          <span class="connector-rate">73.2% postd</span>
+        </div>
+        <div class="pipeline-stage postd">
+          <div class="stage-count">342</div>
+          <div class="stage-label">Postd</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Smart KPI Cards -->
+    <div class="kpi-grid">
+      <!-- Active Influencers -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Active Influencers</span>
+        </div>
+        <div class="kpi-value">38 <span style="font-size:1rem;font-weight:600;color:#888;">of 247</span></div>
+        <div class="kpi-trend">
+          <span class="label">15.4% active</span>
+          <span class="change up">
+            <svg viewBox="0 0 14 14"><path d="M7 2L12 9H2L7 2Z" fill="currentColor"/></svg>
+            2.1%
+          </span>
+        </div>
+      </div>
+
+      <!-- Avg. Time to Post -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Avg. Time to Post</span>
+        </div>
+        <div class="kpi-value">2.3 <span style="font-size:1rem;font-weight:600;color:#888;">days</span></div>
+        <div class="kpi-trend">
+          <span class="label">vs. last month</span>
+          <span class="change improving">
+            <svg viewBox="0 0 14 14"><path d="M7 12L12 5H2L7 12Z" fill="currentColor"/></svg>
+            0.4 days faster
+          </span>
+        </div>
+      </div>
+
+      <!-- Campaign Health -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Campaign Health</span>
+        </div>
+        <div class="kpi-value">3 <span style="font-size:1rem;font-weight:600;color:#888;">of 4 on track</span></div>
+        <div class="kpi-trend">
+          <span class="label">campaigns active</span>
+          <span class="change neutral">1 needs attention</span>
+        </div>
+      </div>
+
+      <!-- Cost per Postd -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Cost per Postd</span>
+        </div>
+        <div class="kpi-value">$12.40</div>
+        <div class="kpi-trend">
+          <span class="label">vs. last month</span>
+          <span class="change improving">
+            <svg viewBox="0 0 14 14"><path d="M7 12L12 5H2L7 12Z" fill="currentColor"/></svg>
+            $1.20 lower
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Influencer Leaderboard (Tabbed) -->
+    <div class="leaderboard-card">
+      <div class="leaderboard-header">
+        <h3>Top Influencers</h3>
+      </div>
+      <div class="leaderboard-tabs" role="tablist" aria-label="Influencer leaderboard">
+        <button class="leaderboard-tab active" role="tab" aria-selected="true" aria-controls="panel-submitted" id="tab-submitted" tabindex="0">Submitted</button>
+        <button class="leaderboard-tab" role="tab" aria-selected="false" aria-controls="panel-approved" id="tab-approved" tabindex="-1">Approved</button>
+        <button class="leaderboard-tab" role="tab" aria-selected="false" aria-controls="panel-postd" id="tab-postd" tabindex="-1">Postd</button>
+      </div>
+
+      <!-- Panel: Submitted -->
+      <div class="leaderboard-panel active" id="panel-submitted" role="tabpanel" aria-labelledby="tab-submitted">
+        <div class="influencer-item">
+          <div class="avatar-placeholder">JD</div>
+          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">34</div><div class="label">submissions</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">MK</div>
+          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
+          <div class="stat"><div class="count">28</div><div class="label">submissions</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">AL</div>
+          <div class="info"><div class="username">@amylee_creates</div><div class="tier">Nano Influencer</div></div>
+          <div class="stat"><div class="count">22</div><div class="label">submissions</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">TR</div>
+          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">19</div><div class="label">submissions</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">DW</div>
+          <div class="info"><div class="username">@dani_wellness</div><div class="tier">Nano Influencer</div></div>
+          <div class="stat"><div class="count">15</div><div class="label">submissions</div></div>
+        </div>
+      </div>
+
+      <!-- Panel: Approved -->
+      <div class="leaderboard-panel" id="panel-approved" role="tabpanel" aria-labelledby="tab-approved">
+        <div class="influencer-item">
+          <div class="avatar-placeholder">MK</div>
+          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
+          <div class="stat"><div class="count">26</div><div class="label">approved</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">JD</div>
+          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">21</div><div class="label">approved</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">NK</div>
+          <div class="info"><div class="username">@nina_k</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">18</div><div class="label">approved</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">AL</div>
+          <div class="info"><div class="username">@amylee_creates</div><div class="tier">Nano Influencer</div></div>
+          <div class="stat"><div class="count">15</div><div class="label">approved</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">TR</div>
+          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">12</div><div class="label">approved</div></div>
+        </div>
+      </div>
+
+      <!-- Panel: Postd -->
+      <div class="leaderboard-panel" id="panel-postd" role="tabpanel" aria-labelledby="tab-postd">
+        <div class="influencer-item">
+          <div class="avatar-placeholder">JD</div>
+          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">19</div><div class="label">postd</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">MK</div>
+          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
+          <div class="stat"><div class="count">16</div><div class="label">postd</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">TR</div>
+          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">14</div><div class="label">postd</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">NK</div>
+          <div class="info"><div class="username">@nina_k</div><div class="tier">Micro Influencer</div></div>
+          <div class="stat"><div class="count">11</div><div class="label">postd</div></div>
+        </div>
+        <div class="influencer-item">
+          <div class="avatar-placeholder">DW</div>
+          <div class="info"><div class="username">@dani_wellness</div><div class="tier">Nano Influencer</div></div>
+          <div class="stat"><div class="count">9</div><div class="label">postd</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Growth Trend Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Growth Trend</h3>
+        <span class="date-range">Feb 1 – Feb 28, 2026</span>
+      </div>
+      <div class="chart-summary">
+        <div class="summary-item">
+          <div class="value">
+            <span class="health-score">
+              <span class="health-dot green"></span>
+              82<span style="font-size:1rem;font-weight:600;color:#888;">/100</span>
+            </span>
+          </div>
+          <div class="desc">Brand Health Score</div>
+        </div>
+        <div class="summary-item">
+          <div class="value" style="color: var(--kup-blue);">+14.2%</div>
+          <div class="desc">vs. previous period</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <!-- ============================================
+       JAVASCRIPT
+       ============================================ -->
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============== TOAST NOTIFICATIONS ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = notifPopover.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) notifPopover.classList.add('show');
+      });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot');
+        if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; }
+          else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = profileDropdown.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) profileDropdown.classList.add('show');
+      });
+    }
+
+    function closeAllPopovers() {
+      if (notifPopover) notifPopover.classList.remove('show');
+      if (profileDropdown) profileDropdown.classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+
+    /* ============== LEADERBOARD TABS ============== */
+    (function() {
+      var tabs = document.querySelectorAll('.leaderboard-tab');
+      var panels = document.querySelectorAll('.leaderboard-panel');
+
+      function activateTab(tab) {
+        tabs.forEach(function(t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+          t.setAttribute('tabindex', '-1');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        tab.setAttribute('tabindex', '0');
+        tab.focus();
+
+        var panelId = tab.getAttribute('aria-controls');
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        var targetPanel = document.getElementById(panelId);
+        if (targetPanel) targetPanel.classList.add('active');
+      }
+
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() { activateTab(tab); });
+      });
+
+      tabs.forEach(function(tab) {
+        tab.addEventListener('keydown', function(e) {
+          var tabArray = Array.from(tabs);
+          var currentIndex = tabArray.indexOf(tab);
+          var newIndex;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            newIndex = (currentIndex + 1) % tabArray.length;
+            activateTab(tabArray[newIndex]);
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            newIndex = (currentIndex - 1 + tabArray.length) % tabArray.length;
+            activateTab(tabArray[newIndex]);
+          } else if (e.key === 'Home') {
+            e.preventDefault();
+            activateTab(tabArray[0]);
+          } else if (e.key === 'End') {
+            e.preventDefault();
+            activateTab(tabArray[tabArray.length - 1]);
+          }
+        });
+      });
+    })();
+
+    // Growth Trend Chart (Chart.js)
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(46, 165, 221, 0.15)');
+    gradient.addColorStop(1, 'rgba(46, 165, 221, 0)');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Feb 1', 'Feb 4', 'Feb 7', 'Feb 10', 'Feb 13', 'Feb 16', 'Feb 19', 'Feb 22', 'Feb 25', 'Feb 28'],
+        datasets: [{
+          label: 'Growth Trend',
+          data: [120, 145, 162, 178, 195, 210, 188, 225, 240, 268],
+          borderColor: '#2EA5DD',
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#2EA5DD',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a1a',
+            titleFont: { family: "'Montserrat', sans-serif", weight: '600' },
+            bodyFont: { family: "'Montserrat', sans-serif" },
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: false,
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: "'Montserrat', sans-serif", size: 11 },
+              color: '#999'
+            }
+          },
+          y: {
+            grid: { color: '#f0f0f0', drawBorder: false },
+            ticks: {
+              font: { family: "'Montserrat', sans-serif", size: 11 },
+              color: '#999'
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    });
+  </script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

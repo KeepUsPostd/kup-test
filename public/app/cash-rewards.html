@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash &amp; Rewards — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: var(--kup-font); background-color: var(--kup-body-bg); color: #1a1a1a; line-height: 1.6; margin: 0; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* ============== AUTH HEADER ============== */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46, 165, 221, 0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== NOTIFICATION CENTER POPOVER ============== */
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+    .kup-notif-popover.show { display: block; }
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
+
+    /* =============================================
+       CASH & REWARDS PAGE
+       Source: cash-rewards.component.html
+       Two tabs: Cash | Rewards
+       Search + PostdPay button + Data table
+       ============================================= */
+    .page-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 24px;
+    }
+
+    /* Search Bar */
+    .search-bar {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 24px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 12px 16px 12px 46px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      background: white;
+    }
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.1);
+    }
+    .search-bar svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 20px;
+      stroke: #999;
+    }
+
+    /* Tabs */
+    .cash-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #eee;
+      margin-bottom: 24px;
+    }
+    .cash-tab {
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      background: none;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .cash-tab:hover { color: var(--kup-blue); }
+    .cash-tab.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* PostdPay CTA */
+    .postdpay-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-postdpay {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--kup-orange);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-postdpay:disabled {
+      background: #ddd;
+      color: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-postdpay:disabled svg { stroke: #aaa; }
+    .btn-postdpay:not(:disabled):hover {
+      background: #d4703a;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(237, 132, 68, 0.3);
+    }
+
+    /* ============== FILTER/SORT PANEL ============== */
+    .filter-wrap { position: relative; }
+    .btn-filter {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-filter:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-filter.active { border-color: var(--kup-blue); color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+    .kup-filter-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      width: 280px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      padding: 20px;
+      z-index: 300;
+      display: none;
+    }
+    .kup-filter-panel.show { display: block; }
+    .filter-group { margin-bottom: 16px; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 0.85rem;
+      color: #444;
+      cursor: pointer;
+    }
+    .filter-option input[type="checkbox"],
+    .filter-option input[type="radio"] {
+      width: 16px; height: 16px;
+      accent-color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      margin-top: 16px;
+    }
+    .btn-filter-clear {
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .btn-filter-apply {
+      padding: 6px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-filter-apply:hover { background: #258fc4; }
+
+    /* ============== TOOLBAR ============== */
+    .cash-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Summary Cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+    }
+    .summary-card .label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .summary-card .value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.02em;
+    }
+    .summary-card .value.green { color: #16a34a; }
+    .summary-card .sub {
+      font-size: 0.78rem;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* Data Table */
+    .data-table {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .data-table table { width: 100%; border-collapse: collapse; }
+    .data-table thead th {
+      padding: 14px 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    .data-table tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
+    .data-table tbody tr:hover { background: #fafbfc; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody td { padding: 16px 20px; font-size: 0.85rem; vertical-align: middle; }
+
+    /* Checkbox + Influencer cell */
+    .check-influencer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .check-influencer input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .influencer-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .influencer-cell .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .influencer-cell .name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .influencer-cell .name:hover { text-decoration: underline; }
+    .influencer-cell .tier { font-size: 0.72rem; color: #888; margin-top: 2px; }
+
+    .amount-cell {
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .amount-cell.green { color: #16a34a; }
+
+    .transaction-count {
+      font-weight: 600;
+      color: #444;
+      text-align: center;
+    }
+
+    /* Pagination */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-top: 1px solid #eee;
+      background: #fafbfc;
+    }
+    .table-footer .showing { font-size: 0.82rem; color: #888; }
+    .pagination-btns { display: flex; gap: 4px; }
+    .page-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .page-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .page-btn.active { background: var(--kup-blue); color: white; border-color: var(--kup-blue); }
+
+    /* ============== REWARDS TAB — Restructured ============== */
+    .rewards-summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+    }
+    .rewards-summary-bar .reward-count {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .rewards-summary-bar .reward-count span {
+      color: var(--kup-blue);
+    }
+    .btn-add-reward {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      background: var(--kup-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-reward:hover {
+      background: #258fc4;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(46,165,221,0.3);
+    }
+    .rewards-section {
+      margin-bottom: 28px;
+    }
+    .rewards-section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .rewards-section-header:hover {
+      opacity: 0.85;
+    }
+    .rewards-section-header.non-cash {
+      background: rgba(22,163,74,0.06);
+      border-left: 4px solid #16a34a;
+    }
+    .rewards-section-header.cash {
+      background: rgba(237,132,68,0.06);
+      border-left: 4px solid var(--kup-orange);
+    }
+    .section-icon {
+      font-size: 1.1rem;
+    }
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      flex: 1;
+    }
+    .section-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: white;
+    }
+    .rewards-section-header.non-cash .section-count {
+      background: #16a34a;
+    }
+    .rewards-section-header.cash .section-count {
+      background: var(--kup-orange);
+    }
+    .section-toggle {
+      font-size: 0.75rem;
+      color: #888;
+      transition: transform 0.2s;
+    }
+    .section-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+    .rewards-section-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .rewards-section-body.collapsed {
+      display: none;
+    }
+    .reward-card-enhanced {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .reward-card-enhanced:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border-color: #ddd;
+    }
+    .reward-card-enhanced .rce-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .reward-card-enhanced .rce-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .reward-card-enhanced .rce-icon.nc {
+      background: rgba(22,163,74,0.08);
+    }
+    .reward-card-enhanced .rce-icon.cash {
+      background: rgba(237,132,68,0.08);
+    }
+    .reward-card-enhanced .rce-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .reward-card-enhanced .rce-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 2px;
+      color: #1a1a1a;
+    }
+    .reward-type-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .reward-card-enhanced .rce-desc {
+      font-size: 0.82rem;
+      color: #666;
+      margin: 0 0 12px;
+      line-height: 1.5;
+    }
+    /* Point category tags & earning badges */
+    .point-cat-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .point-cat-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .point-cat-tag.content-pts { background: rgba(22,163,74,0.08); color: #16a34a; }
+    .point-cat-tag.purchase-pts { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .point-cat-tag.gratitude-pts { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .unlock-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(237,132,68,0.1);
+      color: var(--kup-orange);
+    }
+    .per-approval-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(46,165,221,0.1);
+      color: var(--kup-blue);
+    }
+    .cash-amount-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(237,132,68,0.1);
+      color: var(--kup-orange);
+    }
+
+    /* ============== REWARD PILL STRIP ============== */
+    .reward-pill-strip {
+      display: flex;
+      gap: 8px;
+      padding: 16px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .reward-pill-strip::-webkit-scrollbar { height: 0; }
+    .reward-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1.5px solid #eee;
+      border-radius: 50px;
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .reward-pill:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .reward-pill.active {
+      background: var(--kup-blue);
+      border-color: var(--kup-blue);
+      color: white;
+    }
+    .reward-pill .pill-icon { font-size: 0.9rem; }
+    .reward-pill .pill-meta { font-size: 0.68rem; font-weight: 500; opacity: 0.7; }
+    .reward-pill.active .pill-meta { opacity: 0.85; }
+
+    /* ============== MANAGE REWARDS COLLAPSIBLE ============== */
+    .manage-rewards-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #fafbfc;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      margin: 24px 0 0;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .manage-rewards-toggle:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .manage-rewards-toggle .toggle-chevron { margin-left: auto; transition: transform 0.2s; font-size: 0.7rem; }
+    .manage-rewards-toggle.expanded .toggle-chevron { transform: rotate(180deg); }
+    .manage-rewards-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .manage-rewards-body.expanded { max-height: 3000px; padding-top: 16px; }
+
+    /* ============== DISTRIBUTE REWARD BUTTON ============== */
+    .btn-distribute {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-distribute:disabled {
+      background: #ddd;
+      color: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-distribute:disabled svg { stroke: #aaa; }
+    .btn-distribute:not(:disabled):hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(46, 165, 221, 0.3);
+    }
+
+    /* ============== REWARD STATUS BADGES ============== */
+    .reward-status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .reward-status-badge.unlocked { background: rgba(22,163,74,0.08); color: #16a34a; }
+    .reward-status-badge.in-progress { background: rgba(46,165,221,0.08); color: var(--kup-blue); }
+    .reward-status-badge.approved { background: rgba(237,132,68,0.08); color: var(--kup-orange); }
+    .reward-status-badge.pending { background: rgba(112,123,187,0.08); color: #707BBB; }
+
+    /* ============== MINI PROGRESS BAR (table cells) ============== */
+    .progress-mini { display: flex; align-items: center; gap: 8px; }
+    .progress-mini-bar { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; min-width: 60px; }
+    .progress-mini-fill { height: 100%; border-radius: 3px; background: var(--kup-gradient); transition: width 0.3s; }
+    .progress-mini-text { font-size: 0.75rem; font-weight: 600; color: #666; white-space: nowrap; }
+
+    .reward-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .rca-btn {
+      padding: 5px 12px;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .rca-btn:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+    }
+    .rca-btn.delete:hover {
+      border-color: #e74c3c;
+      color: #e74c3c;
+    }
+    .postdpay-system-card {
+      background: #fafbfc;
+      border: 1px dashed #ddd;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+    .postdpay-system-card .psc-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 8px 0 4px;
+    }
+    .postdpay-system-card .psc-desc {
+      font-size: 0.78rem;
+      color: #888;
+      margin: 0 0 12px;
+    }
+    .postdpay-system-card .psc-link {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+    }
+    .postdpay-system-card .psc-link:hover {
+      text-decoration: underline;
+    }
+    .add-reward-card {
+      border: 2px dashed #ddd;
+      border-radius: var(--radius-md);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+    .add-reward-card:hover {
+      border-color: var(--kup-blue);
+      background: rgba(46,165,221,0.02);
+    }
+    .add-reward-card .arc-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(46,165,221,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 1.3rem;
+      color: var(--kup-blue);
+    }
+    .add-reward-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #888;
+      margin: 0 0 4px;
+    }
+    .add-reward-card p {
+      font-size: 0.78rem;
+      color: #bbb;
+      margin: 0;
+    }
+    .rewards-empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #999;
+      font-size: 0.85rem;
+    }
+
+    /* Rewards Tab Content (hidden by default) */
+    .rewards-content { display: none; }
+    .rewards-content.show { display: block; }
+    .cash-content.hide { display: none; }
+
+    .reward-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .reward-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      transition: box-shadow 0.2s;
+    }
+    .reward-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+    .reward-card .reward-icon {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+    .reward-card .reward-icon.gold { background: #FFF3CD; }
+    .reward-card .reward-icon.silver { background: #E8E8E8; }
+    .reward-card .reward-icon.bronze { background: #F8D7DA; }
+
+    .reward-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .reward-card p {
+      font-size: 0.82rem;
+      color: #666;
+      margin: 0 0 16px;
+      line-height: 1.5;
+    }
+    .reward-card .reward-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #888;
+    }
+    .reward-card .reward-meta strong {
+      color: var(--kup-blue);
+    }
+
+    /* ============== KUP MODAL SYSTEM (Standardized) ============== */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+    .kup-modal h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .kup-modal p.modal-desc { font-size: 0.85rem; color: #666; margin: 0 0 24px; }
+    .kup-modal input[type="text"],
+    .kup-modal input[type="email"],
+    .kup-modal textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+    .kup-modal input:focus, .kup-modal textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-cancel:hover { background: var(--kup-body-bg); }
+    .btn-modal-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: #258fc4; }
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    .ip-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+    .ip-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0 auto 12px;
+    }
+    .ip-handle { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: #1a1a1a; }
+    .ip-name { font-size: 0.85rem; color: #888; margin: 0 0 8px; }
+    .ip-tier {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .tier-badge.nano { background: #E8F5E9; color: #2e7d32; }
+    .tier-badge.micro { background: #E3F2FD; color: #1565c0; }
+    .tier-badge.macro { background: #FFF3E0; color: #e65100; }
+    .tier-badge.mega { background: #F3E5F5; color: #7b1fa2; }
+    .ip-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .ip-stat strong { display: block; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+    .ip-stat span { display: block; font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .ip-socials {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ip-social-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ip-social-icon:hover { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .ip-bio { font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0 0 20px; text-align: center; }
+    .ip-submissions-label { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .ip-submissions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .ip-thumb {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-sm);
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #bbb;
+      overflow: hidden;
+    }
+    .ip-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-ip-outline {
+      padding: 10px 20px;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-outline:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-ip-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-primary:hover { background: #258fc4; }
+
+    /* ============== PAYMENT CONFIRMATION MODAL ============== */
+    .confirm-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgba(46,165,221,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .confirm-title {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .confirm-desc {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+      margin: 0 0 24px;
+    }
+
+    /* ============== TOAST NOTIFICATIONS ============== */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* Footer */
+    .auth-footer { text-align: center; padding: 24px 32px; font-size: 0.78rem; color: #999; border-top: 1px solid #eee; background: var(--kup-white); }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* ============== RESPONSIVE ============== */
+    @media (max-width: 768px) {
+      .page-content { padding: 20px 16px; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .summary-cards { grid-template-columns: 1fr; }
+      .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
+      .ip-actions { flex-wrap: wrap; }
+      .cash-toolbar { flex-direction: column; gap: 12px; align-items: stretch; }
+      .toolbar-left, .toolbar-right { flex-wrap: wrap; }
+      /* Influencer cell becomes card header */
+      .data-table tbody td[data-label="Influencer"]::before { display: none; }
+      .data-table tbody td[data-label="Influencer"] { text-align: left; justify-content: flex-start; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
+      .data-table tbody td[data-label="Influencer"] .influencer-cell { width: 100%; }
+      .data-table tbody td[data-label="Influencer"] .influencer-cell .name { white-space: normal; word-break: break-word; }
+      /* Progress bar full width */
+      .progress-mini { width: 100%; }
+      /* Summary cards compact */
+      .summary-card { padding: 14px 16px; }
+      .summary-card .value { font-size: 1.5rem; }
+      /* PostdPay bar stacks */
+      .postdpay-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+      .btn-postdpay { width: 100%; justify-content: center; }
+      /* Reward pill strip scroll */
+      .reward-pill-strip { padding: 12px 0; }
+      /* Reward cards grid */
+      .rewards-section-body { grid-template-columns: 1fr; }
+      /* Search bar full width */
+      .search-bar { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .cash-tab { padding: 10px 14px; font-size: 0.82rem; }
+      .summary-card .value { font-size: 1.3rem; }
+      .btn-distribute { width: 100%; justify-content: center; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" class="active" role="tab" aria-selected="true">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <!-- Notification Bell + Popover -->
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$250.00</strong> sent to @jessicadavis</p>
+                  <div class="notif-time">5 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item unread">
+                <div class="notif-icon approval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>3 payments</strong> awaiting your confirmation</p>
+                  <div class="notif-time">20 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$500.00</strong> sent to @marcusking</p>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon joined">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@nina_k</strong> reached Gold Partner reward tier</p>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@amylee_creates</strong> submitted invoice for Brand Launch campaign</p>
+                  <div class="notif-time">5 hours ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- Profile Dropdown -->
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" aria-expanded="false">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info">
+              <div class="name">Santana T.</div>
+              <div class="brand">KeepUsPostd</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       CASH & REWARDS PAGE
+       Source: cash-rewards.component.html
+       Nielsen #1: Visibility — Summary cards show totals
+       Nielsen #3: User control — Select influencers for PostdPay
+       Nielsen #4: Consistency — Same table pattern
+       ============================================ -->
+  <main class="page-content">
+    <div class="page-header">
+      <h1>Cash &amp; Rewards</h1>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+      <input type="text" placeholder="Search your influencer partners..." aria-label="Search influencers" id="cashRewardsSearch">
+    </div>
+
+    <!-- Tabs -->
+    <div class="cash-tabs">
+      <button class="cash-tab active" id="cashTabBtn">Cash</button>
+      <button class="cash-tab" id="rewardsTabBtn">Rewards</button>
+    </div>
+
+    <!-- ========== CASH TAB ========== -->
+    <div class="cash-content" id="cashContent">
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="label">Total Paid Out</div>
+          <div class="value green">$12,450</div>
+          <div class="sub">Across all influencers</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Pending Payments</div>
+          <div class="value">$2,340</div>
+          <div class="sub">3 influencers awaiting payment</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Total Transactions</div>
+          <div class="value">156</div>
+          <div class="sub">Last 30 days</div>
+        </div>
+      </div>
+
+      <!-- Toolbar: PostdPay + Filter/Sort -->
+      <div class="cash-toolbar">
+        <div class="toolbar-left">
+          <span style="font-size: 0.85rem; color: #666;">Select influencers below to initiate payments</span>
+        </div>
+        <div class="toolbar-right">
+          <!-- Filter -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="filterBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filter
+            </button>
+            <div class="kup-filter-panel" id="filterPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Status</div>
+                <label class="filter-option"><input type="checkbox"> Completed</label>
+                <label class="filter-option"><input type="checkbox"> Pending</label>
+                <label class="filter-option"><input type="checkbox"> Failed</label>
+              </div>
+              <div class="filter-group">
+                <div class="filter-group-label">Amount Range</div>
+                <label class="filter-option"><input type="checkbox"> Under $100</label>
+                <label class="filter-option"><input type="checkbox"> $100 - $500</label>
+                <label class="filter-option"><input type="checkbox"> $500+</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-clear" id="filterClear">Clear</button>
+                <button class="btn-filter-apply" id="filterApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- Sort -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="sortBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              Sort by
+            </button>
+            <div class="kup-filter-panel" id="sortPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Sort Order</div>
+                <label class="filter-option"><input type="radio" name="sort" checked> Most Recent</label>
+                <label class="filter-option"><input type="radio" name="sort"> Highest Amount</label>
+                <label class="filter-option"><input type="radio" name="sort"> Influencer Name</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-apply" id="sortApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- PostdPay Button -->
+          <button class="btn-postdpay" id="postdPayBtn" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Postd Pay
+          </button>
+        </div>
+      </div>
+
+      <!-- Cash Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Influencers</th>
+              <th style="text-align: center;">Last Paid Amount</th>
+              <th style="text-align: center;">Total Amount Paid</th>
+              <th style="text-align: center;">Transactions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" aria-label="Select jessicadavis">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="jessicadavis">JD</div>
+                    <div>
+                      <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$250.00</td>
+              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$3,450.00</td>
+              <td data-label="Transactions" class="transaction-count">24</td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" aria-label="Select marcusking">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
+                    <div>
+                      <div class="name" data-influencer="marcusking">@marcusking</div>
+                      <div class="tier">Macro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$500.00</td>
+              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$4,200.00</td>
+              <td data-label="Transactions" class="transaction-count">18</td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" aria-label="Select amylee_creates">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="amylee_creates">AL</div>
+                    <div>
+                      <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
+                      <div class="tier">Nano Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$75.00</td>
+              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$1,125.00</td>
+              <td data-label="Transactions" class="transaction-count">15</td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" aria-label="Select tyreese_r">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="tyreese_r">TR</div>
+                    <div>
+                      <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$150.00</td>
+              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$2,100.00</td>
+              <td data-label="Transactions" class="transaction-count">14</td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" aria-label="Select nina_k">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
+                    <div>
+                      <div class="name" data-influencer="nina_k">@nina_k</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$200.00</td>
+              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$1,575.00</td>
+              <td data-label="Transactions" class="transaction-count">11</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          <span class="showing">Showing 1-5 of 18 influencers</span>
+          <div class="pagination-btns">
+            <button class="page-btn">&larr;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">&rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== REWARDS TAB (Restructured: Non-Cash vs Cash with Stage Pills) ========== -->
+    <div class="rewards-content" id="rewardsContent">
+
+      <!-- Summary Bar -->
+      <div class="rewards-summary-bar">
+        <div class="reward-count"><span>5</span> Active Rewards</div>
+        <a href="brand-reward.html" class="btn-add-reward">+ Create New Reward</a>
+      </div>
+
+      <!-- Reward Pill Selector -->
+      <div class="reward-pill-strip" id="rewardPillStrip">
+        <button class="reward-pill active" data-reward="all" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-chart-bar"></i></span> All Rewards
+        </button>
+        <button class="reward-pill" data-reward="welcome-gift" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-gift"></i></span> Welcome Gift Box <span class="pill-meta">&middot; 300 pts</span>
+        </button>
+        <button class="reward-pill" data-reward="20-off" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-tag"></i></span> 20% Off First Order <span class="pill-meta">&middot; 500 pts</span>
+        </button>
+        <button class="reward-pill" data-reward="conf-swag" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-gift"></i></span> Free Conference Swag <span class="pill-meta">&middot; <i class="ph ph-lightning"></i></span>
+        </button>
+        <button class="reward-pill" data-reward="25-review" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-coins"></i></span> $25 Per Review <span class="pill-meta">&middot; $25/approval</span>
+        </button>
+        <button class="reward-pill" data-reward="10-bonus" onclick="selectRewardPill(this)">
+          <span class="pill-icon"><i class="ph ph-target"></i></span> $10 Posting Bonus <span class="pill-meta">&middot; $10/post</span>
+        </button>
+      </div>
+
+      <!-- Rewards Toolbar -->
+      <div class="cash-toolbar">
+        <div class="toolbar-left">
+          <span style="font-size: 0.85rem; color: #666;">Select influencers to distribute rewards</span>
+        </div>
+        <div class="toolbar-right">
+          <!-- Filter -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="rewardFilterBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filter
+            </button>
+            <div class="kup-filter-panel" id="rewardFilterPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Status</div>
+                <label class="filter-option"><input type="checkbox"> Unlocked</label>
+                <label class="filter-option"><input type="checkbox"> In Progress</label>
+                <label class="filter-option"><input type="checkbox"> Pending</label>
+              </div>
+              <div class="filter-group">
+                <div class="filter-group-label">Reward Type</div>
+                <label class="filter-option"><input type="checkbox"> Point-Based</label>
+                <label class="filter-option"><input type="checkbox"> Per Approval</label>
+                <label class="filter-option"><input type="checkbox"> Cash</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-clear" id="rewardFilterClear">Clear</button>
+                <button class="btn-filter-apply" id="rewardFilterApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- Sort -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="rewardSortBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              Sort by
+            </button>
+            <div class="kup-filter-panel" id="rewardSortPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Sort Order</div>
+                <label class="filter-option"><input type="radio" name="rewardSort" checked> Progress (High &rarr; Low)</label>
+                <label class="filter-option"><input type="radio" name="rewardSort"> Influencer Name</label>
+                <label class="filter-option"><input type="radio" name="rewardSort"> Status</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-apply" id="rewardSortApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- Distribute Reward Button -->
+          <button class="btn-distribute" id="distributeRewardBtn" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            Distribute Reward
+          </button>
+        </div>
+      </div>
+
+      <!-- Influencer Rewards Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Influencer</th>
+              <th style="text-align: center;">Reward</th>
+              <th style="text-align: center;" id="rewardProgressHeader">Progress</th>
+              <th style="text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="rewardTableBody">
+            <tr data-influencer-row="jessicadavis">
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select jessicadavis">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="jessicadavis">JD</div>
+                    <div>
+                      <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Reward" style="text-align: center;" class="reward-col">Welcome Gift Box</td>
+              <td data-label="Progress" style="text-align: center;" class="progress-col">
+                <div class="progress-mini">
+                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:70%"></div></div>
+                  <span class="progress-mini-text">210/300</span>
+                </div>
+              </td>
+              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
+            </tr>
+            <tr data-influencer-row="marcusking">
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select marcusking">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
+                    <div>
+                      <div class="name" data-influencer="marcusking">@marcusking</div>
+                      <div class="tier">Macro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Reward" style="text-align: center;" class="reward-col">20% Off First Order</td>
+              <td data-label="Progress" style="text-align: center;" class="progress-col">
+                <div class="progress-mini">
+                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:100%"></div></div>
+                  <span class="progress-mini-text">500/500</span>
+                </div>
+              </td>
+              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge unlocked">Unlocked</span></td>
+            </tr>
+            <tr data-influencer-row="amylee_creates">
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select amylee_creates">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="amylee_creates">AL</div>
+                    <div>
+                      <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
+                      <div class="tier">Nano Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Reward" style="text-align: center;" class="reward-col">Free Conference Swag</td>
+              <td data-label="Progress" style="text-align: center;" class="progress-col">
+                <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
+              </td>
+              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge approved">Approved</span></td>
+            </tr>
+            <tr data-influencer-row="tyreese_r">
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select tyreese_r">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="tyreese_r">TR</div>
+                    <div>
+                      <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Reward" style="text-align: center;" class="reward-col">Welcome Gift Box</td>
+              <td data-label="Progress" style="text-align: center;" class="progress-col">
+                <div class="progress-mini">
+                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:42%"></div></div>
+                  <span class="progress-mini-text">125/300</span>
+                </div>
+              </td>
+              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
+            </tr>
+            <tr data-influencer-row="nina_k">
+              <td data-label="Influencer">
+                <div class="check-influencer">
+                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select nina_k">
+                  <div class="influencer-cell">
+                    <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
+                    <div>
+                      <div class="name" data-influencer="nina_k">@nina_k</div>
+                      <div class="tier">Micro Influencer</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Reward" style="text-align: center;" class="reward-col">20% Off First Order</td>
+              <td data-label="Progress" style="text-align: center;" class="progress-col">
+                <div class="progress-mini">
+                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:65%"></div></div>
+                  <span class="progress-mini-text">325/500</span>
+                </div>
+              </td>
+              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <span class="showing">Showing 1-5 of 18 influencers</span>
+          <div class="pagination-btns">
+            <button class="page-btn">&larr;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">&rarr;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manage Rewards (Collapsible) -->
+      <button class="manage-rewards-toggle" id="manageRewardsToggle" onclick="toggleManageRewards()">
+        <span><i class="ph ph-gear"></i></span> Manage Rewards <span style="font-weight:400; color:#bbb; font-size:0.78rem;">(5 active)</span>
+        <span class="toggle-chevron"><i class="ph ph-caret-down"></i></span>
+      </button>
+      <div class="manage-rewards-body" id="manageRewardsBody">
+
+        <!-- NON-CASH REWARDS SECTION -->
+        <div class="rewards-section" id="nonCashSection">
+          <div class="rewards-section-header non-cash" onclick="toggleRewardSection('nonCash')">
+            <span class="section-icon"><i class="ph ph-gift"></i></span>
+            <span class="section-title">Non-Cash Rewards</span>
+            <span class="section-count">3</span>
+            <span class="section-toggle" id="toggleNonCash"><i class="ph ph-caret-down"></i></span>
+          </div>
+          <div class="rewards-section-body" id="bodyNonCash">
+
+            <div class="reward-card-enhanced">
+              <div class="rce-top">
+                <div class="rce-icon nc"><i class="ph ph-gift"></i></div>
+                <div class="rce-info">
+                  <h4 class="rce-title">Welcome Gift Box</h4>
+                  <span class="reward-type-badge">Free Product or Service</span>
+                </div>
+              </div>
+              <p class="rce-desc">A curated welcome kit with branded merchandise sent to new influencer partners.</p>
+              <div class="point-cat-tags">
+                <span class="point-cat-tag content-pts">Content Pts</span>
+                <span class="point-cat-tag gratitude-pts">Gratitude</span>
+              </div>
+              <span class="unlock-badge"><i class="ph ph-lock"></i> 300 pts to unlock</span>
+              <div class="reward-card-actions">
+                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=1'">Edit</button>
+                <button class="rca-btn delete">Delete</button>
+              </div>
+            </div>
+
+            <div class="reward-card-enhanced">
+              <div class="rce-top">
+                <div class="rce-icon nc"><i class="ph ph-tag"></i></div>
+                <div class="rce-info">
+                  <h4 class="rce-title">20% Off First Order</h4>
+                  <span class="reward-type-badge">Discount / Coupon</span>
+                </div>
+              </div>
+              <p class="rce-desc">A 20% discount code for influencers after their first approved submission.</p>
+              <div class="point-cat-tags">
+                <span class="point-cat-tag content-pts">Content Pts</span>
+                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+                <span class="point-cat-tag gratitude-pts">Gratitude</span>
+              </div>
+              <span class="unlock-badge"><i class="ph ph-lock"></i> 500 pts to unlock</span>
+              <div class="reward-card-actions">
+                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=2'">Edit</button>
+                <button class="rca-btn delete">Delete</button>
+              </div>
+            </div>
+
+            <div class="reward-card-enhanced">
+              <div class="rce-top">
+                <div class="rce-icon nc"><i class="ph ph-gift"></i></div>
+                <div class="rce-info">
+                  <h4 class="rce-title">Free Conference Swag</h4>
+                  <span class="reward-type-badge">Free Product or Service</span>
+                </div>
+              </div>
+              <p class="rce-desc">Free branded swag bag for influencers at partner events and conferences.</p>
+              <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
+              <div class="reward-card-actions">
+                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=5'">Edit</button>
+                <button class="rca-btn delete">Delete</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CASH OFFERS SECTION -->
+        <div class="rewards-section" id="cashSection">
+          <div class="rewards-section-header cash" onclick="toggleRewardSection('cash')">
+            <span class="section-icon"><i class="ph ph-money"></i></span>
+            <span class="section-title">Cash Offers</span>
+            <span class="section-count">2</span>
+            <span class="section-toggle" id="toggleCash"><i class="ph ph-caret-down"></i></span>
+          </div>
+          <div class="rewards-section-body" id="bodyCash">
+
+            <div class="reward-card-enhanced">
+              <div class="rce-top">
+                <div class="rce-icon cash"><i class="ph ph-coins"></i></div>
+                <div class="rce-info">
+                  <h4 class="rce-title">$25 Per Review</h4>
+                  <span class="reward-type-badge">Cash Per Approval</span>
+                </div>
+              </div>
+              <p class="rce-desc">Direct cash payment of $25 for each approved content submission.</p>
+              <span class="cash-amount-badge">$25/approval</span>
+              <div class="reward-card-actions">
+                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=3'">Edit</button>
+                <button class="rca-btn delete">Delete</button>
+              </div>
+            </div>
+
+            <div class="reward-card-enhanced">
+              <div class="rce-top">
+                <div class="rce-icon cash"><i class="ph ph-target"></i></div>
+                <div class="rce-info">
+                  <h4 class="rce-title">$10 Posting Bonus</h4>
+                  <span class="reward-type-badge">Bonus Cash</span>
+                </div>
+              </div>
+              <p class="rce-desc">Automatic $10 bonus sent when an influencer publishes content on social media.</p>
+              <span class="cash-amount-badge">$10/post</span>
+              <div class="reward-card-actions">
+                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=4'">Edit</button>
+                <button class="rca-btn delete">Delete</button>
+              </div>
+            </div>
+
+            <!-- PostdPay System Card -->
+            <div class="postdpay-system-card">
+              <span style="font-size:1.5rem"><i class="ph ph-currency-dollar"></i></span>
+              <div class="psc-title">Postd Pay</div>
+              <p class="psc-desc">Send any amount to any influencer, anytime from the Cash tab.</p>
+              <a href="#" class="psc-link" onclick="switchCashTab('cash'); return false;">Go to Cash Tab &rarr;</a>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Add New Reward -->
+        <div class="add-reward-card" onclick="window.location.href='brand-reward.html'">
+          <div class="arc-icon">+</div>
+          <h4>Create New Reward</h4>
+          <p>Set up a new reward for your influencer partners</p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============== INFLUENCER PROFILE MODAL ============== -->
+  <div class="kup-modal-overlay" id="influencerProfileModal" role="dialog" aria-modal="true" aria-labelledby="ipModalHandle">
+    <div class="kup-modal" style="max-width: 520px; position:relative;">
+      <div class="ip-brand-badge" id="ipBrandBadge" style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#F8F9FB;border-radius:20px;border:1px solid #E5E7EB;z-index:1;">
+        <div id="ipBrandLogo" style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;background:#2EA5DD;">KP</div>
+        <span id="ipBrandName" style="font-size:.78rem;font-weight:600;color:#1A1A2E;">KeepUsPostd</span>
+      </div>
+      <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
+      <div class="ip-header">
+        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
+        <p class="ip-name" id="ipName">Jessica Davis</p>
+        <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
+      </div>
+      <div class="ip-stats">
+        <div class="ip-stat"><strong id="ipFollowers">12.4K</strong><span>Followers</span></div>
+        <div class="ip-stat"><strong id="ipEngagement">3.2%</strong><span>Engagement</span></div>
+        <div class="ip-stat"><strong id="ipPosts">34</strong><span>Posts</span></div>
+      </div>
+      <div class="ip-socials">
+        <div class="ip-social-icon" title="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <div class="ip-social-icon" title="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></div>
+        <div class="ip-social-icon" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></div>
+      </div>
+      <p class="ip-bio" id="ipBio">Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.</p>
+      <div class="ip-submissions-label">Recent Submissions</div>
+      <div class="ip-submissions">
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+      </div>
+      <div class="ip-actions">
+        <button class="btn-ip-primary">Send Reward</button>
+        <button class="btn-ip-outline">View Content</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== PAYMENT CONFIRMATION MODAL ============== -->
+  <div class="kup-modal-overlay" id="paymentConfirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="kup-modal" style="max-width: 420px;">
+      <button class="kup-modal-close" id="payConfirmClose" aria-label="Close">&times;</button>
+      <div class="confirm-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      </div>
+      <h3 class="confirm-title" id="confirmTitle">Confirm Payment</h3>
+      <p class="confirm-desc">Send payment to selected influencers via PostdPay?</p>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" id="payConfirmCancel">Cancel</button>
+        <button class="btn-modal-primary" id="payConfirmSubmit">Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <script>
+    /* ============== TOAST NOTIFICATION SYSTEM ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* ============== MODAL HELPERS ============== */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Global: Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        document.querySelectorAll('.kup-filter-panel.show').forEach(function(p) {
+          p.classList.remove('show');
+        });
+      }
+    });
+
+    // Global: Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+    });
+
+    /* ============== NOTIFICATION CENTER ============== */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* ============== TAB SWITCHING ============== */
+    function switchCashTab(tab) {
+      document.querySelectorAll('.cash-tab').forEach(function(t) { t.classList.remove('active'); });
+      if (tab === 'cash') {
+        document.getElementById('cashTabBtn').classList.add('active');
+        document.getElementById('cashContent').classList.remove('hide');
+        document.getElementById('rewardsContent').classList.remove('show');
+      } else {
+        document.getElementById('rewardsTabBtn').classList.add('active');
+        document.getElementById('cashContent').classList.add('hide');
+        document.getElementById('rewardsContent').classList.add('show');
+      }
+    }
+    document.getElementById('cashTabBtn').addEventListener('click', function() {
+      switchCashTab('cash');
+    });
+    document.getElementById('rewardsTabBtn').addEventListener('click', function() {
+      switchCashTab('rewards');
+    });
+
+    /* ============== SEARCH BAR ============== */
+    var cashRewardsSearch = document.getElementById('cashRewardsSearch');
+    if (cashRewardsSearch) {
+      cashRewardsSearch.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+
+        // Filter Cash table rows
+        var cashRows = document.querySelectorAll('#cashContent .data-table tbody tr');
+        var cashVisible = 0;
+        cashRows.forEach(function(row) {
+          var nameEl = row.querySelector('.name');
+          var tierEl = row.querySelector('.tier');
+          var name = nameEl ? nameEl.textContent.toLowerCase() : '';
+          var tier = tierEl ? tierEl.textContent.toLowerCase() : '';
+          if (!query || name.indexOf(query) !== -1 || tier.indexOf(query) !== -1) {
+            row.style.display = '';
+            cashVisible++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Filter Rewards table rows
+        var rewardRows = document.querySelectorAll('#rewardsContent .data-table tbody tr');
+        var rewardVisible = 0;
+        rewardRows.forEach(function(row) {
+          var nameEl = row.querySelector('.name');
+          var tierEl = row.querySelector('.tier');
+          var rewardEl = row.querySelector('.reward-col');
+          var name = nameEl ? nameEl.textContent.toLowerCase() : '';
+          var tier = tierEl ? tierEl.textContent.toLowerCase() : '';
+          var reward = rewardEl ? rewardEl.textContent.toLowerCase() : '';
+          if (!query || name.indexOf(query) !== -1 || tier.indexOf(query) !== -1 || reward.indexOf(query) !== -1) {
+            row.style.display = '';
+            rewardVisible++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Update footer text
+        var cashFooter = document.querySelector('#cashContent .showing');
+        if (cashFooter) {
+          cashFooter.innerHTML = query ? 'Showing ' + cashVisible + ' of 18 influencers' : 'Showing 1-5 of 18 influencers';
+        }
+      });
+    }
+
+    /* ============== POSTDPAY BUTTON STATE ============== */
+    function updatePostdPay() {
+      var checkboxes = document.querySelectorAll('.check-influencer input[type="checkbox"]');
+      var anyChecked = Array.from(checkboxes).some(function(cb) { return cb.checked; });
+      document.getElementById('postdPayBtn').disabled = !anyChecked;
+    }
+    // Attach checkbox change listeners via addEventListener
+    document.querySelectorAll('.check-influencer input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', updatePostdPay);
+    });
+
+    /* ============== POSTDPAY → NAVIGATE TO POSTD-PAY PAGE ============== */
+    document.getElementById('postdPayBtn').addEventListener('click', function() {
+      window.location.href = 'postd-pay.html';
+    });
+
+    /* ============== REWARD SECTION TOGGLE ============== */
+    function toggleRewardSection(section) {
+      var body = document.getElementById('body' + section.charAt(0).toUpperCase() + section.slice(1));
+      var toggle = document.getElementById('toggle' + section.charAt(0).toUpperCase() + section.slice(1));
+      if (!body || !toggle) return;
+      body.classList.toggle('collapsed');
+      toggle.classList.toggle('collapsed');
+    }
+
+    /* ============== FILTER/SORT PANELS (Cash Tab) ============== */
+    document.getElementById('filterBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('filterPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('filterPanel').classList.contains('show'));
+    });
+    document.getElementById('sortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('sortPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('sortPanel').classList.contains('show'));
+    });
+    document.getElementById('filterApply').addEventListener('click', function() {
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('filterBtn').classList.remove('active');
+      kupToast('Filters applied', 'info');
+    });
+    document.getElementById('filterClear').addEventListener('click', function() {
+      document.querySelectorAll('#filterPanel input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+    });
+    document.getElementById('sortApply').addEventListener('click', function() {
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('sortBtn').classList.remove('active');
+      kupToast('Sort order updated', 'info');
+    });
+
+    /* ============== FILTER/SORT PANELS (Rewards Tab) ============== */
+    document.getElementById('rewardFilterBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('rewardSortPanel').classList.remove('show');
+      document.getElementById('rewardFilterPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('rewardFilterPanel').classList.contains('show'));
+    });
+    document.getElementById('rewardSortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('rewardFilterPanel').classList.remove('show');
+      document.getElementById('rewardSortPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('rewardSortPanel').classList.contains('show'));
+    });
+    document.getElementById('rewardFilterApply').addEventListener('click', function() {
+      document.getElementById('rewardFilterPanel').classList.remove('show');
+      document.getElementById('rewardFilterBtn').classList.remove('active');
+      kupToast('Filters applied', 'info');
+    });
+    document.getElementById('rewardFilterClear').addEventListener('click', function() {
+      document.querySelectorAll('#rewardFilterPanel input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+    });
+    document.getElementById('rewardSortApply').addEventListener('click', function() {
+      document.getElementById('rewardSortPanel').classList.remove('show');
+      document.getElementById('rewardSortBtn').classList.remove('active');
+      kupToast('Sort order updated', 'info');
+    });
+
+    /* ============== REWARD PILL SELECTION ============== */
+    var rewardProgressData = {
+      'all': {
+        jessicadavis:   { reward: 'Welcome Gift Box',     progress: '210/300', pct: 70,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        marcusking:     { reward: '20% Off First Order',  progress: '500/500', pct: 100, status: 'unlocked',    statusLabel: 'Unlocked',    type: 'points' },
+        amylee_creates: { reward: 'Free Conference Swag', progress: '',        pct: 0,   status: 'approved',    statusLabel: 'Approved',    type: 'per-approval' },
+        tyreese_r:      { reward: 'Welcome Gift Box',     progress: '125/300', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        nina_k:         { reward: '20% Off First Order',  progress: '325/500', pct: 65,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
+      },
+      'welcome-gift': {
+        jessicadavis:   { progress: '210/300', pct: 70,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        marcusking:     { progress: '85/300',  pct: 28,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        amylee_creates: { progress: '40/300',  pct: 13,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        tyreese_r:      { progress: '125/300', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        nina_k:         { progress: '190/300', pct: 63,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
+      },
+      '20-off': {
+        jessicadavis:   { progress: '120/500', pct: 24,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        marcusking:     { progress: '500/500', pct: 100, status: 'unlocked',    statusLabel: 'Unlocked',    type: 'points' },
+        amylee_creates: { progress: '75/500',  pct: 15,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        tyreese_r:      { progress: '210/500', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
+        nina_k:         { progress: '325/500', pct: 65,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
+      },
+      'conf-swag': {
+        jessicadavis:   { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
+        marcusking:     { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
+        amylee_creates: { progress: '', pct: 0, status: 'approved', statusLabel: 'Approved', type: 'per-approval' },
+        tyreese_r:      { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
+        nina_k:         { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' }
+      },
+      '25-review': {
+        jessicadavis:   { progress: '$75', pct: 0, status: 'in-progress', statusLabel: '3 Approved', type: 'cash' },
+        marcusking:     { progress: '$150', pct: 0, status: 'in-progress', statusLabel: '6 Approved', type: 'cash' },
+        amylee_creates: { progress: '$25', pct: 0, status: 'in-progress', statusLabel: '1 Approved', type: 'cash' },
+        tyreese_r:      { progress: '$50', pct: 0, status: 'in-progress', statusLabel: '2 Approved', type: 'cash' },
+        nina_k:         { progress: '$100', pct: 0, status: 'in-progress', statusLabel: '4 Approved', type: 'cash' }
+      },
+      '10-bonus': {
+        jessicadavis:   { progress: '$30', pct: 0, status: 'in-progress', statusLabel: '3 Posts', type: 'cash' },
+        marcusking:     { progress: '$50', pct: 0, status: 'in-progress', statusLabel: '5 Posts', type: 'cash' },
+        amylee_creates: { progress: '$20', pct: 0, status: 'in-progress', statusLabel: '2 Posts', type: 'cash' },
+        tyreese_r:      { progress: '$10', pct: 0, status: 'in-progress', statusLabel: '1 Post',  type: 'cash' },
+        nina_k:         { progress: '$40', pct: 0, status: 'in-progress', statusLabel: '4 Posts', type: 'cash' }
+      }
+    };
+
+    var selectedRewardPill = 'all';
+
+    function selectRewardPill(btn) {
+      document.querySelectorAll('.reward-pill').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      selectedRewardPill = btn.getAttribute('data-reward');
+      updateRewardTable();
+    }
+
+    function updateRewardTable() {
+      var data = rewardProgressData[selectedRewardPill];
+      if (!data) return;
+      var isAll = selectedRewardPill === 'all';
+
+      document.querySelectorAll('[data-influencer-row]').forEach(function(row) {
+        var key = row.getAttribute('data-influencer-row');
+        var d = data[key];
+        if (!d) return;
+
+        // Update reward column
+        var rewardCol = row.querySelector('.reward-col');
+        if (rewardCol) {
+          if (isAll) {
+            rewardCol.textContent = d.reward;
+          } else {
+            // Show the selected reward name from the pill
+            var pillBtn = document.querySelector('.reward-pill[data-reward="' + selectedRewardPill + '"]');
+            var pillText = pillBtn ? pillBtn.textContent.replace(/·.*/, '').trim() : '';
+            rewardCol.textContent = pillText;
+          }
+        }
+
+        // Update progress column
+        var progressCol = row.querySelector('.progress-col');
+        if (progressCol) {
+          if (d.type === 'points') {
+            progressCol.innerHTML = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + d.pct + '%"></div></div><span class="progress-mini-text">' + d.progress + '</span></div>';
+          } else if (d.type === 'per-approval') {
+            progressCol.innerHTML = '<span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>';
+          } else if (d.type === 'cash') {
+            progressCol.innerHTML = '<span class="cash-amount-badge">' + d.progress + ' earned</span>';
+          }
+        }
+
+        // Update status column
+        var statusCol = row.querySelector('.reward-status-badge');
+        if (statusCol) {
+          statusCol.className = 'reward-status-badge ' + d.status;
+          statusCol.textContent = d.statusLabel;
+        }
+      });
+    }
+
+    /* ============== DISTRIBUTE REWARD BUTTON STATE ============== */
+    function updateDistributeBtn() {
+      var checkboxes = document.querySelectorAll('.reward-checkbox');
+      var anyChecked = Array.from(checkboxes).some(function(cb) { return cb.checked; });
+      document.getElementById('distributeRewardBtn').disabled = !anyChecked;
+    }
+
+    /* ============== DISTRIBUTE REWARD → NAVIGATE ============== */
+    document.getElementById('distributeRewardBtn').addEventListener('click', function() {
+      window.location.href = 'distribute-reward.html';
+    });
+
+    /* ============== MANAGE REWARDS TOGGLE ============== */
+    function toggleManageRewards() {
+      var toggle = document.getElementById('manageRewardsToggle');
+      var body = document.getElementById('manageRewardsBody');
+      toggle.classList.toggle('expanded');
+      body.classList.toggle('expanded');
+    }
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    var influencerData = {
+      jessicadavis:   { initials: 'JD', handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
+      marcusking:     { initials: 'MK', handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
+      amylee_creates: { initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
+      tyreese_r:      { initials: 'TR', handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
+      nina_k:         { initials: 'NK', handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' }
+    };
+
+    document.querySelectorAll('[data-influencer]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var key = this.getAttribute('data-influencer');
+        var data = influencerData[key];
+        if (!data) return;
+        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipModalHandle').textContent = data.handle;
+        document.getElementById('ipName').textContent = data.name;
+        var tierEl = document.getElementById('ipTier');
+        tierEl.textContent = data.tier;
+        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+        document.getElementById('ipFollowers').textContent = data.followers;
+        document.getElementById('ipEngagement').textContent = data.engagement;
+        document.getElementById('ipPosts').textContent = data.posts;
+        document.getElementById('ipBio').textContent = data.bio;
+        /* Sync brand badge with active brand context */
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          document.getElementById('ipBrandLogo').textContent = ab.abbreviation || 'KP';
+          document.getElementById('ipBrandLogo').style.background = ab.color || '#2EA5DD';
+          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+        }
+        openModal('influencerProfileModal');
+      });
+    });
+    document.getElementById('ipModalClose').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+    });
+
+    /* ============== CLOSE OUTSIDE CLICKS ============== */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (!notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+      }
+      // Filter panels
+      document.querySelectorAll('.filter-wrap').forEach(function(wrap) {
+        if (!wrap.contains(e.target)) {
+          var panel = wrap.querySelector('.kup-filter-panel');
+          var btn = wrap.querySelector('.btn-filter');
+          if (panel) panel.classList.remove('show');
+          if (btn) btn.classList.remove('active');
+        }
+      });
+    });
+  </script>
+  <!--
+    PLATFORM CONFIG — Reward rules & tier gating defined in platform-config.js.
+    <script src="/js/brand-context.js"></script>
+    See: /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Architecture doc: /brands/KeepUsPostd/product/REWARD_SYSTEM_ARCHITECTURE.md
+  -->
+  <script src="/js/platform-config.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script>
+    /* ============== PLAN-AWARE DEFAULT TAB ============== */
+    // Pro, Agency, Enterprise have PostdPay → default to Cash tab
+    // Starter, Growth do NOT → default to Rewards tab
+    // Both tabs always remain accessible — this only sets the default
+    (function() {
+      var postdPayPlans = ['pro', 'agency', 'enterprise'];
+      var activeBrand = null;
+      try {
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          activeBrand = KUP_BRAND_CONTEXT.getActiveBrand();
+        }
+      } catch(e) {}
+
+      // URL param override always wins (?tab=cash or ?tab=rewards)
+      var urlParams = new URLSearchParams(window.location.search);
+      var tabOverride = urlParams.get('tab');
+
+      if (tabOverride === 'cash' || tabOverride === 'rewards') {
+        switchCashTab(tabOverride);
+      } else if (activeBrand && activeBrand.plan) {
+        var plan = activeBrand.plan.toLowerCase();
+        if (postdPayPlans.indexOf(plan) === -1) {
+          switchCashTab('rewards');
+        }
+      }
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

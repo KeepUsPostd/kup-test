@@ -1,6 +1,6 @@
 // KUP Test Server — Main Entry Point
-// This is the "brain" of your backend. It starts the web server
-// and connects to your database and Firebase.
+// This is the "brain" of your backend. It starts the web server,
+// connects to your database, initializes Firebase, and mounts all API routes.
 
 require('dotenv').config({ path: '.env.test' });
 
@@ -9,6 +9,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 const connectDB = require('./config/database');
+
+// Initialize Firebase Admin SDK (must happen before routes that use it)
+require('./config/firebase');
 
 // Create the Express app (your web server)
 const app = express();
@@ -24,12 +27,41 @@ app.use(express.urlencoded({ extended: true })); // Parse form data
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // --- API Routes ---
+
+// Health check (no auth required)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     message: 'KUP Test Server is running!',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'test'
+    environment: process.env.NODE_ENV || 'test',
+  });
+});
+
+// Auth routes (register, login, profile)
+app.use('/api/auth', require('./routes/auth'));
+
+// Brand routes (CRUD, team members)
+app.use('/api/brands', require('./routes/brands'));
+
+// Campaign routes (stub — Phase 3)
+app.use('/api/campaigns', require('./routes/campaigns'));
+
+// Reward routes (stub — Phase 3)
+app.use('/api/rewards', require('./routes/rewards'));
+
+// Content routes (stub — Phase 4)
+app.use('/api/content', require('./routes/content'));
+
+// Partnership routes (stub — Phase 4)
+app.use('/api/partnerships', require('./routes/partnerships'));
+
+// --- Error Handling Middleware ---
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.message);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'test' ? err.message : 'Something went wrong.',
   });
 });
 
@@ -38,10 +70,14 @@ const startServer = async () => {
   // Connect to MongoDB
   await connectDB();
 
+  // Register all Mongoose models (ensures indexes are created)
+  require('./models');
+
   app.listen(PORT, () => {
     console.log(`\n🚀 KUP Test Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}\n`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}`);
+    console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships\n`);
   });
 };
 

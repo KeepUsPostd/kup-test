@@ -1,0 +1,81 @@
+// Influencer Profile Model — Public-facing influencer identity
+// Max 1 per user. Ref: DATABASE_SCHEMA.md → influencer_profiles
+const mongoose = require('mongoose');
+
+const influencerProfileSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true,
+  },
+
+  // Public identity
+  displayName: { type: String, maxlength: 30, default: null },
+  handle: {
+    type: String,
+    unique: true,
+    sparse: true,
+    lowercase: true,
+    maxlength: 20,
+  },
+  avatarUrl: { type: String, default: null },
+  bio: { type: String, maxlength: 150, default: null },
+  coverImageUrl: { type: String, default: null },
+
+  // Influence verification
+  influenceTier: {
+    type: String,
+    enum: ['unverified', 'nano', 'micro', 'rising', 'established', 'premium'],
+    default: 'unverified',
+  },
+  realFollowerCount: { type: Number, default: null },
+  influenceScore: { type: Number, default: null, min: 0, max: 100 },
+  isVerified: { type: Boolean, default: false },
+  verifiedAt: { type: Date, default: null },
+  lastVerificationAt: { type: Date, default: null },
+
+  // Creator progression
+  creatorTier: {
+    type: String,
+    enum: ['newcomer', 'reviewer', 'verified_reviewer', 'featured_creator', 'top_creator'],
+    default: 'newcomer',
+  },
+  totalReviews: { type: Number, default: 0 },
+  adminBrandReviews: { type: Number, default: 0 },
+  campaignAccessUnlocked: { type: Boolean, default: false },
+
+  // Aggregated stats (denormalized)
+  totalBrandsPartnered: { type: Number, default: 0 },
+  totalPointsEarned: { type: Number, default: 0 },
+  totalCashEarned: { type: Number, default: 0 },
+  averageRating: { type: Number, default: null },
+  ratingCount: { type: Number, default: 0 },
+
+  // Preferences
+  interests: [{ type: String }],
+  notificationPrefs: {
+    pushEnabled: { type: Boolean, default: true },
+    emailEnabled: { type: Boolean, default: true },
+    bonusAlerts: { type: Boolean, default: true },
+    campaignAlerts: { type: Boolean, default: true },
+  },
+
+  // Payment
+  paypalEmail: { type: String, default: null },
+  paypalConnectedAt: { type: Date, default: null },
+
+  // Referral
+  referralCode: { type: String, unique: true, sparse: true },
+}, {
+  timestamps: true,
+});
+
+// Indexes
+influencerProfileSchema.index({ influenceTier: 1 });
+influencerProfileSchema.index({ creatorTier: 1 });
+influencerProfileSchema.index({ isVerified: 1 });
+influencerProfileSchema.index({ interests: 1 });
+// referralCode already indexed via unique/sparse in field def
+
+module.exports = mongoose.model('InfluencerProfile', influencerProfileSchema);

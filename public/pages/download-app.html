@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KeepUsPostd">
+  <meta property="og:title" content="Get Paid to Share What You Love — KeepUsPostd for Influencers">
+  <meta property="og:description" content="Download KeepUsPostd and start earning rewards for sharing honest reviews of your favorite brands.">
+  <meta property="og:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+  <meta property="og:url" content="https://keepuspostd.com/download-app">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Keepuspostd">
+  <meta name="twitter:title" content="Get Paid to Share What You Love — KeepUsPostd for Influencers">
+  <meta name="twitter:description" content="Download KeepUsPostd and start earning rewards for sharing honest reviews of your favorite brands.">
+  <meta name="twitter:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+
+  <title>Get Paid to Share What You Love — KeepUsPostd for Influencers</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- KUP Shared Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <style>
+    /* =========================================
+       PAGE: download-app.html
+       Influencer Download — Contra-style, white bg
+       ========================================= */
+
+    /* ---- Override ticker fade for white bg ---- */
+    .brand-ticker-outer::before {
+      background: linear-gradient(to right, #ffffff, transparent) !important;
+    }
+    .brand-ticker-outer::after {
+      background: linear-gradient(to left, #ffffff, transparent) !important;
+    }
+
+    /* ============ HERO ============ */
+    .da-hero {
+      background: #fff;
+      padding: 80px 0 0;
+      overflow: hidden;
+    }
+    .da-hero-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--kup-orange);
+      display: block;
+      margin-bottom: 20px;
+    }
+    .da-hero-headline {
+      font-size: clamp(2.6rem, 4.5vw, 4.2rem);
+      font-weight: 500 !important;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 24px;
+    }
+    .da-hero-headline span {
+      color: var(--kup-orange);
+    }
+    .da-hero-sub {
+      font-size: 1.05rem;
+      color: #6B7280;
+      line-height: 1.7;
+      max-width: 460px;
+      margin-bottom: 36px;
+    }
+    .da-store-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .da-store-row img {
+      height: 46px;
+      width: auto;
+      border-radius: 10px;
+    }
+    /* QR download block — desktop only */
+    .da-qr-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: #f8f9fa;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      max-width: 320px;
+    }
+    .da-qr-block img {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+    }
+    .da-qr-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .da-qr-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--kup-blue);
+    }
+    .da-qr-desc {
+      font-size: 0.78rem;
+      color: #6B7280;
+      line-height: 1.4;
+      margin: 0;
+    }
+    /* Dark bg variant for CTA blade */
+    .da-qr-block--dark {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .da-qr-block--dark .da-qr-desc {
+      color: rgba(0,0,0,0.45);
+    }
+    /* Hide QR on mobile — they're already on their phone */
+    @media (max-width: 767px) {
+      .da-qr-block { display: none; }
+    }
+
+    .da-free-note {
+      font-size: 0.78rem;
+      color: #9CA3AF;
+      margin: 0;
+    }
+
+    /* ============ PROFILE MARQUEE ============ */
+    .da-profile-marquee-wrap {
+      position: relative;
+      height: 500px;
+      overflow: hidden;
+      border-radius: 20px;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
+    }
+    .da-profile-marquee {
+      display: flex;
+      gap: 12px;
+      height: 100%;
+      align-items: flex-start;
+    }
+    .da-pm-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+    .da-pm-col-1 {
+      animation: pm-scroll 16s linear infinite;
+    }
+    .da-pm-col-2 {
+      animation: pm-scroll 20s linear infinite;
+      animation-delay: -9s;
+    }
+    @keyframes pm-scroll {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    /* KUP Profile Card (app-style) */
+    .kup-profile-card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #F0EDE8;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      flex-shrink: 0;
+    }
+    .kpc-banner {
+      height: 56px;
+    }
+    .kpc-body {
+      padding: 0 16px 16px;
+    }
+    .kpc-avatar-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: -22px;
+      margin-bottom: 8px;
+    }
+    .kpc-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      background: #E8E5E0;
+      flex-shrink: 0;
+    }
+    .kpc-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .kpc-earn-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #D1FAE5;
+      color: #065F46;
+      padding: 4px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .kpc-name {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 2px;
+    }
+    .kpc-handle {
+      font-size: 0.7rem;
+      color: #9CA3AF;
+      margin: 0 0 8px;
+    }
+    .kpc-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .kpc-tag {
+      background: #F5F6F9;
+      color: #6B7280;
+      font-size: 0.64rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .kpc-stats-row {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #F0EDE8;
+      padding-top: 9px;
+    }
+    .kpc-stat strong {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
+    }
+    .kpc-stat span {
+      font-size: 0.62rem;
+      color: #9CA3AF;
+    }
+
+    /* ============ HERO TICKER STRIP ============ */
+    .da-hero-ticker {
+      padding: 20px 0 0;
+    }
+    .da-ticker-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .da-hero-ticker .brand-ticker-wrap {
+      padding: 0 0 28px;
+    }
+
+    /* ============ STATS BAR ============ */
+    .da-stats {
+      background: #fff;
+      border-top: 1px solid #F0EDE8;
+      border-bottom: 1px solid #F0EDE8;
+      padding: 64px 0;
+    }
+    .da-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .da-stat-col {
+      text-align: center;
+      padding: 0 32px;
+      border-right: 1px solid #E8E5E0;
+    }
+    .da-stat-col:last-child {
+      border-right: none;
+    }
+    .da-stat-num {
+      font-size: clamp(2.6rem, 4.2vw, 4rem);
+      font-weight: 300;
+      line-height: 1;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+      background: var(--kup-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .da-stat-desc {
+      font-size: 0.88rem;
+      color: #6B7280;
+      line-height: 1.55;
+      max-width: 170px;
+      margin: 0 auto;
+    }
+
+    /* ============ SECTION SHARED ============ */
+    .da-section-eyebrow {
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--kup-orange);
+      display: block;
+      margin-bottom: 20px;
+    }
+    .da-display-headline {
+      font-size: clamp(2.2rem, 4vw, 3.6rem);
+      font-weight: 500 !important;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 20px;
+      max-width: 720px;
+    }
+    .da-section-sub {
+      font-size: 1.05rem;
+      color: #6B7280;
+      line-height: 1.7;
+      max-width: 580px;
+    }
+
+    /* ============ HIW INTRO ============ */
+    .da-hiw-intro {
+      background: #fff;
+      padding: 96px 0 56px;
+    }
+
+    /* ============ 2x2 FEATURE CARD GRID ============ */
+    .da-feature-grid-section {
+      background: #1a1a1a;    /* black — shows as divider lines */
+      padding: 0;
+      overflow: hidden;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .da-feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 500px;
+      gap: 1px;                /* thin black interior cross dividers */
+    }
+    .da-fcard {
+      background: #fff;
+      padding: 40px 44px 0;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-radius: 0;
+    }
+    .da-fcard-step {
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--kup-blue);
+      display: block;
+      margin-bottom: 14px;
+    }
+    .da-fcard-title {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: #111827;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .da-fcard-body {
+      font-size: 0.88rem;
+      color: #6B7280;
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+    .da-fcard-visual {
+      margin-top: auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .da-fcard-visual img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 14px 14px 0 0;
+      display: block;
+      box-shadow: 0 -6px 28px rgba(0,0,0,0.06);
+    }
+
+    /* Card 2: Brand Offer List UI Mock */
+    .da-brand-mock {
+      margin-top: auto;
+      margin-bottom: 32px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #E8E5E0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .da-brand-mock-header {
+      padding: 14px 18px 10px;
+      border-bottom: 1px solid #F0EDE8;
+    }
+    .da-brand-mock-label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin: 0;
+    }
+    .da-brand-offer-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid #F0EDE8;
+      background: #fff;
+    }
+    .da-brand-offer-row:last-child { border-bottom: none; }
+    .da-brand-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0;
+    }
+    .da-brand-offer-info { flex: 1; min-width: 0; }
+    .da-brand-offer-name { font-size: 0.8rem; font-weight: 700; color: #111827; margin: 0; }
+    .da-brand-offer-cat  { font-size: 0.68rem; color: #9CA3AF; margin: 0; }
+    .da-brand-offer-reward {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--kup-blue);
+      white-space: nowrap;
+    }
+
+    /* Card 3: Submissions Status UI Mock */
+    .da-fcard-mock {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: auto;
+      margin-bottom: 32px;
+      border: 1px solid #E8E5E0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .da-fcard-mock-header {
+      padding: 12px 18px 8px;
+      border-bottom: 1px solid #F0EDE8;
+    }
+    .da-fcard-mock-htitle {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin: 0;
+    }
+    .da-fcard-mock-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid #F0EDE8;
+    }
+    .da-fcard-mock-row:last-child { border-bottom: none; }
+    .da-fcard-mock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .da-fcard-mock-name { font-size: 0.8rem; font-weight: 600; color: #111827; flex: 1; }
+    .da-fcard-mock-badge {
+      font-size: 0.66rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 20px; letter-spacing: 0.4px;
+    }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-pending  { background: #FEF3C7; color: #92400E; }
+    .badge-earned   { background: #EDE9FE; color: #5B21B6; }
+    .da-fcard-reward { font-size: 0.76rem; font-weight: 700; color: var(--kup-blue); }
+
+    /* Card 4: Earnings Payout UI Mock */
+    .da-earnings-mock {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: auto;
+      margin-bottom: 32px;
+      border: 1px solid #E8E5E0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .da-earnings-header {
+      background: linear-gradient(135deg, #707bbb 0%, #2fa4dc 100%);
+      padding: 20px 22px 18px;
+    }
+    .da-earnings-eyebrow {
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      margin: 0 0 4px;
+    }
+    .da-earnings-amount {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+    .da-earnings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 22px;
+      border-bottom: 1px solid #F0EDE8;
+    }
+    .da-earnings-row:last-child { border-bottom: none; }
+    .da-earnings-method { font-size: 0.8rem; font-weight: 600; color: #111827; }
+    .da-earnings-meta   { font-size: 0.7rem; color: #9CA3AF; }
+    .da-earnings-pill {
+      font-size: 0.68rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .ep-sent    { background: #D1FAE5; color: #065F46; }
+    .ep-ready   { background: #DBEAFE; color: #1E40AF; }
+    .ep-pending { background: #FEF3C7; color: #92400E; }
+
+    /* ============ FEATURE CARD GRADIENT STAGE ============ */
+    /* Gradient background sits BEHIND each card's UI component */
+    .da-fcard-stage {
+      margin-top: auto;
+      flex: none;           /* fixed size — prevents flex stretch */
+      height: 320px;        /* consistent height across all 4 cards */
+      margin-left: -44px;
+      margin-right: -44px;
+      background: linear-gradient(160deg, #C7E8F7 0%, #D8DCF2 100%);
+      padding: 28px 28px 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+    /* Override margin/border on mocks when inside stage */
+    .da-fcard-stage .da-brand-mock,
+    .da-fcard-stage .da-fcard-mock,
+    .da-fcard-stage .da-earnings-mock {
+      margin: 0;
+      width: 100%;
+      max-width: 340px;
+      border-radius: 16px 16px 0 0;
+      border: none;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.14);
+    }
+    /* Step 1: KUP App Influencer Profile UI card */
+    .da-profile-ui-card {
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+      width: 100%;
+      max-width: 300px;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.14);
+    }
+    .da-pui-banner { height: 56px; }
+    .da-pui-body { padding: 0 18px 20px; }
+    .da-pui-avatar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: -22px;
+      margin-bottom: 10px;
+    }
+    .da-pui-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      flex-shrink: 0;
+    }
+    .da-pui-earn {
+      font-size: 0.65rem; font-weight: 700;
+      background: #D1FAE5; color: #065F46;
+      padding: 3px 8px; border-radius: 20px;
+    }
+    .da-pui-name { font-size: 0.86rem; font-weight: 700; color: #111827; margin: 0 0 2px; }
+    .da-pui-handle { font-size: 0.7rem; color: #9CA3AF; margin: 0 0 8px; }
+    .da-pui-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .da-pui-tags span {
+      background: #F5F6F9; color: #6B7280;
+      font-size: 0.62rem; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+    }
+    .da-pui-stats {
+      display: flex; justify-content: space-between;
+      border-top: 1px solid #F0EDE8; padding-top: 9px;
+    }
+    .da-pui-stat strong { font-size: 0.82rem; font-weight: 700; color: #111827; display: block; }
+    .da-pui-stat span { font-size: 0.62rem; color: #9CA3AF; }
+
+    /* ============ CREATOR PROFILES GRID ============ */
+    .da-creators-section {
+      background: #fff;
+      padding: 96px 0 80px;
+      overflow: hidden;
+    }
+    .da-creators-header {
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+    .da-creators-headline {
+      font-size: clamp(1.8rem, 2.8vw, 2.8rem);
+      font-weight: 500 !important;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 14px;
+    }
+    .da-creators-sub {
+      font-size: 1rem;
+      color: #6B7280;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .da-creator-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .da-creator-card {
+      background: #fff;
+      border: 1px solid #EBEBEB;
+      border-radius: 20px;
+      padding: 28px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .da-creator-card:hover {
+      box-shadow: 0 12px 40px rgba(46,165,221,0.12);
+      transform: translateY(-3px);
+    }
+    .da-creator-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center top;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+      display: block;
+    }
+    .da-creator-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 6px;
+      line-height: 1.2;
+    }
+    .da-creator-niche {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .da-creator-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+      margin-top: auto;
+    }
+    .da-creator-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #9CA3AF;
+    }
+    .da-creator-stat span:last-child {
+      font-weight: 700;
+      color: #374151;
+    }
+    .da-creator-verified {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2EA5DD, #707BBB);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .da-creator-verified i {
+      font-size: 20px;
+      color: #fff;
+      line-height: 1;
+    }
+    /* App UI callout in creators section */
+    .da-creators-app-callout {
+      margin-top: 56px;
+      background: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      border-radius: 24px;
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      overflow: hidden;
+      position: relative;
+    }
+    .da-creators-app-callout::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .da-callout-text { flex: 1; }
+    .da-callout-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      display: block;
+      margin-bottom: 10px;
+    }
+    .da-callout-headline {
+      font-size: clamp(1.3rem, 2vw, 1.75rem);
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .da-callout-sub {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+      margin: 0;
+      line-height: 1.6;
+    }
+    .da-callout-ui {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 18px 20px;
+      min-width: 220px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .da-callout-ui-header {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin: 0 0 12px;
+    }
+    .da-callout-ui-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .da-callout-ui-row:last-child { border-bottom: none; }
+    .da-callout-ui-label { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .da-callout-ui-val { font-size: 0.72rem; font-weight: 700; color: #fff; }
+    .da-callout-ui-pill {
+      font-size: 0.62rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px;
+      background: rgba(255,255,255,0.2); color: #fff;
+    }
+    .da-callout-ui-pill.green { background: rgba(16,185,129,0.35); }
+
+    /* ============ WHY KUP ============ */
+    .da-built-section {
+      background: #fff;
+      padding: 96px 0;
+      border-top: 1px solid #F0EDE8;
+    }
+    .da-built-headline {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 500 !important;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 20px;
+    }
+    .da-built-sub {
+      font-size: 1rem;
+      color: #6B7280;
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 420px;
+    }
+    .da-benefit-card {
+      background: #F5F6F9;
+      border-radius: 16px;
+      padding: 26px 22px;
+      height: 100%;
+    }
+    .da-benefit-icon {
+      width: 42px; height: 42px; border-radius: 11px;
+      background: #fff; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 14px;
+    }
+    .da-benefit-icon i { font-size: 24px; color: var(--kup-blue); }
+    .da-benefit-title { font-size: 0.93rem; font-weight: 700; color: #111827; margin-bottom: 7px; }
+    .da-benefit-desc  { font-size: 0.83rem; color: #6B7280; line-height: 1.6; margin: 0; }
+
+    /* ============ CTA BLADE ============ */
+    .da-cta-blade {
+      background: linear-gradient(to right, #ECEEF4 0%, #ECEEF4 48%, #707bbb 78%, #2fa4dc 100%);
+      padding: 88px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .da-cta-blade::after {
+      content: '';
+      position: absolute;
+      top: -60px; right: -80px;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(47,164,220,0.28) 0%, rgba(112,123,187,0.30) 50%, transparent 72%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .da-cta-blade > .container { position: relative; z-index: 1; }
+    .da-cta-eyebrow {
+      font-size: 0.74rem; font-weight: 700; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--kup-orange);
+      display: block; margin-bottom: 16px;
+    }
+    .da-cta-headline {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 500 !important;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    .da-cta-sub {
+      font-size: 1rem;
+      color: rgba(0,0,0,0.55);
+      line-height: 1.65;
+      margin-bottom: 36px;
+      max-width: 460px;
+    }
+    .da-cta-store-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .da-cta-store-row img { height: 48px; width: auto; border-radius: 10px; }
+    .da-cta-brand-note { font-size: 0.78rem; color: rgba(0,0,0,0.45); margin: 0; }
+    .da-cta-brand-note a { color: rgba(0,0,0,0.65); font-weight: 600; text-decoration: underline; }
+    .da-cta-image-wrap { display: flex; justify-content: flex-end; align-items: center; }
+    .da-cta-image { max-width: 320px; width: 100%; border-radius: 20px; display: block; }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 991px) {
+      .da-hero { padding: 56px 0 0; }
+      .da-hero-headline { font-size: 2.4rem; }
+      .da-profile-marquee-wrap { height: 360px; }
+      .da-stats-grid { grid-template-columns: 1fr; }
+      .da-stat-col { border-right: none; border-bottom: 1px solid #E8E5E0; padding-bottom: 28px; margin-bottom: 20px; }
+      .da-stat-col:last-child { border-bottom: none; margin-bottom: 0; }
+      .da-feature-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
+      .da-fcard { border-radius: 0 !important; height: auto; min-height: 360px; }
+      .da-built-section { padding: 64px 0; }
+      .da-cta-blade { padding: 64px 0; }
+      .da-cta-image-wrap { justify-content: center; margin-top: 40px; }
+      .da-creator-grid { grid-template-columns: repeat(2, 1fr); }
+      .da-creators-app-callout { flex-direction: column; gap: 28px; padding: 32px 28px; }
+      .da-callout-ui { min-width: unset; width: 100%; }
+    }
+    @media (max-width: 768px) {
+      .da-feature-grid-section { background: #fff; padding: 0; }
+    }
+    @media (max-width: 576px) {
+      .da-feature-grid { gap: 2px; }
+      .da-fcard { padding: 32px 24px 0; }
+      .da-fcard-stage { height: 260px; margin-left: -24px; margin-right: -24px; padding: 20px 16px 0; }
+      .da-stats { padding: 48px 0; }
+      .da-creator-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .da-creator-card { padding: 20px 14px 18px; }
+      .da-creator-avatar { width: 52px; height: 52px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       ANNOUNCEMENT BAR
+       ============================================ -->
+  <div class="kup-announce">
+    <p>Always free for influencers. Brands start free. No credit card required. <a href="register-brand.html">Get started →</a></p>
+  </div>
+
+  <!-- ============================================
+       NAVIGATION
+       ============================================ -->
+  <nav class="kup-nav" id="kupNav">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="home.html" class="nav-logo">
+          <img src="/images/kup_gradient_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <ul class="nav-links">
+          <li><a href="how-it-works.html">How It Works</a></li>
+          <li><a href="influencer-marketing.html">For Brands</a></li>
+          <li><a href="for-agencies.html">For Agencies</a></li>
+          <li><a href="download-app.html" class="nav-active">For Influencers</a></li>
+        </ul>
+        <div class="nav-cta">
+          <a href="login.html" class="nav-login">Log In</a>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">Sign Up Free</a>
+        </div>
+        <button class="nav-hamburger" id="navToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <ul>
+        <li><a href="how-it-works.html">How It Works</a></li>
+        <li><a href="influencer-marketing.html">For Brands</a></li>
+        <li><a href="for-agencies.html">For Agencies</a></li>
+        <li><a href="download-app.html">For Influencers</a></li>
+      </ul>
+      <div class="d-flex flex-column gap-3 mt-4">
+        <a href="login.html" style="text-align:center;color:rgba(0,0,0,0.75);font-weight:600;">Log In</a>
+        <a href="register-brand.html" class="btn-kup btn-kup-gradient text-center">Sign Up Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       HERO
+       ============================================ -->
+  <section class="da-hero">
+    <div class="container">
+      <div class="row align-items-center g-5">
+
+        <!-- Left: Headline + CTAs -->
+        <div class="col-lg-6">
+          <span class="da-hero-label">For Influencers</span>
+          <h1 class="da-hero-headline">
+            Get paid for opinions<br>
+            you're <span>already giving.</span>
+          </h1>
+          <p class="da-hero-sub">
+            No follower minimum. No casting call. Browse real brands, record your authentic experience, and earn cash. Straight from your phone.
+          </p>
+          <div class="da-store-row">
+            <a href="https://apps.apple.com/us/app/keepuspostd/id1515156338" target="_blank">
+              <img src="/images/app-store.png" alt="Download on the App Store">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp" target="_blank">
+              <img src="/images/google-play.png" alt="Get it on Google Play">
+            </a>
+          </div>
+          <div class="da-qr-block">
+            <img src="/images/qr-download-app.png" alt="Scan to download KeepUsPostd">
+            <div class="da-qr-text">
+              <span class="da-qr-label">Scan to download</span>
+              <p class="da-qr-desc">Point your phone camera at this code to get the app instantly.</p>
+            </div>
+          </div>
+          <p class="da-free-note">Free on iOS and Android. Always free for creators.</p>
+        </div>
+
+        <!-- Right: Animated KUP influencer profile marquee -->
+        <div class="col-lg-6">
+          <div class="da-profile-marquee-wrap">
+            <div class="da-profile-marquee">
+
+              <!-- Column 1 -->
+              <div class="da-pm-col da-pm-col-1">
+
+                <!-- Card 1-1 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #C4B5FD, #A78BFA);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$148 earned</span>
+                    </div>
+                    <p class="kpc-name">Maya K.</p>
+                    <p class="kpc-handle">@maya.creates</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Lifestyle</span>
+                      <span class="kpc-tag">Food</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.9 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>12</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>5</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 1-2 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #6EE7B7, #34D399);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$95 earned</span>
+                    </div>
+                    <p class="kpc-name">Jordan T.</p>
+                    <p class="kpc-handle">@jordanpostd</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Fitness</span>
+                      <span class="kpc-tag">Health</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>8</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>3</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 1-3 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #FCA5A5, #F87171);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$280 earned</span>
+                    </div>
+                    <p class="kpc-name">Sam R.</p>
+                    <p class="kpc-handle">@sam.shares</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Beauty</span>
+                      <span class="kpc-tag">Fashion</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.8 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>19</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>7</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 1-4 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #93C5FD, #60A5FA);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/12.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$72 earned</span>
+                    </div>
+                    <p class="kpc-name">Riley M.</p>
+                    <p class="kpc-handle">@rileyreviews</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Restaurants</span>
+                      <span class="kpc-tag">Local</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.7 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>6</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>2</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Duplicate set 1 for seamless loop -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #C4B5FD, #A78BFA);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$148 earned</span>
+                    </div>
+                    <p class="kpc-name">Maya K.</p>
+                    <p class="kpc-handle">@maya.creates</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Lifestyle</span><span class="kpc-tag">Food</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.9 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>12</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>5</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #6EE7B7, #34D399);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$95 earned</span>
+                    </div>
+                    <p class="kpc-name">Jordan T.</p>
+                    <p class="kpc-handle">@jordanpostd</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Fitness</span><span class="kpc-tag">Health</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>8</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>3</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #FCA5A5, #F87171);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$280 earned</span>
+                    </div>
+                    <p class="kpc-name">Sam R.</p>
+                    <p class="kpc-handle">@sam.shares</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Beauty</span><span class="kpc-tag">Fashion</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.8 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>19</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>7</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #93C5FD, #60A5FA);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/12.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$72 earned</span>
+                    </div>
+                    <p class="kpc-name">Riley M.</p>
+                    <p class="kpc-handle">@rileyreviews</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Restaurants</span><span class="kpc-tag">Local</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.7 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>6</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>2</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+              </div><!-- end col-1 -->
+
+              <!-- Column 2 -->
+              <div class="da-pm-col da-pm-col-2">
+
+                <!-- Card 2-1 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #FDE68A, #FCD34D);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/25.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$310 earned</span>
+                    </div>
+                    <p class="kpc-name">Priya L.</p>
+                    <p class="kpc-handle">@priya.creates</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Wellness</span>
+                      <span class="kpc-tag">Travel</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>22</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>9</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 2-2 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #5EEAD4, #2DD4BF);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$198 earned</span>
+                    </div>
+                    <p class="kpc-name">Alex W.</p>
+                    <p class="kpc-handle">@alexwpostd</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Tech</span>
+                      <span class="kpc-tag">Gaming</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.9 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>15</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>6</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 2-3 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #F9A8D4, #F472B6);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$420 earned</span>
+                    </div>
+                    <p class="kpc-name">Dana C.</p>
+                    <p class="kpc-handle">@danareviews</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Food</span>
+                      <span class="kpc-tag">Lifestyle</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>31</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>11</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 2-4 -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #67E8F9, #22D3EE);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/41.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$155 earned</span>
+                    </div>
+                    <p class="kpc-name">Chris B.</p>
+                    <p class="kpc-handle">@chrispostd</p>
+                    <div class="kpc-tags">
+                      <span class="kpc-tag">Fitness</span>
+                      <span class="kpc-tag">Outdoors</span>
+                    </div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.8 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>11</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>4</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Duplicate set 2 for seamless loop -->
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #FDE68A, #FCD34D);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/25.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$310 earned</span>
+                    </div>
+                    <p class="kpc-name">Priya L.</p>
+                    <p class="kpc-handle">@priya.creates</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Wellness</span><span class="kpc-tag">Travel</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>22</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>9</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #5EEAD4, #2DD4BF);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$198 earned</span>
+                    </div>
+                    <p class="kpc-name">Alex W.</p>
+                    <p class="kpc-handle">@alexwpostd</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Tech</span><span class="kpc-tag">Gaming</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.9 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>15</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>6</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #F9A8D4, #F472B6);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$420 earned</span>
+                    </div>
+                    <p class="kpc-name">Dana C.</p>
+                    <p class="kpc-handle">@danareviews</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Food</span><span class="kpc-tag">Lifestyle</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>5.0 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>31</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>11</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="kup-profile-card">
+                  <div class="kpc-banner" style="background: linear-gradient(135deg, #67E8F9, #22D3EE);"></div>
+                  <div class="kpc-body">
+                    <div class="kpc-avatar-wrap">
+                      <div class="kpc-avatar"><img src="https://randomuser.me/api/portraits/men/41.jpg" alt="Creator profile"></div>
+                      <span class="kpc-earn-badge">+$155 earned</span>
+                    </div>
+                    <p class="kpc-name">Chris B.</p>
+                    <p class="kpc-handle">@chrispostd</p>
+                    <div class="kpc-tags"><span class="kpc-tag">Fitness</span><span class="kpc-tag">Outdoors</span></div>
+                    <div class="kpc-stats-row">
+                      <div class="kpc-stat"><strong>4.8 ★</strong><span>Rating</span></div>
+                      <div class="kpc-stat"><strong>11</strong><span>Reviews</span></div>
+                      <div class="kpc-stat"><strong>4</strong><span>Brands</span></div>
+                    </div>
+                  </div>
+                </div>
+
+              </div><!-- end col-2 -->
+
+            </div><!-- end da-profile-marquee -->
+          </div><!-- end da-profile-marquee-wrap -->
+        </div><!-- end col-lg-6 -->
+
+      </div><!-- end row -->
+    </div><!-- end container -->
+
+    <!-- Brand Ticker — matching homepage, at base of hero -->
+    <div class="da-hero-ticker">
+      <div class="brand-ticker-wrap" style="padding: 0 0 56px;">
+        <span class="brand-ticker-label">Brands worldwide, <span style="font-weight:400;color:#6B7280;">from products to services, across every industry</span></span>
+        <div class="brand-ticker-outer">
+          <div class="brand-ticker-track">
+            <!-- 25 logos — matching homepage -->
+            <img class="brand-logo-item" src="/images/logos/new_nike_logo.png" alt="Nike">
+            <img class="brand-logo-item" src="/images/logos/new_apple_logo.png" alt="Apple">
+            <img class="brand-logo-item" src="/images/logos/new_coca-cola_logo.png" alt="Coca-Cola">
+            <img class="brand-logo-item" src="/images/logos/new_google_logo.png" alt="Google">
+            <img class="brand-logo-item" src="/images/logos/new_samsung_logo.png" alt="Samsung">
+            <img class="brand-logo-item" src="/images/logos/new_toyota_logo.png" alt="Toyota">
+            <img class="brand-logo-item" src="/images/logos/new_mcdonalds_logo.png" alt="McDonald's">
+            <img class="brand-logo-item" src="/images/logos/new_walmart_logo.png" alt="Walmart">
+            <img class="brand-logo-item" src="/images/logos/new_target_logo.png" alt="Target">
+            <img class="brand-logo-item" src="/images/logos/new_sephora_logo.png" alt="Sephora">
+            <img class="brand-logo-item" src="/images/logos/new_chick-fil-a_logo.png" alt="Chick-fil-A">
+            <img class="brand-logo-item" src="/images/logos/new_wholefoods_logo.png" alt="Whole Foods">
+            <img class="brand-logo-item" src="/images/logos/new_lulu_logo.png" alt="Lululemon">
+            <img class="brand-logo-item" src="/images/logos/new_underarmour_logo.png" alt="Under Armour">
+            <img class="brand-logo-item" src="/images/logos/new_dior_logo.png" alt="Dior">
+            <img class="brand-logo-item" src="/images/logos/new_maybelline_logo.png" alt="Maybelline">
+            <img class="brand-logo-item" src="/images/logos/new_lexus_logo.png" alt="Lexus">
+            <img class="brand-logo-item" src="/images/logos/new_bww_logo.png" alt="Buffalo Wild Wings">
+            <img class="brand-logo-item" src="/images/logos/new_beyonce_logo.png" alt="Beyoncé">
+            <img class="brand-logo-item" src="/images/logos/new_drake_logo.png" alt="Drake">
+            <img class="brand-logo-item" src="/images/logos/new_swifty_logo.png" alt="Taylor Swift">
+            <img class="brand-logo-item" src="/images/logos/new_madden26_logo.png" alt="Madden 26">
+            <img class="brand-logo-item" src="/images/logos/new_sinners_logo.png" alt="Sinners">
+            <img class="brand-logo-item" src="/images/logos/new_war_logo.png" alt="War">
+            <img class="brand-logo-item" src="/images/logos/new_call_logo.png" alt="Call of Duty">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- end da-hero -->
+
+  <!-- ============================================
+       APP SCREEN SHOWCASE
+       ============================================ -->
+  <section style="padding: 60px 0; background: #F9FAFB;">
+    <div class="container text-center">
+      <span class="section-label">Inside the App</span>
+      <h3 style="font-family: var(--kup-font); font-weight: 700; color: #111827; margin-bottom: 12px;">Everything you need, right in your pocket</h3>
+      <p style="color: #6B7280; margin-bottom: 40px; max-width: 540px; margin-left: auto; margin-right: auto;">Discover brands, create content, track earnings, and get paid — all from one app.</p>
+      <div class="row g-4 justify-content-center">
+        <div class="col-6 col-md-3 text-center">
+          <img src="/images/KUP_APP_DISCOVER.png" alt="KUP App — Discover Brands" style="max-width:180px; box-shadow:0 8px 32px rgba(0,0,0,0.10); border-radius:24px; display:block; margin:0 auto;">
+          <p class="frame-label" style="margin-top:14px;">Discover Brands</p>
+        </div>
+        <div class="col-6 col-md-3 text-center">
+          <img src="/images/KUP_APP_TRACKING.png" alt="KUP App — Track Earnings" style="max-width:180px; box-shadow:0 8px 32px rgba(0,0,0,0.10); border-radius:24px; display:block; margin:0 auto;">
+          <p class="frame-label" style="margin-top:14px;">Track Earnings</p>
+        </div>
+        <div class="col-6 col-md-3 text-center">
+          <img src="/images/KUP_APP_CAPTURE.png" alt="KUP App — Create Content" style="max-width:180px; box-shadow:0 8px 32px rgba(0,0,0,0.10); border-radius:24px; display:block; margin:0 auto;">
+          <p class="frame-label" style="margin-top:14px;">Create Content</p>
+        </div>
+        <div class="col-6 col-md-3 text-center">
+          <img src="/images/KUP_APP_ACTIVITY.png" alt="KUP App — Activity Feed" style="max-width:180px; box-shadow:0 8px 32px rgba(0,0,0,0.10); border-radius:24px; display:block; margin:0 auto;">
+          <p class="frame-label" style="margin-top:14px;">Stay Updated</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       STATS BAR
+       ============================================ -->
+  <section class="da-stats">
+    <div class="container">
+      <div class="da-stats-grid">
+        <div class="da-stat-col">
+          <div class="da-stat-num" data-count-end="50" data-count-suffix="K+">50K+</div>
+          <p class="da-stat-desc">Active creators already earning on&nbsp;KeepUsPostd</p>
+        </div>
+        <div class="da-stat-col">
+          <div class="da-stat-num" data-count-end="2" data-count-prefix="$" data-count-suffix="M+">$2M+</div>
+          <p class="da-stat-desc">Paid to creators in cash, gift cards and&nbsp;rewards</p>
+        </div>
+        <div class="da-stat-col">
+          <div class="da-stat-num" data-count-end="4.8" data-count-decimals="1" data-count-suffix=" ★">4.8 ★</div>
+          <p class="da-stat-desc">Average creator rating on the&nbsp;App Store</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       HOW IT WORKS — Intro
+       ============================================ -->
+  <section class="da-hiw-intro">
+    <div class="container">
+      <span class="da-section-eyebrow">How It Works</span>
+      <h2 class="da-display-headline">Four steps between you<br>and your next payday.</h2>
+      <p class="da-section-sub">No applications. No agencies. Just your phone, your honest voice, and a brand that wants to hear it.</p>
+    </div>
+  </section>
+
+  <!-- ============================================
+       2x2 FEATURE CARD GRID — App UI Mockups
+       ============================================ -->
+  <section class="da-feature-grid-section">
+    <div class="da-feature-grid">
+
+      <!-- Card 1: Download and Create Profile -->
+      <div class="da-fcard">
+        <span class="da-fcard-step">Step 01</span>
+        <h3 class="da-fcard-title">Download and set up your profile</h3>
+        <p class="da-fcard-body">Free on App Store and Google Play. Create your influencer profile in under 3 minutes. No follower count required. No application needed. You're in.</p>
+        <div class="da-fcard-stage" style="align-items:flex-start; padding-top:28px; position:relative;">
+          <img src="/images/KUP_APP_PROFILE.png" alt="KUP App — Profile Setup" style="width:100%; max-width:340px; border-radius:16px 16px 0 0; object-fit:cover; object-position:top;">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Creator profile photo" style="position:absolute; top:calc(28px + 42%); left:50%; transform:translate(-50%,-50%); width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #E8A838; z-index:10;">
+        </div>
+      </div>
+
+      <!-- Card 2: Browse the Brand Marketplace -->
+      <div class="da-fcard">
+        <span class="da-fcard-step">Step 02</span>
+        <h3 class="da-fcard-title">Browse brands in your city and niche</h3>
+        <p class="da-fcard-body">Discover local and national brands actively looking for authentic reviews from real customers. Filter by category, reward type or distance. Pick what fits your life.</p>
+        <div class="da-fcard-stage" style="align-items:flex-start; padding-top:28px;">
+          <img src="/images/KUP_APP_SEARCH.png" alt="KUP App — Browse Brands" style="width:100%; max-width:340px; border-radius:16px 16px 0 0; object-fit:cover; object-position:top;">
+        </div>
+      </div>
+
+      <!-- Card 3: Record Your Honest Take -->
+      <div class="da-fcard">
+        <span class="da-fcard-step">Step 03</span>
+        <h3 class="da-fcard-title">Record your honest take. For real.</h3>
+        <p class="da-fcard-body">Film your experience right from the app. No ring lights. No script. Just your raw, honest take — exactly what brands are paying for.</p>
+        <div class="da-fcard-stage" style="align-items:flex-start; padding-top:28px;">
+          <img src="/images/KUP_APP_CAPTURE.png" alt="KUP App — Record Content" style="width:100%; max-width:340px; border-radius:16px 16px 0 0; object-fit:cover; object-position:top;">
+        </div>
+      </div>
+
+      <!-- Card 4: Get Approved, Get Paid -->
+      <div class="da-fcard">
+        <span class="da-fcard-step" style="color:#10B981;">Step 04</span>
+        <h3 class="da-fcard-title">Get approved. Get paid. Repeat.</h3>
+        <p class="da-fcard-body">The brand reviews your submission. When they approve it, your reward hits your account in cash, gift card or brand perks. No chasing. No invoicing.</p>
+        <div class="da-fcard-stage" style="align-items:flex-start; padding-top:28px;">
+          <img src="/images/KUP_APP_CASH.png" alt="KUP App — Get Paid" style="width:100%; max-width:340px; border-radius:16px 16px 0 0; object-fit:cover; object-position:top;">
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================
+       CREATOR PROFILES GRID
+       ============================================ -->
+  <section class="da-creators-section">
+    <div class="container">
+
+      <div class="da-creators-header">
+        <span class="da-section-eyebrow">Who's Earning</span>
+        <h2 class="da-creators-headline">Real brands. Real reviews.<br>Real money earned.</h2>
+        <p class="da-creators-sub">Everyday creators across every niche — food, fitness, beauty, travel, and beyond — are building real income on KeepUsPostd.</p>
+      </div>
+
+      <div class="da-creator-grid">
+
+        <!-- Creator 1: Food -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/women/76.jpg" alt="Maya R.">
+          <p class="da-creator-name">Maya R.</p>
+          <span class="da-creator-niche" style="background:#FFF7ED; color:#C2410C;">🍴 Food &amp; Dining</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.9</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>47 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 2: Fitness -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/men/64.jpg" alt="Jordan T.">
+          <p class="da-creator-name">Jordan T.</p>
+          <span class="da-creator-niche" style="background:#ECFDF5; color:#065F46;">💪 Fitness &amp; Wellness</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 5.0</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>32 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 3: Beauty -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/women/90.jpg" alt="Aaliyah B.">
+          <p class="da-creator-name">Aaliyah B.</p>
+          <span class="da-creator-niche" style="background:#FDF2F8; color:#9D174D;">💄 Beauty &amp; Skincare</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.8</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>61 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 4: Tech -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/men/57.jpg" alt="Chris P.">
+          <p class="da-creator-name">Chris P.</p>
+          <span class="da-creator-niche" style="background:#EFF6FF; color:#1E40AF;">📱 Tech &amp; Gadgets</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.7</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>29 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 5: Travel -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/women/47.jpg" alt="Destiny L.">
+          <p class="da-creator-name">Destiny L.</p>
+          <span class="da-creator-niche" style="background:#FFFBEB; color:#92400E;">✈️ Travel &amp; Lifestyle</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 5.0</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>18 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 6: Fashion -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/men/33.jpg" alt="Marcus W.">
+          <p class="da-creator-name">Marcus W.</p>
+          <span class="da-creator-niche" style="background:#EEF2FF; color:#3730A3;">👟 Fashion &amp; Streetwear</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.9</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>54 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 7: Lifestyle -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/women/15.jpg" alt="Priya S.">
+          <p class="da-creator-name">Priya S.</p>
+          <span class="da-creator-niche" style="background:#F5F3FF; color:#5B21B6;">✨ Lifestyle &amp; Home</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.8</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>38 completed</span></div>
+          </div>
+        </div>
+
+        <!-- Creator 8: Sports -->
+        <div class="da-creator-card">
+          <div class="da-creator-verified">
+            <i class="ph-fill ph-seal-check" style="font-size:20px; color:#fff;"></i>
+          </div>
+          <img class="da-creator-avatar" src="https://randomuser.me/api/portraits/men/88.jpg" alt="Devon M.">
+          <p class="da-creator-name">Devon M.</p>
+          <span class="da-creator-niche" style="background:#FEF2F2; color:#991B1B;">🏀 Sports &amp; Athletics</span>
+          <div class="da-creator-meta">
+            <div class="da-creator-stat"><span>Rating</span><span>⭐ 4.6</span></div>
+            <div class="da-creator-stat"><span>Campaigns</span><span>23 completed</span></div>
+          </div>
+        </div>
+
+      </div><!-- /da-creator-grid -->
+
+      <!-- App UI callout strip -->
+      <div class="da-creators-app-callout">
+        <div class="da-callout-text">
+          <span class="da-callout-eyebrow">Inside the App</span>
+          <p class="da-callout-headline">Your earnings, your pace, your niche.</p>
+          <p class="da-callout-sub">Track every campaign in real time. See your balance grow. Cash out on your schedule — no invoices, no waiting, no agency middleman.</p>
+        </div>
+        <!-- Mini app UI mockup -->
+        <div class="da-callout-ui">
+          <p class="da-callout-ui-header">My Earnings — This Month</p>
+          <div class="da-callout-ui-row">
+            <span class="da-callout-ui-label">Roast &amp; Co.</span>
+            <span class="da-callout-ui-pill green">+$15</span>
+          </div>
+          <div class="da-callout-ui-row">
+            <span class="da-callout-ui-label">FitCore Studio</span>
+            <span class="da-callout-ui-pill green">+$30</span>
+          </div>
+          <div class="da-callout-ui-row">
+            <span class="da-callout-ui-label">Glow Beauty Bar</span>
+            <span class="da-callout-ui-pill green">+$20</span>
+          </div>
+          <div class="da-callout-ui-row">
+            <span class="da-callout-ui-label">Total Balance</span>
+            <span class="da-callout-ui-val">$420.00</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================
+       EARNINGS PREVIEW — Live App Embed
+       ============================================ -->
+  <section style="padding: 40px 0;">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-5 text-center mb-4 mb-md-0">
+          <img src="/images/KUP_APP_CASHOUT.png" alt="KUP App — Cash Out Earnings" style="max-width:260px; box-shadow:0 8px 32px rgba(0,0,0,0.10); border-radius:24px; display:block; margin:0 auto;">
+        </div>
+        <div class="col-md-7">
+          <span class="section-label">Real Earnings</span>
+          <h3 style="font-family: var(--kup-font); font-weight: 700; color: #111827; margin-bottom: 16px;">Get paid for content you're already creating</h3>
+          <p style="color: #6B7280; line-height: 1.7; max-width: 480px;">Track your earnings in real time. Cash out anytime. No minimum followers required — just authentic content that brands love.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       WHY KEEPUSPOSTD — Objections + Benefits
+       ============================================ -->
+  <section class="da-built-section">
+    <div class="container">
+      <div class="row align-items-center g-5">
+
+        <!-- Left: Headline + CTA -->
+        <div class="col-lg-5">
+          <span class="da-section-eyebrow">Why KeepUsPostd</span>
+          <h2 class="da-built-headline">You don't need a million followers to&nbsp;matter.</h2>
+          <p class="da-built-sub">Brands want real customers who genuinely love their product. KeepUsPostd connects you directly with brands that value your authentic voice and pays you for it.</p>
+          <div class="da-store-row">
+            <a href="https://apps.apple.com/us/app/keepuspostd/id1515156338" target="_blank">
+              <img src="/images/app-store.png" alt="Download on the App Store">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp" target="_blank">
+              <img src="/images/google-play.png" alt="Get it on Google Play">
+            </a>
+          </div>
+          <div class="da-qr-block">
+            <img src="/images/qr-download-app.png" alt="Scan to download KeepUsPostd">
+            <div class="da-qr-text">
+              <span class="da-qr-label">Scan to download</span>
+              <p class="da-qr-desc">Point your phone camera at this code to get the app instantly.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 4 benefit cards -->
+        <div class="col-lg-7">
+          <div class="row g-3">
+
+            <div class="col-sm-6">
+              <div class="da-benefit-card">
+                <div class="da-benefit-icon">
+                  <i class="ph ph-money" style="font-size:24px;"></i>
+                </div>
+                <div class="da-benefit-title">Cash and Rewards</div>
+                <p class="da-benefit-desc">Earn real cash, gift cards, discounts or brand-specific perks. You choose how you redeem per&nbsp;offer.</p>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="da-benefit-card">
+                <div class="da-benefit-icon">
+                  <i class="ph ph-device-mobile" style="font-size:24px;"></i>
+                </div>
+                <div class="da-benefit-title">Record from Your Phone</div>
+                <p class="da-benefit-desc">No gear. No editing suite. Your smartphone is your studio. Submit directly from the&nbsp;app.</p>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="da-benefit-card">
+                <div class="da-benefit-icon">
+                  <i class="ph ph-star" style="font-size:24px;"></i>
+                </div>
+                <div class="da-benefit-title">Build Your Creator Rating</div>
+                <p class="da-benefit-desc">Higher-rated creators unlock better campaigns and higher-reward offers. Your reputation&nbsp;compounds.</p>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="da-benefit-card">
+                <div class="da-benefit-icon">
+                  <i class="ph ph-lock-open" style="font-size:24px;"></i>
+                </div>
+                <div class="da-benefit-title">Always Free</div>
+                <p class="da-benefit-desc">The creator app is 100% free forever. You earn. We never take a cut from creators. Not&nbsp;ever.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       DOWNLOAD CTA BLADE
+       ============================================ -->
+  <section class="da-cta-blade">
+    <div class="container">
+      <div class="row align-items-center g-5">
+
+        <div class="col-lg-7">
+          <span class="da-cta-eyebrow">Download Now</span>
+          <h2 class="da-cta-headline">Ready to start earning?</h2>
+          <p class="da-cta-sub">Join 50,000+ everyday creators already getting paid to share what they love. Download free on iOS and&nbsp;Android.</p>
+          <div class="da-cta-store-row">
+            <a href="https://apps.apple.com/us/app/keepuspostd/id1515156338" target="_blank">
+              <img src="/images/app-store.png" alt="Download on the App Store">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp" target="_blank">
+              <img src="/images/google-play.png" alt="Get it on Google Play">
+            </a>
+          </div>
+          <div class="da-qr-block">
+            <img src="/images/qr-download-app.png" alt="Scan to download KeepUsPostd">
+            <div class="da-qr-text">
+              <span class="da-qr-label">Scan to download</span>
+              <p class="da-qr-desc">Point your phone camera at this code to get the app instantly.</p>
+            </div>
+          </div>
+          <p class="da-cta-brand-note">Are you a brand? <a href="register-brand.html">Sign up free as a brand →</a></p>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="hiw-blade-visual" style="position: relative; max-width:220px; margin:0 auto;">
+            <img src="/images/KUP_APP_CAPTURE.png" alt="KUP App — Create content and earn" style="width:100%; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.10); display:block;">
+            <!-- Floating earnings stat cards -->
+            <div class="blade-float-card" style="position:absolute; top:-12px; right:-40px; background:#fff; border-radius:14px; padding:12px 18px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#10B981; margin-bottom:4px;">Earned</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">$1,240</div>
+              <div style="font-size:0.75rem; color:#888;">This month</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:25%; left:-50px; background:#fff; border-radius:14px; padding:12px 18px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-blue); margin-bottom:4px;">Cash Out</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">$820</div>
+              <div style="font-size:0.75rem; color:#888;">Available now</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:5%; right:-30px; background:#fff; border-radius:14px; padding:12px 18px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-purple); margin-bottom:4px;">Posts</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">12</div>
+              <div style="font-size:0.75rem; color:#888;">Paid content</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FOOTER — exact match to homepage
+       ============================================ -->
+  <footer class="kup-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd" style="height:36px; margin-bottom:20px;">
+          <p style="font-size:0.9rem; max-width:260px;">
+            Everyone has influence. Turn your community into your best marketing team.
+          </p>
+                    <div class="footer-social mt-3">
+            <a href="https://www.facebook.com/keepuspostd" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+            <a href="https://www.instagram.com/keepuspostd/" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="https://x.com/Keepuspostd" aria-label="X/Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.linkedin.com/company/keepuspostd-corporation/" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://www.tiktok.com/@keepuspostd" aria-label="TikTok"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>About</h5>
+          <a href="how-it-works.html">How It Works</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Platform</h5>
+          <a href="influencer-marketing.html">For Brands</a>
+          <a href="for-agencies.html">For Agencies</a>
+          <a href="download-app.html">For Influencers</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Support</h5>
+          <a href="#" data-contact>Contact Us</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="policy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom mt-4">
+      <div class="container">
+        <p class="mb-1">&#169;2026 All Rights Reserved. KeepUsPostd&#174; is a Registered Trademark of KeepUsPostd Corporation.</p>
+        <p class="mb-0"><a href="policy.html">Privacy</a> &nbsp;·&nbsp; <a href="terms.html">Terms</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navMobile = document.getElementById('navMobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        navMobile.classList.toggle('open');
+        navToggle.classList.toggle('active');
+      });
+    }
+
+    // Nav scroll border (matches homepage)
+    const kupNav = document.getElementById('kupNav');
+    function updateNavBorder() {
+      if (kupNav) kupNav.classList.toggle('nav-scrolled', window.scrollY > 10);
+    }
+    window.addEventListener('scroll', updateNavBorder, { passive: true });
+    updateNavBorder();
+
+    // ── Count-up animation for stat numbers ──────────────────────────────
+    (function () {
+      const DURATION = 1800; // ms
+
+      function animateCount(el) {
+        const end      = parseFloat(el.dataset.countEnd);
+        const decimals = parseInt(el.dataset.countDecimals  || '0', 10);
+        const prefix   = el.dataset.countPrefix  || '';
+        const suffix   = el.dataset.countSuffix  || '';
+        const start    = performance.now();
+
+        function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+
+        function tick(now) {
+          const elapsed  = now - start;
+          const progress = Math.min(elapsed / DURATION, 1);
+          const value    = easeOutQuart(progress) * end;
+          el.textContent = prefix + value.toFixed(decimals) + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+
+        el.textContent = prefix + (0).toFixed(decimals) + suffix;
+        requestAnimationFrame(tick);
+      }
+
+      const statEls = document.querySelectorAll('[data-count-end]');
+      if (!statEls.length) return;
+
+      const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            animateCount(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.4 });
+
+      statEls.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+
+  <!-- Iframe auth-bypass: strip overlays and navigate to correct tab -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function setupAppIframe(iframe) {
+      try {
+        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        var authOverlay = iframeDoc.getElementById('authOverlay');
+        if (authOverlay) { authOverlay.classList.remove('visible'); authOverlay.style.display = 'none'; }
+        var onboarding = iframeDoc.getElementById('onboardingOverlay');
+        if (onboarding) onboarding.style.display = 'none';
+        var shellInfo = iframeDoc.querySelector('.shell-info');
+        if (shellInfo) shellInfo.style.display = 'none';
+        var protoLabel = iframeDoc.querySelector('.prototype-label');
+        if (protoLabel) protoLabel.style.display = 'none';
+        var appFrame = iframeDoc.querySelector('.app-frame');
+        if (appFrame) { appFrame.style.position = 'absolute'; appFrame.style.top = '0'; appFrame.style.left = '0'; appFrame.style.width = '100%'; appFrame.style.height = '100%'; appFrame.style.margin = '0'; appFrame.style.borderRadius = '0'; appFrame.style.border = 'none'; appFrame.style.boxShadow = 'none'; }
+        var hash = iframe.src.split('#')[1];
+        if (hash && hash !== 'discover') {
+          setTimeout(function() {
+            try {
+              var iDoc = iframe.contentDocument || iframe.contentWindow.document;
+              var tabMap = { earn: 1, create: 2, activity: 3, profile: 4 };
+              var idx = tabMap[hash];
+              if (idx !== undefined) {
+                var navItems = iDoc.querySelectorAll('.bottom-nav .nav-item');
+                if (navItems[idx]) navItems[idx].click();
+              }
+            } catch(e) {}
+          }, 500);
+        }
+      } catch(e) {}
+    }
+    document.querySelectorAll('.phone-frame-embed iframe').forEach(function(iframe) {
+      iframe.addEventListener('load', function() { setupAppIframe(iframe); });
+      // Also handle already-loaded iframes
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        setTimeout(function() { setupAppIframe(iframe); }, 300);
+      }
+    });
+  });
+  </script>
+
+  <!-- ============================================
+       CONTACT MODAL
+       ============================================ -->
+  <div class="contact-overlay" id="contactOverlay"></div>
+  <div class="contact-modal" id="contactModal">
+    <button class="contact-modal-close" id="contactClose">&times;</button>
+
+    <!-- Form -->
+    <div id="contactFormWrap">
+      <h3>Get in touch</h3>
+      <p class="contact-sub">We'll get back to you within one business day.</p>
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Name</label>
+          <input type="text" id="contactName" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="contactTopic">Topic</label>
+          <select id="contactTopic" name="topic" required>
+            <option value="" disabled selected>Select a topic</option>
+            <option value="general">General Inquiry</option>
+            <option value="brand-sales">Brand Sales</option>
+            <option value="creator-support">Creator Support</option>
+            <option value="partnership">Partnership</option>
+            <option value="press">Press</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" name="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn-contact-submit">Send Message</button>
+      </form>
+    </div>
+
+    <!-- Success State -->
+    <div class="contact-success" id="contactSuccess">
+      <div class="contact-success-icon">&#10003;</div>
+      <h4>Message sent!</h4>
+      <p>Thanks for reaching out. We'll get back to you soon.</p>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const overlay = document.getElementById('contactOverlay');
+    const modal = document.getElementById('contactModal');
+    const closeBtn = document.getElementById('contactClose');
+    const form = document.getElementById('contactForm');
+    const formWrap = document.getElementById('contactFormWrap');
+    const success = document.getElementById('contactSuccess');
+
+    function openContact() {
+      overlay.classList.add('active');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeContact() {
+      overlay.classList.remove('active');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Attach to all contact triggers
+    document.querySelectorAll('[data-contact]').forEach(el => {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        openContact();
+      });
+    });
+
+    overlay.addEventListener('click', closeContact);
+    closeBtn.addEventListener('click', closeContact);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeContact();
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+      setTimeout(closeContact, 3000);
+      setTimeout(function() {
+        formWrap.style.display = '';
+        success.classList.remove('show');
+        form.reset();
+      }, 3500);
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102 36">
+  <!-- Bullseye icon -->
+  <circle cx="16" cy="18" r="15" fill="none" stroke="#111" stroke-width="2.5"/>
+  <circle cx="16" cy="18" r="8" fill="none" stroke="#111" stroke-width="2.5"/>
+  <circle cx="16" cy="18" r="2.5" fill="#111"/>
+  <!-- Wordmark -->
+  <text x="36" y="27" font-family="'Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="#111">Target</text>
+</svg>

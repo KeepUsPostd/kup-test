@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaigns — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    /* =============================================
+       INNER PAGE — SHARED VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange:       #ED8444;
+      --kup-blue:         #2EA5DD;
+      --kup-black:        #000000;
+      --kup-body-bg:      #F5F6FA;
+      --kup-purple:       #707BBB;
+      --kup-gradient:     linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:        #FFFFFF;
+      --kup-light-gray:   #E8E8E8;
+      --kup-sidebar-bg:   #FAFBFC;
+      --kup-font:         'Montserrat', sans-serif;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0;
+    }
+    .auth-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .auth-logo img { height: 32px; }
+    .auth-nav {
+      display: flex;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      height: 64px;
+    }
+    .auth-nav li a {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 64px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .auth-nav li a:hover {
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+    .auth-nav li a.active {
+      color: var(--kup-blue);
+      font-weight: 700;
+      border-bottom-color: var(--kup-blue);
+    }
+    .auth-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger {
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; transition: background 0.2s;
+    }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient);
+      display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem;
+    }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .kup-toast { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; font-family: var(--kup-font); }
+    .kup-toast.success { background: #16a34a; }
+    .kup-toast.error { background: #dc2626; }
+    .kup-toast.info { background: var(--kup-blue); }
+    .kup-toast.warning { background: var(--kup-orange); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* =============================================
+       PAGE CONTENT
+       ============================================= */
+    .page-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* Page Header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-header-left h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 0 4px;
+      color: #1a1a1a;
+    }
+    .page-header-left p {
+      font-size: 0.85rem;
+      color: #888;
+      margin: 0;
+    }
+    .btn-new-campaign {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.9rem;
+      font-family: var(--kup-font);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(46,165,221,0.2);
+    }
+    .btn-new-campaign:hover {
+      box-shadow: 0 6px 20px rgba(46,165,221,0.35);
+      transform: translateY(-1px);
+    }
+
+    /* =============================================
+       SUMMARY STATS BAR
+       ============================================= */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+    .stat-card.active-stat .stat-value { color: #16a34a; }
+    .stat-card.draft-stat .stat-value { color: #888; }
+    .stat-card.paused-stat .stat-value { color: #f59e0b; }
+
+    /* =============================================
+       TOOLBAR (Filter/Sort/Search)
+       ============================================= */
+    .campaigns-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-input {
+      padding: 10px 16px 10px 40px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-family: var(--kup-font);
+      width: 260px;
+      background: white url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 14px center no-repeat;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { outline: none; border-color: var(--kup-blue); }
+    .toolbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      font-family: var(--kup-font);
+      transition: all 0.15s;
+    }
+    .toolbar-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .toolbar-btn svg { width: 14px; height: 14px; }
+
+    /* Status filter pills */
+    .status-pills {
+      display: flex;
+      gap: 8px;
+    }
+    .status-pill {
+      padding: 8px 16px;
+      border: 1.5px solid #eee;
+      border-radius: 50px;
+      background: white;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--kup-font);
+    }
+    .status-pill:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .status-pill.active { background: var(--kup-blue); border-color: var(--kup-blue); color: white; }
+
+    /* =============================================
+       CAMPAIGN CARDS GRID
+       ============================================= */
+    .campaigns-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .campaign-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .campaign-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .campaign-card-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .campaign-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .campaign-card-image .placeholder-icon {
+      color: rgba(255,255,255,0.3);
+      font-size: 2rem;
+    }
+    .card-status-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .card-status-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .card-status-badge.active { background: rgba(22,163,74,0.9); color: white; }
+    .card-status-badge.active .dot { background: #4ade80; }
+    .card-status-badge.draft { background: rgba(100,100,100,0.85); color: white; }
+    .card-status-badge.draft .dot { background: #ccc; }
+    .card-status-badge.paused { background: rgba(245,158,11,0.9); color: white; }
+    .card-status-badge.paused .dot { background: #fcd34d; }
+
+    .campaign-card-body {
+      padding: 16px 20px;
+    }
+    .card-category {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--kup-blue);
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 4px;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 0.78rem;
+      color: #888;
+      line-height: 1.4;
+      margin: 0 0 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-stats {
+      display: flex;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .card-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      color: #888;
+      font-weight: 600;
+    }
+    .card-stat svg { width: 14px; height: 14px; stroke: #bbb; }
+    .card-stat .val { color: #1a1a1a; font-weight: 700; }
+
+    .campaign-card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-date {
+      font-size: 0.72rem;
+      color: #aaa;
+    }
+    .card-view-btn {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--kup-font);
+      transition: color 0.2s;
+    }
+    .card-view-btn:hover { color: #1a8ec0; }
+
+    /* =============================================
+       UPGRADE CTA BANNER
+       ============================================= */
+    .upgrade-banner {
+      background: linear-gradient(135deg, rgba(46,165,221,0.06) 0%, rgba(112,123,187,0.06) 100%);
+      border: 1.5px dashed rgba(46,165,221,0.3);
+      border-radius: var(--radius-md);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .upgrade-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .upgrade-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.3rem;
+    }
+    .upgrade-text h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 2px;
+    }
+    .upgrade-text p {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0;
+    }
+    .btn-upgrade {
+      padding: 10px 24px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.85rem;
+      font-family: var(--kup-font);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-upgrade:hover {
+      box-shadow: 0 4px 16px rgba(46,165,221,0.3);
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: #aaa;
+      border-top: 1px solid #eee;
+      margin-top: 40px;
+    }
+    footer a { color: var(--kup-blue); font-weight: 600; }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 992px) {
+      .campaigns-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .campaigns-grid { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .campaigns-toolbar { flex-direction: column; align-items: flex-start; }
+      .upgrade-banner { flex-direction: column; text-align: center; gap: 16px; }
+    }
+    @media (max-width: 480px) {
+      .stats-bar,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-header h1 {
+        font-size: 1.3rem;
+      }
+      .campaign-card .card-actions button,
+      .card-actions .btn {
+        width: 100%;
+        min-height: 44px;
+      }
+      .card-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" class="active" role="tab" aria-selected="true">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       PAGE CONTENT: CAMPAIGNS
+       ============================================ -->
+  <main class="page-content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Campaigns</h1>
+        <p>Manage your brand campaigns for <strong>KeepUsPostd</strong></p>
+      </div>
+      <button class="btn-new-campaign" onclick="window.location='brand-campaign.html'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Campaign
+      </button>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Total Campaigns</div>
+      </div>
+      <div class="stat-card active-stat">
+        <div class="stat-value">2</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat-card draft-stat">
+        <div class="stat-value">1</div>
+        <div class="stat-label">Draft</div>
+      </div>
+      <div class="stat-card paused-stat">
+        <div class="stat-value">1</div>
+        <div class="stat-label">Paused</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="campaigns-toolbar">
+      <div class="toolbar-left">
+        <div class="status-pills">
+          <button class="status-pill active" onclick="filterCampaigns('all', this)">All</button>
+          <button class="status-pill" onclick="filterCampaigns('active', this)">Active</button>
+          <button class="status-pill" onclick="filterCampaigns('draft', this)">Draft</button>
+          <button class="status-pill" onclick="filterCampaigns('paused', this)">Paused</button>
+        </div>
+      </div>
+      <input type="text" class="search-input" placeholder="Search campaigns..." id="campaignSearch" oninput="searchCampaigns(this.value)">
+    </div>
+
+    <!-- Campaign Cards Grid -->
+    <div class="campaigns-grid" id="campaignsGrid">
+
+      <!-- Campaign 1: Summer Promo 2026 -->
+      <div class="campaign-card" data-status="active" data-name="Summer Promo 2026" onclick="window.location='campaign-detail.html'">
+        <div class="campaign-card-image" style="background:linear-gradient(135deg,#1a1a3e 0%,#2d3a6e 100%)">
+          <span class="placeholder-icon"><i class="ph ph-sun"></i></span>
+          <span class="card-status-badge active"><span class="dot"></span> Active</span>
+        </div>
+        <div class="campaign-card-body">
+          <div class="card-category">Fashion &amp; Beauty</div>
+          <h3 class="card-title">Summer Promo 2026</h3>
+          <p class="card-desc">Promote our Summer 2026 collection across Instagram and TikTok. Looking for fashion and lifestyle influencers.</p>
+          <div class="card-stats">
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+              <span class="val">12</span> Influencers
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="val">34</span> Content
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="val">8.2K</span> Reach
+            </span>
+          </div>
+        </div>
+        <div class="campaign-card-footer">
+          <span class="card-date">Feb 15 &mdash; Jun 30, 2026</span>
+          <button class="card-view-btn">View Details &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Campaign 2: Brand Launch -->
+      <div class="campaign-card" data-status="active" data-name="Brand Launch" onclick="window.location='campaign-detail.html'">
+        <div class="campaign-card-image" style="background:linear-gradient(135deg,#0f3443 0%,#34e89e 100%)">
+          <span class="placeholder-icon"><i class="ph ph-rocket-launch"></i></span>
+          <span class="card-status-badge active"><span class="dot"></span> Active</span>
+        </div>
+        <div class="campaign-card-body">
+          <div class="card-category">Tech &amp; Gadgets</div>
+          <h3 class="card-title">Brand Launch</h3>
+          <p class="card-desc">Introduce KeepUsPostd to the market with launch-day content from top tech creators.</p>
+          <div class="card-stats">
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+              <span class="val">8</span> Influencers
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="val">19</span> Content
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="val">5.4K</span> Reach
+            </span>
+          </div>
+        </div>
+        <div class="campaign-card-footer">
+          <span class="card-date">Jan 10 &mdash; Mar 31, 2026</span>
+          <button class="card-view-btn">View Details &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Campaign 3: Holiday Special -->
+      <div class="campaign-card" data-status="draft" data-name="Holiday Special" onclick="window.location='campaign-detail.html'">
+        <div class="campaign-card-image" style="background:linear-gradient(135deg,#2c3e50 0%,#4ca1af 100%)">
+          <span class="placeholder-icon"><i class="ph ph-gift"></i></span>
+          <span class="card-status-badge draft"><span class="dot"></span> Draft</span>
+        </div>
+        <div class="campaign-card-body">
+          <div class="card-category">Travel &amp; Lifestyle</div>
+          <h3 class="card-title">Holiday Special</h3>
+          <p class="card-desc">Holiday-themed content push for Q4. Gift guides, unboxing, and seasonal product placements.</p>
+          <div class="card-stats">
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+              <span class="val">0</span> Influencers
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="val">0</span> Content
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="val">&mdash;</span> Reach
+            </span>
+          </div>
+        </div>
+        <div class="campaign-card-footer">
+          <span class="card-date">Not yet scheduled</span>
+          <button class="card-view-btn">View Details &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Campaign 4: Spring Flash Sale -->
+      <div class="campaign-card" data-status="paused" data-name="Spring Flash Sale" onclick="window.location='campaign-detail.html'">
+        <div class="campaign-card-image" style="background:linear-gradient(135deg,#654ea3 0%,#eaafc8 100%)">
+          <span class="placeholder-icon"><i class="ph ph-flower-lotus"></i></span>
+          <span class="card-status-badge paused"><span class="dot"></span> Paused</span>
+        </div>
+        <div class="campaign-card-body">
+          <div class="card-category">Food &amp; Beverage</div>
+          <h3 class="card-title">Spring Flash Sale</h3>
+          <p class="card-desc">Limited-time spring promo. Paused while we finalize product inventory for the new season.</p>
+          <div class="card-stats">
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+              <span class="val">5</span> Influencers
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="val">11</span> Content
+            </span>
+            <span class="card-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="val">2.1K</span> Reach
+            </span>
+          </div>
+        </div>
+        <div class="campaign-card-footer">
+          <span class="card-date">Mar 1 &mdash; Apr 15, 2026</span>
+          <button class="card-view-btn">View Details &rarr;</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Upgrade Banner -->
+    <div class="upgrade-banner">
+      <div class="upgrade-banner-left">
+        <div class="upgrade-icon"><i class="ph ph-rocket-launch"></i></div>
+        <div class="upgrade-text">
+          <h3>Unlock Unlimited Campaigns</h3>
+          <p>Focus on different aspects of your brand &mdash; new products, seasonal promotions, events, and more.</p>
+        </div>
+      </div>
+      <button class="btn-upgrade" onclick="window.location='pricing-upgrade.html'">View Plans</button>
+    </div>
+
+  </main>
+
+  <footer>
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============ TOAST ============ */
+    function kupToast(msg, type) {
+      var t = document.createElement('div');
+      t.className = 'kup-toast ' + (type || 'info');
+      t.textContent = msg;
+      document.getElementById('toastContainer').appendChild(t);
+      setTimeout(function() { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; setTimeout(function() { t.remove(); }, 300); }, 4000);
+    }
+
+    /* ============ NOTIFICATION PANEL ============ */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('notifPopover').classList.toggle('show');
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'info');
+    });
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; }
+          else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    /* ============ PROFILE DROPDOWN ============ */
+    document.getElementById('profileTrigger').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('profileDropdown').classList.toggle('show');
+      document.getElementById('notifPopover').classList.remove('show');
+    });
+    document.addEventListener('click', function() {
+      document.getElementById('notifPopover').classList.remove('show');
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+
+    /* ============ FILTER BY STATUS ============ */
+    function filterCampaigns(status, btn) {
+      // Update pill active state
+      document.querySelectorAll('.status-pill').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+
+      // Filter cards
+      var cards = document.querySelectorAll('.campaign-card');
+      cards.forEach(function(card) {
+        if (status === 'all') {
+          card.style.display = '';
+        } else {
+          card.style.display = card.getAttribute('data-status') === status ? '' : 'none';
+        }
+      });
+
+      // Clear search
+      document.getElementById('campaignSearch').value = '';
+    }
+
+    /* ============ SEARCH ============ */
+    function searchCampaigns(query) {
+      var q = query.toLowerCase().trim();
+      var cards = document.querySelectorAll('.campaign-card');
+      cards.forEach(function(card) {
+        var name = card.getAttribute('data-name').toLowerCase();
+        var desc = card.querySelector('.card-desc').textContent.toLowerCase();
+        var cat = card.querySelector('.card-category').textContent.toLowerCase();
+        card.style.display = (name.indexOf(q) >= 0 || desc.indexOf(q) >= 0 || cat.indexOf(q) >= 0) ? '' : 'none';
+      });
+
+      // Reset pill to "All" when searching
+      document.querySelectorAll('.status-pill').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelector('.status-pill').classList.add('active');
+    }
+  </script>
+  <!--
+    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
+    Key APIs for this page:
+      KUP_PLATFORM.CAMPAIGN_STATUSES, .CAMPAIGN_TRANSITIONS, .CAMPAIGN_RULES
+  -->
+  <script src="/js/platform-config.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

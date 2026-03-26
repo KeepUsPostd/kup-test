@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postd Pay — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    /* =============================================
+       BRAND VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange:    #ED8444;
+      --kup-blue:      #2EA5DD;
+      --kup-black:     #000;
+      --kup-body-bg:   #F5F6FA;
+      --kup-purple:    #707BBB;
+      --kup-gradient:  linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:     #FFF;
+      --kup-font:      'Montserrat', sans-serif;
+      --radius-sm:     6px;
+      --radius-md:     12px;
+    }
+
+    /* =============================================
+       RESET & BASE
+       ============================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; transition: all 0.2s ease; }
+    img { max-width: 100%; height: auto; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #E8E8E8;
+      padding: 0;
+    }
+
+    .auth-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+    }
+
+    .auth-logo img {
+      height: 32px;
+    }
+
+    .auth-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Notification Bell */
+    .notif-wrap { position: relative; }
+    .notif-btn {
+      position: relative;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+    }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      background: #e74c3c;
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+    }
+
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: none;
+    }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      min-width: 220px;
+      display: none;
+      z-index: 200;
+      overflow: hidden;
+    }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== NOTIFICATION CENTER POPOVER ============== */
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+    .kup-notif-popover.show { display: block; }
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .auth-tab {
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .auth-tab:hover {
+      color: #555;
+    }
+
+    .auth-tab.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       PAGE HEADER
+       ============================================= */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 8px;
+    }
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--kup-blue);
+    }
+
+    .back-link:hover {
+      color: #1a8cc0;
+    }
+
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* =============================================
+       CARDS
+       ============================================= */
+    .card-kup {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #E8E8E8;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .card-kup-body {
+      padding: 32px;
+    }
+
+    /* =============================================
+       INFLUENCER PROFILE CARD
+       ============================================= */
+    .influencer-card {
+      text-align: center;
+      padding: 40px 32px;
+    }
+
+    .influencer-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--kup-white);
+      font-weight: 800;
+      font-size: 2rem;
+      margin: 0 auto 20px;
+      letter-spacing: 1px;
+    }
+
+    .influencer-username {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .influencer-handle {
+      font-size: 0.9rem;
+      color: var(--kup-blue);
+      margin-bottom: 12px;
+    }
+
+    .influencer-tier {
+      display: inline-block;
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .influencer-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .influencer-stat-item {
+      text-align: center;
+    }
+
+    .influencer-stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .influencer-stat-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Message Link under stats */
+    .influencer-message-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+      padding: 8px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .influencer-message-link:hover {
+      background: rgba(46, 165, 221, 0.06);
+      border-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       PAYMENT FORM
+       ============================================= */
+    .postdpay-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--kup-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .postdpay-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--kup-white);
+    }
+
+    .postdpay-title {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .postdpay-subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .form-label-kup {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .input-amount-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-amount-wrap .dollar-prefix {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .input-amount {
+      width: 100%;
+      padding: 16px 16px 16px 36px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: var(--kup-font);
+      border: 2px solid #E8E8E8;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.2s ease;
+      color: #1a1a1a;
+    }
+
+    .input-amount:focus {
+      border-color: var(--kup-blue);
+    }
+
+    .input-memo {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      font-family: var(--kup-font);
+      border: 2px solid #E8E8E8;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.2s ease;
+      resize: vertical;
+      min-height: 80px;
+      color: #1a1a1a;
+      margin-bottom: 24px;
+    }
+
+    .input-memo:focus {
+      border-color: var(--kup-blue);
+    }
+
+    .input-memo::placeholder,
+    .input-amount::placeholder {
+      color: #bbb;
+      font-weight: 400;
+    }
+
+    .btn-send-payment {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--kup-orange);
+      color: var(--kup-white);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-send-payment:hover {
+      background: #d9743a;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(237, 132, 68, 0.35);
+    }
+
+    /* =============================================
+       TRANSACTION HISTORY
+       ============================================= */
+    .tx-history {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .tx-history-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .tx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #F2F2F2;
+    }
+
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+
+    .tx-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tx-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(46, 165, 221, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tx-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--kup-blue);
+    }
+
+    .tx-desc {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .tx-date {
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+
+    .tx-amount {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .tx-amount.debit {
+      color: #e74c3c;
+    }
+
+    .tx-amount.credit {
+      color: #27ae60;
+    }
+
+    /* =============================================
+       KUP MODAL SYSTEM (Standardized)
+       ============================================= */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+    .kup-modal h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .kup-modal p.modal-desc { font-size: 0.85rem; color: #666; margin: 0 0 24px; }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-cancel:hover { background: var(--kup-body-bg); }
+    .btn-modal-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: #258fc4; }
+
+    /* Confirmation Modal Icon */
+    .confirm-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(46, 165, 221, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .confirm-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--kup-blue);
+    }
+    .confirm-title {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .confirm-desc {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    /* ============== MESSAGING MODAL ============== */
+    .msg-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 0;
+    }
+    .msg-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .msg-user-name { font-weight: 700; font-size: 0.9rem; color: #1a1a1a; }
+    .msg-user-handle { font-size: 0.78rem; color: #888; }
+    .msg-thread {
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .msg-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .msg-bubble.outgoing {
+      background: var(--kup-blue);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .msg-bubble.incoming {
+      background: #f0f0f0;
+      color: #333;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+    .msg-bubble-time {
+      font-size: 0.68rem;
+      color: #bbb;
+      margin-top: 4px;
+    }
+    .msg-bubble.outgoing .msg-bubble-time { color: rgba(255,255,255,0.6); text-align: right; }
+    .msg-input-area {
+      display: flex;
+      gap: 8px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .msg-input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      resize: none;
+    }
+    .msg-input:focus { outline: none; border-color: var(--kup-blue); }
+    .msg-send-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .msg-send-btn:hover { background: #258fc4; }
+
+    /* ============== TOAST NOTIFICATIONS ============== */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 0;
+      margin-top: 48px;
+      border-top: 1px solid #E8E8E8;
+    }
+
+    .auth-footer p {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin: 0;
+    }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 991px) {
+      .auth-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .auth-tab {
+        white-space: nowrap;
+        padding: 12px 18px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .card-kup-body {
+        padding: 24px 20px;
+      }
+      .influencer-card {
+        padding: 28px 20px;
+      }
+      .influencer-stats {
+        gap: 20px;
+      }
+      .profile-info { display: none; }
+      .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
+    }
+
+    /* ============== QR SCAN SECTION ============== */
+    .scan-section {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .scan-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .scan-section-header svg {
+      width: 28px;
+      height: 28px;
+      color: var(--kup-blue);
+    }
+    .scan-section-header h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .scan-subtitle {
+      font-size: 0.88rem;
+      color: #888;
+      margin: 0 0 24px;
+    }
+    .scan-viewfinder {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      margin: 0 auto 24px;
+      background: #0d0d1a;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .scan-viewfinder video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+    /* Corner brackets */
+    .scan-corners {
+      position: absolute;
+      inset: 20px;
+      pointer-events: none;
+    }
+    .scan-corners::before,
+    .scan-corners::after,
+    .scan-corner-bl::before,
+    .scan-corner-br::before {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-color: var(--kup-blue);
+      border-style: solid;
+    }
+    .scan-corners::before {
+      top: 0; left: 0;
+      border-width: 3px 0 0 3px;
+      border-radius: 4px 0 0 0;
+    }
+    .scan-corners::after {
+      top: 0; right: 0;
+      border-width: 3px 3px 0 0;
+      border-radius: 0 4px 0 0;
+    }
+    .scan-corner-bl::before {
+      bottom: 0; left: 0;
+      border-width: 0 0 3px 3px;
+      border-radius: 0 0 0 4px;
+    }
+    .scan-corner-br::before {
+      bottom: 0; right: 0;
+      border-width: 0 3px 3px 0;
+      border-radius: 0 0 4px 0;
+    }
+    /* Scanning line animation */
+    .scan-line {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      height: 2px;
+      background: var(--kup-blue);
+      box-shadow: 0 0 8px rgba(46,165,221,0.6);
+      animation: scanMove 2s ease-in-out infinite;
+    }
+    @keyframes scanMove {
+      0%, 100% { top: 24px; }
+      50% { top: calc(100% - 24px); }
+    }
+    .scan-placeholder-icon {
+      font-size: 3rem;
+      color: rgba(255,255,255,0.3);
+    }
+    .scan-placeholder-text {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 8px;
+    }
+    .btn-scan {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 40px;
+      background: var(--kup-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 52px;
+    }
+    .btn-scan:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(46,165,221,0.3);
+    }
+    .btn-scan svg {
+      width: 22px;
+      height: 22px;
+    }
+    .btn-scan.active {
+      background: #dc2626;
+    }
+    .btn-scan.active:hover {
+      box-shadow: 0 6px 20px rgba(220,38,38,0.3);
+    }
+    .scan-instructions {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: #999;
+      line-height: 1.6;
+    }
+    .scan-instructions strong {
+      color: #666;
+    }
+    /* Scan result card */
+    .scan-result {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      background: #f8fdf9;
+      border: 1px solid #d1e7dd;
+      border-radius: var(--radius-md);
+      text-align: left;
+    }
+    .scan-result.show { display: block; }
+    .scan-result.error { background: #fef8f8; border-color: #f8d7da; }
+    .scan-result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .scan-result-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .scan-result.error .scan-result-icon { background: rgba(220,38,38,0.1); }
+    .scan-result-title { font-weight: 700; font-size: 1rem; }
+    .scan-result-details {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 16px;
+      font-size: 0.85rem;
+    }
+    .scan-result-details .srd-label { color: #888; font-weight: 600; }
+    .scan-result-details .srd-value { font-weight: 600; color: #1a1a1a; }
+    .scan-result-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-award-points {
+      flex: 1;
+      padding: 12px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .btn-award-points:hover { background: #15803d; }
+    .btn-scan-again {
+      padding: 12px 20px;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+    }
+    .btn-scan-again:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    /* Points awarded animation */
+    .points-awarded {
+      display: none;
+      text-align: center;
+      padding: 24px;
+    }
+    .points-awarded.show { display: block; }
+    .points-awarded .pa-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 1.8rem;
+    }
+    .points-awarded h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
+    .points-awarded .pa-amount { font-size: 2rem; font-weight: 800; color: #16a34a; margin-bottom: 4px; }
+    .points-awarded p { font-size: 0.82rem; color: #888; margin: 0; }
+
+    @media (max-width: 767px) {
+      .scan-section { padding: 20px 16px; }
+      .scan-viewfinder { width: 240px; height: 240px; }
+      .btn-scan { width: 100%; }
+      .scan-result-actions { flex-direction: column; }
+      .btn-award-points, .btn-scan-again { width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .scan-viewfinder { width: 200px; height: 200px; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="auth-header">
+    <div class="container">
+      <div class="auth-header-top">
+        <a href="activity.html" class="auth-logo">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <div class="auth-right">
+          <!-- Notification Bell + Popover -->
+          <div class="notif-wrap">
+            <button class="notif-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span class="notif-dot"></span>
+            </button>
+            <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+              <div class="notif-header">
+                <h4>Notifications</h4>
+                <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+              </div>
+              <div class="notif-tabs">
+                <button class="notif-tab active" data-tab="all">All</button>
+                <button class="notif-tab" data-tab="unread">Unread</button>
+              </div>
+              <ul class="notif-list" id="notifList">
+                <li class="notif-item unread">
+                  <div class="notif-icon submission">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <div class="notif-body">
+                    <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
+                    <div class="notif-time">2 minutes ago</div>
+                  </div>
+                </li>
+                <li class="notif-item unread">
+                  <div class="notif-icon approval">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  </div>
+                  <div class="notif-body">
+                    <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
+                    <div class="notif-time">15 minutes ago</div>
+                  </div>
+                </li>
+                <li class="notif-item">
+                  <div class="notif-icon payment">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </div>
+                  <div class="notif-body">
+                    <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
+                    <div class="notif-time">1 hour ago</div>
+                  </div>
+                </li>
+                <li class="notif-item">
+                  <div class="notif-icon joined">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                  </div>
+                  <div class="notif-body">
+                    <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
+                    <div class="notif-time">3 hours ago</div>
+                  </div>
+                </li>
+                <li class="notif-item">
+                  <div class="notif-icon submission">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <div class="notif-body">
+                    <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
+                    <div class="notif-time">5 hours ago</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <!-- Profile Dropdown -->
+          <div class="profile-menu">
+            <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" aria-expanded="false">
+              <div class="profile-avatar">ST</div>
+              <div class="profile-info">
+                <div class="name">Santana T.</div>
+                <div class="brand">KeepUsPostd</div>
+              </div>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="manage-brands.html">Manage Brands</a>
+              <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+              <a href="pricing-upgrade.html">Pricing</a>
+              <a href="owner-account.html">Owners Account</a>
+              <div class="divider"></div>
+              <a href="help-center.html">Help Center</a>
+              <div class="divider"></div>
+              <a href="../login.html" class="logout">Log Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-tabs">
+        <a class="auth-tab" href="activity.html">Activity</a>
+        <a class="auth-tab" href="campaigns.html">Campaigns</a>
+        <a class="auth-tab" href="content.html">Content</a>
+        <a class="auth-tab" href="influencers.html">Influencers</a>
+        <a class="auth-tab active" href="cash-rewards.html">Cash &amp; Rewards</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       PAGE HEADER
+       ============================================ -->
+  <div class="container">
+    <div class="page-header">
+      <h1>Postd Pay</h1>
+      <a href="cash-rewards.html" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Search
+      </a>
+    </div>
+  </div>
+
+  <!-- ============================================
+       QR CODE SCANNER — PURCHASE POINTS
+       ============================================ -->
+  <div class="container">
+    <div class="scan-section" id="scanSection">
+      <div class="scan-section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <h2>Scan Purchase Points QR</h2>
+      </div>
+      <p class="scan-subtitle">Scan an influencer's QR code to award purchase points instantly</p>
+
+      <div class="scan-viewfinder" id="scanViewfinder">
+        <video id="scanVideo" autoplay playsinline muted style="display:none;"></video>
+        <div id="scanPlaceholder">
+          <div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div>
+          <div class="scan-placeholder-text">Camera preview</div>
+        </div>
+        <div class="scan-corners"><div class="scan-corner-bl"></div><div class="scan-corner-br"></div></div>
+        <div class="scan-line" id="scanLine" style="display:none;"></div>
+      </div>
+
+      <button class="btn-scan" id="btnScan" onclick="toggleScan()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg>
+        Start Scanning
+      </button>
+
+      <div class="scan-instructions">
+        <strong>How it works:</strong> Have the influencer show their KeepUsPostd QR code on their phone. Tap "Start Scanning" to open your camera, then point it at the QR code. Points will be awarded automatically.
+      </div>
+
+      <!-- Scan Result (shown after successful scan) -->
+      <div class="scan-result" id="scanResult">
+        <div class="scan-result-header">
+          <div class="scan-result-icon"><i class="ph ph-check"></i></div>
+          <div class="scan-result-title" id="scanResultTitle">Influencer Found</div>
+        </div>
+        <div class="scan-result-details">
+          <span class="srd-label">Influencer</span>
+          <span class="srd-value" id="scanInfluencer">@jessicadavis</span>
+          <span class="srd-label">Name</span>
+          <span class="srd-value" id="scanName">Jessica Davis</span>
+          <span class="srd-label">Tier</span>
+          <span class="srd-value" id="scanTier">Micro Influencer</span>
+          <span class="srd-label">Points to Award</span>
+          <span class="srd-value" id="scanPoints" style="color: var(--kup-blue);">+50 Purchase Points</span>
+        </div>
+        <div class="scan-result-actions">
+          <button class="btn-award-points" onclick="awardPoints()"><i class="ph ph-check"></i> Award 50 Points</button>
+          <button class="btn-scan-again" onclick="resetScan()">Scan Again</button>
+        </div>
+      </div>
+
+      <!-- Points Awarded (shown after confirmation) -->
+      <div class="points-awarded" id="pointsAwarded">
+        <div class="pa-icon"><i class="ph ph-confetti"></i></div>
+        <h3>Points Awarded!</h3>
+        <div class="pa-amount">+50 pts</div>
+        <p>@jessicadavis earned 50 purchase points</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       MAIN CONTENT — TWO COLUMN
+       ============================================ -->
+  <div class="container" style="padding-bottom: 40px;">
+    <div class="row g-4 mt-1">
+
+      <!-- LEFT: Influencer Profile Card -->
+      <div class="col-lg-5">
+        <div class="card-kup">
+          <div class="influencer-card">
+            <div class="influencer-avatar">JD</div>
+            <div class="influencer-username">Jessica Davis</div>
+            <div class="influencer-handle">@jessicadavis</div>
+            <div class="influencer-tier">Micro Influencer</div>
+
+            <div class="influencer-stats">
+              <div class="influencer-stat-item">
+                <div class="influencer-stat-value">12.4K</div>
+                <div class="influencer-stat-label">Followers</div>
+              </div>
+              <div class="influencer-stat-item">
+                <div class="influencer-stat-value">3.2%</div>
+                <div class="influencer-stat-label">Engagement</div>
+              </div>
+              <div class="influencer-stat-item">
+                <div class="influencer-stat-value">28</div>
+                <div class="influencer-stat-label">Reviews</div>
+              </div>
+            </div>
+
+            <!-- Message Button -->
+            <button class="influencer-message-link" id="influencerMsgBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Message
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Payment Form Card -->
+      <div class="col-lg-7">
+        <div class="card-kup">
+          <div class="card-kup-body">
+
+            <!-- PostdPay Icon -->
+            <div class="postdpay-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div class="postdpay-title">Send Payment</div>
+            <div class="postdpay-subtitle">Pay @jessicadavis via PostdPay</div>
+
+            <!-- Payment Form -->
+            <form id="paymentForm">
+              <label class="form-label-kup">Payment Amount</label>
+              <div class="input-amount-wrap">
+                <span class="dollar-prefix">$</span>
+                <input type="number" class="input-amount" id="paymentAmount" placeholder="0.00" min="0" step="0.01">
+              </div>
+
+              <label class="form-label-kup">Payment Note</label>
+              <textarea class="input-memo" id="paymentMemo" placeholder="Add a note for this payment (e.g., Review for Summer Campaign)"></textarea>
+
+              <button type="submit" class="btn-send-payment" id="sendPaymentBtn">Send Payment</button>
+            </form>
+
+            <!-- Transaction History Summary -->
+            <div class="tx-history">
+              <div class="tx-history-title">Recent Payments to @jessicadavis</div>
+
+              <div class="tx-item">
+                <div class="tx-left">
+                  <div class="tx-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>
+                  </div>
+                  <div>
+                    <div class="tx-desc">Summer Campaign Review</div>
+                    <div class="tx-date">Feb 28, 2026</div>
+                  </div>
+                </div>
+                <div class="tx-amount debit">-$25.00</div>
+              </div>
+
+              <div class="tx-item">
+                <div class="tx-left">
+                  <div class="tx-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>
+                  </div>
+                  <div>
+                    <div class="tx-desc">Product Unboxing Video</div>
+                    <div class="tx-date">Feb 15, 2026</div>
+                  </div>
+                </div>
+                <div class="tx-amount debit">-$40.00</div>
+              </div>
+
+              <div class="tx-item">
+                <div class="tx-left">
+                  <div class="tx-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>
+                  </div>
+                  <div>
+                    <div class="tx-desc">Instagram Reel - New Launch</div>
+                    <div class="tx-date">Jan 30, 2026</div>
+                  </div>
+                </div>
+                <div class="tx-amount debit">-$30.00</div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================
+       PAYMENT CONFIRMATION MODAL
+       ============================================ -->
+  <div class="kup-modal-overlay" id="paymentConfirmModal" role="dialog" aria-modal="true" aria-labelledby="paymentConfirmTitle">
+    <div class="kup-modal" style="max-width: 440px;">
+      <button class="kup-modal-close" id="paymentConfirmClose" aria-label="Close">&times;</button>
+      <div class="confirm-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      </div>
+      <div class="confirm-title" id="paymentConfirmTitle">Confirm Payment</div>
+      <div class="confirm-desc" id="paymentConfirmDesc">Send payment of $0.00 to @jessicadavis via PostdPay?</div>
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn-modal-cancel" id="paymentConfirmCancel">Cancel</button>
+        <button class="btn-modal-primary" id="paymentConfirmSubmit">Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       MESSAGING MODAL
+       ============================================ -->
+  <div class="kup-modal-overlay" id="messagingModal" role="dialog" aria-modal="true" aria-labelledby="msgModalName">
+    <div class="kup-modal" style="max-width: 480px; padding: 0; display: flex; flex-direction: column;">
+      <div style="padding: 20px 24px 0;">
+        <button class="kup-modal-close" id="msgModalClose" aria-label="Close">&times;</button>
+        <div class="msg-header">
+          <div class="msg-avatar" id="msgAvatar">JD</div>
+          <div>
+            <div class="msg-user-name" id="msgModalName">Jessica Davis</div>
+            <div class="msg-user-handle" id="msgHandle">@jessicadavis</div>
+          </div>
+        </div>
+      </div>
+      <div class="msg-thread" id="msgThread" style="padding: 20px 24px;">
+        <div class="msg-bubble incoming">
+          <div>Hi! I just submitted the video for the Summer Campaign. Let me know if you need any changes!</div>
+          <div class="msg-bubble-time">Yesterday, 3:42 PM</div>
+        </div>
+        <div class="msg-bubble outgoing">
+          <div>Thanks Jessica! The video looks great. Quick question — can you add a product close-up in the first 5 seconds?</div>
+          <div class="msg-bubble-time">Yesterday, 4:15 PM</div>
+        </div>
+        <div class="msg-bubble incoming">
+          <div>Absolutely! I'll re-edit and resubmit by tomorrow morning.</div>
+          <div class="msg-bubble-time">Yesterday, 4:20 PM</div>
+        </div>
+        <div class="msg-bubble outgoing">
+          <div>Perfect, thanks for the quick turnaround!</div>
+          <div class="msg-bubble-time">Yesterday, 4:22 PM</div>
+        </div>
+      </div>
+      <div class="msg-input-area" style="padding: 0 24px 20px;">
+        <input type="text" class="msg-input" placeholder="Type a message..." aria-label="Message input" id="msgInput">
+        <button class="msg-send-btn" id="msgSendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="auth-footer">
+    <div class="container">
+      <p>Copyright &copy;2026. All Rights Reserved by KeepUsPostd</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /* ============== TOAST NOTIFICATION SYSTEM ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* ============== MODAL HELPERS ============== */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Global: Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+    });
+
+    // Global: Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+      // Close notification popover if open
+      document.getElementById('notifPopover').classList.remove('show');
+    });
+
+    /* ============== NOTIFICATION CENTER ============== */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* ============== PAYMENT FORM — CONFIRMATION FLOW ============== */
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var amountInput = document.getElementById('paymentAmount');
+      var amount = parseFloat(amountInput.value);
+      if (!amount || amount <= 0) {
+        kupToast('Please enter a valid payment amount', 'error');
+        return;
+      }
+      var formatted = amount.toFixed(2);
+      document.getElementById('paymentConfirmDesc').textContent =
+        'Send payment of $' + formatted + ' to @jessicadavis via PostdPay?';
+      openModal('paymentConfirmModal');
+    });
+
+    // Payment confirm modal — close actions
+    document.getElementById('paymentConfirmClose').addEventListener('click', function() {
+      closeModal('paymentConfirmModal');
+    });
+    document.getElementById('paymentConfirmCancel').addEventListener('click', function() {
+      closeModal('paymentConfirmModal');
+    });
+    // Payment confirm — submit
+    document.getElementById('paymentConfirmSubmit').addEventListener('click', function() {
+      var amountInput = document.getElementById('paymentAmount');
+      var amount = parseFloat(amountInput.value).toFixed(2);
+      closeModal('paymentConfirmModal');
+      kupToast('Payment of $' + amount + ' sent successfully!', 'success');
+      // Reset form
+      amountInput.value = '';
+      document.getElementById('paymentMemo').value = '';
+    });
+
+    /* ============== MESSAGING MODAL ============== */
+    document.getElementById('influencerMsgBtn').addEventListener('click', function() {
+      // Pre-populated with @jessicadavis data
+      document.getElementById('msgAvatar').textContent = 'JD';
+      document.getElementById('msgModalName').textContent = 'Jessica Davis';
+      document.getElementById('msgHandle').textContent = '@jessicadavis';
+      openModal('messagingModal');
+    });
+    document.getElementById('msgModalClose').addEventListener('click', function() {
+      closeModal('messagingModal');
+    });
+    document.getElementById('msgSendBtn').addEventListener('click', function() {
+      var input = document.getElementById('msgInput');
+      var msg = input.value.trim();
+      if (!msg) return;
+      var thread = document.getElementById('msgThread');
+      var bubble = document.createElement('div');
+      bubble.className = 'msg-bubble outgoing';
+      bubble.innerHTML = '<div>' + msg + '</div><div class="msg-bubble-time">Just now</div>';
+      thread.appendChild(bubble);
+      thread.scrollTop = thread.scrollHeight;
+      input.value = '';
+      kupToast('Message sent', 'success');
+    });
+    document.getElementById('msgInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('msgSendBtn').click();
+      }
+    });
+
+    /* ============== CLOSE OUTSIDE CLICKS ============== */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (!notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+      }
+    });
+  </script>
+
+  <!-- QR Scanner Logic -->
+  <script>
+    var scanning = false;
+    var stream = null;
+
+    function toggleScan() {
+      if (scanning) {
+        stopScan();
+      } else {
+        startScan();
+      }
+    }
+
+    function startScan() {
+      var btn = document.getElementById('btnScan');
+      var video = document.getElementById('scanVideo');
+      var placeholder = document.getElementById('scanPlaceholder');
+      var scanLine = document.getElementById('scanLine');
+
+      // Request camera access
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(function(s) {
+            stream = s;
+            video.srcObject = s;
+            video.style.display = 'block';
+            placeholder.style.display = 'none';
+            scanLine.style.display = 'block';
+            scanning = true;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
+            btn.classList.add('active');
+
+            // Simulate QR detection after 3 seconds (demo)
+            setTimeout(function() {
+              if (scanning) {
+                stopScan();
+                showScanResult();
+              }
+            }, 3000);
+          })
+          .catch(function(err) {
+            // Camera not available — simulate scan for demo
+            placeholder.innerHTML = '<div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div><div class="scan-placeholder-text">Camera access needed<br>Simulating scan...</div>';
+            scanLine.style.display = 'block';
+            scanning = true;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
+            btn.classList.add('active');
+
+            // Simulate QR detection after 2 seconds
+            setTimeout(function() {
+              if (scanning) {
+                stopScan();
+                showScanResult();
+              }
+            }, 2000);
+          });
+      } else {
+        // Fallback for demo
+        scanLine.style.display = 'block';
+        scanning = true;
+        btn.classList.add('active');
+        btn.innerHTML = 'Scanning...';
+        setTimeout(function() {
+          stopScan();
+          showScanResult();
+        }, 2000);
+      }
+    }
+
+    function stopScan() {
+      var btn = document.getElementById('btnScan');
+      var video = document.getElementById('scanVideo');
+      var placeholder = document.getElementById('scanPlaceholder');
+      var scanLine = document.getElementById('scanLine');
+
+      if (stream) {
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        stream = null;
+      }
+      video.style.display = 'none';
+      video.srcObject = null;
+      placeholder.style.display = '';
+      placeholder.innerHTML = '<div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div><div class="scan-placeholder-text">Camera preview</div>';
+      scanLine.style.display = 'none';
+      scanning = false;
+      btn.classList.remove('active');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg> Start Scanning';
+    }
+
+    function showScanResult() {
+      document.getElementById('scanResult').classList.add('show');
+      document.getElementById('btnScan').style.display = 'none';
+    }
+
+    function awardPoints() {
+      document.getElementById('scanResult').classList.remove('show');
+      document.getElementById('pointsAwarded').classList.add('show');
+      kupToast('+50 Purchase Points awarded to @jessicadavis', 'success');
+
+      // Reset after 3 seconds
+      setTimeout(function() {
+        document.getElementById('pointsAwarded').classList.remove('show');
+        document.getElementById('btnScan').style.display = '';
+      }, 4000);
+    }
+
+    function resetScan() {
+      document.getElementById('scanResult').classList.remove('show');
+      document.getElementById('pointsAwarded').classList.remove('show');
+      document.getElementById('btnScan').style.display = '';
+    }
+  </script>
+
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

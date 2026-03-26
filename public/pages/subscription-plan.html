@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KeepUsPostd">
+  <meta property="og:title" content="Pricing Plans — KeepUsPostd">
+  <meta property="og:description" content="Start free, upgrade as you grow. Flexible pricing plans for brands and agencies on KeepUsPostd.">
+  <meta property="og:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+  <meta property="og:url" content="https://keepuspostd.com/subscription-plan">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Keepuspostd">
+  <meta name="twitter:title" content="Pricing Plans — KeepUsPostd">
+  <meta name="twitter:description" content="Start free, upgrade as you grow. Flexible pricing plans for brands and agencies on KeepUsPostd.">
+  <meta name="twitter:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+
+  <title>Pricing Plans — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KUP Custom Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================
+       ANNOUNCEMENT BAR
+       ============================================ -->
+  <div class="kup-announce">
+    <p>Always free for influencers. Brands start free — no credit card required. <a href="register-brand.html">Get started →</a></p>
+  </div>
+
+  <!-- ============================================
+       NAVIGATION
+       ============================================ -->
+  <nav class="kup-nav">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="home.html" class="nav-logo">
+          <img src="/images/kup_gradient_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <ul class="nav-links">
+          <li><a href="how-it-works.html">How It Works</a></li>
+          <li><a href="influencer-marketing.html">For Brands</a></li>
+          <li><a href="for-agencies.html">For Agencies</a></li>
+          <li><a href="download-app.html">For Influencers</a></li>
+          <li><a href="subscription-plan.html" class="nav-active">Pricing</a></li>
+        </ul>
+        <div class="nav-cta">
+          <a href="login.html" class="nav-login">Log In</a>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">Sign Up Free</a>
+        </div>
+        <button class="nav-hamburger" id="navToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <ul>
+        <li><a href="how-it-works.html">How It Works</a></li>
+        <li><a href="influencer-marketing.html">For Brands</a></li>
+        <li><a href="for-agencies.html">For Agencies</a></li>
+        <li><a href="download-app.html">For Influencers</a></li>
+        <li><a href="subscription-plan.html">Pricing</a></li>
+      </ul>
+      <div class="d-flex flex-column gap-3 mt-4">
+        <a href="login.html" style="text-align:center; color:rgba(0,0,0,0.75); font-weight:600;">Log In</a>
+        <a href="register-brand.html" class="btn-kup btn-kup-gradient text-center">Sign Up Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       PRICING HEADER
+       ============================================ -->
+  <section class="kup-pricing-page">
+    <div class="container">
+      <div class="pricing-head">
+        <span class="section-label">Flexible Pricing</span>
+        <h2 class="section-title">KeepUsPostd Pricing</h2>
+        <p class="section-subtitle">As your brand grows, your needs change. Start free — scale when you're ready. Only pay for what you approve.</p>
+      </div>
+
+      <!-- PRICING CARDS ROW — 5 Tiers: Starter, Growth, Pro, Agency, Enterprise -->
+      <div class="row g-4 align-items-stretch justify-content-center">
+
+        <!-- TIER 1: Starter (Free) -->
+        <div class="col-xl col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <div class="pricing-card-wrap">
+              <p class="pricing-plan-name">Starter</p>
+              <p class="pricing-description">Perfect for getting started and testing the platform.</p>
+              <div class="pricing-price">Free</div>
+              <p class="pricing-yearly">Free forever</p>
+              <a href="register-brand.html" class="btn-kup btn-kup-dark w-100 mt-auto" style="border-radius: 8px;">Get Started</a>
+              <ul class="pricing-features mt-4">
+                <li>1 brand profile</li>
+                <li>1 active campaign</li>
+                <li>Up to 10 influencers</li>
+                <li>Non-cash rewards only (Per Approval)</li>
+                <li>Marketplace listing</li>
+                <li>QR code (Market Code)</li>
+                <li>Market Code scan count</li>
+                <li>Basic analytics (30 days)</li>
+                <li style="opacity:0.5; text-decoration:line-through;">Influencer Discovery (not available)</li>
+                <li>Community support</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 2: Growth (Featured / Most Popular) -->
+        <div class="col-xl col-lg-4 col-md-6">
+          <div class="pricing-card featured">
+            <div class="pricing-card-wrap">
+              <span class="pricing-popular-badge">Most Popular</span>
+              <p class="pricing-plan-name" style="color: white;">Growth</p>
+              <p class="pricing-description">For brands ready to pay influencers and build momentum.</p>
+              <div class="pricing-price">$29<span class="per-mo">/mo</span></div>
+              <p class="pricing-yearly">or <strong>$290/year</strong> <span style="opacity: 0.6;">(Save $58)</span></p>
+              <a href="register-brand.html" class="btn-kup btn-kup-gradient w-100 mt-auto" style="border-radius: 8px;">Start Free Trial</a>
+              <ul class="pricing-features mt-4">
+                <li>Everything in Starter</li>
+                <li>Up to 3 brands</li>
+                <li>Up to 5 active campaigns</li>
+                <li>Up to 100 influencers</li>
+                <li>Cash Per Approval + Point-Based rewards</li>
+                <li>3 admin seats</li>
+                <li>Full analytics (90 days)</li>
+                <li>Scan analytics — 90-day trends</li>
+                <li>Influencer Discovery — browse profiles</li>
+                <li>Email support (48hr)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 3: Pro -->
+        <div class="col-xl col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <div class="pricing-card-wrap">
+              <p class="pricing-plan-name">Pro</p>
+              <p class="pricing-description">For scaling brands that need full control and influencer access.</p>
+              <div class="pricing-price">$79<span class="per-mo">/mo</span></div>
+              <p class="pricing-yearly">or <strong>$790/year</strong> <span style="color: #888;">(Save $158)</span></p>
+              <a href="register-brand.html" class="btn-kup btn-kup-gradient w-100 mt-auto" style="border-radius: 8px;">Select Plan</a>
+              <ul class="pricing-features mt-4">
+                <li>Everything in Growth</li>
+                <li>Up to 10 brands</li>
+                <li>Up to 20 campaigns</li>
+                <li>Up to 500 influencers</li>
+                <li>Bonus Cash + Postd Pay unlocked</li>
+                <li>10 admin seats</li>
+                <li>Advanced analytics (12 mo + export)</li>
+                <li>Scan analytics — geo, device &amp; conversion data</li>
+                <li>Custom brand colors</li>
+                <li>Advanced Discovery — filters, engagement data, niche search</li>
+                <li>Priority support (24hr) + live chat</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 4: Agency (NEW) -->
+        <div class="col-xl col-lg-4 col-md-6">
+          <div class="pricing-card pricing-card-agency">
+            <div class="pricing-card-wrap">
+              <span class="pricing-new-badge">New</span>
+              <p class="pricing-plan-name">Agency</p>
+              <p class="pricing-description">For agencies managing multiple brands and influencer teams.</p>
+              <div class="pricing-price">$149<span class="per-mo">/mo</span></div>
+              <p class="pricing-yearly">or <strong>$1,490/year</strong> <span style="color: #888;">(Save $298)</span></p>
+              <a href="register-brand.html?type=agency" class="btn-kup btn-kup-gradient w-100 mt-auto" style="border-radius: 8px;">Sign Up as Agency</a>
+              <ul class="pricing-features mt-4">
+                <li>Everything in Pro</li>
+                <li>Up to 25 brands</li>
+                <li>Up to 50 campaigns per brand</li>
+                <li>Up to 2,000 influencers (shared pool)</li>
+                <li>25 admin seats (assign per-brand)</li>
+                <li>Full white-label branding</li>
+                <li>Client portal (read-only)</li>
+                <li>Cross-brand reporting + PDF export</li>
+                <li>Cross-brand scan analytics + benchmarks</li>
+                <li>Influencer pool sharing across brands</li>
+                <li>Full Discovery + assign influencers to brands</li>
+                <li>Priority support (12hr) + onboarding call</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 5: Enterprise -->
+        <div class="col-xl col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <div class="pricing-card-wrap">
+              <p class="pricing-plan-name">Enterprise</p>
+              <p class="pricing-description">Custom solutions for large teams and high-volume brands.</p>
+              <div class="pricing-price" style="font-size: 1.8rem; margin-top: 24px;">Let's Talk</div>
+              <p class="pricing-yearly">Custom pricing</p>
+              <a href="#" data-contact class="btn-kup btn-kup-dark w-100 mt-auto" style="border-radius: 8px;">Request a Call</a>
+              <ul class="pricing-features mt-4">
+                <li>Everything in Agency</li>
+                <li>Unlimited brands, campaigns &amp; influencers</li>
+                <li>Unlimited admin seats + custom roles</li>
+                <li>Custom reports + API access</li>
+                <li>Custom scan analytics + API export</li>
+                <li>Dedicated account manager</li>
+                <li>SSO / SAML authentication</li>
+                <li>Custom integrations</li>
+                <li>Full Discovery + AI-powered matching</li>
+                <li>99.9% uptime SLA guarantee</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- NOTE: Per-approval model -->
+      <div class="text-center mt-5 pt-3">
+        <div style="background: var(--kup-white); border-radius: 12px; padding: 32px 40px; max-width: 640px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+          <h5 style="margin-bottom: 12px;">Only pay for what you approve.</h5>
+          <p style="color: #666; font-size: 0.95rem; margin: 0; line-height: 1.7;">Your subscription includes platform access. Influencer rewards are funded from your auto-reloadable account balance — cash amounts are based on influencer tier, non-cash rewards are defined by you. Either way, you only pay when you approve the content.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================
+       FAQ / SIMPLICITY NOTE
+       ============================================ -->
+  <section class="kup-feature kup-feature-dark">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <span class="section-label">No Surprises</span>
+          <h2>Simple. Transparent.<br>Full control.</h2>
+          <p class="subtitle">No agency fees. No hidden charges. No long-term commitments. Start free, upgrade when you're ready, and cancel anytime. Your marketing budget goes directly to rewarding influencers whose content you love.</p>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">Start Free Today</a>
+        </div>
+        <div class="col-lg-6">
+          <!-- FAQ-style bullets -->
+          <div style="border-radius: 16px; overflow: hidden;">
+            <div style="background: rgba(255,255,255,0.05); padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <p style="font-weight: 700; color: var(--kup-orange); margin: 0 0 6px;">Can I start for free?</p>
+              <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.95rem;">Yes. The Ambassador Plan is free forever. No credit card required to start.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <p style="font-weight: 700; color: var(--kup-orange); margin: 0 0 6px;">How do influencer rewards work?</p>
+              <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.95rem;">You choose the reward type — cash, free products, or discounts. Cash amounts are based on influencer tier. Rewards are funded from your account balance and only triggered when you approve content.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <p style="font-weight: 700; color: var(--kup-orange); margin: 0 0 6px;">Can I cancel anytime?</p>
+              <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.95rem;">Yes. No contracts. No lock-in. Cancel your subscription at any time with no penalties.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px 28px;">
+              <p style="font-weight: 700; color: var(--kup-orange); margin: 0 0 6px;">Is the influencer app always free?</p>
+              <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.95rem;">Always. Influencers download and use the app for free — forever. They earn from brand approvals.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FINAL CTA
+       ============================================ -->
+  <section class="kup-cta-center" style="background: var(--kup-body-bg);">
+    <div class="container">
+      <span class="section-label">Get Started</span>
+      <h2 class="section-title">Start building your influencer community today</h2>
+      <p style="color: #666; max-width: 480px; margin: 0 auto 36px; font-size: 1.05rem; line-height: 1.7;">Free to start. No credit card. Your first 5 reviews are waiting.</p>
+      <a href="register-brand.html" class="btn-kup btn-kup-gradient" style="font-size: 1.05rem; padding: 16px 44px;">Sign Up Free as a Brand</a>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="kup-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <img src="/images/kup_WHT_new_logo.png" alt="KeepUsPostd" style="height: 36px; margin-bottom: 20px;">
+          <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; max-width: 260px;">
+            Everyone has influence. Turn your community into your best marketing team.
+          </p>
+                    <div class="footer-social mt-3">
+            <a href="https://www.facebook.com/keepuspostd" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+            <a href="https://www.instagram.com/keepuspostd/" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="https://x.com/Keepuspostd" aria-label="X/Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.linkedin.com/company/keepuspostd-corporation/" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://www.tiktok.com/@keepuspostd" aria-label="TikTok"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>About</h5>
+          <a href="how-it-works.html">How It Works</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Platform</h5>
+          <a href="influencer-marketing.html">For Brands</a>
+          <a href="for-agencies.html">For Agencies</a>
+          <a href="download-app.html">For Influencers</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Support</h5>
+          <a href="#" data-contact>Contact Us</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="policy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom mt-4">
+      <div class="container">
+        <p>©2026 All Rights Reserved. KeepUsPostd® is a Registered Trademark of KeepUsPostd Corporation. <a href="policy.html" style="color: rgba(255,255,255,0.5);">Privacy</a> and <a href="terms.html" style="color: rgba(255,255,255,0.5);">Terms</a>.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMobile = document.getElementById('navMobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        navMobile.classList.toggle('open');
+        navToggle.classList.toggle('active');
+      });
+    }
+  </script>
+
+  <!-- ============================================
+       CONTACT MODAL
+       ============================================ -->
+  <div class="contact-overlay" id="contactOverlay"></div>
+  <div class="contact-modal" id="contactModal">
+    <button class="contact-modal-close" id="contactClose">&times;</button>
+
+    <!-- Form -->
+    <div id="contactFormWrap">
+      <h3>Get in touch</h3>
+      <p class="contact-sub">We'll get back to you within one business day.</p>
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Name</label>
+          <input type="text" id="contactName" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="contactTopic">Topic</label>
+          <select id="contactTopic" name="topic" required>
+            <option value="" disabled selected>Select a topic</option>
+            <option value="general">General Inquiry</option>
+            <option value="brand-sales">Brand Sales</option>
+            <option value="creator-support">Creator Support</option>
+            <option value="partnership">Partnership</option>
+            <option value="press">Press</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" name="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn-contact-submit">Send Message</button>
+      </form>
+    </div>
+
+    <!-- Success State -->
+    <div class="contact-success" id="contactSuccess">
+      <div class="contact-success-icon">&#10003;</div>
+      <h4>Message sent!</h4>
+      <p>Thanks for reaching out. We'll get back to you soon.</p>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const overlay = document.getElementById('contactOverlay');
+    const modal = document.getElementById('contactModal');
+    const closeBtn = document.getElementById('contactClose');
+    const form = document.getElementById('contactForm');
+    const formWrap = document.getElementById('contactFormWrap');
+    const success = document.getElementById('contactSuccess');
+
+    function openContact() {
+      overlay.classList.add('active');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeContact() {
+      overlay.classList.remove('active');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Attach to all contact triggers
+    document.querySelectorAll('[data-contact]').forEach(el => {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        openContact();
+      });
+    });
+
+    overlay.addEventListener('click', closeContact);
+    closeBtn.addEventListener('click', closeContact);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeContact();
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+      setTimeout(closeContact, 3000);
+      setTimeout(function() {
+        formWrap.style.display = '';
+        success.classList.remove('show');
+        form.reset();
+      }, 3500);
+    });
+  })();
+  </script>
+
+</body>
+</html>

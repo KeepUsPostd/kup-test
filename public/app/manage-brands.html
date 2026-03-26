@@ -1,0 +1,2518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Brands — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       SHARED INNER PAGE VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTH HEADER (shared across inner pages)
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .auth-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .auth-logo img { height: 32px; }
+
+    .auth-nav {
+      display: flex;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      height: 64px;
+    }
+    .auth-nav li a {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 64px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .auth-nav li a:hover {
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+    .auth-nav li a.active {
+      color: var(--kup-blue);
+      font-weight: 700;
+      border-bottom-color: var(--kup-blue);
+    }
+
+    .auth-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* =============================================
+       NOTIFICATION BELL + POPOVER
+       ============================================= */
+    .notif-wrap { position: relative; }
+    .notif-btn {
+      position: relative;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 8px; height: 8px;
+      background: #e74c3c;
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+    }
+
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+    .kup-notif-popover.show { display: block; }
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+
+    /* =============================================
+       PROFILE DROPDOWN
+       ============================================= */
+    .profile-menu { position: relative; }
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: none;
+      transition: background 0.2s;
+    }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      min-width: 220px;
+      display: none;
+      z-index: 200;
+      overflow: hidden;
+    }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a {
+      display: block;
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      color: #444;
+      transition: background 0.15s;
+    }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    .profile-dropdown a.logout:hover { background: #fef2f2; }
+
+    /* =============================================
+       MANAGE BRANDS LAYOUT
+       Two-column: Left sidebar + Right content
+       Source: manage-brand.component.html
+       ============================================= */
+    .manage-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* LEFT SIDEBAR */
+    .manage-sidebar {
+      background: var(--kup-white);
+      border-right: 1px solid #eee;
+      padding: 32px 28px;
+    }
+
+    .manage-sidebar h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 0 24px;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .btn-add-brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--kup-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-brand:hover {
+      background: #258fc4;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(46, 165, 221, 0.3);
+    }
+
+    .btn-upgrade {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      background: transparent;
+      color: var(--kup-orange);
+      border: 2px solid var(--kup-orange);
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-upgrade:hover {
+      background: var(--kup-orange);
+      color: white;
+    }
+
+    /* Sidebar info */
+    .sidebar-info {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: var(--radius-md);
+      margin-top: 24px;
+    }
+    .sidebar-info h5 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+    .sidebar-info p {
+      font-size: 0.78rem;
+      color: #666;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* RIGHT CONTENT */
+    .manage-content {
+      padding: 32px 40px;
+    }
+
+    .manage-content h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .manage-content .section-subtitle {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .manage-content .section-desc {
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 28px;
+      max-width: 600px;
+    }
+
+    /* Brand Cards */
+    .brand-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: box-shadow 0.2s;
+    }
+    .brand-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .brand-card-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .brand-logo {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .brand-meta h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .brand-badges {
+      display: flex;
+      gap: 16px;
+    }
+    .brand-badges a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #888;
+      transition: color 0.2s;
+    }
+    .brand-badges a:hover { color: var(--kup-blue); }
+    .brand-badges a svg { width: 16px; height: 16px; }
+
+    .brand-card-actions {
+      display: flex;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-brand-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-brand-action:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+    .btn-brand-action svg { width: 16px; height: 16px; }
+
+    .btn-brand-action.primary {
+      background: var(--kup-blue);
+      color: white;
+      border-color: var(--kup-blue);
+    }
+    .btn-brand-action.primary:hover {
+      background: #258fc4;
+    }
+
+    /* Kebab (three-dot) menu wrapper */
+    .kebab-wrap {
+      position: relative;
+    }
+    .btn-more {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-more:hover { border-color: #bbb; background: #f8f9fa; }
+
+    /* =============================================
+       KEBAB DROPDOWN MENU
+       ============================================= */
+    .kebab-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      min-width: 160px;
+      display: none;
+      z-index: 150;
+      overflow: hidden;
+    }
+    .kebab-dropdown.show { display: block; }
+    .kebab-dropdown button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .kebab-dropdown button:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .kebab-dropdown button svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .kebab-dropdown .kebab-divider { border-top: 1px solid #f0f0f0; margin: 2px 0; }
+    .kebab-dropdown button.danger { color: #e74c3c; }
+    .kebab-dropdown button.danger:hover { background: #fef2f2; color: #dc2626; }
+
+    /* Brand Stats Row (campaigns, influencers, content) */
+    .brand-card-stats {
+      display: flex;
+      gap: 20px;
+      padding: 12px 0;
+      margin-bottom: 4px;
+    }
+    .brand-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #666;
+    }
+    .brand-stat-item svg { width: 15px; height: 15px; flex-shrink: 0; color: #999; }
+    .brand-stat-item strong { font-weight: 700; color: #1a1a1a; }
+    .brand-stat-item .campaign-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-left: 2px;
+    }
+    .brand-stat-item .campaign-dot.active { background: #16a34a; }
+    .brand-stat-item .campaign-dot.draft { background: #f59e0b; }
+    .brand-stat-item .campaign-dot.paused { background: #888; }
+
+    /* Active brand indicator */
+    .brand-card.active-brand {
+      border-color: var(--kup-blue);
+      border-width: 2px;
+      position: relative;
+    }
+    .brand-card.active-brand::before {
+      content: 'Active';
+      position: absolute;
+      top: -1px;
+      right: 16px;
+      background: var(--kup-blue);
+      color: white;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* =============================================
+       MODAL OVERLAY + DIALOG
+       ============================================= */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+    .kup-modal h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .kup-modal p.modal-desc { font-size: 0.85rem; color: #666; margin: 0 0 24px; line-height: 1.5; }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-cancel:hover { background: var(--kup-body-bg); }
+    .btn-modal-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: #258fc4; }
+    .btn-modal-danger {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: #e74c3c;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-danger:hover { background: #dc2626; }
+
+    /* Confirmation modal icon */
+    .confirm-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .confirm-icon.danger { background: rgba(231,76,60,0.1); }
+    .confirm-icon.danger svg { stroke: #e74c3c; }
+
+    /* =============================================
+       TOAST NOTIFICATIONS
+       ============================================= */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 32px;
+      font-size: 0.78rem;
+      color: #999;
+      border-top: 1px solid #eee;
+      background: var(--kup-white);
+    }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* =============================================
+       ACCESS LEVEL BADGE (on brand cards)
+       ============================================= */
+    .access-level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-family: var(--kup-font);
+      letter-spacing: 0.2px;
+    }
+    .access-level-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .access-level-badge.agency-managed {
+      background: rgba(112, 123, 187, 0.1);
+      color: var(--kup-purple);
+    }
+    .access-level-badge.view-only {
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+    }
+    .access-level-badge.collaborative {
+      background: rgba(22, 163, 74, 0.1);
+      color: #16a34a;
+    }
+
+    .brand-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* Agency Shield indicator */
+    .shield-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--kup-purple);
+      background: rgba(112, 123, 187, 0.06);
+      border: 1px solid rgba(112, 123, 187, 0.15);
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+    .shield-indicator svg { width: 11px; height: 11px; }
+
+    /* =============================================
+       BRAND SETTINGS MODAL
+       ============================================= */
+    .brand-settings-modal .kup-modal {
+      max-width: 640px;
+      text-align: left;
+    }
+
+    .settings-section {
+      margin-bottom: 28px;
+    }
+    .settings-section:last-child { margin-bottom: 0; }
+    .settings-section-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .settings-section-desc {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* Access Level Cards */
+    .access-level-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .access-card {
+      position: relative;
+      background: white;
+      border: 2px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .access-card:hover {
+      border-color: #ccc;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .access-card.selected {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.03);
+      box-shadow: 0 4px 16px rgba(46, 165, 221, 0.12);
+    }
+    .access-card-check {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--kup-blue);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .access-card.selected .access-card-check { display: flex; }
+    .access-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 1.3rem;
+    }
+    .access-card-icon.managed { background: rgba(112, 123, 187, 0.1); }
+    .access-card-icon.viewonly { background: rgba(46, 165, 221, 0.1); }
+    .access-card-icon.collab { background: rgba(22, 163, 74, 0.1); }
+
+    .access-card h5 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: #1a1a1a;
+    }
+    .access-card p {
+      font-size: 0.75rem;
+      color: #888;
+      margin: 0;
+      line-height: 1.4;
+    }
+    .access-card .best-for {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--kup-orange);
+      background: rgba(237, 132, 68, 0.08);
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+
+    /* Access Level Detail Panel */
+    .access-detail-panel {
+      background: #f8f9fa;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .access-detail-panel h5 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: #1a1a1a;
+    }
+
+    /* Feature list within detail panel */
+    .access-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+    }
+    .access-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #555;
+      padding: 6px 0;
+      line-height: 1.4;
+    }
+    .access-features li svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+    .access-features li .feat-on { color: #16a34a; }
+    .access-features li .feat-off { color: #ccc; }
+
+    /* Agency Shield Toggle */
+    .shield-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .shield-toggle-info {
+      flex: 1;
+    }
+    .shield-toggle-info h6 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: 0 0 3px;
+      color: #1a1a1a;
+    }
+    .shield-toggle-info p {
+      font-size: 0.72rem;
+      color: #888;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* iOS-style Toggle Switch */
+    .kup-toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+    .kup-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .kup-toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #ddd;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .kup-toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 3px;
+      left: 3px;
+      transition: all 0.25s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .kup-toggle input:checked + .kup-toggle-slider {
+      background: var(--kup-purple);
+    }
+    .kup-toggle input:checked + .kup-toggle-slider[style*="--checked-bg"] {
+      background: #16a34a;
+    }
+    .kup-toggle input:checked + .kup-toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    /* Export Options (shown for Agency Managed) */
+    .export-options {
+      display: none;
+      margin-top: 12px;
+    }
+    .export-options.show { display: block; }
+    .export-option-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .export-option-row:last-child { border-bottom: none; }
+    .export-option-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: rgba(46, 165, 221, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .export-option-icon svg { width: 16px; height: 16px; color: var(--kup-blue); }
+    .export-option-text {
+      flex: 1;
+    }
+    .export-option-text strong {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      display: block;
+    }
+    .export-option-text span {
+      font-size: 0.72rem;
+      color: #888;
+    }
+
+    /* View Only Link Input */
+    .view-link-section {
+      display: none;
+      margin-top: 12px;
+    }
+    .view-link-section.show { display: block; }
+    .view-link-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .view-link-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.8rem;
+      color: #444;
+      background: #f8f9fa;
+    }
+    .btn-copy-view-link {
+      padding: 10px 16px;
+      background: var(--kup-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-copy-view-link:hover { background: #258fc4; }
+
+    /* Collaborative Permissions */
+    .collab-permissions {
+      display: none;
+      margin-top: 12px;
+    }
+    .collab-permissions.show { display: block; }
+    .collab-perm-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .collab-perm-row:last-child { border-bottom: none; }
+    .collab-perm-label {
+      font-size: 0.8rem;
+      color: #444;
+    }
+    .collab-perm-label span {
+      display: block;
+      font-size: 0.7rem;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 1024px) {
+      .manage-layout { grid-template-columns: 280px 1fr; }
+      .manage-content { padding: 28px; }
+    }
+
+    @media (max-width: 768px) {
+      .manage-layout {
+        grid-template-columns: 1fr;
+      }
+      .manage-sidebar {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        padding: 20px 16px;
+      }
+      .sidebar-actions { flex-direction: row; }
+      .manage-content { padding: 20px 16px; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .brand-card { padding: 16px; }
+      .brand-card-top { gap: 12px; }
+      .brand-logo { width: 44px; height: 44px; font-size: 0.75rem; }
+      .brand-card-actions { flex-wrap: wrap; }
+      .brand-card-actions .btn-brand-action { flex: 1; min-width: 0; justify-content: center; font-size: 0.78rem; padding: 10px 12px; }
+      .brand-card-stats { flex-wrap: wrap; gap: 12px; }
+      .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
+      .access-level-cards { grid-template-columns: 1fr; }
+      .brand-meta-row { flex-wrap: wrap; }
+      .shield-toggle-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .kup-toggle { margin-left: 0; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- =============================================
+       AUTH HEADER
+       ============================================= -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <!-- Notification Bell + Popover -->
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
+                  <div class="notif-time">2 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item unread">
+                <div class="notif-icon approval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
+                  <div class="notif-time">15 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon joined">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- Profile Dropdown -->
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" aria-expanded="false">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info">
+              <div class="name">Santana T.</div>
+              <div class="brand">KeepUsPostd</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html" style="color: var(--kup-blue); font-weight: 600;">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       MANAGE BRANDS LAYOUT
+       Source: manage-brand.component.html
+       UX Pattern: Master-Detail with sidebar
+       Nielsen #3: User Control — Switch/Edit/Add brands
+       Nielsen #7: Flexibility — Multiple action paths
+       ============================================ -->
+  <div class="manage-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="manage-sidebar">
+      <h2>Brands</h2>
+
+      <div class="sidebar-actions">
+        <button class="btn-add-brand" id="addBrandBtn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 3V15M3 9H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Your Brand
+        </button>
+        <a href="pricing-upgrade.html" class="btn-upgrade">Upgrade Plan</a>
+      </div>
+
+      <!-- Plan info card -->
+      <div class="sidebar-info" id="planLimit" data-limit="3">
+        <h5>Current Plan: Growth</h5>
+        <p>Your account manages <strong>2 of 3</strong> brand slots on your Growth plan.</p>
+        <div style="margin-top:10px; font-size:0.72rem; color:#999;">
+          <span style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>Account brand slots</span><strong style="color:#1a1a1a;">2 / 3</strong></span>
+          <div style="height:4px; background:#eee; border-radius:4px; overflow:hidden;">
+            <div style="width:66%; height:100%; background:var(--kup-orange); border-radius:4px;"></div>
+          </div>
+          <span style="display:block; margin-top:6px; font-size:0.7rem; color:#16a34a; font-weight:600;">&#10003; Within plan limit</span>
+        </div>
+      </div>
+
+      <div class="sidebar-info" style="margin-top: 12px;">
+        <h5>Quick Tips</h5>
+        <p>Switch between brands to manage their profiles, rewards, campaigns, and influencer partnerships independently.</p>
+      </div>
+    </aside>
+
+    <!-- RIGHT CONTENT -->
+    <main class="manage-content">
+      <h3>Brands you manage</h3>
+      <p class="section-subtitle">Update Brands</p>
+      <p class="section-desc">These are the brands you manage. You can switch to different brands you have created and edit them at any time.</p>
+
+      <!-- Brand Card 1 — Active -->
+      <div class="brand-card active-brand" data-brand-id="kup" data-brand-name="KeepUsPostd" data-access-level="agency-managed" data-shield="true">
+        <div class="brand-card-top">
+          <div class="brand-logo">KP</div>
+          <div class="brand-meta">
+            <h4>KeepUsPostd <span style="display:inline-flex;align-items:center;gap:3px;font-size:0.65rem;font-weight:600;color:#ED8444;background:rgba(237,132,68,0.08);padding:1px 8px;border-radius:4px;margin-left:6px;vertical-align:middle;">&#9875; Anchor</span></h4>
+            <div class="brand-meta-row">
+              <span class="access-level-badge agency-managed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Agency Managed
+              </span>
+              <span class="shield-indicator">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Shield ON
+              </span>
+            </div>
+            <div class="brand-badges" style="margin-top:6px;">
+              <a href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                Notifications
+              </a>
+              <a href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Messages
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="brand-card-stats">
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <strong>4</strong> campaigns
+            <span class="campaign-dot active" title="2 active"></span>
+            <span class="campaign-dot active"></span>
+            <span class="campaign-dot draft" title="1 draft"></span>
+            <span class="campaign-dot paused" title="1 paused"></span>
+          </div>
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <strong>247</strong> influencers
+          </div>
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <strong>89</strong> content
+          </div>
+        </div>
+        <div class="brand-card-actions">
+          <button class="btn-brand-action primary btn-switch-brand" disabled title="Already active">
+            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <svg class="icon-switch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+              <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
+            </svg>
+            <span class="btn-switch-label">Active</span>
+          </button>
+          <a href="brand-home.html" class="btn-brand-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit
+          </a>
+          <div class="kebab-wrap">
+            <button class="btn-more" aria-label="More options">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#666">
+                <circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+              </svg>
+            </button>
+            <div class="kebab-dropdown">
+              <button class="kebab-edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Brand
+              </button>
+              <button class="kebab-view">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View Brand
+              </button>
+              <button class="kebab-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Brand Settings
+              </button>
+              <button class="kebab-pause">Pause Brand</button>
+              <button class="kebab-archive">Archive Brand</button>
+              <div class="kebab-divider"></div>
+              <button class="kebab-delete danger" disabled style="opacity:0.4;cursor:not-allowed;" title="Anchor brand cannot be deleted">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                Delete Brand
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Card 2 — Inactive -->
+      <div class="brand-card" data-brand-id="wmp" data-brand-name="Wild Mercy Pictures" data-access-level="collaborative" data-shield="false">
+        <div class="brand-card-top">
+          <div class="brand-logo" style="background: linear-gradient(135deg, #ED8444, #e06030);">WMP</div>
+          <div class="brand-meta">
+            <h4>Wild Mercy Pictures</h4>
+            <div class="brand-meta-row">
+              <span class="access-level-badge collaborative">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Collaborative
+              </span>
+            </div>
+            <div class="brand-badges" style="margin-top:6px;">
+              <a href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                Notifications
+              </a>
+              <a href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Messages
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="brand-card-stats">
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <strong>1</strong> campaign
+            <span class="campaign-dot draft" title="1 draft"></span>
+          </div>
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <strong>0</strong> influencers
+          </div>
+          <div class="brand-stat-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <strong>0</strong> content
+          </div>
+        </div>
+        <div class="brand-card-actions">
+          <button class="btn-brand-action primary btn-switch-brand">
+            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <svg class="icon-switch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
+            </svg>
+            <span class="btn-switch-label">Switch To</span>
+          </button>
+          <a href="brand-home.html" class="btn-brand-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit
+          </a>
+          <div class="kebab-wrap">
+            <button class="btn-more" aria-label="More options">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#666">
+                <circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+              </svg>
+            </button>
+            <div class="kebab-dropdown">
+              <button class="kebab-edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Brand
+              </button>
+              <button class="kebab-view">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View Brand
+              </button>
+              <button class="kebab-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Brand Settings
+              </button>
+              <button class="kebab-pause">Pause Brand</button>
+              <button class="kebab-archive">Archive Brand</button>
+              <div class="kebab-divider"></div>
+              <button class="kebab-delete danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                Delete Brand
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- =============================================
+       DELETE BRAND CONFIRMATION MODAL
+       ============================================= -->
+  <div class="kup-modal-overlay" id="deleteBrandModal" role="dialog" aria-modal="true" aria-labelledby="deleteBrandTitle">
+    <div class="kup-modal" style="max-width: 440px; text-align: center;">
+      <button class="kup-modal-close" id="deleteBrandClose" aria-label="Close">&times;</button>
+      <div class="confirm-icon danger">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <line x1="10" y1="11" x2="10" y2="17"/>
+          <line x1="14" y1="11" x2="14" y2="17"/>
+        </svg>
+      </div>
+      <h3 id="deleteBrandTitle">Delete Brand?</h3>
+      <p class="modal-desc" id="deleteBrandDesc">This will permanently remove <strong id="deleteBrandName">this brand</strong> and all associated campaigns, content, and influencer data.</p>
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn-modal-cancel" id="deleteBrandCancel">Cancel</button>
+        <button class="btn-modal-danger" id="deleteBrandConfirm">Delete Brand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================
+       UPGRADE TO ADD BRAND MODAL
+       ============================================= -->
+  <div class="kup-modal-overlay" id="upgradeBrandModal" role="dialog" aria-modal="true" aria-labelledby="upgradeBrandTitle">
+    <div class="kup-modal" style="max-width: 480px; text-align: center;">
+      <button class="kup-modal-close" id="upgradeBrandClose" aria-label="Close">&times;</button>
+      <div class="confirm-icon" style="background: rgba(237,132,68,0.1);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ED8444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h3 id="upgradeBrandTitle">Brand Limit Reached</h3>
+      <p class="modal-desc">You're managing <strong>1 of 1</strong> brands on the <strong>Growth</strong> plan. Upgrade to add more brands and unlock additional campaigns per brand.</p>
+
+      <div style="background:#f8f9fa; border-radius:var(--radius-sm); padding:16px; margin-bottom:24px; text-align:left;">
+        <p style="font-size:0.78rem; font-weight:700; color:#1a1a1a; margin:0 0 10px;">Plan Comparison</p>
+        <table style="width:100%; font-size:0.78rem; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid #eee;">
+              <th style="text-align:left; padding:6px 0; color:#888; font-weight:600;">Plan</th>
+              <th style="text-align:center; padding:6px 0; color:#888; font-weight:600;">Brands</th>
+              <th style="text-align:center; padding:6px 0; color:#888; font-weight:600;">Campaigns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:8px 0; font-weight:600;">Starter</td>
+              <td style="text-align:center; padding:8px 0;">1</td>
+              <td style="text-align:center; padding:8px 0;">1</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f0f0f0; background:rgba(46,165,221,0.03);">
+              <td style="padding:8px 0; font-weight:700; color:var(--kup-blue);">Growth <span style="font-size:0.68rem; background:var(--kup-blue); color:#fff; padding:1px 6px; border-radius:10px; margin-left:4px;">Current</span></td>
+              <td style="text-align:center; padding:8px 0; font-weight:700;">1</td>
+              <td style="text-align:center; padding:8px 0; font-weight:700;">3</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:8px 0; font-weight:600;">Pro</td>
+              <td style="text-align:center; padding:8px 0;">3</td>
+              <td style="text-align:center; padding:8px 0;">10</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:8px 0; font-weight:600;">Agency</td>
+              <td style="text-align:center; padding:8px 0;">5</td>
+              <td style="text-align:center; padding:8px 0;">25</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; font-weight:600;">Enterprise</td>
+              <td style="text-align:center; padding:8px 0;">Unlimited</td>
+              <td style="text-align:center; padding:8px 0;">Unlimited</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn-modal-cancel" id="upgradeBrandCancel">Maybe Later</button>
+        <a href="pricing-upgrade.html" class="btn-modal-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          View Plans &amp; Upgrade
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================
+       BRAND SETTINGS MODAL
+       Agency Access Level Configuration
+       ============================================= -->
+  <div class="kup-modal-overlay brand-settings-modal" id="brandSettingsModal" role="dialog" aria-modal="true" aria-labelledby="brandSettingsTitle">
+    <div class="kup-modal">
+      <button class="kup-modal-close" id="brandSettingsClose" aria-label="Close">&times;</button>
+
+      <!-- Modal Header -->
+      <h3 id="brandSettingsTitle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px; margin-right:6px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Brand Settings — <span id="settingsBrandName">KeepUsPostd</span>
+      </h3>
+      <p class="modal-desc">Configure how this brand's content and influencer relationships are managed on the platform.</p>
+
+      <!-- Section: Access Level -->
+      <div class="settings-section">
+        <p class="settings-section-label">Brand Access Level</p>
+        <p class="settings-section-desc">Choose how much access and visibility the brand client has on the platform.</p>
+
+        <div class="access-level-cards">
+          <!-- Card 1: Agency Managed -->
+          <div class="access-card selected" data-level="agency-managed" id="cardAgencyManaged">
+            <div class="access-card-check">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="access-card-icon managed">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#707BBB" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h5>Agency Managed</h5>
+            <p>You manage everything. Brand client has no platform access.</p>
+            <span class="best-for">Default</span>
+          </div>
+
+          <!-- Card 2: View Only -->
+          <div class="access-card" data-level="view-only" id="cardViewOnly">
+            <div class="access-card-check">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="access-card-icon viewonly">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h5>View Only</h5>
+            <p>Brand client gets a read-only dashboard. Can see but not modify.</p>
+            <span class="best-for">Transparency</span>
+          </div>
+
+          <!-- Card 3: Collaborative -->
+          <div class="access-card" data-level="collaborative" id="cardCollaborative">
+            <div class="access-card-check">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="access-card-icon collab">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h5>Collaborative</h5>
+            <p>Brand client can approve content, leave comments, and interact.</p>
+            <span class="best-for">Full Partnership</span>
+          </div>
+        </div>
+
+        <!-- ========== DETAIL PANELS (shown based on selection) ========== -->
+
+        <!-- Detail: Agency Managed -->
+        <div class="access-detail-panel" id="detailAgencyManaged">
+          <h5>Agency Managed — Full Control</h5>
+          <ul class="access-features">
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Agency approves/rejects all influencer content
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              All influencer messages route to agency inbox
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Brand client has no platform login or dashboard
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Agency exports content + reports to deliver externally
+            </li>
+          </ul>
+
+          <!-- Agency Shield Toggle -->
+          <div class="shield-toggle-row">
+            <div class="shield-toggle-info">
+              <h6>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--kup-purple)" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Agency Shield
+              </h6>
+              <p>When enabled, influencers interact with the brand but all communication routes through your agency. Protects your client relationships.</p>
+            </div>
+            <label class="kup-toggle">
+              <input type="checkbox" id="shieldToggle" checked>
+              <span class="kup-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Content Export Options -->
+          <div class="export-options show" id="exportOptions">
+            <p style="font-size:0.78rem; font-weight:600; color:#1a1a1a; margin:12px 0 8px;">Content Delivery Tools</p>
+            <div class="export-option-row">
+              <div class="export-option-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <div class="export-option-text">
+                <strong>Content Export</strong>
+                <span>Download approved content as ZIP (photos, videos, captions)</span>
+              </div>
+            </div>
+            <div class="export-option-row">
+              <div class="export-option-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div class="export-option-text">
+                <strong>Report Export</strong>
+                <span>Generate PDF reports with campaign metrics for your client</span>
+              </div>
+            </div>
+            <div class="export-option-row">
+              <div class="export-option-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <div class="export-option-text">
+                <strong>Analytics Dashboard</strong>
+                <span>View real-time performance across all influencers for this brand</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail: View Only -->
+        <div class="access-detail-panel" id="detailViewOnly" style="display:none;">
+          <h5>View Only — Read-Only Dashboard</h5>
+          <ul class="access-features">
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Brand client can view submitted content and analytics
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Agency retains all approval/rejection control
+            </li>
+            <li>
+              <svg class="feat-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Brand client cannot approve, reject, or modify content
+            </li>
+            <li>
+              <svg class="feat-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Brand client cannot message influencers directly
+            </li>
+          </ul>
+
+          <!-- Shareable View Link -->
+          <div class="view-link-section show" id="viewLinkSection">
+            <p style="font-size:0.78rem; font-weight:600; color:#1a1a1a; margin:0 0 8px;">Client Dashboard Link</p>
+            <p style="font-size:0.72rem; color:#888; margin:0 0 10px;">Share this link with your brand client so they can view their dashboard. No login required.</p>
+            <div class="view-link-row">
+              <input type="text" value="https://app.keepuspostd.com/view/wmp-dashboard-x8k2m" readonly id="viewLinkInput">
+              <button class="btn-copy-view-link" id="copyViewLinkBtn">Copy Link</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail: Collaborative -->
+        <div class="access-detail-panel" id="detailCollaborative" style="display:none;">
+          <h5>Collaborative — Full Partnership</h5>
+          <ul class="access-features">
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Brand client can approve/reject influencer content
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Brand client can message influencers directly
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Brand client can leave comments and feedback on submissions
+            </li>
+            <li>
+              <svg class="feat-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Agency and brand client both have full dashboard access
+            </li>
+          </ul>
+
+          <!-- Client Permissions -->
+          <div class="collab-permissions show" id="collabPermissions">
+            <p style="font-size:0.78rem; font-weight:600; color:#1a1a1a; margin:0 0 8px;">Client Permissions</p>
+            <div class="collab-perm-row">
+              <div class="collab-perm-label">
+                Approve / Reject Content
+                <span>Client can approve or reject influencer submissions</span>
+              </div>
+              <label class="kup-toggle">
+                <input type="checkbox" checked>
+                <span class="kup-toggle-slider" style="--checked-bg: #16a34a;"></span>
+              </label>
+            </div>
+            <div class="collab-perm-row">
+              <div class="collab-perm-label">
+                Message Influencers
+                <span>Client can send messages directly to influencers</span>
+              </div>
+              <label class="kup-toggle">
+                <input type="checkbox" checked>
+                <span class="kup-toggle-slider" style="--checked-bg: #16a34a;"></span>
+              </label>
+            </div>
+            <div class="collab-perm-row">
+              <div class="collab-perm-label">
+                View Analytics
+                <span>Client can see campaign performance and reports</span>
+              </div>
+              <label class="kup-toggle">
+                <input type="checkbox" checked>
+                <span class="kup-toggle-slider" style="--checked-bg: #16a34a;"></span>
+              </label>
+            </div>
+            <div class="collab-perm-row">
+              <div class="collab-perm-label">
+                Manage Rewards
+                <span>Client can create and modify reward offers</span>
+              </div>
+              <label class="kup-toggle">
+                <input type="checkbox">
+                <span class="kup-toggle-slider" style="--checked-bg: #16a34a;"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn-modal-cancel" id="brandSettingsCancel">Cancel</button>
+        <button class="btn-modal-primary" id="brandSettingsSave">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <script>
+    /* =============================================
+       TOAST NOTIFICATION SYSTEM
+       ============================================= */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* =============================================
+       GLOBAL MODAL HELPERS
+       ============================================= */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        // Close kebab dropdowns
+        document.querySelectorAll('.kebab-dropdown.show').forEach(function(d) {
+          d.classList.remove('show');
+        });
+      }
+    });
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* =============================================
+       PROFILE DROPDOWN (addEventListener pattern)
+       ============================================= */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+    });
+
+    /* =============================================
+       NOTIFICATION CENTER
+       ============================================= */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* =============================================
+       KEBAB (THREE-DOT) MENUS
+       ============================================= */
+    document.querySelectorAll('.btn-more').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var dropdown = this.closest('.kebab-wrap').querySelector('.kebab-dropdown');
+        // Close any other open kebab dropdowns first
+        document.querySelectorAll('.kebab-dropdown.show').forEach(function(d) {
+          if (d !== dropdown) d.classList.remove('show');
+        });
+        dropdown.classList.toggle('show');
+      });
+    });
+
+    // Kebab menu: Edit Brand
+    document.querySelectorAll('.kebab-edit').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        window.location.href = 'brand-home.html';
+      });
+    });
+
+    // Kebab menu: View Brand
+    document.querySelectorAll('.kebab-view').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        window.location.href = 'brand-home.html';
+      });
+    });
+
+    // Kebab menu: Delete Brand — opens confirmation modal
+    var deletingBrandName = '';
+    document.querySelectorAll('.kebab-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        var card = this.closest('.brand-card');
+        deletingBrandName = card.getAttribute('data-brand-name') || 'this brand';
+        document.getElementById('deleteBrandName').textContent = deletingBrandName;
+        openModal('deleteBrandModal');
+      });
+    });
+
+    /* =============================================
+       DELETE BRAND CONFIRMATION MODAL
+       ============================================= */
+    document.getElementById('deleteBrandClose').addEventListener('click', function() {
+      closeModal('deleteBrandModal');
+    });
+    document.getElementById('deleteBrandCancel').addEventListener('click', function() {
+      closeModal('deleteBrandModal');
+    });
+    document.getElementById('deleteBrandConfirm').addEventListener('click', function() {
+      closeModal('deleteBrandModal');
+      kupToast(deletingBrandName + ' has been deleted', 'error');
+    });
+
+    /* =============================================
+       UPGRADE BRAND MODAL
+       ============================================= */
+    document.getElementById('upgradeBrandClose').addEventListener('click', function() {
+      closeModal('upgradeBrandModal');
+    });
+    document.getElementById('upgradeBrandCancel').addEventListener('click', function() {
+      closeModal('upgradeBrandModal');
+    });
+
+    /* =============================================
+       ADD BRAND BUTTON
+       ============================================= */
+    document.getElementById('addBrandBtn').addEventListener('click', function() {
+      /* ── Brand-limit gating ── */
+      var currentBrands = document.querySelectorAll('.brand-card').length;
+      var planLimit     = parseInt(document.getElementById('planLimit').dataset.limit, 10);
+      if (currentBrands >= planLimit) {
+        openModal('upgradeBrandModal');
+        return;
+      }
+      window.location.href = 'add-brand.html';
+    });
+
+
+    // Pause Brand handlers
+    document.querySelectorAll('.kebab-pause').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        var card = this.closest('.brand-card');
+        var brandName = card.getAttribute('data-brand-name');
+        kupToast(brandName + ' has been paused', 'warning');
+      });
+    });
+
+    // Archive Brand handlers
+    document.querySelectorAll('.kebab-archive').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        var card = this.closest('.brand-card');
+        var brandName = card.getAttribute('data-brand-name');
+        kupToast(brandName + ' has been archived', 'info');
+      });
+    });
+    /* =============================================
+       SWITCH BRAND — Global context switch
+       Calls KUP_BRAND_CONTEXT.switchBrand() to persist
+       to localStorage and reload the page.
+       ============================================= */
+    document.querySelectorAll('.btn-switch-brand').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var clickedCard = this.closest('.brand-card');
+        if (!clickedCard || clickedCard.classList.contains('active-brand')) return;
+
+        var brandId = clickedCard.getAttribute('data-brand-id');
+        if (!brandId) return;
+
+        /* Use the global brand context system — persists to localStorage + reloads */
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.switchBrand) {
+          KUP_BRAND_CONTEXT.switchBrand(brandId);
+        }
+      });
+    });
+
+    /* =============================================
+       PAGE-LOAD SYNC — Read active brand from
+       localStorage directly (brand-context.js loads
+       after this inline block) and update card states.
+       Runs on every page load so after a switchBrand()
+       reload, the correct card shows as active.
+       ============================================= */
+    (function syncCardsWithContext() {
+      var activeBrandId = null;
+      try {
+        var stored = localStorage.getItem('kup_active_brand');
+        if (stored) activeBrandId = JSON.parse(stored).id;
+      } catch(e) {}
+      /* Default to KUP anchor if nothing in storage yet */
+      if (!activeBrandId) activeBrandId = 'kup';
+
+      var cards = document.querySelectorAll('.brand-card[data-brand-id]');
+      cards.forEach(function(card) {
+        var cardId = card.getAttribute('data-brand-id');
+        var btn = card.querySelector('.btn-switch-brand');
+        if (!btn) return;
+
+        if (cardId === activeBrandId) {
+          /* This card should be active */
+          card.classList.add('active-brand');
+          btn.disabled = true;
+          btn.title = 'Already active';
+          btn.querySelector('.btn-switch-label').textContent = 'Active';
+          btn.querySelector('.icon-check').style.display = '';
+          btn.querySelector('.icon-switch').style.display = 'none';
+        } else {
+          /* This card should be inactive */
+          card.classList.remove('active-brand');
+          btn.disabled = false;
+          btn.title = '';
+          btn.querySelector('.btn-switch-label').textContent = 'Switch To';
+          btn.querySelector('.icon-check').style.display = 'none';
+          btn.querySelector('.icon-switch').style.display = '';
+        }
+      });
+    })();
+    /* =============================================
+       BRAND SETTINGS MODAL
+       ============================================= */
+    var settingsBrandCard = null; // The brand card that opened settings
+    var selectedAccessLevel = 'agency-managed'; // Current selection in modal
+
+    // Open Brand Settings from kebab menu
+    document.querySelectorAll('.kebab-settings').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        this.closest('.kebab-dropdown').classList.remove('show');
+        settingsBrandCard = this.closest('.brand-card');
+        var brandName = settingsBrandCard.getAttribute('data-brand-name') || 'Brand';
+        var currentLevel = settingsBrandCard.getAttribute('data-access-level') || 'agency-managed';
+        var shieldOn = settingsBrandCard.getAttribute('data-shield') === 'true';
+
+        // Set brand name in modal title
+        document.getElementById('settingsBrandName').textContent = brandName;
+
+        // Set current access level
+        selectedAccessLevel = currentLevel;
+        updateAccessCardSelection(currentLevel);
+        showDetailPanel(currentLevel);
+
+        // Set shield toggle state
+        document.getElementById('shieldToggle').checked = shieldOn;
+
+        openModal('brandSettingsModal');
+      });
+    });
+
+    // Access Level Card Selection
+    document.querySelectorAll('.access-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var level = this.getAttribute('data-level');
+        selectedAccessLevel = level;
+        updateAccessCardSelection(level);
+        showDetailPanel(level);
+      });
+    });
+
+    function updateAccessCardSelection(level) {
+      document.querySelectorAll('.access-card').forEach(function(c) {
+        c.classList.remove('selected');
+      });
+      var target = document.querySelector('.access-card[data-level="' + level + '"]');
+      if (target) target.classList.add('selected');
+    }
+
+    function showDetailPanel(level) {
+      // Hide all detail panels
+      document.getElementById('detailAgencyManaged').style.display = 'none';
+      document.getElementById('detailViewOnly').style.display = 'none';
+      document.getElementById('detailCollaborative').style.display = 'none';
+
+      // Show the selected one
+      if (level === 'agency-managed') {
+        document.getElementById('detailAgencyManaged').style.display = 'block';
+      } else if (level === 'view-only') {
+        document.getElementById('detailViewOnly').style.display = 'block';
+      } else if (level === 'collaborative') {
+        document.getElementById('detailCollaborative').style.display = 'block';
+      }
+    }
+
+    // Close Brand Settings Modal
+    document.getElementById('brandSettingsClose').addEventListener('click', function() {
+      closeModal('brandSettingsModal');
+    });
+    document.getElementById('brandSettingsCancel').addEventListener('click', function() {
+      closeModal('brandSettingsModal');
+    });
+
+    // Save Brand Settings
+    document.getElementById('brandSettingsSave').addEventListener('click', function() {
+      if (!settingsBrandCard) return;
+
+      var brandName = settingsBrandCard.getAttribute('data-brand-name');
+      var shieldOn = document.getElementById('shieldToggle').checked;
+
+      // Update data attributes on the brand card
+      settingsBrandCard.setAttribute('data-access-level', selectedAccessLevel);
+      settingsBrandCard.setAttribute('data-shield', shieldOn ? 'true' : 'false');
+
+      // Update the access level badge on the card
+      updateBrandCardBadge(settingsBrandCard, selectedAccessLevel, shieldOn);
+
+      closeModal('brandSettingsModal');
+
+      // Toast
+      var levelLabels = {
+        'agency-managed': 'Agency Managed',
+        'view-only': 'View Only',
+        'collaborative': 'Collaborative'
+      };
+      kupToast(brandName + ' set to <strong>' + levelLabels[selectedAccessLevel] + '</strong>' + (selectedAccessLevel === 'agency-managed' && shieldOn ? ' with Shield' : ''), 'success');
+    });
+
+    function updateBrandCardBadge(card, level, shieldOn) {
+      // Find or create the meta row
+      var metaRow = card.querySelector('.brand-meta-row');
+      if (!metaRow) {
+        var brandMeta = card.querySelector('.brand-meta');
+        metaRow = document.createElement('div');
+        metaRow.className = 'brand-meta-row';
+        // Insert after h4
+        var h4 = brandMeta.querySelector('h4');
+        h4.insertAdjacentElement('afterend', metaRow);
+      }
+
+      // Badge configurations
+      var badgeConfigs = {
+        'agency-managed': {
+          cssClass: 'agency-managed',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+          label: 'Agency Managed'
+        },
+        'view-only': {
+          cssClass: 'view-only',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+          label: 'View Only'
+        },
+        'collaborative': {
+          cssClass: 'collaborative',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+          label: 'Collaborative'
+        }
+      };
+
+      var config = badgeConfigs[level];
+      var html = '<span class="access-level-badge ' + config.cssClass + '">' + config.icon + ' ' + config.label + '</span>';
+
+      // Add shield indicator if agency-managed + shield on
+      if (level === 'agency-managed' && shieldOn) {
+        html += ' <span class="shield-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Shield ON</span>';
+      }
+
+      metaRow.innerHTML = html;
+    }
+
+    // Copy View Link
+    document.getElementById('copyViewLinkBtn').addEventListener('click', function() {
+      var linkInput = document.getElementById('viewLinkInput');
+      linkInput.select();
+      document.execCommand('copy');
+      this.textContent = 'Copied!';
+      this.style.background = '#16a34a';
+      var btn = this;
+      setTimeout(function() {
+        btn.textContent = 'Copy Link';
+        btn.style.background = '';
+      }, 2000);
+    });
+
+    /* =============================================
+       CLOSE OUTSIDE CLICKS
+       ============================================= */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (!notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+      }
+      // Kebab dropdowns
+      document.querySelectorAll('.kebab-wrap').forEach(function(wrap) {
+        if (!wrap.contains(e.target)) {
+          wrap.querySelector('.kebab-dropdown').classList.remove('show');
+        }
+      });
+    });
+  </script>
+  <!--
+    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
+    Key APIs for this page:
+      KUP_PLATFORM.AGENCY_ACCESS_LEVELS, .AGENCY_SHIELD, .canAccess(tier, feature)
+  -->
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- KUP Auth + API helpers -->
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    // ---- Auth gate: redirect to login if not signed in ----
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+
+      // Load real brands from API
+      try {
+        const brands = await kupApi.get('/api/brands');
+        renderBrandCards(brands.brands || []);
+        updateSidebar(brands.brands || []);
+      } catch (err) {
+        console.error('Failed to load brands:', err);
+      }
+
+      // Update header with user info
+      const kupUser = JSON.parse(localStorage.getItem('kupUser') || '{}');
+      const nameEl = document.querySelector('.profile-name');
+      if (nameEl && kupUser.legalFirstName) {
+        nameEl.textContent = kupUser.legalFirstName;
+      }
+    });
+
+    // Wire logout
+    const logoutLink = document.querySelector('.logout');
+    if (logoutLink) {
+      logoutLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        kupSignOut();
+      });
+    }
+
+    // ---- Render brand cards from real API data ----
+    function renderBrandCards(brands) {
+      const container = document.querySelector('.manage-content');
+      if (!container) return;
+
+      // Remove all existing hardcoded brand cards
+      container.querySelectorAll('.brand-card').forEach(card => card.remove());
+
+      // Get the "Brands you manage" heading to insert after
+      const sectionDesc = container.querySelector('.section-desc');
+
+      if (brands.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.style.cssText = 'text-align:center;padding:60px 20px;color:#888;';
+        emptyState.innerHTML = '<p style="font-size:1.1rem;margin-bottom:8px;">No brands yet</p><p style="font-size:0.85rem;">Click <strong>Add Your Brand</strong> to create your first brand.</p>';
+        sectionDesc.after(emptyState);
+        return;
+      }
+
+      // Get active brand from localStorage
+      let activeBrandId = null;
+      try {
+        const stored = localStorage.getItem('kup_active_brand');
+        if (stored) activeBrandId = JSON.parse(stored).id;
+      } catch(e) {}
+      if (!activeBrandId && brands.length > 0) activeBrandId = brands[0]._id;
+
+      brands.forEach((brand, index) => {
+        const isActive = brand._id === activeBrandId;
+        const card = document.createElement('div');
+        card.className = 'brand-card' + (isActive ? ' active-brand' : '');
+        card.setAttribute('data-brand-id', brand._id);
+        card.setAttribute('data-brand-name', brand.name);
+        card.setAttribute('data-access-level', 'collaborative');
+        card.setAttribute('data-shield', 'false');
+
+        const initials = brand.initials || brand.name.substring(0, 2).toUpperCase();
+        const bgColor = brand.generatedColor || '#2EA5DD';
+        const campaigns = brand.stats?.activeCampaigns || 0;
+        const influencers = brand.stats?.totalInfluencers || 0;
+        const content = brand.stats?.totalContent || 0;
+
+        card.innerHTML = `
+          <div class="brand-card-top">
+            <div class="brand-logo" style="background: ${bgColor};">${initials}</div>
+            <div class="brand-meta">
+              <h4>${brand.name}${index === 0 ? ' <span style="display:inline-flex;align-items:center;gap:3px;font-size:0.65rem;font-weight:600;color:#ED8444;background:rgba(237,132,68,0.08);padding:1px 8px;border-radius:4px;margin-left:6px;vertical-align:middle;">&#9875; Anchor</span>' : ''}</h4>
+              <div class="brand-meta-row">
+                <span class="access-level-badge collaborative">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  ${brand.role || 'Owner'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="brand-card-stats">
+            <div class="brand-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              <strong>${campaigns}</strong> campaigns
+            </div>
+            <div class="brand-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <strong>${influencers}</strong> influencers
+            </div>
+            <div class="brand-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <strong>${content}</strong> content
+            </div>
+          </div>
+          <div class="brand-card-actions">
+            <button class="btn-brand-action primary btn-switch-brand" ${isActive ? 'disabled title="Already active"' : ''}>
+              <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${!isActive ? 'style="display:none"' : ''}>
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <svg class="icon-switch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${isActive ? 'style="display:none"' : ''}>
+                <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
+              </svg>
+              <span class="btn-switch-label">${isActive ? 'Active' : 'Switch To'}</span>
+            </button>
+            <a href="brand-home.html?brandId=${brand._id}" class="btn-brand-action">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Edit
+            </a>
+            <div class="kebab-wrap">
+              <button class="btn-more" aria-label="More options">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="#666">
+                  <circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+                </svg>
+              </button>
+              <div class="kebab-dropdown">
+                <button class="kebab-edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit Brand
+                </button>
+                <button class="kebab-view">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  View Brand
+                </button>
+                <button class="kebab-settings">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  Brand Settings
+                </button>
+                <button class="kebab-pause">Pause Brand</button>
+                <button class="kebab-archive">Archive Brand</button>
+                <div class="kebab-divider"></div>
+                <button class="kebab-delete danger${index === 0 ? '" disabled style="opacity:0.4;cursor:not-allowed;" title="Anchor brand cannot be deleted' : ''}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  Delete Brand
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        sectionDesc.parentNode.appendChild(card);
+      });
+
+      // Re-bind kebab menus and switch brand buttons for new cards
+      rebindCardActions();
+    }
+
+    // ---- Update sidebar with real plan info ----
+    function updateSidebar(brands) {
+      const planInfo = document.getElementById('planLimit');
+      if (!planInfo) return;
+
+      // Get user's plan tier from localStorage
+      const kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
+      const planTier = kupProfile.planTier || 'starter';
+
+      const PLAN_LIMITS = {
+        starter: { brands: 1, label: 'Starter (Free)' },
+        growth: { brands: 3, label: 'Growth' },
+        pro: { brands: 10, label: 'Pro' },
+        agency: { brands: 25, label: 'Agency' },
+        enterprise: { brands: 999, label: 'Enterprise' }
+      };
+
+      const plan = PLAN_LIMITS[planTier] || PLAN_LIMITS.starter;
+      const count = brands.length;
+      const pct = Math.min(100, Math.round((count / plan.brands) * 100));
+
+      planInfo.setAttribute('data-limit', plan.brands);
+      planInfo.innerHTML = `
+        <h5>Current Plan: ${plan.label}</h5>
+        <p>Your account manages <strong>${count} of ${plan.brands}</strong> brand slots on your ${plan.label} plan.</p>
+        <div style="margin-top:10px; font-size:0.72rem; color:#999;">
+          <span style="display:flex; justify-content:space-between; margin-bottom:3px;">
+            <span>Account brand slots</span>
+            <strong style="color:#1a1a1a;">${count} / ${plan.brands}</strong>
+          </span>
+          <div style="height:4px; background:#eee; border-radius:4px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:${count >= plan.brands ? '#ef4444' : 'var(--kup-orange)'}; border-radius:4px;"></div>
+          </div>
+          <span style="display:block; margin-top:6px; font-size:0.7rem; color:${count >= plan.brands ? '#ef4444' : '#16a34a'}; font-weight:600;">
+            ${count >= plan.brands ? '&#10007; Plan limit reached — upgrade to add more' : '&#10003; Within plan limit'}
+          </span>
+        </div>
+      `;
+    }
+
+    // ---- Re-bind event handlers for dynamically created cards ----
+    function rebindCardActions() {
+      // Kebab menus
+      document.querySelectorAll('.btn-more').forEach(function(btn) {
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          var dropdown = this.closest('.kebab-wrap').querySelector('.kebab-dropdown');
+          document.querySelectorAll('.kebab-dropdown.show').forEach(function(d) {
+            if (d !== dropdown) d.classList.remove('show');
+          });
+          dropdown.classList.toggle('show');
+        };
+      });
+
+      // Switch brand buttons
+      document.querySelectorAll('.btn-switch-brand').forEach(function(btn) {
+        btn.onclick = function() {
+          var clickedCard = this.closest('.brand-card');
+          if (!clickedCard || clickedCard.classList.contains('active-brand')) return;
+          var brandId = clickedCard.getAttribute('data-brand-id');
+          var brandName = clickedCard.getAttribute('data-brand-name');
+          if (!brandId) return;
+          localStorage.setItem('kup_active_brand', JSON.stringify({ id: brandId, name: brandName }));
+          window.location.reload();
+        };
+      });
+
+      // Kebab edit/view → brand-home
+      document.querySelectorAll('.kebab-edit, .kebab-view').forEach(function(btn) {
+        btn.onclick = function() {
+          this.closest('.kebab-dropdown').classList.remove('show');
+          var brandId = this.closest('.brand-card').getAttribute('data-brand-id');
+          window.location.href = 'brand-home.html?brandId=' + brandId;
+        };
+      });
+    }
+  </script>
+
+  <script src="/js/platform-config.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

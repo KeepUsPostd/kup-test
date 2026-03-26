@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KeepUsPostd">
+  <meta property="og:title" content="Sign Up — KeepUsPostd">
+  <meta property="og:description" content="Create your free KeepUsPostd account. Start receiving authentic creator content in minutes.">
+  <meta property="og:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+  <meta property="og:url" content="https://keepuspostd.com/register-brand">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Keepuspostd">
+  <meta name="twitter:title" content="Sign Up — KeepUsPostd">
+  <meta name="twitter:description" content="Create your free KeepUsPostd account. Start receiving authentic creator content in minutes.">
+  <meta name="twitter:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+
+  <title>Sign Up — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KUP Custom Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <style>
+    /* Account type toggle */
+    .account-type-toggle {
+      display: flex;
+      background: #f3f4f6;
+      border-radius: 50px;
+      padding: 4px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .account-type-toggle .toggle-btn {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #6B7280;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .account-type-toggle .toggle-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--kup-blue), var(--kup-purple));
+      box-shadow: 0 2px 8px rgba(46,165,221,0.3);
+    }
+    .account-type-toggle .toggle-btn:hover:not(.active) {
+      color: #374151;
+    }
+  </style>
+</head>
+<body style="background: var(--kup-body-bg);">
+
+  <!-- ============================================
+       REGISTRATION — Brand / Agency Toggle
+       Social Auth + Email/Password
+       ============================================ -->
+  <section class="kup-form-page">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+
+          <div class="referral-banner" id="referralBanner" style="display:none;">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.15);border-radius:8px;margin-bottom:16px;font-size:0.82rem;color:#555;">
+              <span style="font-size:1rem;">🤝</span>
+              <span>You were referred by <strong id="referrerName"></strong></span>
+            </div>
+          </div>
+
+          <div class="form-card">
+
+            <!-- Logo -->
+            <div class="form-logo">
+              <a href="home.html">
+                <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+              </a>
+            </div>
+
+            <!-- Account Type Toggle -->
+            <div class="account-type-toggle" id="accountToggle">
+              <button type="button" class="toggle-btn active" data-type="brand">I'm a Brand</button>
+              <button type="button" class="toggle-btn" data-type="agency">I'm an Agency</button>
+            </div>
+
+            <!-- Heading (swaps based on toggle) -->
+            <h3 id="formHeading">Get started with KeepUsPostd</h3>
+            <p class="form-intro" id="formIntro">Start free. Build your brand community. No credit card required.</p>
+
+            <!-- Social Auth Buttons -->
+            <div class="social-auth-buttons">
+              <button type="button" class="btn-social btn-social-google">
+                <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </button>
+              <button type="button" class="btn-social btn-social-linkedin">
+                <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="#0A66C2"/>
+                </svg>
+                Continue with LinkedIn
+              </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="form-divider">
+              <span>or</span>
+            </div>
+
+            <!-- Email/Password Form -->
+            <form id="registerForm" novalidate>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="you@yourbrand.com" required>
+                <div class="invalid-feedback">Please enter a valid email address.</div>
+              </div>
+              <div class="form-group">
+                <label for="password">
+                  Password
+                  <a href="#" class="password-toggle" onclick="togglePassword(event)">Show</a>
+                </label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Create a strong password" required>
+              </div>
+
+              <!-- Password Requirements — Inline with real-time validation -->
+              <ul class="password-rules" id="passwordRules">
+                <li data-rule="lowercase">One lowercase character</li>
+                <li data-rule="uppercase">One uppercase character</li>
+                <li data-rule="number">One number</li>
+                <li data-rule="special">One special character</li>
+                <li data-rule="length">8 characters minimum</li>
+              </ul>
+
+              <!-- Hidden field for account type -->
+              <input type="hidden" id="accountType" name="account_type" value="brand">
+
+              <!-- Hidden field for referral tracking -->
+              <input type="hidden" id="referralCode" name="ref" value="">
+
+              <!-- Submit -->
+              <button type="submit" class="btn-submit" id="submitBtn">Sign Up Free</button>
+            </form>
+
+            <!-- Legal — Clickwrap -->
+            <label class="form-terms-check">
+              <input type="checkbox" id="agreeTerms" required>
+              <span>I agree to KeepUsPostd's <a href="terms.html" target="_blank">Terms of Service</a> and <a href="policy.html" target="_blank">Privacy Policy</a>.</span>
+            </label>
+
+            <!-- Login Link -->
+            <p class="form-switch-txt">
+              Already have an account? <a href="login.html">Log in</a>
+            </p>
+
+          </div>
+
+          <!-- Back link -->
+          <div class="text-center mt-3">
+            <a href="home.html" style="color: #888; font-size: 0.9rem;">← Back to Home</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- KUP Auth + API helpers -->
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    // ---- Account type toggle ----
+    const copy = {
+      brand: {
+        heading: 'Get started with KeepUsPostd',
+        intro: 'Start free. Build your brand community. No credit card required.',
+        placeholder: 'you@yourbrand.com',
+        submit: 'Sign Up Free'
+      },
+      agency: {
+        heading: 'Set up your agency dashboard',
+        intro: 'Manage multiple brands, run campaigns across clients, and streamline approvals — all from one place.',
+        placeholder: 'you@youragency.com',
+        submit: 'Start Free Agency Trial'
+      }
+    };
+
+    const toggleBtns = document.querySelectorAll('#accountToggle .toggle-btn');
+    const heading = document.getElementById('formHeading');
+    const intro = document.getElementById('formIntro');
+    const emailInput = document.getElementById('email');
+    const submitBtn = document.getElementById('submitBtn');
+    const accountTypeInput = document.getElementById('accountType');
+
+    function setAccountType(type) {
+      toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.type === type));
+      heading.textContent = copy[type].heading;
+      intro.textContent = copy[type].intro;
+      emailInput.placeholder = copy[type].placeholder;
+      submitBtn.textContent = copy[type].submit;
+      accountTypeInput.value = type;
+    }
+
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => setAccountType(btn.dataset.type));
+    });
+
+    // Auto-select agency if ?type=agency in URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('type') === 'agency') {
+      setAccountType('agency');
+    }
+
+    // Capture referral source from URL params
+    const refCode = params.get('ref') || params.get('referral') || params.get('utm_source') || '';
+    if (refCode) {
+      document.getElementById('referralCode').value = refCode;
+      // Store in sessionStorage so it persists if user navigates away and comes back
+      sessionStorage.setItem('kup_ref', refCode);
+    } else {
+      // Check sessionStorage for previously captured ref
+      const storedRef = sessionStorage.getItem('kup_ref');
+      if (storedRef) {
+        document.getElementById('referralCode').value = storedRef;
+      }
+    }
+
+    // Show referral banner if ref code exists
+    const refBanner = document.getElementById('referralBanner');
+    const referrerName = document.getElementById('referrerName');
+    const activeRef = document.getElementById('referralCode').value;
+    if (activeRef && refBanner && referrerName) {
+      // Format ref code for display (replace hyphens/underscores with spaces, title case)
+      const displayName = activeRef.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      referrerName.textContent = displayName;
+      refBanner.style.display = 'block';
+    }
+
+    // ---- Password show/hide toggle ----
+    function togglePassword(e) {
+      e.preventDefault();
+      const input = document.getElementById('password');
+      const link = e.target;
+      if (input.type === 'password') {
+        input.type = 'text';
+        link.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        link.textContent = 'Show';
+      }
+    }
+
+    // ---- Real-time password validation ----
+    const passwordInput = document.getElementById('password');
+    const rules = {
+      lowercase: /[a-z]/,
+      uppercase: /[A-Z]/,
+      number: /[0-9]/,
+      special: /[^A-Za-z0-9]/,
+      length: /.{8,}/
+    };
+
+    passwordInput.addEventListener('input', function() {
+      const val = this.value;
+      document.querySelectorAll('#passwordRules li').forEach(li => {
+        const rule = li.getAttribute('data-rule');
+        if (rules[rule] && rules[rule].test(val)) {
+          li.classList.add('rule-met');
+        } else {
+          li.classList.remove('rule-met');
+        }
+      });
+    });
+
+    // ---- Error display helpers ----
+    function showError(msg) {
+      let errDiv = document.getElementById('authError');
+      if (!errDiv) {
+        errDiv = document.createElement('div');
+        errDiv.id = 'authError';
+        errDiv.style.cssText = 'background:#FEE2E2;color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:0.85rem;display:none;';
+        const form = document.getElementById('registerForm');
+        form.parentNode.insertBefore(errDiv, form);
+      }
+      errDiv.textContent = msg;
+      errDiv.style.display = 'block';
+    }
+    function hideError() {
+      const errDiv = document.getElementById('authError');
+      if (errDiv) errDiv.style.display = 'none';
+    }
+
+    // ---- Validate password meets all rules ----
+    function isPasswordValid(password) {
+      return rules.lowercase.test(password) &&
+             rules.uppercase.test(password) &&
+             rules.number.test(password) &&
+             rules.special.test(password) &&
+             rules.length.test(password);
+    }
+
+    // ---- Form submit → Firebase signup + backend registration ----
+    const regForm = document.getElementById('registerForm') || document.querySelector('form');
+    if (regForm) {
+      regForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideError();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const accountType = document.getElementById('accountType').value; // 'brand' or 'agency'
+        const agreeTerms = document.getElementById('agreeTerms');
+        const btn = document.getElementById('submitBtn');
+
+        // Validate terms checkbox
+        if (!agreeTerms.checked) {
+          showError('Please agree to the Terms of Service and Privacy Policy.');
+          return;
+        }
+
+        // Validate password strength
+        if (!isPasswordValid(password)) {
+          showError('Please make sure your password meets all requirements.');
+          return;
+        }
+
+        // Disable button while processing
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Creating your account...';
+        btn.style.opacity = '0.7';
+
+        try {
+          // Create Firebase account + register in backend
+          const data = await kupSignUp(email, password, '', '', 'brand');
+
+          // Store user info for downstream pages
+          localStorage.setItem('kupUser', JSON.stringify(data.user || {}));
+          localStorage.setItem('kupProfile', JSON.stringify(data.profile || {}));
+          localStorage.setItem('kupAccountType', accountType);
+
+          // Store referral code if present
+          const refVal = document.getElementById('referralCode').value;
+          if (refVal) {
+            localStorage.setItem('kupReferral', refVal);
+          }
+
+          // Redirect to onboarding wizard
+          window.location.href = 'onboarding.html';
+        } catch (error) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+          btn.style.opacity = '1';
+
+          // User-friendly error messages
+          let msg = error.message || 'Something went wrong. Please try again.';
+          if (msg.includes('email-already-in-use')) {
+            msg = 'An account with this email already exists. Try logging in instead.';
+          } else if (msg.includes('invalid-email')) {
+            msg = 'Please enter a valid email address.';
+          } else if (msg.includes('weak-password')) {
+            msg = 'Password is too weak. Please meet all the requirements above.';
+          }
+          showError(msg);
+        }
+      });
+    }
+
+    // ---- Google sign-in button ----
+    const googleBtn = document.querySelector('.btn-social-google');
+    if (googleBtn) {
+      googleBtn.addEventListener('click', async function() {
+        hideError();
+        googleBtn.disabled = true;
+        googleBtn.style.opacity = '0.7';
+
+        try {
+          const data = await kupSignInWithGoogle();
+
+          localStorage.setItem('kupUser', JSON.stringify(data.user || {}));
+          localStorage.setItem('kupProfile', JSON.stringify(data.profile || {}));
+          localStorage.setItem('kupAccountType', document.getElementById('accountType').value);
+
+          // Google sign-in — redirect to onboarding for new users, dashboard for existing
+          if (data.isNewUser || !data.user?.hasBrandProfile) {
+            window.location.href = 'onboarding.html';
+          } else {
+            window.location.href = '/app/manage-brands.html';
+          }
+        } catch (error) {
+          googleBtn.disabled = false;
+          googleBtn.style.opacity = '1';
+          if (error.code !== 'auth/popup-closed-by-user') {
+            showError(error.message || 'Google sign-in failed. Please try again.');
+          }
+        }
+      });
+    }
+
+    // ---- If already logged in, redirect ----
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Check if they already have a profile in our backend
+        try {
+          const token = await user.getIdToken();
+          const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.user?.hasBrandProfile) {
+              window.location.href = '/app/manage-brands.html';
+            }
+          }
+        } catch (err) {
+          // Ignore — let them stay on register page
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

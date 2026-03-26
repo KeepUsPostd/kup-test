@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: var(--kup-font); background-color: var(--kup-body-bg); color: #1a1a1a; line-height: 1.6; margin: 0; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* ============== AUTH HEADER ============== */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46, 165, 221, 0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== NOTIFICATION CENTER POPOVER ============== */
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+    .kup-notif-popover.show { display: block; }
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
+
+    /* =============================================
+       CONTENT PAGE
+       Source: content.component.html
+       Single stream with Campaign filter dropdown
+       Data table with content items + Campaign column
+       ============================================= */
+    .page-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* Page Header */
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .content-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .content-manager-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--kup-blue);
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .content-manager-link:hover { color: #258fc4; }
+    .content-manager-link svg { width: 20px; height: 20px; }
+
+    /* Campaign Filter Dropdown */
+    .campaign-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #eee;
+    }
+    .campaign-filter-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+    }
+    .campaign-filter-select {
+      padding: 8px 32px 8px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--kup-font);
+      color: #1a1a1a;
+      background: white;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      min-width: 200px;
+      transition: border-color 0.2s;
+    }
+    .campaign-filter-select:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+    }
+    .campaign-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      background: rgba(46,165,221,0.08);
+      white-space: nowrap;
+    }
+    .campaign-tag.general {
+      color: #888;
+      background: #f0f0f0;
+    }
+
+    /* Search + Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 320px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.1);
+    }
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      stroke: #999;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ============== FILTER/SORT PANEL ============== */
+    .filter-wrap { position: relative; }
+    .btn-filter {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-filter:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-filter.active { border-color: var(--kup-blue); color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+    .kup-filter-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      width: 280px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      padding: 20px;
+      z-index: 300;
+      display: none;
+    }
+    .kup-filter-panel.show { display: block; }
+    .filter-group { margin-bottom: 16px; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 0.85rem;
+      color: #444;
+      cursor: pointer;
+    }
+    .filter-option input[type="checkbox"],
+    .filter-option input[type="radio"] {
+      width: 16px; height: 16px;
+      accent-color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .panel-filter-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      margin-top: 16px;
+    }
+    .btn-filter-clear {
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .btn-filter-apply {
+      padding: 6px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-filter-apply:hover { background: #258fc4; }
+
+    /* Data Table */
+    .data-table {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .data-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead th {
+      padding: 14px 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.1s;
+    }
+    .data-table tbody tr:hover { background: #fafbfc; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+
+    .data-table tbody td {
+      padding: 16px 20px;
+      font-size: 0.85rem;
+      vertical-align: middle;
+    }
+
+    /* Content thumbnail — see upgraded styles in CONTENT THUMBNAIL UPGRADE section below */
+
+    /* Influencer cell */
+    .influencer-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .influencer-cell .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .influencer-cell .name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .influencer-cell .name:hover { text-decoration: underline; }
+    .influencer-cell .tier {
+      font-size: 0.72rem;
+      color: #888;
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-badge.pending { background: #FFF3CD; color: #856404; }
+    .status-badge.approved { background: #D1E7DD; color: #0f5132; }
+    .status-badge.rejected { background: #F8D7DA; color: #842029; }
+    .status-badge.postd { background: #D0E7FF; color: #1a5e99; }
+
+    .status-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+    .status-badge.pending .dot { background: #856404; }
+    .status-badge.approved .dot { background: #0f5132; }
+    .status-badge.rejected .dot { background: #842029; }
+    .status-badge.postd .dot { background: #1a5e99; }
+
+    /* Pagination */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-top: 1px solid #eee;
+      background: #fafbfc;
+    }
+
+    .table-footer .showing {
+      font-size: 0.82rem;
+      color: #888;
+    }
+
+    .pagination-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .page-btn {
+      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .page-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .page-btn.active { background: var(--kup-blue); color: white; border-color: var(--kup-blue); }
+
+    /* ============== KUP MODAL SYSTEM (Standardized) ============== */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+    .kup-modal h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .kup-modal p.modal-desc { font-size: 0.85rem; color: #666; margin: 0 0 24px; }
+    .kup-modal input[type="text"],
+    .kup-modal input[type="email"],
+    .kup-modal textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+    .kup-modal input:focus, .kup-modal textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-cancel:hover { background: var(--kup-body-bg); }
+    .btn-modal-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: #258fc4; }
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    .ip-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+    .ip-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0 auto 12px;
+    }
+    .ip-handle { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: #1a1a1a; }
+    .ip-name { font-size: 0.85rem; color: #888; margin: 0 0 8px; }
+    .ip-tier {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    /* Tier badge colors for profile modal */
+    .tier-badge.nano { background: #E8F5E9; color: #2e7d32; }
+    .tier-badge.micro { background: #E3F2FD; color: #1565c0; }
+    .tier-badge.macro { background: #FFF3E0; color: #e65100; }
+    .tier-badge.mega { background: #F3E5F5; color: #7b1fa2; }
+    .ip-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .ip-stat strong { display: block; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+    .ip-stat span { display: block; font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .ip-socials {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ip-social-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ip-social-icon:hover { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .ip-bio { font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0 0 20px; text-align: center; }
+    .ip-submissions-label { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .ip-submissions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .ip-thumb {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-sm);
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #bbb;
+      overflow: hidden;
+    }
+    .ip-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-ip-outline {
+      padding: 10px 20px;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-outline:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-ip-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-primary:hover { background: #258fc4; }
+
+    /* ============== NOTICE COMPOSER MODAL (for profile modal) ============== */
+    .notice-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .notice-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .notice-user-name { font-weight: 700; font-size: 0.92rem; color: #1a1a1a; }
+    .notice-user-handle { font-size: 0.78rem; color: #888; }
+    .notice-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .notice-field { display: flex; flex-direction: column; gap: 6px; }
+    .notice-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .notice-field select,
+    .notice-field input[type="text"],
+    .notice-field textarea {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .notice-field select:focus,
+    .notice-field input[type="text"]:focus,
+    .notice-field textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+    }
+    .notice-field textarea { resize: vertical; min-height: 90px; }
+    .notice-field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .notice-chips-label { font-size: 0.78rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
+    .notice-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .notice-chip {
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .notice-chip:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .notice-chip.active {
+      background: var(--kup-blue);
+      color: white;
+      border-color: var(--kup-blue);
+    }
+    .notice-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .notice-preview-text {
+      font-size: 0.75rem;
+      color: #999;
+      flex: 1;
+    }
+    .btn-send-notice {
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-send-notice:hover { background: #258fc4; }
+
+    /* ============== AI ASSIST ============== */
+    .ai-assist-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border: 1px dashed #ddd;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.04) 0%, rgba(112,123,187,0.04) 100%);
+    }
+    .ai-assist-toggle:hover { border-color: var(--kup-blue); background: linear-gradient(135deg, rgba(46,165,221,0.1) 0%, rgba(112,123,187,0.1) 100%); }
+    .ai-assist-toggle.active { border-color: var(--kup-blue); background: linear-gradient(135deg, rgba(46,165,221,0.12) 0%, rgba(112,123,187,0.12) 100%); }
+    .ai-assist-toggle .ai-icon { font-size: 1.1rem; }
+    .ai-assist-toggle .ai-label { font-size: 0.82rem; font-weight: 600; color: var(--kup-blue); }
+    .ai-assist-toggle .ai-hint { font-size: 0.72rem; color: #888; margin-left: auto; }
+    .ai-assist-panel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid var(--kup-blue);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.04) 0%, rgba(112,123,187,0.04) 100%);
+    }
+    .ai-assist-panel.show { display: flex; }
+    .ai-assist-panel textarea {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      min-height: 80px;
+      resize: vertical;
+      color: #1a1a1a;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .ai-assist-panel textarea:focus { outline: none; border-color: var(--kup-blue); }
+    .ai-assist-panel textarea::placeholder { color: #aaa; }
+    .btn-generate-brief {
+      align-self: flex-start;
+      padding: 8px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-generate-brief:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-generate-brief.generating { opacity: 0.7; pointer-events: none; }
+    .ai-generating-dots::after {
+      content: '';
+      animation: aiDots 1.2s steps(4, end) infinite;
+    }
+    @keyframes aiDots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ============== INBOX FILTER TABS ============== */
+    .inbox-filter-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .inbox-filter-tab {
+      padding: 10px 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: var(--kup-font);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .inbox-filter-tab:hover { color: #555; }
+    .inbox-filter-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .inbox-filter-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 50px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #f0f0f0;
+      color: #888;
+    }
+    .inbox-filter-tab.active .inbox-filter-count { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+
+    /* ============== AUTO-APPROVE COUNTDOWN ============== */
+    .auto-approve-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 50px;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+    .auto-approve-badge.low { background: #f5f5f5; color: #999; }
+    .auto-approve-badge.medium { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .auto-approve-badge.urgent { background: rgba(239,68,68,0.1); color: #ef4444; animation: urgentPulse 2s ease-in-out infinite; }
+    @keyframes urgentPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    /* ============== CLICKABLE ROWS ============== */
+    .data-table tbody tr { cursor: pointer; }
+    .data-table tbody tr:hover { background: #f0f6ff; }
+    .data-table tbody tr:active { background: #e8f0fe; }
+
+    /* ============== TOAST NOTIFICATIONS ============== */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* Footer */
+    .auth-footer { text-align: center; padding: 24px 32px; font-size: 0.78rem; color: #999; border-top: 1px solid #eee; background: var(--kup-white); }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* ============== QUICK STATS BAR ============== */
+    .content-stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      flex: 1;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      border-left: 4px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .stat-card.stat-pending { border-left-color: #f59e0b; }
+    .stat-card.stat-approved { border-left-color: #16a34a; }
+    .stat-card.stat-rejected { border-left-color: #dc2626; }
+    .stat-card.stat-expiring { border-left-color: #ED8444; }
+    @keyframes expiringPulse { 0%,100% { border-left-color: #ED8444; } 50% { border-left-color: #f59e0b; } }
+    .stat-card.stat-expiring { animation: expiringPulse 2s ease-in-out infinite; }
+    .stat-num { font-size: 1.5rem; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+    .stat-label { font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ============== EXPIRING SOON ALERT ============== */
+    .expiring-alert {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-left: 4px solid #f59e0b;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+    .expiring-alert-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .expiring-alert-text { flex: 1; font-size: 0.85rem; color: #5d4037; }
+    .expiring-alert-text strong { color: #e65100; }
+    .expiring-alert-action {
+      padding: 6px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: #f59e0b;
+      color: white;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .expiring-alert-action:hover { background: #d97706; }
+    .expiring-alert-dismiss {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #999;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+    }
+    .expiring-alert-dismiss:hover { color: #555; }
+
+    /* ============== CONTENT THUMBNAIL UPGRADE ============== */
+    .content-thumb {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .thumb-img {
+      width: 48px;
+      height: 64px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.2rem;
+      transition: transform 0.15s;
+    }
+    .thumb-img:hover { transform: scale(1.05); }
+    .thumb-img.video {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: white;
+    }
+    .thumb-img.image {
+      background: linear-gradient(135deg, #f8e8d4, #f0d4b8);
+      color: #b8860b;
+    }
+    .thumb-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .thumb-type {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .thumb-size {
+      font-size: 0.72rem;
+      color: #999;
+    }
+
+    /* ============== BULK ACTIONS ============== */
+    .bulk-action-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.06), rgba(112,123,187,0.06));
+      border: 1px solid rgba(46,165,221,0.15);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    .bulk-count {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-right: 8px;
+    }
+    .bulk-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bulk-btn.bulk-approve {
+      background: #16a34a;
+      color: white;
+      border: none;
+    }
+    .bulk-btn.bulk-approve:hover { background: #15803d; }
+    .bulk-btn.bulk-reject {
+      background: white;
+      color: #dc2626;
+      border: 1.5px solid #dc2626;
+    }
+    .bulk-btn.bulk-reject:hover { background: rgba(220,38,38,0.05); }
+    .bulk-btn.bulk-clear {
+      background: white;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+    .bulk-btn.bulk-clear:hover { background: #f5f5f5; }
+
+    .data-table th.col-check,
+    .data-table td.col-check {
+      width: 40px;
+      padding-left: 16px;
+      padding-right: 4px;
+    }
+    .data-table td.col-check input[type="checkbox"],
+    .data-table th.col-check input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .data-table tbody tr.row-checked { background: rgba(46,165,221,0.04); }
+    .data-table tbody tr.row-checked:hover { background: rgba(46,165,221,0.08); }
+
+    /* ============== RESPONSIVE ============== */
+    @media (max-width: 1024px) {
+      .ip-stats { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    }
+    @media (max-width: 768px) {
+      .page-content { padding: 20px 16px; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .content-header { flex-direction: column; }
+      .filter-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+      .search-box { width: 100%; }
+      .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
+      .ip-actions { flex-wrap: wrap; }
+      .ip-stats { grid-template-columns: 1fr; gap: 10px; }
+      .content-stats-bar { flex-direction: column; gap: 10px; }
+      .expiring-alert { flex-wrap: wrap; }
+      .bulk-action-bar { flex-wrap: wrap; }
+    }
+
+    @media (max-width: 767px) {
+      /* Content thumbnail in card layout */
+      .content-thumb {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+      }
+      .thumb-img {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 8px;
+      }
+      /* Filter/search stacks */
+      .filter-bar,
+      .content-toolbar {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .search-box,
+      .search-input {
+        width: 100%;
+      }
+      /* Stats bar stacks */
+      .content-stats-bar,
+      .quick-stats {
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* Bulk action bar */
+      .bulk-action-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .bulk-btn {
+        min-height: 44px;
+      }
+      /* Expiring alert */
+      .expiring-alert {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+      /* Influencer cell: label on top, name below — no cramping */
+      .data-table tbody td[data-label="Submitted By"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .data-table tbody td[data-label="Submitted By"]::before {
+        margin-bottom: 2px;
+      }
+      .data-table tbody td[data-label="Submitted By"] .influencer-cell {
+        width: 100%;
+      }
+      .data-table tbody td[data-label="Submitted By"] .influencer-cell .name {
+        white-space: normal;
+        word-break: break-word;
+      }
+      /* Pending Status: label on top, badges below */
+      .data-table tbody td[data-label="Pending Status"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" class="active" role="tab" aria-selected="true">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <!-- Notification Bell + Popover -->
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
+                  <div class="notif-time">2 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item unread">
+                <div class="notif-icon approval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
+                  <div class="notif-time">15 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon joined">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
+                  <div class="notif-time">5 hours ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- Profile Dropdown -->
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" aria-expanded="false">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info">
+              <div class="name">Santana T.</div>
+              <div class="brand">KeepUsPostd</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       CONTENT PAGE
+       Source: content.component.html
+       Nielsen #4: Consistency — Same table pattern as influencers
+       Nielsen #7: Flexibility — Tabs + Search + Filters
+       ============================================ -->
+  <main class="page-content">
+    <!-- Header -->
+    <div class="content-header">
+      <div>
+        <h1>Content</h1>
+        <a class="content-manager-link" href="content-manager.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Content Manager
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="content-stats-bar">
+      <div class="stat-card stat-pending">
+        <span class="stat-num" id="statPending">3</span>
+        <span class="stat-label">Pending Review</span>
+      </div>
+      <div class="stat-card stat-approved">
+        <span class="stat-num" id="statApproved">1</span>
+        <span class="stat-label">Approved</span>
+      </div>
+      <div class="stat-card stat-rejected">
+        <span class="stat-num" id="statRejected">1</span>
+        <span class="stat-label">Rejected</span>
+      </div>
+      <div class="stat-card stat-expiring">
+        <span class="stat-num" id="statExpiring">1</span>
+        <span class="stat-label">Expiring Soon</span>
+      </div>
+    </div>
+
+    <!-- Campaign Filter -->
+    <div class="campaign-filter-bar">
+      <span class="campaign-filter-label">Campaign:</span>
+      <select class="campaign-filter-select" id="campaignFilter" onchange="filterByCampaign(this.value)">
+        <option value="all">All Content</option>
+        <option value="general">General Brand Content</option>
+        <option value="summer-promo">Summer Promo 2026</option>
+        <option value="brand-launch">Brand Launch</option>
+        <option value="holiday-special">Holiday Special</option>
+        <option value="spring-flash">Spring Flash Sale</option>
+      </select>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" id="searchInput" placeholder="Search content..." aria-label="Search content">
+      </div>
+      <div class="filter-actions">
+        <!-- Filter -->
+        <div class="filter-wrap">
+          <button class="btn-filter" id="filterBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            Filter
+          </button>
+          <div class="kup-filter-panel" id="filterPanel">
+            <div class="filter-group">
+              <div class="filter-group-label">Status</div>
+              <label class="filter-option"><input type="checkbox"> Pending</label>
+              <label class="filter-option"><input type="checkbox"> Approved</label>
+              <label class="filter-option"><input type="checkbox"> Rejected</label>
+              <label class="filter-option"><input type="checkbox"> Postd</label>
+            </div>
+            <div class="filter-group">
+              <div class="filter-group-label">Content Type</div>
+              <label class="filter-option"><input type="checkbox"> Video</label>
+              <label class="filter-option"><input type="checkbox"> Image</label>
+            </div>
+            <div class="filter-group">
+              <div class="filter-group-label">Date Range</div>
+              <label class="filter-option"><input type="checkbox"> Last 24 hours</label>
+              <label class="filter-option"><input type="checkbox"> Last 7 days</label>
+              <label class="filter-option"><input type="checkbox"> Last 30 days</label>
+            </div>
+            <div class="panel-filter-actions">
+              <button class="btn-filter-clear" id="filterClear">Clear</button>
+              <button class="btn-filter-apply" id="filterApply">Apply</button>
+            </div>
+          </div>
+        </div>
+        <!-- Sort -->
+        <div class="filter-wrap">
+          <button class="btn-filter" id="sortBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            Sort by
+          </button>
+          <div class="kup-filter-panel" id="sortPanel">
+            <div class="filter-group">
+              <div class="filter-group-label">Sort Order</div>
+              <label class="filter-option"><input type="radio" name="sort" value="newest" checked onchange="sortTable('newest')"> Newest</label>
+              <label class="filter-option"><input type="radio" name="sort" value="oldest" onchange="sortTable('oldest')"> Oldest</label>
+              <label class="filter-option"><input type="radio" name="sort" value="name" onchange="sortTable('name')"> Influencer Name</label>
+            </div>
+            <div class="panel-filter-actions">
+              <button class="btn-filter-apply" id="sortApply">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inbox Filter Tabs -->
+      <div class="inbox-filter-tabs">
+        <button class="inbox-filter-tab active" data-filter="pending" onclick="filterInbox('pending')">Pending Review <span class="inbox-filter-count">3</span></button>
+        <button class="inbox-filter-tab" data-filter="approved" onclick="filterInbox('approved')">Approved <span class="inbox-filter-count">2</span></button>
+        <button class="inbox-filter-tab" data-filter="rejected" onclick="filterInbox('rejected')">Rejected <span class="inbox-filter-count">1</span></button>
+        <button class="inbox-filter-tab" data-filter="all" onclick="filterInbox('all')">All <span class="inbox-filter-count">5</span></button>
+      </div>
+
+    <!-- Expiring Soon Alert -->
+    <div class="expiring-alert" id="expiringAlert" style="display:none;">
+      <div class="expiring-alert-icon"><i class="ph ph-warning"></i></div>
+      <div class="expiring-alert-text">
+        <strong><span id="expiringAlertCount">1</span> item(s) expiring soon</strong> &mdash;
+        Content not reviewed within 10 days is automatically approved.
+      </div>
+      <button class="expiring-alert-action" onclick="reviewExpiring()">Review Now</button>
+      <button class="expiring-alert-dismiss" onclick="dismissExpiringAlert()">&times;</button>
+    </div>
+
+    <!-- Bulk Action Bar -->
+    <div class="bulk-action-bar" id="bulkActionBar" style="display:none;">
+      <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+      <button class="bulk-btn bulk-approve" onclick="bulkApprove()"><i class="ph ph-check"></i> Approve Selected</button>
+      <button class="bulk-btn bulk-reject" onclick="bulkReject()"><i class="ph ph-x"></i> Reject Selected</button>
+      <button class="bulk-btn bulk-clear" onclick="clearBulkSelection()">Clear</button>
+    </div>
+
+    <!-- Data Table -->
+    <div class="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-check"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" aria-label="Select all"></th>
+            <th>Content</th>
+            <th>Campaign</th>
+            <th>Influencer Submitted</th>
+            <th>Time Submitted</th>
+            <th>Pending Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="pending" data-campaign="summer-promo" data-days="8" data-sort-date="5" data-influencer="jessicadavis" data-type="video" onclick="window.location='content-manager.html?id=0'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">12.4 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="jessicadavis">JD</div>
+                <div>
+                  <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 hours ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge low">8 days left</span></td>
+
+          </tr>
+          <tr data-status="approved" data-campaign="general" data-days="" data-sort-date="4" data-influencer="marcusking" data-type="image" onclick="window.location='content-manager.html?id=1'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img image"><i class="ph ph-image"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Image</span>
+                  <span class="thumb-size">3.8 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
+                <div>
+                  <div class="name" data-influencer="marcusking">@marcusking</div>
+                  <div class="tier">Macro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">5 hours ago</td>
+            <td data-label="Pending Status"><span class="status-badge approved"><span class="dot"></span>Approved</span></td>
+
+          </tr>
+          <tr data-status="pending" data-campaign="brand-launch" data-days="5" data-sort-date="3" data-influencer="amylee_creates" data-type="video" onclick="window.location='content-manager.html?id=2'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">8.1 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="brand-launch">Brand Launch</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="amylee_creates">AL</div>
+                <div>
+                  <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
+                  <div class="tier">Nano Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">1 day ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge medium">5 days left</span></td>
+
+          </tr>
+          <tr data-status="rejected" data-campaign="summer-promo" data-days="" data-sort-date="2" data-influencer="tyreese_r" data-type="image" onclick="window.location='content-manager.html?id=3'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img image"><i class="ph ph-image"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Image</span>
+                  <span class="thumb-size">2.1 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="tyreese_r">TR</div>
+                <div>
+                  <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 days ago</td>
+            <td data-label="Pending Status"><span class="status-badge rejected"><span class="dot"></span>Rejected</span></td>
+
+          </tr>
+          <tr data-status="pending" data-campaign="general" data-days="1" data-sort-date="1" data-influencer="nina_k" data-type="video" onclick="window.location='content-manager.html?id=4'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">15.7 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
+                <div>
+                  <div class="name" data-influencer="nina_k">@nina_k</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">3 days ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge urgent">1 day left</span></td>
+
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="table-footer">
+        <span class="showing">Showing 1-5 of 24 items</span>
+        <div class="pagination-btns">
+          <button class="page-btn">&larr;</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">&rarr;</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============== INFLUENCER PROFILE MODAL ============== -->
+  <div class="kup-modal-overlay" id="influencerProfileModal" role="dialog" aria-modal="true" aria-labelledby="ipModalHandle">
+    <div class="kup-modal" style="max-width: 520px; position:relative;">
+      <div class="ip-brand-badge" id="ipBrandBadge" style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#F8F9FB;border-radius:20px;border:1px solid #E5E7EB;z-index:1;">
+        <div id="ipBrandLogo" style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;background:#2EA5DD;">KP</div>
+        <span id="ipBrandName" style="font-size:.78rem;font-weight:600;color:#1A1A2E;">KeepUsPostd</span>
+      </div>
+      <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
+      <div class="ip-header">
+        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
+        <p class="ip-name" id="ipName">Jessica Davis</p>
+        <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
+      </div>
+      <div class="ip-stats">
+        <div class="ip-stat"><strong id="ipFollowers">12.4K</strong><span>Followers</span></div>
+        <div class="ip-stat"><strong id="ipEngagement">3.2%</strong><span>Engagement</span></div>
+        <div class="ip-stat"><strong id="ipPosts">34</strong><span>Posts</span></div>
+      </div>
+      <div class="ip-socials">
+        <div class="ip-social-icon" title="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <div class="ip-social-icon" title="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></div>
+        <div class="ip-social-icon" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></div>
+      </div>
+      <p class="ip-bio" id="ipBio">Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.</p>
+      <div class="ip-submissions-label">Recent Submissions</div>
+      <div class="ip-submissions">
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+      </div>
+      <div class="ip-actions">
+        <button class="btn-ip-outline" id="ipNoticeBtn">Send Notice</button>
+        <button class="btn-ip-primary">Send Reward</button>
+        <button class="btn-ip-outline">View Content</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== NOTICE COMPOSER MODAL (for profile modal Send Notice) ============== -->
+  <div class="kup-modal-overlay" id="contentNoticeModal" role="dialog" aria-modal="true" aria-labelledby="cNoticeModalName">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="cNoticeModalClose" aria-label="Close">&times;</button>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
+      <div class="notice-header">
+        <div class="notice-avatar" id="cNoticeAvatar">JD</div>
+        <div>
+          <div class="notice-user-name" id="cNoticeModalName">Jessica Davis</div>
+          <div class="notice-user-handle" id="cNoticeHandle">@jessicadavis</div>
+        </div>
+      </div>
+      <!-- AI Assist -->
+      <div class="ai-assist-toggle" id="cAiAssistToggle">
+        <span class="ai-icon"><i class="ph ph-sparkle"></i></span>
+        <span class="ai-label">AI Assist</span>
+        <span class="ai-hint">Describe your needs, AI writes the brief</span>
+      </div>
+      <div class="ai-assist-panel" id="cAiAssistPanel">
+        <textarea id="cAiAssistInput" placeholder="Describe what you need in plain language... &#10;&#10;Example: &quot;Tell them we need a 30-second Reel featuring the new summer line, shoot outdoors, use #KeepUsPostd hashtag, due by Friday&quot;"></textarea>
+        <button class="btn-generate-brief" id="cBtnGenerateBrief">
+          <span class="ai-icon"><i class="ph ph-sparkle"></i></span> Generate Brief
+        </button>
+      </div>
+      <div class="notice-form">
+        <div class="notice-field">
+          <label for="cNoticeType">Notice Type</label>
+          <select id="cNoticeType">
+            <option value="" disabled selected>Select a notice type...</option>
+            <option value="content-request">Content Request</option>
+            <option value="guideline-update">Guideline Update</option>
+            <option value="performance-note">Performance Note</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="notice-field">
+          <label for="cNoticeSubject">Subject</label>
+          <input type="text" id="cNoticeSubject" placeholder="Enter a clear subject line...">
+        </div>
+        <div class="notice-field">
+          <label for="cNoticeBody">Details</label>
+          <textarea id="cNoticeBody" rows="4" placeholder="Provide specific instructions or information..."></textarea>
+        </div>
+        <div class="notice-field">
+          <label for="cNoticeCampaign">Link to Campaign (optional)</label>
+          <select id="cNoticeCampaign">
+            <option value="">— None —</option>
+            <option value="summer-2026">Summer Collection 2026</option>
+            <option value="product-launch-q2">Product Launch Q2</option>
+            <option value="holiday-promo">Holiday Promo 2026</option>
+            <option value="brand-awareness">Brand Awareness Sprint</option>
+          </select>
+        </div>
+        <div>
+          <div class="notice-chips-label">Response Options</div>
+          <div class="notice-chips">
+            <span class="notice-chip active" data-response="acknowledged"><i class="ph ph-check"></i> Acknowledged</span>
+            <span class="notice-chip active" data-response="question">? Question</span>
+            <span class="notice-chip" data-response="cant-complete"><i class="ph ph-x"></i> Can't Complete</span>
+          </div>
+        </div>
+      </div>
+      <div class="notice-footer">
+        <span class="notice-preview-text">Influencer will receive this as a notification with response options</span>
+        <button class="btn-send-notice" id="cBtnSendNotice">Send Notice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== (Lightbox and Rating Modal removed — replaced by content-manager.html) ============== -->
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <script>
+    /* ============== TOAST NOTIFICATION SYSTEM ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* ============== MODAL HELPERS ============== */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Global: Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        document.querySelectorAll('.kup-filter-panel.show').forEach(function(p) {
+          p.classList.remove('show');
+        });
+      }
+    });
+
+    // Global: Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+    });
+
+    /* ============== NOTIFICATION CENTER ============== */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* ============== CAMPAIGN FILTER (Refactored) ============== */
+    function filterByCampaign(value) {
+      applyAllFilters();
+      kupToast('Filtered by ' + document.getElementById('campaignFilter').options[document.getElementById('campaignFilter').selectedIndex].text, 'info');
+    }
+
+    /* ============== FILTER/SORT PANELS ============== */
+    document.getElementById('filterBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('filterPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('filterPanel').classList.contains('show'));
+    });
+    document.getElementById('sortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('sortPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('sortPanel').classList.contains('show'));
+    });
+    document.getElementById('filterApply').addEventListener('click', function() {
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('filterBtn').classList.remove('active');
+      kupToast('Filters applied', 'info');
+    });
+    document.getElementById('filterClear').addEventListener('click', function() {
+      document.querySelectorAll('#filterPanel input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+    });
+    document.getElementById('sortApply').addEventListener('click', function() {
+      var checked = document.querySelector('input[name="sort"]:checked');
+      if (checked) sortTable(checked.value);
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('sortBtn').classList.remove('active');
+      kupToast('Sort order updated', 'info');
+    });
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    var influencerData = {
+      jessicadavis:   { initials: 'JD', handle: '@jessicadavis',   name: 'Jessica Davis',      tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
+      marcusking:     { initials: 'MK', handle: '@marcusking',     name: 'Marcus King',        tier: 'Macro Influencer', tierClass: 'macro', followers: '245K',  engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
+      amylee_creates: { initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee',            tier: 'Nano Influencer',  tierClass: 'nano',  followers: '8.2K',  engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
+      tyreese_r:      { initials: 'TR', handle: '@tyreese_r',      name: 'Tyreese Robinson',   tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
+      nina_k:         { initials: 'NK', handle: '@nina_k',         name: 'Nina Kim',           tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' }
+    };
+
+    document.querySelectorAll('[data-influencer]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var key = this.getAttribute('data-influencer');
+        var data = influencerData[key];
+        if (!data) return;
+        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipModalHandle').textContent = data.handle;
+        document.getElementById('ipName').textContent = data.name;
+        var tierEl = document.getElementById('ipTier');
+        tierEl.textContent = data.tier;
+        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+        document.getElementById('ipFollowers').textContent = data.followers;
+        document.getElementById('ipEngagement').textContent = data.engagement;
+        document.getElementById('ipPosts').textContent = data.posts;
+        document.getElementById('ipBio').textContent = data.bio;
+        /* Sync brand badge with active brand context */
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          document.getElementById('ipBrandLogo').textContent = ab.abbreviation || 'KP';
+          document.getElementById('ipBrandLogo').style.background = ab.color || '#2EA5DD';
+          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+        }
+        openModal('influencerProfileModal');
+      });
+    });
+    document.getElementById('ipModalClose').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+    });
+    // Profile modal → Send Notice button opens notice composer
+    document.getElementById('ipNoticeBtn').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+      var handle = document.getElementById('ipModalHandle').textContent;
+      var name = document.getElementById('ipName').textContent;
+      var initials = document.getElementById('ipAvatar').textContent;
+      document.getElementById('cNoticeAvatar').textContent = initials;
+      document.getElementById('cNoticeModalName').textContent = name;
+      document.getElementById('cNoticeHandle').textContent = handle;
+      resetNoticeForm();
+      openModal('contentNoticeModal');
+    });
+
+    /* ============== NOTICE COMPOSER MODAL (from profile modal) ============== */
+    // Chip toggles
+    document.querySelectorAll('.notice-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('active');
+      });
+    });
+
+    // Close notice modal
+    document.getElementById('cNoticeModalClose').addEventListener('click', function() {
+      closeModal('contentNoticeModal');
+    });
+
+    // Send notice
+    document.getElementById('cBtnSendNotice').addEventListener('click', function() {
+      var type = document.getElementById('cNoticeType').value;
+      var subject = document.getElementById('cNoticeSubject').value.trim();
+      if (!type) {
+        kupToast('Please select a notice type', 'error');
+        return;
+      }
+      if (!subject) {
+        kupToast('Please enter a subject line', 'error');
+        return;
+      }
+      var name = document.getElementById('cNoticeModalName').textContent;
+      kupToast('Notice sent to ' + name, 'success');
+      closeModal('contentNoticeModal');
+    });
+
+    // Reset notice form
+    function resetNoticeForm() {
+      document.getElementById('cNoticeType').selectedIndex = 0;
+      document.getElementById('cNoticeSubject').value = '';
+      document.getElementById('cNoticeBody').value = '';
+      document.getElementById('cNoticeCampaign').selectedIndex = 0;
+      // Reset AI assist
+      var aiP = document.getElementById('cAiAssistPanel');
+      var aiT = document.getElementById('cAiAssistToggle');
+      var aiI = document.getElementById('cAiAssistInput');
+      if (aiP) aiP.classList.remove('show');
+      if (aiT) { aiT.classList.remove('active'); aiT.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief'; }
+      if (aiI) aiI.value = '';
+    }
+
+    // Auto-suggest subject based on notice type
+    document.getElementById('cNoticeType').addEventListener('change', function() {
+      var subjectInput = document.getElementById('cNoticeSubject');
+      if (subjectInput.value.trim()) return;
+      var suggestions = {
+        'content-request': 'New content request for your review',
+        'guideline-update': 'Updated brand guidelines — please review',
+        'performance-note': 'Performance update on your recent content',
+        'custom': ''
+      };
+      if (suggestions[this.value]) {
+        subjectInput.value = suggestions[this.value];
+      }
+    });
+
+    /* ============== AI ASSIST — NOTICE COMPOSER MODAL ============== */
+    var cAiToggle = document.getElementById('cAiAssistToggle');
+    var cAiPanel = document.getElementById('cAiAssistPanel');
+    var cAiInput = document.getElementById('cAiAssistInput');
+
+    cAiToggle.addEventListener('click', function() {
+      var isOpen = cAiPanel.classList.contains('show');
+      if (isOpen) {
+        cAiPanel.classList.remove('show');
+        cAiToggle.classList.remove('active');
+        cAiToggle.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief';
+      } else {
+        cAiPanel.classList.add('show');
+        cAiToggle.classList.add('active');
+        cAiToggle.querySelector('.ai-hint').textContent = 'Close AI Assist';
+        cAiInput.focus();
+      }
+    });
+
+    document.getElementById('cBtnGenerateBrief').addEventListener('click', function() {
+      var prompt = cAiInput.value.trim();
+      if (!prompt) {
+        kupToast('Describe what you need first', 'error');
+        return;
+      }
+      var btn = this;
+      var originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="ai-icon"><i class="ph ph-sparkle"></i></span> Generating<span class="ai-generating-dots"></span>';
+      btn.classList.add('generating');
+
+      setTimeout(function() {
+        var promptLower = prompt.toLowerCase();
+        var type = 'content-request';
+        if (promptLower.indexOf('guideline') !== -1 || promptLower.indexOf('brand guide') !== -1) type = 'guideline-update';
+        else if (promptLower.indexOf('performance') !== -1 || promptLower.indexOf('stats') !== -1 || promptLower.indexOf('analytics') !== -1) type = 'performance-note';
+
+        document.getElementById('cNoticeType').value = type;
+
+        var subject = prompt.split(/[,.!?]/)[0].trim();
+        if (subject.length > 60) subject = subject.substring(0, 57) + '...';
+        subject = subject.charAt(0).toUpperCase() + subject.slice(1);
+        document.getElementById('cNoticeSubject').value = subject;
+
+        var body = 'Hi ' + document.getElementById('cNoticeModalName').textContent.split(' ')[0] + ',\n\n';
+        body += prompt;
+        body += '\n\nPlease confirm you\'ve received this and let us know if you have any questions.';
+        document.getElementById('cNoticeBody').value = body;
+
+        if (promptLower.indexOf('summer') !== -1) {
+          document.getElementById('cNoticeCampaign').value = 'summer-2026';
+        } else if (promptLower.indexOf('launch') !== -1 || promptLower.indexOf('product') !== -1) {
+          document.getElementById('cNoticeCampaign').value = 'product-launch-q2';
+        } else if (promptLower.indexOf('holiday') !== -1) {
+          document.getElementById('cNoticeCampaign').value = 'holiday-promo';
+        }
+
+        cAiPanel.classList.remove('show');
+        cAiToggle.classList.remove('active');
+        cAiToggle.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief';
+
+        btn.innerHTML = originalText;
+        btn.classList.remove('generating');
+        kupToast('Brief generated — review and send!', 'success');
+      }, 1500);
+    });
+
+    /* ============== CLOSE OUTSIDE CLICKS ============== */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (!notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+      }
+      // Filter panels
+      document.querySelectorAll('.filter-wrap').forEach(function(wrap) {
+        if (!wrap.contains(e.target)) {
+          var panel = wrap.querySelector('.kup-filter-panel');
+          if (panel) panel.classList.remove('show');
+          var btn = wrap.querySelector('.btn-filter');
+          if (btn) btn.classList.remove('active');
+        }
+      });
+    });
+
+    // ========== Inbox Filter (Refactored) ==========
+    function filterInbox(status) {
+      // Update active tab
+      document.querySelectorAll('.inbox-filter-tab').forEach(function(tab) {
+        tab.classList.toggle('active', tab.getAttribute('data-filter') === status);
+      });
+      applyAllFilters();
+    }
+
+    // ========== UNIFIED FILTER SYSTEM ==========
+    function applyAllFilters() {
+      var activeTab = document.querySelector('.inbox-filter-tab.active');
+      var activeStatus = activeTab ? activeTab.getAttribute('data-filter') : 'all';
+      var activeCampaign = document.getElementById('campaignFilter').value;
+      var searchInput = document.getElementById('searchInput');
+      var searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
+        var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === activeStatus);
+        var campaignMatch = (activeCampaign === 'all') || (row.getAttribute('data-campaign') === activeCampaign);
+        var searchMatch = true;
+        if (searchQuery) {
+          var rowText = row.textContent.toLowerCase();
+          searchMatch = rowText.indexOf(searchQuery) !== -1;
+        }
+        row.style.display = (statusMatch && campaignMatch && searchMatch) ? '' : 'none';
+      });
+    }
+
+    // ========== SORT TABLE ==========
+    function sortTable(criteria) {
+      var tbody = document.querySelector('.data-table tbody');
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort(function(a, b) {
+        if (criteria === 'newest') {
+          return parseInt(b.getAttribute('data-sort-date') || 0) - parseInt(a.getAttribute('data-sort-date') || 0);
+        } else if (criteria === 'oldest') {
+          return parseInt(a.getAttribute('data-sort-date') || 0) - parseInt(b.getAttribute('data-sort-date') || 0);
+        } else if (criteria === 'name') {
+          var nameA = (a.getAttribute('data-influencer') || '').toLowerCase();
+          var nameB = (b.getAttribute('data-influencer') || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        }
+        return 0;
+      });
+      rows.forEach(function(row) { tbody.appendChild(row); });
+      applyAllFilters();
+    }
+
+    // ========== SEARCH INPUT LISTENER ==========
+    document.getElementById('searchInput').addEventListener('input', function() {
+      applyAllFilters();
+    });
+
+    // ========== QUICK STATS ==========
+    function updateStats() {
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      var pending = 0, approved = 0, rejected = 0, expiring = 0;
+      rows.forEach(function(row) {
+        var status = row.getAttribute('data-status');
+        if (status === 'pending') pending++;
+        else if (status === 'approved') approved++;
+        else if (status === 'rejected') rejected++;
+        var days = row.getAttribute('data-days');
+        if (status === 'pending' && days && parseInt(days) <= 3) expiring++;
+      });
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statApproved').textContent = approved;
+      document.getElementById('statRejected').textContent = rejected;
+      document.getElementById('statExpiring').textContent = expiring;
+    }
+
+    // ========== UPDATE FILTER TAB COUNTS ==========
+    function updateFilterCounts() {
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      var counts = { pending: 0, approved: 0, rejected: 0, all: 0 };
+      rows.forEach(function(row) {
+        var s = row.getAttribute('data-status');
+        if (counts[s] !== undefined) counts[s]++;
+        counts.all++;
+      });
+      document.querySelectorAll('.inbox-filter-tab').forEach(function(tab) {
+        var filter = tab.getAttribute('data-filter');
+        var countSpan = tab.querySelector('.inbox-filter-count');
+        if (countSpan && counts[filter] !== undefined) {
+          countSpan.textContent = counts[filter];
+        }
+      });
+    }
+
+    // ========== EXPIRING SOON ALERT ==========
+    var expiringAlertDismissed = false;
+    function checkExpiringItems() {
+      if (expiringAlertDismissed) return;
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      var expiringCount = 0;
+      rows.forEach(function(row) {
+        var days = row.getAttribute('data-days');
+        var status = row.getAttribute('data-status');
+        if (status === 'pending' && days && parseInt(days) <= 3) expiringCount++;
+      });
+      var alertEl = document.getElementById('expiringAlert');
+      if (expiringCount > 0) {
+        document.getElementById('expiringAlertCount').textContent = expiringCount;
+        alertEl.style.display = 'flex';
+      } else {
+        alertEl.style.display = 'none';
+      }
+    }
+    function reviewExpiring() {
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      for (var i = 0; i < rows.length; i++) {
+        var days = rows[i].getAttribute('data-days');
+        var status = rows[i].getAttribute('data-status');
+        if (status === 'pending' && days && parseInt(days) <= 3) {
+          window.location = 'content-manager.html?id=' + i;
+          return;
+        }
+      }
+      // Fallback: filter to pending if no expiring items found
+      filterInbox('pending');
+    }
+
+    function dismissExpiringAlert() {
+      expiringAlertDismissed = true;
+      document.getElementById('expiringAlert').style.display = 'none';
+    }
+
+    // ========== BULK ACTIONS ==========
+    function updateBulkBar() {
+      var checked = document.querySelectorAll('.row-checkbox:checked');
+      var bar = document.getElementById('bulkActionBar');
+      var countEl = document.getElementById('bulkCount');
+      // Update row highlight
+      document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
+        var cb = row.querySelector('.row-checkbox');
+        if (cb) {
+          row.classList.toggle('row-checked', cb.checked);
+        }
+      });
+      if (checked.length > 0) {
+        countEl.textContent = checked.length;
+        bar.style.display = 'flex';
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      rows.forEach(function(row) {
+        if (row.style.display !== 'none') {
+          var cb = row.querySelector('.row-checkbox');
+          if (cb) cb.checked = masterCheckbox.checked;
+        }
+      });
+      updateBulkBar();
+    }
+
+    function clearBulkSelection() {
+      document.querySelectorAll('.row-checkbox').forEach(function(cb) { cb.checked = false; });
+      var masterCb = document.getElementById('selectAllCheckbox');
+      if (masterCb) masterCb.checked = false;
+      updateBulkBar();
+    }
+
+    function bulkApprove() {
+      var checked = document.querySelectorAll('.row-checkbox:checked');
+      var count = 0;
+      checked.forEach(function(cb) {
+        var row = cb.closest('tr');
+        if (row && row.getAttribute('data-status') === 'pending') {
+          row.setAttribute('data-status', 'approved');
+          // Update status badge
+          var badge = row.querySelector('.status-badge');
+          if (badge) {
+            badge.className = 'status-badge approved';
+            badge.innerHTML = '<span class="dot"></span>Approved';
+          }
+          // Remove countdown badge
+          var countdown = row.querySelector('.auto-approve-badge');
+          if (countdown) countdown.remove();
+          // Clear days
+          row.setAttribute('data-days', '');
+          count++;
+        }
+      });
+      clearBulkSelection();
+      updateStats();
+      updateFilterCounts();
+      checkExpiringItems();
+      applyAllFilters();
+      if (count > 0) kupToast(count + ' item(s) approved', 'success');
+    }
+
+    function bulkReject() {
+      var checked = document.querySelectorAll('.row-checkbox:checked');
+      var count = 0;
+      checked.forEach(function(cb) {
+        var row = cb.closest('tr');
+        if (row && row.getAttribute('data-status') === 'pending') {
+          row.setAttribute('data-status', 'rejected');
+          // Update status badge
+          var badge = row.querySelector('.status-badge');
+          if (badge) {
+            badge.className = 'status-badge rejected';
+            badge.innerHTML = '<span class="dot"></span>Rejected';
+          }
+          // Remove countdown badge
+          var countdown = row.querySelector('.auto-approve-badge');
+          if (countdown) countdown.remove();
+          // Clear days
+          row.setAttribute('data-days', '');
+          count++;
+        }
+      });
+      clearBulkSelection();
+      updateStats();
+      updateFilterCounts();
+      checkExpiringItems();
+      applyAllFilters();
+      if (count > 0) kupToast(count + ' item(s) rejected', 'error');
+    }
+
+    // ========== INIT ON PAGE LOAD ==========
+    updateStats();
+    updateFilterCounts();
+    checkExpiringItems();
+    // Default: show only pending on page load
+    filterInbox('pending');
+
+  </script>
+  <!--
+    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
+    Key APIs for this page:
+      KUP_PLATFORM.CONTENT_STATUSES, .CONTENT_TRANSITIONS, .CONTENT_RULES
+      KUP_PLATFORM.RATING_SYSTEM
+  -->
+  <script src="/js/platform-config.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KeepUsPostd">
+  <meta property="og:title" content="KeepUsPostd — Everyone Has Influence">
+  <meta property="og:description" content="The platform where everyone has influence. Brands get authentic content. Creators get paid. No follower minimums.">
+  <meta property="og:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+  <meta property="og:url" content="https://keepuspostd.com/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Keepuspostd">
+  <meta name="twitter:title" content="KeepUsPostd — Everyone Has Influence">
+  <meta name="twitter:description" content="The platform where everyone has influence. Brands get authentic content. Creators get paid. No follower minimums.">
+  <meta name="twitter:image" content="https://keepuspostd.com/assets/images/og-preview.png">
+
+  <title>KeepUsPostd — Everyone Has Influence</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- KUP Custom Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================
+       ANNOUNCEMENT BAR
+       ============================================ -->
+  <div class="kup-announce">
+    <p>Always free for influencers. Brands start free. No credit card required. <a href="register-brand.html">Get started →</a></p>
+  </div>
+
+  <!-- ============================================
+       NAVIGATION
+       ============================================ -->
+  <nav class="kup-nav">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="home.html" class="nav-logo">
+          <img src="/images/kup_gradient_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <ul class="nav-links">
+          <li><a href="how-it-works.html">How It Works</a></li>
+          <li><a href="influencer-marketing.html">For Brands</a></li>
+          <li><a href="for-agencies.html">For Agencies</a></li>
+          <li><a href="download-app.html">For Influencers</a></li>
+        </ul>
+        <div class="nav-cta">
+          <a href="login.html" class="nav-login">Log In</a>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient">Sign Up Free</a>
+        </div>
+        <button class="nav-hamburger" id="navToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <ul>
+        <li><a href="how-it-works.html">How It Works</a></li>
+        <li><a href="influencer-marketing.html">For Brands</a></li>
+        <li><a href="for-agencies.html">For Agencies</a></li>
+        <li><a href="download-app.html">For Influencers</a></li>
+      </ul>
+      <div class="d-flex flex-column gap-3 mt-4">
+        <a href="login.html" style="text-align:center; color:rgba(0,0,0,0.75); font-weight:600;">Log In</a>
+        <a href="register-brand.html" class="btn-kup btn-kup-gradient text-center">Sign Up Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       HERO — Contra-inspired: light, centered, toggle
+       ============================================ -->
+  <section class="kup-hero-light">
+    <div class="container">
+
+      <!-- Brand / Influencer Toggle -->
+      <div class="d-flex justify-content-center mb-3">
+        <div class="hero-toggle">
+          <button class="hero-toggle-btn active" data-mode="brand">Brands</button>
+          <button class="hero-toggle-btn" data-mode="influencer">Influencers</button>
+        </div>
+      </div>
+
+      <!-- Centered Copy -->
+      <div class="hero-copy-center">
+        <h1 class="hero-light-headline" id="heroHeadline">
+          Turn Your Community Into<br><span class="gradient-text">Your Best Marketing Team</span>
+        </h1>
+        <p class="hero-light-sub" id="heroSub">
+          Connect with real people who already love your brand.<br>Approve content before you pay. No agencies. No wasted spend.
+        </p>
+        <div class="hero-light-ctas">
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient" id="heroPrimaryCta">Add Your Brand Free</a>
+          <a href="how-it-works.html" class="hero-ghost-link" id="heroSecondaryLink">See how it works →</a>
+        </div>
+        <p class="hero-light-footnote" id="heroFootnote">Free to start. No credit card required.</p>
+      </div>
+
+    </div>
+
+    <!-- Card Feed Section: header row + scrollable feed -->
+    <div class="creator-feed-section">
+
+      <!-- Section header: label left, link right (Contra-style) -->
+      <div class="feed-section-header">
+        <span class="feed-section-label">
+          <i class="ph ph-trend-up" style="font-size:14px;"></i>
+          Trending Posts
+        </span>
+        <a href="influencer-marketing.html" class="feed-section-link">
+          Brand Communities
+          <i class="ph ph-caret-right" style="font-size:14px;"></i>
+        </a>
+      </div>
+
+      <!-- Scrollable Influencer Card Feed -->
+      <div class="creator-feed-outer">
+        <!-- Left scroll arrow — hidden until user scrolls right -->
+        <button class="feed-arrow-btn feed-arrow-left is-hidden" id="feedScrollLeft" aria-label="Scroll cards left">
+          <i class="ph ph-caret-left" style="font-size:18px;"></i>
+        </button>
+        <div class="feed-fade-left"></div>
+        <div class="creator-feed" id="creatorFeed">
+          <!-- Cards rendered by JS -->
+        </div>
+        <div class="feed-fade-right"></div>
+        <!-- Right scroll arrow — overlays the feed -->
+        <button class="feed-arrow-btn feed-arrow-right" id="feedScrollRight" aria-label="Scroll cards right">
+          <i class="ph ph-caret-right" style="font-size:18px;"></i>
+        </button>
+      </div>
+
+    </div>
+    <!-- Brand Logo Ticker -->
+    <div class="brand-ticker-wrap">
+      <span class="brand-ticker-label">Brands worldwide, <span style="font-weight:400;color:#6B7280;">from products to services, across every industry</span></span>
+      <div class="brand-ticker-outer">
+        <div class="brand-ticker-track">
+          <!-- 25 logos — single set, scrolls back and forth -->
+          <img class="brand-logo-item" src="/images/logos/new_nike_logo.png" alt="Nike">
+          <img class="brand-logo-item" src="/images/logos/new_apple_logo.png" alt="Apple">
+          <img class="brand-logo-item" src="/images/logos/new_coca-cola_logo.png" alt="Coca-Cola">
+          <img class="brand-logo-item" src="/images/logos/new_google_logo.png" alt="Google">
+          <img class="brand-logo-item" src="/images/logos/new_samsung_logo.png" alt="Samsung">
+          <img class="brand-logo-item" src="/images/logos/new_toyota_logo.png" alt="Toyota">
+          <img class="brand-logo-item" src="/images/logos/new_mcdonalds_logo.png" alt="McDonald's">
+          <img class="brand-logo-item" src="/images/logos/new_walmart_logo.png" alt="Walmart">
+          <img class="brand-logo-item" src="/images/logos/new_target_logo.png" alt="Target">
+          <img class="brand-logo-item" src="/images/logos/new_sephora_logo.png" alt="Sephora">
+          <img class="brand-logo-item" src="/images/logos/new_chick-fil-a_logo.png" alt="Chick-fil-A">
+          <img class="brand-logo-item" src="/images/logos/new_wholefoods_logo.png" alt="Whole Foods">
+          <img class="brand-logo-item" src="/images/logos/new_lulu_logo.png" alt="Lululemon">
+          <img class="brand-logo-item" src="/images/logos/new_underarmour_logo.png" alt="Under Armour">
+          <img class="brand-logo-item" src="/images/logos/new_dior_logo.png" alt="Dior">
+          <img class="brand-logo-item" src="/images/logos/new_maybelline_logo.png" alt="Maybelline">
+          <img class="brand-logo-item" src="/images/logos/new_lexus_logo.png" alt="Lexus">
+          <img class="brand-logo-item" src="/images/logos/new_bww_logo.png" alt="Buffalo Wild Wings">
+          <img class="brand-logo-item" src="/images/logos/new_beyonce_logo.png" alt="Beyoncé">
+          <img class="brand-logo-item" src="/images/logos/new_drake_logo.png" alt="Drake">
+          <img class="brand-logo-item" src="/images/logos/new_swifty_logo.png" alt="Taylor Swift">
+          <img class="brand-logo-item" src="/images/logos/new_madden26_logo.png" alt="Madden 26">
+          <img class="brand-logo-item" src="/images/logos/new_sinners_logo.png" alt="Sinners">
+          <img class="brand-logo-item" src="/images/logos/new_war_logo.png" alt="War">
+          <img class="brand-logo-item" src="/images/logos/new_call_logo.png" alt="Call of Duty">
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================
+       S2 — THE PROBLEM
+       ============================================ -->
+  <section class="kup-problem">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-label kup-label-muted">The Problem</span>
+        <h2 class="section-title kup-title-light">The influencer industry is broken.</h2>
+        <p class="section-subtitle kup-subtitle-light">Brands are spending more and getting less, while their most valuable asset goes completely untapped.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="problem-card">
+            <div class="problem-icon-wrap">
+              <i class="ph ph-currency-dollar" style="font-size:32px;"></i>
+            </div>
+            <h4 class="problem-title">Agencies bleed your budget</h4>
+            <p class="problem-body">$5K–$50K a month. Zero transparency. Results you can't verify, and an invoice that keeps coming either way.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="problem-card">
+            <div class="problem-icon-wrap">
+              <i class="ph ph-prohibit" style="font-size:32px;"></i>
+            </div>
+            <h4 class="problem-title">Big names, empty returns</h4>
+            <p class="problem-body">Inflated follower counts, bot engagement, and polished content nobody trusts. Mega-influencers average 1–2% engagement.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="problem-card">
+            <div class="problem-icon-wrap">
+              <i class="ph ph-users-three" style="font-size:32px;"></i>
+            </div>
+            <h4 class="problem-title">Your best marketers are invisible</h4>
+            <p class="problem-body">Your most loyal customers are already talking about you. Nobody's asked them to create, and you're leaving a goldmine untouched.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S3 — THE SOLUTION
+       ============================================ -->
+  <section class="kup-solution">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-5">
+          <span class="section-label">The Solution</span>
+          <h2 class="section-title" style="text-align:left;">Start from within.</h2>
+          <p class="section-subtitle" style="text-align:left;max-width:440px;margin-left:0;margin-bottom:12px;">Your most loyal customers are already influencing people. KeepUsPostd activates them and hands you authentic content you actually own.</p>
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient mt-2">Create Your Brand Profile Free →</a>
+          <div class="solution-proof-row">
+            <div class="solution-avatars">
+              <img src="https://i.pravatar.cc/40?img=32" alt="">
+              <img src="https://i.pravatar.cc/40?img=47" alt="">
+              <img src="https://i.pravatar.cc/40?img=15" alt="">
+              <img src="https://i.pravatar.cc/40?img=25" alt="">
+              <img src="https://i.pravatar.cc/40?img=33" alt="">
+            </div>
+            <span class="solution-proof-text">Joined by 3,000+ brands, from local shops to regional chains</span>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="solution-flow">
+            <div class="solution-step">
+              <div class="solution-step-num">01</div>
+              <div class="solution-step-icon">
+                <i class="ph ph-qr-code" style="font-size:28px;"></i>
+              </div>
+              <div class="solution-step-label">QR Code Deployed</div>
+              <div class="solution-step-desc">One code. Works in-store, on packaging, at events, online.</div>
+            </div>
+            <div class="solution-connector">
+              <i class="ph ph-caret-right" style="font-size:20px;"></i>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">02</div>
+              <div class="solution-step-icon">
+                <i class="ph ph-user-circle" style="font-size:28px;"></i>
+              </div>
+              <div class="solution-step-label">Customer Creates</div>
+              <div class="solution-step-desc">They scan, download the app, and submit their authentic review.</div>
+            </div>
+            <div class="solution-connector">
+              <i class="ph ph-caret-right" style="font-size:20px;"></i>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">03</div>
+              <div class="solution-step-icon">
+                <i class="ph ph-check-circle" style="font-size:28px;"></i>
+              </div>
+              <div class="solution-step-label">Brand Approves &amp; Pays</div>
+              <div class="solution-step-desc">Review every submission. Only pay for what you love. Content is yours to keep.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S4 — HOW IT WORKS
+       ============================================ -->
+  <section class="kup-hiw-new">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-label">The Process</span>
+        <h2 class="section-title">Up and running in minutes.</h2>
+        <p class="section-subtitle">No agency. No complicated setup. Just your brand, your community, and content that converts.</p>
+      </div>
+      <div class="hiw-blade-wrap">
+
+        <!-- Blade 1: Build your brand profile -->
+        <div class="hiw-blade">
+          <div class="hiw-blade-copy">
+            <div class="hiw-stepnum">Step 01</div>
+            <h3 class="hiw-blade-title">Build your brand profile</h3>
+            <p class="hiw-blade-body">Set up your offer, define your reward, and your QR code is generated instantly, ready to deploy in-store, on packaging, at events, or anywhere your customers are.</p>
+          </div>
+          <div class="hiw-blade-visual" style="position: relative;">
+            <img src="/images/KUP_ADDBrand.png" alt="Add Your Brand — KeepUsPostd brand setup wizard" style="width:100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.10);">
+            <!-- Floating stat cards -->
+            <div class="blade-float-card" style="position:absolute; top:-16px; right:-20px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:0s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-blue); margin-bottom:4px;">QR Code</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">Live</div>
+              <div style="font-size:0.75rem; color:#888;">Ready to deploy</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:20px; left:-20px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:2s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#10B981; margin-bottom:4px;">Profile</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">100%</div>
+              <div style="font-size:0.75rem; color:#888;">Setup complete</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:-12px; right:10%; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:4s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-purple); margin-bottom:4px;">Deploy</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">4</div>
+              <div style="font-size:0.75rem; color:#888;">Channels ready</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blade 2: Customers create & submit (reversed) -->
+        <div class="hiw-blade hiw-blade-reverse">
+          <div class="hiw-blade-copy">
+            <div class="hiw-stepnum">Step 02</div>
+            <h3 class="hiw-blade-title">Customers create &amp; submit</h3>
+            <p class="hiw-blade-body">Loyal customers scan your QR code or discover you in the marketplace. They post from their real-life experience, landing directly in your brand dashboard.</p>
+          </div>
+          <div class="hiw-blade-visual">
+            <div style="position: relative; max-width: 340px; margin: 0 auto; padding: 20px 0;">
+              <img src="/images/KUP_APP_CAPTURE.png" alt="Influencer content capture — KeepUsPostd app" style="max-width: 240px; width: 100%; border-radius: 12px; margin: 0 auto; display: block; box-shadow: 0 8px 32px rgba(0,0,0,0.10);">
+              <!-- Floating stat cards -->
+              <div class="blade-float-card" style="position:absolute; top:0; right:-10px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:1s;">
+                <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-blue); margin-bottom:4px;">Submissions</div>
+                <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">38</div>
+                <div style="font-size:0.75rem; color:#888;">This month</div>
+              </div>
+              <div class="blade-float-card" style="position:absolute; bottom:60px; left:-10px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:3s;">
+                <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#10B981; margin-bottom:4px;">Creators</div>
+                <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">12</div>
+                <div style="font-size:0.75rem; color:#888;">Active this week</div>
+              </div>
+              <div class="blade-float-card" style="position:absolute; bottom:0; right:10px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:5s;">
+                <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-purple); margin-bottom:4px;">Avg. Engagement</div>
+                <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">4.8%</div>
+                <div style="font-size:0.75rem; color:#888;">Across all posts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blade 3: Approve, reward & publish -->
+        <div class="hiw-blade">
+          <div class="hiw-blade-copy">
+            <div class="hiw-stepnum">Step 03</div>
+            <h3 class="hiw-blade-title">Approve, reward &amp; publish</h3>
+            <p class="hiw-blade-body">Review every piece of content before a dollar leaves your account. Approve what fits your brand, reward your creators, and push content to all your channels.</p>
+          </div>
+          <div class="hiw-blade-visual" style="position: relative;">
+            <img src="/images/KUP_Approval.png" alt="Content approval dashboard — KeepUsPostd" style="width:100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.10);">
+            <!-- Floating stat cards -->
+            <div class="blade-float-card" style="position:absolute; top:-16px; right:-20px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:0.5s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-blue); margin-bottom:4px;">Approved</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">23</div>
+              <div style="font-size:0.75rem; color:#888;">This week</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:20px; left:-20px; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:2.5s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#10B981; margin-bottom:4px;">Rewards Sent</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">$847</div>
+              <div style="font-size:0.75rem; color:#888;">To 14 creators</div>
+            </div>
+            <div class="blade-float-card" style="position:absolute; bottom:-12px; right:10%; background:#fff; border-radius:14px; padding:14px 20px; box-shadow:0 6px 24px rgba(0,0,0,0.10); text-align:center; z-index:2; animation-delay:4.5s;">
+              <div style="font-size:0.65rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--kup-purple); margin-bottom:4px;">Published</div>
+              <div style="font-size:1.6rem; font-weight:800; color:#111; line-height:1;">5</div>
+              <div style="font-size:0.75rem; color:#888;">Channels active</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="text-center mt-5">
+        <a href="how-it-works.html" class="btn-kup btn-kup-outline-dark">See the full process →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S5 — WHAT BRANDS GET
+       ============================================ -->
+  <section class="kup-outcomes">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="section-label">Platform Features</span>
+        <h2 class="section-title">Everything your brand needs to win.</h2>
+        <p class="section-subtitle">Designed for brand managers, not engineers. Everything in one dashboard.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-qr-code" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Instant QR Code</h5>
+            <p class="outcome-body">Generated the moment you create your profile. Deploy it in-store, on packaging, at events, or digitally, anywhere your customers are.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-layout" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Content Dashboard</h5>
+            <p class="outcome-body">Every submission lands in one place. Review photos, videos, and captions from a single dashboard. No spreadsheets required.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-shield-check" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Approve Before You Pay</h5>
+            <p class="outcome-body">See every piece of content before a dollar leaves your account. Only reward posts that meet your standard, always.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-chat-circle" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Direct Messaging</h5>
+            <p class="outcome-body">Communicate directly with your creators. Brief them, guide revisions, and build real relationships with your brand community.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-wallet" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Auto-Reload Wallet</h5>
+            <p class="outcome-body">Set a campaign budget and let it run. Your wallet auto-reloads so your campaign never goes dark mid-momentum.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="outcome-tile">
+            <div class="outcome-icon">
+              <i class="ph ph-share-network" style="font-size:24px;"></i>
+            </div>
+            <h5 class="outcome-title">Multi-Channel Publishing</h5>
+            <p class="outcome-body">Approved content is yours to keep and publish. Post to Instagram, TikTok, your website, paid ads, wherever your audience lives.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S6 — THE NUMBERS
+       ============================================ -->
+  <section class="kup-numbers">
+    <div class="container">
+      <div class="numbers-blade">
+        <div class="text-center mb-5">
+          <span class="section-label" style="color:var(--kup-orange)">The Data</span>
+          <h2 class="section-title" style="color:#111827;">The numbers don't lie.</h2>
+          <p class="section-subtitle" style="color:#6B7280;">Micro-influencers and authentic content outperform traditional influencer marketing, every time.</p>
+        </div>
+        <div class="numbers-industry-row">
+          <div class="numbers-stat-block">
+            <div class="numbers-big" data-target="2.4" data-suffix="&times;" data-decimals="1">2.4&times;</div>
+            <div class="numbers-context">UGC converts better than polished brand content</div>
+          </div>
+          <div class="numbers-divider"></div>
+          <div class="numbers-stat-block">
+            <div class="numbers-big" data-target="92" data-suffix="%">92%</div>
+            <div class="numbers-context">Of consumers trust peer reviews over brand ads</div>
+          </div>
+          <div class="numbers-divider"></div>
+          <div class="numbers-stat-block">
+            <div class="numbers-big">6&ndash;8%</div>
+            <div class="numbers-context">Avg. engagement for micro-influencers vs 1&ndash;2% for mega</div>
+          </div>
+        </div>
+        <div class="numbers-kup-row">
+          <div class="numbers-kup-stat">
+            <div class="numbers-kup-num" data-target="3000" data-suffix="+" data-separator=",">3,000+</div>
+            <div class="numbers-kup-label">Brands on Platform</div>
+          </div>
+          <div class="numbers-kup-stat">
+            <div class="numbers-kup-num" data-target="50" data-suffix="K+">50K+</div>
+            <div class="numbers-kup-label">Active Influencers</div>
+          </div>
+          <div class="numbers-kup-stat">
+            <div class="numbers-kup-num" data-target="2" data-prefix="$" data-suffix="M+">$2M+</div>
+            <div class="numbers-kup-label">Paid to Creators</div>
+          </div>
+          <div class="numbers-kup-stat">
+            <div class="numbers-kup-num" data-target="4.8" data-suffix=" &#9733;" data-decimals="1">4.8 &#9733;</div>
+            <div class="numbers-kup-label">App Store Rating</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S7 — COMMUNITY LOVE
+       ============================================ -->
+  <section class="kup-testimonials-new">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Why brands and creators love KeepUsPostd.</h2>
+      </div>
+      <div class="testimonials-masonry">
+
+        <div class="tcard tcard-featured">
+          <div class="tcard-header">
+            <img src="/images/JA-Image.png" alt="Keshia Bruno" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">Keshia Bruno</div>
+              <div class="tcard-role">Educational Manager, Junior Achievement of Dallas</div>
+            </div>
+            <i class="ph-fill ph-x-logo tcard-platform-icon" style="font-size:18px;"></i>
+          </div>
+          <span class="tcard-tag brand">Brand</span>
+          <p class="tcard-quote">"Using KeepUsPostd we were able to capture candid brand reviews from our affiliates at an event with little to no effort."</p>
+          <div class="tcard-org-logo">
+            <img src="/images/JA-Logo.png" alt="Junior Achievement of Dallas">
+          </div>
+        </div>
+
+        <div class="tcard">
+          <div class="tcard-header">
+            <img src="https://i.pravatar.cc/150?img=47" alt="Maya Delacroix" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">Maya Delacroix</div>
+              <div class="tcard-role">@maya.eats &middot; 42K followers</div>
+            </div>
+            <i class="ph-fill ph-instagram-logo tcard-platform-icon" style="font-size:18px;"></i>
+          </div>
+          <span class="tcard-tag creator">Creator</span>
+          <p class="tcard-quote">"Finally a platform that pays me for content I was already making for brands I love. The whole process is simple and the brands respond fast."</p>
+        </div>
+
+        <div class="tcard">
+          <div class="tcard-header">
+            <img src="https://i.pravatar.cc/150?img=12" alt="David Whitfield" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">David Whitfield</div>
+              <div class="tcard-role">Owner, Parish Street Kitchen</div>
+            </div>
+          </div>
+          <span class="tcard-tag brand">Brand</span>
+          <p class="tcard-quote">"Placed QR codes on our tables. Within 48 hours we had over 30 authentic video reviews, all from real customers. No agency, no budget wasted."</p>
+        </div>
+
+        <div class="tcard">
+          <div class="tcard-header">
+            <img src="https://i.pravatar.cc/150?img=52" alt="Carlos Vega" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">Carlos Vega</div>
+              <div class="tcard-role">@carloslifts &middot; 8.3K followers</div>
+            </div>
+            <i class="ph ph-phone tcard-platform-icon" style="font-size:18px;"></i>
+          </div>
+          <span class="tcard-tag creator">Creator</span>
+          <p class="tcard-quote">"The app is clean and easy to use. Brands are responsive and the rewards are actually worth creating for. I've worked with 3 brands this month alone."</p>
+        </div>
+
+        <div class="tcard">
+          <div class="tcard-header">
+            <img src="https://i.pravatar.cc/150?img=25" alt="Priya Sharma" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">Priya Sharma</div>
+              <div class="tcard-role">Marketing Director, Luminos Skincare</div>
+            </div>
+          </div>
+          <span class="tcard-tag brand">Brand</span>
+          <p class="tcard-quote">"The approval flow changed everything for us. We finally feel in control of our content. No more hoping an influencer doesn't go off-brand."</p>
+        </div>
+
+        <div class="tcard">
+          <div class="tcard-header">
+            <img src="https://i.pravatar.cc/150?img=39" alt="Amara Baptiste" class="tcard-avatar">
+            <div class="tcard-meta">
+              <div class="tcard-name">Amara Baptiste</div>
+              <div class="tcard-role">@amara.eats &middot; 22K followers</div>
+            </div>
+            <i class="ph-fill ph-x-logo tcard-platform-icon" style="font-size:18px;"></i>
+          </div>
+          <span class="tcard-tag creator">Creator</span>
+          <p class="tcard-quote">"I've worked with 4 brands on KeepUsPostd in 3 months. The whole process is transparent, the payments are fast, and the brands I get matched with actually align with my content."</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S8 — FAQ
+       ============================================ -->
+  <section class="kup-faq-new">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <span class="section-label">FAQ</span>
+          <h2 class="section-title" style="text-align:left;">Common questions,<br>honest answers.</h2>
+          <p class="section-subtitle" style="text-align:left;">Have more? <a href="#" data-contact style="color:var(--kup-blue);font-weight:600;">Reach out →</a></p>
+        </div>
+        <div class="col-lg-8">
+          <div class="faq-list">
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                Do influencers need a huge following to participate?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>No. KeepUsPostd is built for micro and nano creators: people with real, engaged audiences even if small. Our highest-performing content often comes from creators with under 5,000 followers because their communities trust their voice.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                Do I pay before seeing the content?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>Never. Every submission hits your dashboard before any payment is released. You review the content, decide if it meets your standard, and only then approve and reward. Full control, always.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                Who owns the content once it's approved?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>You do. Once you approve a submission, the content is yours to use across your channels: Instagram, TikTok, your website, paid ads, everywhere. No additional licensing fees.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                How does the QR code work?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>When you create your brand profile, a unique QR code is generated automatically. Place it anywhere: receipts, packaging, storefront, event tables, or digital channels. When a customer scans it, they are directed to your brand page in the KeepUsPostd app.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                What's included in the free plan?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>The free plan includes your full brand profile, QR code generation, and dashboard access. It's designed to let you experience the platform before committing. No credit card required.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false">
+                How quickly can I launch my first campaign?
+                <i class="ph ph-caret-down faq-chevron"></i>
+              </button>
+              <div class="faq-answer">
+                <p>Most brands are live within minutes. Create your profile, set your reward, and your QR code is ready to deploy. No onboarding call required and no setup fee.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       S9 — FINAL CTA
+       ============================================ -->
+  <section class="kup-final-cta">
+    <div class="container">
+      <div class="kup-final-cta-inner">
+        <span class="section-label" style="color:var(--kup-orange)">Get Started</span>
+        <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:500;color:#111827;margin:16px 0 14px;letter-spacing:-0.5px;">Your community is already out there.</h2>
+        <p style="max-width:520px;margin:0 auto 40px;font-size:1.05rem;line-height:1.7;color:#6B7280;">They're just waiting to be asked. Give them a platform and grow the way the best brands do: from within.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <a href="register-brand.html" class="btn-kup btn-kup-gradient" style="font-size:1rem;padding:14px 32px;">Create Your Brand Profile. It's Free →</a>
+          <a href="download-app.html" class="btn-kup btn-kup-outline-dark">Download the App</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="kup-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd" style="height: 36px; margin-bottom: 20px;">
+          <p style="font-size: 0.9rem; max-width: 260px;">
+            Everyone has influence. Turn your community into your best marketing team.
+          </p>
+                    <div class="footer-social mt-3">
+            <a href="https://www.facebook.com/keepuspostd" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+            <a href="https://www.instagram.com/keepuspostd/" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="https://x.com/Keepuspostd" aria-label="X/Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.linkedin.com/company/keepuspostd-corporation/" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://www.tiktok.com/@keepuspostd" aria-label="TikTok"><svg width="22" height="22" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>About</h5>
+          <a href="how-it-works.html">How It Works</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Platform</h5>
+          <a href="influencer-marketing.html">For Brands</a>
+          <a href="for-agencies.html">For Agencies</a>
+          <a href="download-app.html">For Influencers</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5>Support</h5>
+          <a href="#" data-contact>Contact Us</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="policy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom mt-4">
+      <div class="container">
+        <p class="mb-1">&#169;2026 All Rights Reserved. KeepUsPostd&#174; is a Registered Trademark of KeepUsPostd Corporation.</p>
+        <p class="mb-0"><a href="policy.html">Privacy</a> &nbsp;·&nbsp; <a href="terms.html">Terms</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================
+       PHONE POST MODAL
+       ============================================ -->
+  <div class="phone-overlay" id="phoneOverlay">
+    <div class="phone-modal-wrap">
+      <button class="phone-close-btn" id="phoneClose" aria-label="Close">✕</button>
+      <div class="phone-device">
+        <div class="phone-island"></div>
+        <div class="phone-screen" id="phoneScreen"></div>
+      </div>
+      <div class="creator-modal-meta" id="creatorModalMeta"></div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+  // ============================================================
+  // KUP HOME — INTERACTIVE: Toggle + Creator Feed + Phone Modal
+  // ============================================================
+
+  // ---- Staged influencer data ----
+  const kupInfluencers = [
+    {
+      id: 0,
+      name: "Maya Delacroix",
+      handle: "maya.eats",
+      category: "Food & Culture",
+      platform: "Instagram",
+      followers: "42.1K",
+      engagement: "4.8%",
+      location: "New Orleans, LA",
+      avatar: "https://i.pravatar.cc/150?img=47",
+      postImg: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=500&fit=crop",
+      caption: "Found the most incredible hidden gem in the city and HAD to bring y'all along 🍜✨ The gumbo is absolutely unreal. Huge thanks to the team, highly recommend! #FoodReview #NewOrleans #KeepUsPostd",
+      likes: "2,847",
+      comments: "134",
+      brandName: "Dooky Chase's Restaurant",
+      postedAt: "2 hours ago",
+      tags: ["#FoodCulture", "#NewOrleans", "#KeepUsPostd"]
+    },
+    {
+      id: 1,
+      name: "Trey Mitchell",
+      handle: "fitwithtrey",
+      category: "Fitness & Wellness",
+      platform: "TikTok",
+      followers: "18.3K",
+      engagement: "7.2%",
+      location: "Atlanta, GA",
+      avatar: "https://i.pravatar.cc/150?img=12",
+      postImg: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=500&fit=crop",
+      caption: "My new go-to spot for post-workout fuel 💪 The macro-balanced meals here are a game changer for anyone serious about their goals! #FitnessLife #HealthyEating #KeepUsPostd",
+      likes: "4,201",
+      comments: "287",
+      brandName: "GreenPlate Kitchen",
+      postedAt: "5 hours ago",
+      tags: ["#FitnessLife", "#HealthyEats", "#KeepUsPostd"]
+    },
+    {
+      id: 2,
+      name: "Sasha Williams",
+      handle: "shopwithsasha",
+      category: "Fashion & Style",
+      platform: "Instagram",
+      followers: "31.7K",
+      engagement: "5.1%",
+      location: "Houston, TX",
+      avatar: "https://i.pravatar.cc/150?img=25",
+      postImg: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&h=500&fit=crop",
+      caption: "This collection is everything I didn't know I needed 🔥 The quality is insane for the price. Run, don't walk! #Fashion #OOTD #KeepUsPostd",
+      likes: "6,420",
+      comments: "392",
+      brandName: "Luxe & Simple Co.",
+      postedAt: "1 day ago",
+      tags: ["#Fashion", "#OOTD", "#KeepUsPostd"]
+    },
+    {
+      id: 3,
+      name: "Jordan Reyes",
+      handle: "jordanlocal",
+      category: "Local Business",
+      platform: "TikTok",
+      followers: "12.9K",
+      engagement: "8.4%",
+      location: "Dallas, TX",
+      avatar: "https://i.pravatar.cc/150?img=33",
+      postImg: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=500&fit=crop",
+      caption: "This is what community looks like ⭐ Been coming here for years and they just keep getting better. #SupportLocal #KeepUsPostd",
+      likes: "1,893",
+      comments: "211",
+      brandName: "Barrio's Tacos",
+      postedAt: "2 days ago",
+      tags: ["#SupportLocal", "#Community", "#KeepUsPostd"]
+    },
+    {
+      id: 4,
+      name: "Naomi Ellis",
+      handle: "beautybynaomi",
+      category: "Beauty & Skincare",
+      platform: "Instagram",
+      followers: "28.4K",
+      engagement: "6.3%",
+      location: "Miami, FL",
+      avatar: "https://i.pravatar.cc/150?img=54",
+      postImg: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=500&fit=crop",
+      caption: "The glow-up is REAL 🌟 Three weeks in and I cannot believe the difference. This is not an ad. This is just facts! #Skincare #BeautyRoutine #KeepUsPostd",
+      likes: "8,132",
+      comments: "445",
+      brandName: "Radiant Beauty Bar",
+      postedAt: "3 days ago",
+      tags: ["#BeautyRoutine", "#GlowUp", "#KeepUsPostd"]
+    },
+    {
+      id: 5,
+      name: "Chris Fontaine",
+      handle: "chrisfontaineats",
+      category: "Food & Travel",
+      platform: "YouTube",
+      followers: "67.2K",
+      engagement: "3.9%",
+      location: "Chicago, IL",
+      avatar: "https://i.pravatar.cc/150?img=8",
+      postImg: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=500&fit=crop",
+      caption: "You NEED to put this spot on your bucket list fr 🌍✈️ The whole experience was next level and the team made us feel like family. 10/10! #FoodTravel #HiddenGems #KeepUsPostd",
+      likes: "12,405",
+      comments: "621",
+      brandName: "The Harbor House",
+      postedAt: "4 days ago",
+      tags: ["#FoodTravel", "#HiddenGems", "#KeepUsPostd"]
+    },
+    {
+      id: 6,
+      name: "Deja Morris",
+      handle: "dejalifts",
+      category: "Fitness & Wellness",
+      platform: "TikTok",
+      followers: "9.7K",
+      engagement: "9.1%",
+      location: "Houston, TX",
+      avatar: "https://i.pravatar.cc/150?img=44",
+      postImg: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=500&fit=crop",
+      caption: "This supplement line actually works and I only found it through KeepUsPostd 🙌 Small brand, big results. Support the locals! #WellnessLife #Fitness #KeepUsPostd",
+      likes: "3,544",
+      comments: "198",
+      brandName: "Apex Nutrition Co.",
+      postedAt: "1 day ago",
+      tags: ["#WellnessLife", "#Fitness", "#KeepUsPostd"]
+    },
+    {
+      id: 7,
+      name: "Aaliyah Grant",
+      handle: "aaliyahcooks",
+      category: "Food & Lifestyle",
+      platform: "Instagram",
+      followers: "22.1K",
+      engagement: "5.6%",
+      location: "New Orleans, LA",
+      avatar: "https://i.pravatar.cc/150?img=49",
+      postImg: "https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&h=500&fit=crop",
+      caption: "Y'all... this praline shop is EVERYTHING 😍 Walked in, scanned the QR code, left a review and they rewarded me same day. This is how brands should operate! #FoodLover #NewOrleans #KeepUsPostd",
+      likes: "5,788",
+      comments: "312",
+      brandName: "Chaney's Pralines",
+      postedAt: "3 hours ago",
+      tags: ["#FoodLover", "#NewOrleans", "#KeepUsPostd"]
+    },
+    {
+      id: 8,
+      name: "Marcus Webb",
+      handle: "marcusinthewild",
+      category: "Outdoor & Adventure",
+      platform: "Instagram",
+      followers: "35.6K",
+      engagement: "4.4%",
+      location: "Austin, TX",
+      avatar: "https://i.pravatar.cc/150?img=15",
+      postImg: "https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=400&h=500&fit=crop",
+      caption: "Partnered with this brand through KeepUsPostd and the whole experience was seamless. Submitted my content, got approved in 24 hours, and the reward hit my wallet. This is the future. 🌿 #OutdoorLife #BrandPartner #KeepUsPostd",
+      likes: "7,209",
+      comments: "403",
+      brandName: "Wilder Goods",
+      postedAt: "6 hours ago",
+      tags: ["#OutdoorLife", "#Adventure", "#KeepUsPostd"]
+    }
+  ];
+
+  // ---- Hero toggle content ----
+  const heroModes = {
+    brand: {
+      headline: `Turn Your Community Into<br><span class="gradient-text">Your Best Marketing Team</span>`,
+      sub: "Connect with real people who already love your brand.<br>Approve content before you pay. No agencies. No wasted spend.",
+      primaryText: "Add Your Brand Free",
+      primaryHref: "register-brand.html",
+      secondaryText: "See how it works →",
+      secondaryHref: "how-it-works.html",
+      footnote: "Free to start. No credit card required."
+    },
+    influencer: {
+      headline: `Your Voice Has Value.<br><span class="gradient-text">Start Earning Today.</span>`,
+      sub: "Partner with brands you already love and earn real cash & rewards.<br>Share your authentic experience from your phone. Always free.",
+      primaryText: "Download the App Free",
+      primaryHref: "download-app.html",
+      secondaryText: "See how influencers earn →",
+      secondaryHref: "download-app.html",
+      footnote: "Available on iOS and Android. Always free."
+    }
+  };
+
+  // ---- Platform icons ----
+  function getPlatformIcon(platform) {
+    const map = { Instagram: '<i class="ph-fill ph-instagram-logo" style="font-size:14px;"></i>', TikTok: '<i class="ph-fill ph-tiktok-logo" style="font-size:14px;"></i>', YouTube: '<i class="ph-fill ph-youtube-logo" style="font-size:14px;"></i>', Twitter: '<i class="ph-fill ph-x-logo" style="font-size:14px;"></i>', Facebook: '<i class="ph-fill ph-facebook-logo" style="font-size:14px;"></i>' };
+    return map[platform] || '<i class="ph ph-device-mobile" style="font-size:14px;"></i>';
+  }
+
+  // ---- Render influencer cards ----
+  function renderCreatorCards() {
+    const feed = document.getElementById('creatorFeed');
+    if (!feed) return;
+
+    feed.innerHTML = kupInfluencers.map(c => `
+      <div class="creator-card" data-id="${c.id}" role="button" tabindex="0" aria-label="View ${c.name}'s post">
+        <div class="creator-card-img-wrap">
+          <img class="creator-card-post-img" src="${c.postImg}" alt="${c.name}'s post" loading="lazy">
+          <div class="creator-card-overlay"></div>
+          <span class="creator-card-platform-badge">${getPlatformIcon(c.platform)} ${c.platform}</span>
+          <div class="creator-card-tags">
+            ${c.tags.map(tag => `<span class="creator-tag">${tag}</span>`).join('')}
+          </div>
+          <div class="creator-card-info-overlay">
+            <img class="creator-card-avatar" src="${c.avatar}" alt="${c.name}" loading="lazy">
+            <div>
+              <div class="creator-card-name">${c.name}</div>
+              <div class="creator-card-handle">@${c.handle}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Click to open creator detail page
+    feed.querySelectorAll('.creator-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = parseInt(card.dataset.id);
+        window.location.href = 'creator-detail.html?id=' + id;
+      });
+    });
+
+    // Drag-to-scroll
+    let isDown = false, startX, scrollLeft;
+    feed.addEventListener('mousedown', e => {
+      isDown = true;
+      feed.classList.add('dragging');
+      startX = e.pageX - feed.offsetLeft;
+      scrollLeft = feed.scrollLeft;
+    });
+    ['mouseleave', 'mouseup'].forEach(evt => feed.addEventListener(evt, () => {
+      isDown = false;
+      feed.classList.remove('dragging');
+    }));
+    feed.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - feed.offsetLeft;
+      feed.scrollLeft = scrollLeft - (x - startX) * 1.5;
+    });
+
+    // ---- Arrow buttons + dynamic fade visibility ----
+    const arrowRight = document.getElementById('feedScrollRight');
+    const arrowLeft  = document.getElementById('feedScrollLeft');
+    const fadeLeft   = feed.closest('.creator-feed-outer').querySelector('.feed-fade-left');
+
+    // Capture the resting scroll position (may be > 0 if snap consumes padding)
+    const restScrollLeft = feed.scrollLeft;
+
+    // Right arrow — scroll forward
+    if (arrowRight) {
+      arrowRight.addEventListener('click', () => {
+        feed.scrollBy({ left: 320, behavior: 'smooth' });
+      });
+    }
+
+    // Left arrow — scroll back
+    if (arrowLeft) {
+      arrowLeft.addEventListener('click', () => {
+        feed.scrollBy({ left: -320, behavior: 'smooth' });
+      });
+    }
+
+    // On scroll: show/hide left arrow + left fade relative to resting position
+    function updateFeedArrows() {
+      const atStart = feed.scrollLeft <= restScrollLeft + 4;
+      if (arrowLeft) arrowLeft.classList.toggle('is-hidden', atStart);
+      if (fadeLeft)  fadeLeft.classList.toggle('visible', !atStart);
+    }
+
+    feed.addEventListener('scroll', updateFeedArrows, { passive: true });
+    updateFeedArrows(); // run once on init
+  }
+
+  // ---- Phone modal ----
+  function openPhoneModal(creator, cardEl) {
+    const overlay  = document.getElementById('phoneOverlay');
+    const screen   = document.getElementById('phoneScreen');
+    const meta     = document.getElementById('creatorModalMeta');
+    const wrap     = document.querySelector('.phone-modal-wrap');
+    if (!overlay || !screen || !meta) return;
+
+    /* --- Animation origin from clicked card --- */
+    if (cardEl && wrap) {
+      const rect = cardEl.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      wrap.style.setProperty('--modal-origin-x', cx + 'px');
+      wrap.style.setProperty('--modal-origin-y', cy + 'px');
+    }
+
+    /* --- Derive dynamic data --- */
+    const engNum = parseFloat(creator.engagement);
+    const tier = engNum > 7 ? 'Elite Creator' : engNum > 5 ? 'Verified' : 'Rising Star';
+    const likesNum = parseInt(creator.likes.replace(/,/g, '')) || 500;
+    const points = Math.round(likesNum * 0.8);
+    const cash = (points * 0.015).toFixed(2);
+    const progress = Math.min(Math.round((points / 2000) * 100), 92);
+    const remaining = 2000 - points;
+    const brandInitial = creator.brandName ? creator.brandName.charAt(0).toUpperCase() : 'K';
+    const platformIcon = { Instagram: '📸', TikTok: '🎵', YouTube: '▶️' }[creator.platform] || '📱';
+
+    /* --- Phone screen: full KUP app experience --- */
+    screen.innerHTML = `
+      <div class="kup-app">
+        <!-- Status Bar -->
+        <div class="kup-app-statusbar">
+          <span>9:41</span>
+          <span style="display:flex;gap:4px;align-items:center;">
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M1 8h1.5V4H1v4zm3 2h1.5V2H4v8zm3-1h1.5V1H7v8zm3-3h1.5V3H10v4zm3 1h1V5h-1v2z" fill="#111"/></svg>
+            <svg width="14" height="10" viewBox="0 0 14 10"><path d="M7 2C4.8 2 2.8 2.9 1.4 4.3l1.1 1.1C3.6 4.3 5.2 3.5 7 3.5s3.4.8 4.5 1.9l1.1-1.1C11.2 2.9 9.2 2 7 2zm0 3c-1.3 0-2.5.5-3.4 1.4L4.7 7.5c.6-.6 1.4-1 2.3-1 .9 0 1.7.4 2.3 1l1.1-1.1C9.5 5.5 8.3 5 7 5zm0 3c-.6 0-1.1.2-1.5.7L7 10l1.5-1.3C8.1 8.2 7.6 8 7 8z" fill="#111"/></svg>
+            <svg width="22" height="10" viewBox="0 0 22 10"><rect x="1" y="1" width="18" height="8" rx="2" stroke="#111" stroke-width="1" fill="none"/><rect x="2.5" y="2.5" width="12" height="5" rx="1" fill="#111"/><rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="#111"/></svg>
+          </span>
+        </div>
+
+        <!-- KUP App Header -->
+        <div class="kup-app-header">
+          <span class="kup-app-logo">KUP</span>
+          <div class="kup-app-header-right">
+            <i class="ph ph-bell" style="font-size:16px;color:#666;"></i>
+            <img class="kup-app-header-avatar" src="${creator.avatar}" alt="${creator.name}">
+          </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="kup-profile-card">
+          <div class="kup-profile-avatar-wrap">
+            <img class="kup-profile-avatar" src="${creator.avatar}" alt="${creator.name}">
+          </div>
+          <div class="kup-profile-name">${creator.name}</div>
+          <div class="kup-profile-handle">@${creator.handle}</div>
+          <span class="kup-tier-badge">${tier}</span>
+          <div class="kup-stats-row">
+            <div class="kup-stat-item"><span class="kup-stat-num">${creator.followers}</span><span class="kup-stat-label">Followers</span></div>
+            <div class="kup-stat-item"><span class="kup-stat-num">${creator.engagement}</span><span class="kup-stat-label">Engagement</span></div>
+            <div class="kup-stat-item"><span class="kup-stat-num">${likesNum > 999 ? (likesNum/1000).toFixed(1)+'K' : likesNum}</span><span class="kup-stat-label">Likes</span></div>
+          </div>
+        </div>
+
+        <!-- Active Brand Partnership -->
+        <div style="padding:0 12px 4px;"><div class="kup-section-label">Active Partnership</div></div>
+        <div class="kup-brand-card">
+          <div class="kup-brand-row">
+            <div class="kup-brand-logo">${brandInitial}</div>
+            <div class="kup-brand-info">
+              <div class="kup-brand-name">${creator.brandName || 'KeepUsPostd'}</div>
+              <div class="kup-brand-campaign">Content Campaign</div>
+            </div>
+            <span style="font-size:0.58rem;font-weight:600;color:#16a34a;background:#f0fdf4;padding:3px 8px;border-radius:8px;">Active</span>
+          </div>
+          <div class="kup-brand-stats">
+            <div class="kup-brand-stat-pill">
+              <span class="kup-brand-stat-val" style="color:#16a34a;">Approved</span>
+              <span class="kup-brand-stat-lbl">Status</span>
+            </div>
+            <div class="kup-brand-stat-pill">
+              <span class="kup-brand-stat-val">${points.toLocaleString()}</span>
+              <span class="kup-brand-stat-lbl">Points</span>
+            </div>
+            <div class="kup-brand-stat-pill">
+              <span class="kup-brand-stat-val">3</span>
+              <span class="kup-brand-stat-lbl">Posts</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Post -->
+        <div style="padding:4px 12px 4px;"><div class="kup-section-label">Recent Post</div></div>
+        <div class="kup-post-card">
+          <div class="kup-post-img-wrap">
+            <img class="kup-post-img" src="${creator.postImg}" alt="Post by ${creator.name}" loading="lazy">
+            <span class="kup-post-platform">${platformIcon} ${creator.platform}</span>
+          </div>
+          <div class="kup-post-body">
+            <div class="kup-post-caption">${creator.caption.length > 100 ? creator.caption.substring(0, 100) + '...' : creator.caption}</div>
+            <div class="kup-post-engagement">
+              <span><i class="ph ph-heart" style="font-size:12px;"></i> ${creator.likes}</span>
+              <span><i class="ph ph-chat-circle" style="font-size:12px;"></i> ${creator.comments}</span>
+              <span style="margin-left:auto;font-size:0.55rem;color:#bbb;">${creator.postedAt}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Earnings Snapshot -->
+        <div style="padding:4px 12px 4px;"><div class="kup-section-label">Rewards & Earnings</div></div>
+        <div class="kup-earnings-card">
+          <div class="kup-earnings-row">
+            <div class="kup-earn-block">
+              <span class="kup-earn-val">${points.toLocaleString()}</span>
+              <span class="kup-earn-lbl">Points</span>
+            </div>
+            <div class="kup-earn-block">
+              <span class="kup-earn-val">$${cash}</span>
+              <span class="kup-earn-lbl">Cash</span>
+            </div>
+            <div class="kup-earn-block">
+              <span class="kup-earn-val">${tier.split(' ')[0]}</span>
+              <span class="kup-earn-lbl">Tier</span>
+            </div>
+          </div>
+          <div class="kup-progress-track">
+            <div class="kup-progress-fill" style="width:${progress}%;"></div>
+          </div>
+          <div class="kup-progress-label">${remaining > 0 ? remaining.toLocaleString() + ' pts to next tier' : 'Max tier reached!'}</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="kup-quick-actions">
+          <button class="kup-action-btn">Create Post</button>
+          <button class="kup-action-btn">View Rewards</button>
+          <button class="kup-action-btn">Discover Brands</button>
+        </div>
+      </div>
+    `;
+
+    /* --- Metadata panel (right side on desktop) --- */
+    meta.innerHTML = `
+      <div class="cmo-name">${creator.name}</div>
+      <div class="cmo-handle">@${creator.handle}</div>
+      <div class="cmo-badges">
+        <span class="cmo-badge">${platformIcon} ${creator.platform}</span>
+        <span class="cmo-badge">${creator.category}</span>
+      </div>
+      <div class="cmo-location"><i class="ph ph-map-pin" style="font-size:14px;"></i> ${creator.location}</div>
+      <div class="cmo-bio">${creator.caption.length > 80 ? creator.caption.substring(0, 80) + '...' : creator.caption}</div>
+      <div class="cmo-stats">
+        <div class="cmo-stat"><strong>${creator.followers}</strong><span>Followers</span></div>
+        <div class="cmo-stat"><strong>${creator.engagement}</strong><span>Engagement</span></div>
+        <div class="cmo-stat"><strong>${points.toLocaleString()}</strong><span>KUP Pts</span></div>
+      </div>
+      <a href="register-brand.html" class="btn-kup btn-kup-gradient cmo-cta">Work with creators like ${creator.name.split(' ')[0]} →</a>
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    /* Focus close button for accessibility */
+    const closeBtn = document.getElementById('phoneClose');
+    if (closeBtn) setTimeout(() => closeBtn.focus(), 100);
+  }
+
+  function closePhoneModal() {
+    const overlay = document.getElementById('phoneOverlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ---- Hero toggle ----
+  function initHeroToggle() {
+    document.querySelectorAll('.hero-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.hero-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode    = btn.dataset.mode;
+        const content = heroModes[mode];
+        if (!content) return;
+
+        const el = id => document.getElementById(id);
+        el('heroHeadline').innerHTML     = content.headline;
+        el('heroSub').innerHTML          = content.sub;
+        el('heroPrimaryCta').textContent = content.primaryText;
+        el('heroPrimaryCta').href        = content.primaryHref;
+        el('heroSecondaryLink').textContent = content.secondaryText;
+        el('heroSecondaryLink').href     = content.secondaryHref;
+        el('heroFootnote').textContent   = content.footnote;
+      });
+    });
+  }
+
+  // ---- Init ----
+  document.addEventListener('DOMContentLoaded', () => {
+    renderCreatorCards();
+    initHeroToggle();
+
+    // Close phone modal — click, backdrop, Escape
+    document.getElementById('phoneClose')?.addEventListener('click', closePhoneModal);
+    document.getElementById('phoneOverlay')?.addEventListener('click', e => {
+      if (e.target.id === 'phoneOverlay') closePhoneModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closePhoneModal();
+    });
+
+    // ---- Nav scroll border ----
+    const kupNav = document.querySelector('.kup-nav');
+    function updateNavBorder() {
+      if (kupNav) kupNav.classList.toggle('nav-scrolled', window.scrollY > 10);
+    }
+    window.addEventListener('scroll', updateNavBorder, { passive: true });
+    updateNavBorder();
+
+    // Mobile nav
+    const navToggle  = document.getElementById('navToggle');
+    const navMobile  = document.getElementById('navMobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        navMobile.classList.toggle('open');
+        navToggle.classList.toggle('active');
+      });
+    }
+
+    // ---- Count-up animation for stats ----
+    function animateCountUp(el) {
+      const target   = parseFloat(el.dataset.target);
+      const suffix   = el.dataset.suffix   || '';
+      const prefix   = el.dataset.prefix   || '';
+      const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+      const sep      = el.dataset.separator || '';
+      const duration = 1600;
+      const startTime = performance.now();
+
+      function step(now) {
+        const elapsed  = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        const current  = eased * target;
+        let formatted;
+        if (decimals > 0) {
+          formatted = current.toFixed(decimals);
+        } else {
+          const rounded = Math.round(current);
+          formatted = sep ? rounded.toLocaleString() : String(rounded);
+        }
+        el.textContent = prefix + formatted + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          animateCountUp(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+
+    document.querySelectorAll('[data-target]').forEach(el => countObserver.observe(el));
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item   = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('faq-open');
+        // Collapse all
+        document.querySelectorAll('.faq-item').forEach(i => {
+          i.classList.remove('faq-open');
+          i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+        });
+        // Open clicked (if it wasn't already open)
+        if (!isOpen) {
+          item.classList.add('faq-open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  });
+  </script>
+
+  <script>
+  // Show UI embeds and handle iframe auth bypass
+  document.addEventListener('DOMContentLoaded', function() {
+    // Show all UI embeds
+    document.querySelectorAll('[data-ui-embed]').forEach(function(el) {
+      el.style.display = '';
+    });
+
+    // Bypass auth in app screen iframes
+    function setupAppIframe(iframe) {
+      try {
+        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        var authOverlay = iframeDoc.getElementById('authOverlay');
+        if (authOverlay) { authOverlay.classList.remove('visible'); authOverlay.style.display = 'none'; }
+        var onboarding = iframeDoc.getElementById('onboardingOverlay');
+        if (onboarding) onboarding.style.display = 'none';
+        var shellInfo = iframeDoc.querySelector('.shell-info');
+        if (shellInfo) shellInfo.style.display = 'none';
+        var protoLabel = iframeDoc.querySelector('.prototype-label');
+        if (protoLabel) protoLabel.style.display = 'none';
+        var appFrame = iframeDoc.querySelector('.app-frame');
+        if (appFrame) {
+          appFrame.style.position = 'absolute';
+          appFrame.style.top = '0'; appFrame.style.left = '0';
+          appFrame.style.width = '100%'; appFrame.style.height = '100%';
+          appFrame.style.margin = '0'; appFrame.style.borderRadius = '0';
+          appFrame.style.border = 'none'; appFrame.style.boxShadow = 'none';
+        }
+        var hash = iframe.src.split('#')[1];
+        if (hash && hash !== 'discover') {
+          setTimeout(function() {
+            try {
+              var iDoc = iframe.contentDocument || iframe.contentWindow.document;
+              var tabMap = { earn: 1, create: 2, activity: 3, profile: 4 };
+              var tabIndex = tabMap[hash];
+              if (tabIndex !== undefined) {
+                var navItems = iDoc.querySelectorAll('.bottom-nav .nav-item');
+                if (navItems[tabIndex]) navItems[tabIndex].click();
+              }
+            } catch(e) {}
+          }, 500);
+        }
+      } catch(e) {}
+    }
+    document.querySelectorAll('.phone-frame-embed iframe').forEach(function(iframe) {
+      iframe.addEventListener('load', function() { setupAppIframe(iframe); });
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        setTimeout(function() { setupAppIframe(iframe); }, 300);
+      }
+    });
+  });
+  </script>
+
+  <!-- ============================================
+       CONTACT MODAL
+       ============================================ -->
+  <div class="contact-overlay" id="contactOverlay"></div>
+  <div class="contact-modal" id="contactModal">
+    <button class="contact-modal-close" id="contactClose">&times;</button>
+
+    <!-- Form -->
+    <div id="contactFormWrap">
+      <h3>Get in touch</h3>
+      <p class="contact-sub">We'll get back to you within one business day.</p>
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Name</label>
+          <input type="text" id="contactName" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="contactTopic">Topic</label>
+          <select id="contactTopic" name="topic" required>
+            <option value="" disabled selected>Select a topic</option>
+            <option value="general">General Inquiry</option>
+            <option value="brand-sales">Brand Sales</option>
+            <option value="creator-support">Creator Support</option>
+            <option value="partnership">Partnership</option>
+            <option value="press">Press</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" name="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn-contact-submit">Send Message</button>
+      </form>
+    </div>
+
+    <!-- Success State -->
+    <div class="contact-success" id="contactSuccess">
+      <div class="contact-success-icon">&#10003;</div>
+      <h4>Message sent!</h4>
+      <p>Thanks for reaching out. We'll get back to you soon.</p>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const overlay = document.getElementById('contactOverlay');
+    const modal = document.getElementById('contactModal');
+    const closeBtn = document.getElementById('contactClose');
+    const form = document.getElementById('contactForm');
+    const formWrap = document.getElementById('contactFormWrap');
+    const success = document.getElementById('contactSuccess');
+
+    function openContact() {
+      overlay.classList.add('active');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeContact() {
+      overlay.classList.remove('active');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Attach to all contact triggers
+    document.querySelectorAll('[data-contact]').forEach(el => {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        openContact();
+      });
+    });
+
+    overlay.addEventListener('click', closeContact);
+    closeBtn.addEventListener('click', closeContact);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeContact();
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+      setTimeout(closeContact, 3000);
+      setTimeout(function() {
+        formWrap.style.display = '';
+        success.classList.remove('show');
+        form.reset();
+      }, 3500);
+    });
+  })();
+  </script>
+
+</body>
+</html>

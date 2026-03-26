@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaigns — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       KUP DESIGN SYSTEM VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000;
+      --kup-body-bg: #F5F6FA;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --kup-purple: #707BBB;
+      --kup-light-gray: #E8E8E8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { max-width: 100%; height: auto; }
+    a { text-decoration: none; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .kup-auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .kup-auth-header .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+    }
+
+    .kup-auth-header .header-logo img {
+      height: 32px;
+      width: auto;
+    }
+
+    .kup-auth-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-notification {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--kup-body-bg);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #555;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+
+    .header-notification:hover {
+      background: #eaeaea;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 10px;
+      height: 10px;
+      background: var(--kup-orange);
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+    }
+
+    .header-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s;
+    }
+
+    .header-profile:hover {
+      background: var(--kup-body-bg);
+    }
+
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .profile-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--kup-black);
+    }
+
+    .profile-brand {
+      font-size: 0.72rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .profile-chevron {
+      color: #999;
+      font-size: 0.7rem;
+      margin-left: 2px;
+    }
+
+    /* Tab Navigation */
+    .kup-auth-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .kup-auth-tabs a {
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .kup-auth-tabs a:hover {
+      color: var(--kup-black);
+    }
+
+    .kup-auth-tabs a.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       MAIN CONTENT AREA
+       ============================================= */
+    .kup-inner-main {
+      padding: 24px;
+      min-height: calc(100vh - 130px);
+    }
+
+    .kup-inner-row {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* =============================================
+       LEFT SIDEBAR
+       ============================================= */
+    .kup-sidebar {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      align-self: start;
+      position: sticky;
+      top: 120px;
+    }
+
+    .sidebar-header {
+      padding: 20px 20px 0;
+    }
+
+    .sidebar-header h5 {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0 0 8px;
+      color: var(--kup-black);
+    }
+
+    .sidebar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--kup-blue);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-back:hover {
+      color: var(--kup-purple);
+    }
+
+    .sidebar-breadcrumb {
+      font-size: 0.75rem;
+      color: #999;
+      font-weight: 500;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Campaign List */
+    .campaign-list {
+      list-style: none;
+      margin: 0;
+      padding: 8px 0;
+    }
+
+    .campaign-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .campaign-list li:hover {
+      background: var(--kup-body-bg);
+    }
+
+    .campaign-list li.active {
+      background: rgba(46, 165, 221, 0.06);
+      border-left-color: var(--kup-blue);
+    }
+
+    .campaign-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--kup-body-bg);
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+
+    .campaign-list li.active .campaign-number {
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+    }
+
+    .campaign-list-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .campaign-list-title {
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--kup-black);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .campaign-list-status {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .campaign-list-status.status-active {
+      color: #22c55e;
+    }
+
+    .campaign-list-status.status-draft {
+      color: #f59e0b;
+    }
+
+    .campaign-list-status.status-paused {
+      color: #ef4444;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .status-active .status-dot { background: #22c55e; }
+    .status-draft .status-dot { background: #f59e0b; }
+    .status-paused .status-dot { background: #ef4444; }
+
+    /* Add Campaign Button */
+    .sidebar-add-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: calc(100% - 40px);
+      margin: 8px 20px 20px;
+      padding: 10px;
+      border: 2px dashed var(--kup-blue);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--kup-blue);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-add-btn:hover {
+      background: rgba(46, 165, 221, 0.06);
+      border-color: var(--kup-purple);
+      color: var(--kup-purple);
+    }
+
+    /* =============================================
+       RIGHT CONTENT AREA
+       ============================================= */
+    .kup-content-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Campaign Form Card */
+    .campaign-form-card {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .campaign-form-card h4 {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin: 0 0 4px;
+    }
+
+    .campaign-form-card .form-subtitle {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    .kup-form-group {
+      margin-bottom: 18px;
+    }
+
+    .kup-form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .kup-form-group label .char-count {
+      float: right;
+      font-weight: 400;
+      color: #aaa;
+      font-size: 0.75rem;
+    }
+
+    .kup-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      color: #333;
+      background: var(--kup-white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .kup-input:focus {
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.1);
+    }
+
+    .kup-input::placeholder {
+      color: #bbb;
+    }
+
+    textarea.kup-input {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    select.kup-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* Upload Box */
+    .kup-upload-box {
+      border: 2px dashed #d0d0d0;
+      border-radius: var(--radius-md);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fafbfc;
+      position: relative;
+    }
+
+    .kup-upload-box:hover {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.03);
+    }
+
+    .kup-upload-box.dragover {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.06);
+    }
+
+    .upload-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--kup-body-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      color: var(--kup-blue);
+      font-size: 1.2rem;
+    }
+
+    .upload-text {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0;
+    }
+
+    .upload-text strong {
+      color: var(--kup-blue);
+      cursor: pointer;
+    }
+
+    .upload-hint {
+      font-size: 0.72rem;
+      color: #bbb;
+      margin-top: 4px;
+    }
+
+    .kup-upload-box input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Image Preview */
+    .upload-preview {
+      display: none;
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .upload-preview img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+    }
+
+    .upload-preview .remove-image {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: var(--kup-white);
+      border: none;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Submit Button */
+    .btn-kup-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+      margin-top: 8px;
+    }
+
+    .btn-kup-submit:hover {
+      opacity: 0.92;
+    }
+
+    .btn-kup-submit:active {
+      transform: scale(0.98);
+    }
+
+    /* =============================================
+       CAMPAIGN PREVIEW CARD
+       ============================================= */
+    .campaign-preview-wrap {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .campaign-preview-wrap h4 {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin: 0 0 4px;
+    }
+
+    .campaign-preview-wrap .preview-subtitle {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .preview-card {
+      border: 1px solid #e8e8e8;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .preview-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .preview-card-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 50%, #ede9fe 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .preview-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-card-image .placeholder-icon {
+      color: #c0c8e0;
+      font-size: 2.2rem;
+    }
+
+    .preview-card-body {
+      padding: 16px;
+    }
+
+    .preview-card-category {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 50px;
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .preview-card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--kup-black);
+      margin: 0 0 6px;
+      line-height: 1.3;
+    }
+
+    .preview-card-desc {
+      font-size: 0.78rem;
+      color: #777;
+      line-height: 1.5;
+      margin: 0 0 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .preview-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .preview-brand-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preview-brand-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.6rem;
+    }
+
+    .preview-brand-name {
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .preview-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+
+    .preview-status-badge.badge-active {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .preview-status-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .kup-inner-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.75rem;
+      color: #aaa;
+      font-weight: 500;
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid #fff; }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: #2EA5DD; font-weight: 600; cursor: pointer; }
+    .notif-tabs-row { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab-btn { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .notif-tab-btn.active { color: #2EA5DD; border-bottom-color: #2EA5DD; }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: #2EA5DD; }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: #ED8444; }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: #2EA5DD; }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid #2EA5DD; }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: #2EA5DD; }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 992px) {
+      .kup-inner-row {
+        grid-template-columns: 1fr;
+      }
+
+      .kup-sidebar {
+        position: static;
+      }
+
+      .kup-content-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .kup-auth-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .kup-auth-tabs a {
+        padding: 10px 14px;
+        font-size: 0.8rem;
+      }
+
+      .header-profile .profile-info {
+        display: none;
+      }
+
+      .kup-inner-main {
+        padding: 16px;
+      }
+
+      .campaign-form-card,
+      .campaign-preview-wrap {
+        padding: 20px;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="kup-auth-header" role="banner">
+    <div class="header-top">
+      <!-- Logo -->
+      <a href="activity.html" class="header-logo" aria-label="KeepUsPostd Home">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+
+      <!-- Actions -->
+      <div class="header-actions">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs-row"><button class="notif-tab-btn active" data-tab="all">All</button><button class="notif-tab-btn" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="profile-menu" style="position:relative;">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 8px;border-radius:6px;border:none;background:none;transition:background 0.2s;">
+            <div class="profile-avatar" aria-hidden="true">ST</div>
+            <div class="profile-info">
+              <span class="profile-name">Santana T.</span>
+              <span class="profile-brand">KeepUsPostd</span>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="kup-auth-tabs" role="tablist" aria-label="Main navigation">
+      <a href="activity.html" role="tab" aria-selected="false">Activity</a>
+      <a href="campaigns.html" role="tab" aria-selected="true" class="active">Campaigns</a>
+      <a href="content.html" role="tab" aria-selected="false">Content</a>
+      <a href="influencers.html" role="tab" aria-selected="false">Influencers</a>
+      <a href="cash-rewards.html" role="tab" aria-selected="false">Cash &amp; Rewards</a>
+    </nav>
+  </header>
+
+  <!-- ============================================
+       MAIN CONTENT
+       ============================================ -->
+  <main class="kup-inner-main" role="main" aria-label="Campaign management">
+    <div class="kup-inner-row">
+
+      <!-- ==========================================
+           LEFT SIDEBAR — Campaign List
+           ========================================== -->
+      <aside class="kup-sidebar" role="complementary" aria-label="Campaign sidebar">
+        <div class="sidebar-header">
+          <h5>Manage Brand</h5>
+          <a href="campaigns.html" class="sidebar-back" aria-label="Back to campaigns">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Campaigns
+          </a>
+          <div class="sidebar-breadcrumb" aria-label="Breadcrumb">
+            Campaign &nbsp;|&nbsp; Page 1 of 1
+          </div>
+        </div>
+
+        <!-- Campaign Items -->
+        <ul class="campaign-list" role="list" aria-label="Campaign list">
+          <li class="active" role="listitem" aria-current="true" tabindex="0">
+            <span class="campaign-number" aria-hidden="true">1</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Summer Promo 2026</div>
+              <div class="campaign-list-status status-active">
+                <span class="status-dot" aria-hidden="true"></span>Active
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0">
+            <span class="campaign-number" aria-hidden="true">2</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Brand Launch</div>
+              <div class="campaign-list-status status-active">
+                <span class="status-dot" aria-hidden="true"></span>Active
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0">
+            <span class="campaign-number" aria-hidden="true">3</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Holiday Special</div>
+              <div class="campaign-list-status status-draft">
+                <span class="status-dot" aria-hidden="true"></span>Draft
+              </div>
+            </div>
+          </li>
+          <li role="listitem" tabindex="0">
+            <span class="campaign-number" aria-hidden="true">4</span>
+            <div class="campaign-list-info">
+              <div class="campaign-list-title">Spring Flash Sale</div>
+              <div class="campaign-list-status status-paused">
+                <span class="status-dot" aria-hidden="true"></span>Paused
+              </div>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Add New Campaign -->
+        <button class="sidebar-add-btn" type="button" aria-label="Add new campaign" id="addCampaignBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add New Campaign
+        </button>
+      </aside>
+
+      <!-- ==========================================
+           RIGHT CONTENT — Form + Preview
+           ========================================== -->
+      <div class="kup-content-panel">
+
+        <!-- Campaign Form -->
+        <div class="campaign-form-card">
+          <h4>Create Campaign</h4>
+          <p class="form-subtitle">Fill in the details to launch a new campaign.</p>
+
+          <form id="campaignForm" novalidate aria-label="Campaign creation form">
+            <!-- Campaign Title -->
+            <div class="kup-form-group">
+              <label for="campaignTitle">
+                Campaign Title
+                <span class="char-count" id="titleCharCount" aria-live="polite">0 / 15</span>
+              </label>
+              <input
+                type="text"
+                id="campaignTitle"
+                name="campaignTitle"
+                class="kup-input"
+                placeholder="e.g. Summer Promo"
+                maxlength="15"
+                required
+                aria-required="true"
+                aria-describedby="titleCharCount"
+              >
+            </div>
+
+            <!-- Campaign Description -->
+            <div class="kup-form-group">
+              <label for="campaignDesc">Campaign Description</label>
+              <textarea
+                id="campaignDesc"
+                name="campaignDesc"
+                class="kup-input"
+                placeholder="Describe your campaign goals, deliverables, and target audience..."
+                rows="4"
+                required
+                aria-required="true"
+              ></textarea>
+            </div>
+
+            <!-- Category -->
+            <div class="kup-form-group">
+              <label for="campaignCategory">Category</label>
+              <select id="campaignCategory" name="campaignCategory" class="kup-input" required aria-required="true">
+                <option value="" disabled selected>Select a category</option>
+                <option value="fashion">Fashion &amp; Beauty</option>
+                <option value="food">Food &amp; Beverage</option>
+                <option value="tech">Tech &amp; Gadgets</option>
+                <option value="fitness">Health &amp; Fitness</option>
+                <option value="travel">Travel &amp; Lifestyle</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="education">Education</option>
+                <option value="finance">Finance</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <!-- Campaign Image Upload -->
+            <div class="kup-form-group">
+              <label>Campaign Image</label>
+              <div class="kup-upload-box" id="uploadBox" role="button" aria-label="Upload campaign image" tabindex="0">
+                <input type="file" id="campaignImage" name="campaignImage" accept="image/png,image/jpeg,image/webp" aria-label="Choose campaign image file">
+                <div class="upload-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <p class="upload-text"><strong>Click to upload</strong> or drag and drop</p>
+                <p class="upload-hint">PNG, JPG or WebP &bull; Recommended 1200 &times; 630 px &bull; Max 5 MB</p>
+              </div>
+              <div class="upload-preview" id="uploadPreview">
+                <img id="previewImage" src="" alt="Campaign image preview">
+                <button type="button" class="remove-image" id="removeImage" aria-label="Remove uploaded image">&times;</button>
+              </div>
+            </div>
+
+            <!-- FTC/Terms Notice -->
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;background:#f8f9fa;border-radius:6px;font-size:.72rem;color:#888;line-height:1.5;margin-bottom:16px;">
+              <span>By submitting, you agree to KeepUsPostd's <a href="terms.html" target="_blank" style="color:#2EA5DD;font-weight:600;text-decoration:none;">Campaign Terms</a> and are responsible for ensuring influencer content includes proper <a href="terms.html#ftc-disclosure" target="_blank" style="color:#2EA5DD;font-weight:600;text-decoration:none;">FTC disclosure</a>.</span>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-kup-submit" aria-label="Submit campaign">
+              Submit Campaign
+            </button>
+          </form>
+        </div>
+
+        <!-- Campaign Preview -->
+        <div class="campaign-preview-wrap">
+          <h4>Marketplace Preview</h4>
+          <p class="preview-subtitle">How your campaign appears to influencers.</p>
+
+          <div class="preview-card" aria-label="Campaign marketplace preview card">
+            <!-- Image -->
+            <div class="preview-card-image" id="previewCardImage">
+              <span class="placeholder-icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="preview-card-body">
+              <span class="preview-card-category" id="previewCategory">Category</span>
+              <h5 class="preview-card-title" id="previewTitle">Your Campaign Title</h5>
+              <p class="preview-card-desc" id="previewDesc">Campaign description will appear here as you type. This shows influencers what your campaign is about.</p>
+
+              <div class="preview-card-footer">
+                <div class="preview-brand-info">
+                  <div class="preview-brand-avatar" aria-hidden="true">ST</div>
+                  <span class="preview-brand-name">KeepUsPostd</span>
+                </div>
+                <span class="preview-status-badge badge-active">
+                  <span class="badge-dot" aria-hidden="true"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="kup-inner-footer" role="contentinfo">
+    Copyright &copy;2026. All Rights Reserved by KeepUsPostd
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ===========================================
+    // Character counter for campaign title
+    // ===========================================
+    const titleInput = document.getElementById('campaignTitle');
+    const titleCount = document.getElementById('titleCharCount');
+    const previewTitle = document.getElementById('previewTitle');
+
+    titleInput.addEventListener('input', function() {
+      const len = this.value.length;
+      titleCount.textContent = len + ' / 15';
+      previewTitle.textContent = this.value || 'Your Campaign Title';
+    });
+
+    // ===========================================
+    // Live preview for description
+    // ===========================================
+    const descInput = document.getElementById('campaignDesc');
+    const previewDesc = document.getElementById('previewDesc');
+
+    descInput.addEventListener('input', function() {
+      previewDesc.textContent = this.value || 'Campaign description will appear here as you type. This shows influencers what your campaign is about.';
+    });
+
+    // ===========================================
+    // Live preview for category
+    // ===========================================
+    const categorySelect = document.getElementById('campaignCategory');
+    const previewCategory = document.getElementById('previewCategory');
+
+    categorySelect.addEventListener('change', function() {
+      const selectedText = this.options[this.selectedIndex].text;
+      previewCategory.textContent = selectedText || 'Category';
+    });
+
+    // ===========================================
+    // Image upload + preview
+    // ===========================================
+    const fileInput = document.getElementById('campaignImage');
+    const uploadBox = document.getElementById('uploadBox');
+    const uploadPreview = document.getElementById('uploadPreview');
+    const previewImage = document.getElementById('previewImage');
+    const removeBtn = document.getElementById('removeImage');
+    const previewCardImage = document.getElementById('previewCardImage');
+
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file && file.size <= 2 * 1024 * 1024) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          previewImage.src = ev.target.result;
+          uploadPreview.style.display = 'block';
+          uploadBox.style.display = 'none';
+
+          // Update marketplace preview image
+          previewCardImage.innerHTML = '<img src="' + ev.target.result + '" alt="Campaign preview image">';
+        };
+        reader.readAsDataURL(file);
+      } else if (file) {
+        kupToast('Image must be under 2MB.', 'error');
+        fileInput.value = '';
+      }
+    });
+
+    removeBtn.addEventListener('click', function() {
+      previewImage.src = '';
+      uploadPreview.style.display = 'none';
+      uploadBox.style.display = 'block';
+      fileInput.value = '';
+
+      // Reset marketplace preview image
+      previewCardImage.innerHTML = '<span class="placeholder-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>';
+    });
+
+    // Drag and drop
+    uploadBox.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('dragover');
+    });
+
+    uploadBox.addEventListener('dragleave', function() {
+      this.classList.remove('dragover');
+    });
+
+    uploadBox.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    // ===========================================
+    // Form submission (prototype — no backend)
+    // ===========================================
+    document.getElementById('campaignForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      const desc = descInput.value.trim();
+      const cat = categorySelect.value;
+
+      if (!title || !desc || !cat) {
+        kupToast('Please fill in all required fields.', 'warning');
+        return;
+      }
+
+      // Simulate success
+      kupToast('Campaign "' + title + '" submitted successfully!', 'success');
+    });
+
+    // ===========================================
+    // Campaign list click behavior
+    // ===========================================
+    document.querySelectorAll('.campaign-list li').forEach(function(item) {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.campaign-list li').forEach(function(li) {
+          li.classList.remove('active');
+          li.removeAttribute('aria-current');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-current', 'true');
+      });
+
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    // ===========================================
+    // Add New Campaign button
+    // ===========================================
+    document.getElementById('addCampaignBtn').addEventListener('click', function() {
+      // Reset form for new entry
+      document.getElementById('campaignForm').reset();
+      titleCount.textContent = '0 / 15';
+      previewTitle.textContent = 'Your Campaign Title';
+      previewDesc.textContent = 'Campaign description will appear here as you type. This shows influencers what your campaign is about.';
+      previewCategory.textContent = 'Category';
+      previewCardImage.innerHTML = '<span class="placeholder-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>';
+      uploadPreview.style.display = 'none';
+      uploadBox.style.display = 'block';
+      titleInput.focus();
+    });
+  </script>
+
+  <div class="kup-toast-container" id="toastContainer"></div>
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab-btn').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab-btn').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Code &mdash; KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit;transition:all .2s}
+
+    /* ========== AUTH HEADER ========== */
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
+    .auth-logo img{height:32px}
+    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
+    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
+    .auth-right{display:flex;align-items:center;gap:20px}
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none;transition:background .2s}
+    .profile-trigger:hover{background:#f0f0f0}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+    .profile-info{text-align:left}
+    .profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}
+    .profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+
+    /* ========== TWO-COLUMN WIZARD LAYOUT ========== */
+    .wizard-layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 64px - 57px)}
+
+    /* LEFT SIDEBAR */
+    .wizard-sidebar{background:var(--kup-white);border-right:1px solid #eee;padding:32px 28px;display:flex;flex-direction:column}
+    .sidebar-heading{display:flex;align-items:baseline;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+    .sidebar-heading h3{font-size:1.15rem;font-weight:700;margin:0}
+    .back-link{font-size:.82rem;font-weight:500;color:#888;transition:color .2s;white-space:nowrap}
+    .back-link:hover{color:var(--kup-blue)}
+
+    .brand-identity{display:flex;align-items:center;gap:14px;padding:18px 16px;background:#f8f9fa;border-radius:var(--radius-md);margin-bottom:28px}
+    .brand-identity .logo-circle{width:52px;height:52px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;flex-shrink:0}
+    .brand-identity .brand-name{font-weight:700;font-size:.95rem;color:#1a1a1a}
+    .brand-identity .brand-handle{font-size:.78rem;color:#888;margin-top:2px}
+
+    .sidebar-actions{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+    .btn-action{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;transition:all .2s;border:2px solid var(--kup-blue);text-align:center}
+    .btn-action.outline{background:transparent;color:var(--kup-blue)}
+    .btn-action.outline:hover{background:rgba(46,165,221,.06)}
+    .btn-action.filled{background:var(--kup-blue);color:#fff;border-color:var(--kup-blue)}
+    .btn-action.filled:hover{background:#258fc4}
+    .btn-action svg{width:18px;height:18px;flex-shrink:0}
+
+    .helper-text{font-size:.82rem;color:#888;line-height:1.6;margin-top:auto;padding-top:20px;border-top:1px solid #eee}
+
+    /* RIGHT CONTENT */
+    .wizard-content{padding:40px 48px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+    .market-code-panel{background:var(--kup-white);border-radius:var(--radius-md);border:1px solid #eee;padding:48px 56px;max-width:640px;width:100%;text-align:center}
+    .market-code-panel h2{font-size:1.6rem;font-weight:800;margin:0 0 4px;color:#1a1a1a}
+    .market-code-panel h4{font-size:1rem;font-weight:600;color:var(--kup-blue);margin:0 0 16px}
+    .market-code-panel .description{font-size:.88rem;color:#666;line-height:1.7;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
+
+    /* QR Code placeholder with CSS pattern */
+    .qr-wrapper{margin:0 auto 24px;position:relative;width:240px;height:240px}
+    .qr-placeholder{width:240px;height:240px;border:3px solid #1a1a1a;border-radius:4px;background:#fff;position:relative;overflow:hidden}
+    .qr-grid{display:grid;grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);width:100%;height:100%;padding:8px}
+    .qr-cell{background:#1a1a1a}
+    .qr-cell.w{background:#fff}
+    .qr-center-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:6px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    .qr-center-badge span{display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--kup-gradient);border-radius:4px;color:#fff;font-weight:800;font-size:.7rem;letter-spacing:.5px}
+
+    .scan-text{font-size:.88rem;font-weight:600;color:#444;margin-bottom:8px}
+    .brand-url{display:inline-block;font-size:.82rem;color:var(--kup-blue);font-weight:500;padding:8px 20px;background:rgba(46,165,221,.06);border-radius:var(--radius-sm);margin-top:4px;letter-spacing:.02em}
+
+    /* FOOTER */
+    .auth-footer{text-align:center;padding:16px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}
+    .auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ========== SCAN ANALYTICS ========== */
+    .scan-analytics{margin-top:36px;text-align:left;border-top:1px solid #eee;padding-top:32px}
+    .scan-analytics-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .scan-analytics-header h5{font-size:.95rem;font-weight:700;margin:0;color:#1a1a1a}
+    .analytics-badge{font-size:.7rem;font-weight:600;color:var(--kup-blue);background:rgba(46,165,221,.08);padding:4px 12px;border-radius:20px;letter-spacing:.02em}
+    .scan-counter{display:flex;align-items:baseline;gap:10px;margin-bottom:24px}
+    .scan-counter .count{font-size:2.4rem;font-weight:800;color:#1a1a1a;line-height:1}
+    .scan-counter .label{font-size:.82rem;color:#888;font-weight:500}
+    .scan-trend{margin-bottom:24px}
+    .scan-trend-bars{display:flex;align-items:flex-end;gap:6px;height:80px;padding:0 4px}
+    .scan-trend-bar{flex:1;background:rgba(46,165,221,.15);border-radius:4px 4px 0 0;position:relative;transition:background .2s;min-width:0}
+    .scan-trend-bar:hover{background:rgba(46,165,221,.35)}
+    .scan-trend-bar.active{background:var(--kup-blue)}
+    .scan-trend-bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:.62rem;color:#aaa;font-weight:500;white-space:nowrap}
+    .scan-trend-label{font-size:.78rem;color:#888;margin:28px 0 0;text-align:center}
+    .scan-trend-label strong{color:#1a1a1a}
+    .scan-details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+    .scan-detail-item{background:#f8f9fa;border-radius:var(--radius-sm);padding:14px 16px;text-align:center}
+    .scan-detail-item .detail-value{display:block;font-size:1.2rem;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+    .scan-detail-item .detail-label{font-size:.72rem;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+    .scan-detail-item.locked{position:relative;overflow:hidden}
+    .scan-detail-item.locked::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(2px)}
+    .scan-detail-item.locked .detail-value{filter:blur(3px)}
+    .scan-upsell{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,rgba(46,165,221,.04) 0%,rgba(112,123,187,.04) 100%);border:1px solid rgba(46,165,221,.12);border-radius:var(--radius-sm);padding:16px 18px}
+    .scan-upsell svg{width:20px;height:20px;flex-shrink:0;color:var(--kup-blue);margin-top:2px}
+    .upsell-text{font-size:.82rem;color:#666;margin:0 0 6px;line-height:1.5}
+    .btn-upsell{font-size:.82rem;font-weight:600;color:var(--kup-blue);text-decoration:none;transition:color .2s}
+    .btn-upsell:hover{color:#258fc4}
+
+    /* ========== RESPONSIVE ========== */
+    @media(max-width:1024px){
+      .wizard-layout{grid-template-columns:340px 1fr}
+      .market-code-panel{padding:36px 32px}
+    }
+    @media(max-width:768px){
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-sidebar{border-right:none;border-bottom:1px solid #eee;padding:24px 20px}
+      .helper-text{margin-top:16px}
+      .wizard-content{padding:24px 20px}
+      .market-code-panel{padding:28px 20px}
+      .auth-header-inner{padding:0 16px}
+      .auth-nav li a{padding:0 14px;font-size:.82rem}
+      .profile-info{display:none}
+      .sidebar-actions{flex-direction:row}
+      .sidebar-actions .btn-action{flex:1;min-height:44px}
+      .scan-analytics{margin-top:28px;padding-top:24px}
+      .scan-counter .count{font-size:2rem}
+      .scan-trend-bars{height:64px}
+      .scan-detail-item{padding:12px 14px}
+      .scan-upsell{padding:14px 16px}
+    }
+    @media(max-width:480px){
+      .sidebar-actions{flex-direction:column}
+      .sidebar-actions .btn-action{width:100%;justify-content:center}
+      .qr-wrapper{width:200px;height:200px}
+      .qr-placeholder{width:200px;height:200px}
+      .market-code-panel h2{font-size:1.3rem}
+      .scan-counter .count{font-size:1.8rem}
+      .scan-detail-item{padding:10px 12px}
+      .scan-detail-item .detail-value{font-size:1rem}
+      .scan-trend-bars{height:56px}
+      .scan-analytics-header{flex-direction:column;align-items:flex-start;gap:8px}
+      .scan-upsell{flex-direction:column;text-align:center}
+      .scan-upsell svg{margin:0 auto}
+    }
+
+    /* Print styles */
+    @media print{
+      .auth-header,.wizard-sidebar,.auth-footer{display:none}
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-content{padding:20px}
+      .market-code-panel{border:none;box-shadow:none}
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ========== AUTH HEADER ========== -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="../login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== TWO-COLUMN LAYOUT ========== -->
+  <div class="wizard-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="wizard-sidebar">
+      <div class="sidebar-heading">
+        <h3>Market Code</h3>
+        <a href="brand-home.html" class="back-link">&lt; Back to Home</a>
+      </div>
+
+      <div class="brand-identity">
+        <div class="logo-circle">KP</div>
+        <div>
+          <div class="brand-name">KeepUsPostd</div>
+          <div class="brand-handle">@keepuspostd</div>
+        </div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button class="btn-action outline" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Code
+        </button>
+        <button class="btn-action filled" onclick="downloadQR()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Code
+        </button>
+      </div>
+
+      <p class="helper-text">Use your market code on signage, business cards, and social media bio links. When scanned, new users are directed straight to your brand profile in the app.</p>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="wizard-content">
+      <div class="market-code-panel">
+        <h2>Jump Start Your Brand</h2>
+        <h4>Marketing Tool</h4>
+        <p class="description">Send to creatives, affiliates, customers, employees, and more for potential new influencers. Printable for in-store and external marketing signage to engage new influencer partners and customers!</p>
+
+        <!-- QR Code Placeholder -->
+        <div class="qr-wrapper" id="qrCode">
+          <div class="qr-placeholder">
+            <div class="qr-grid" id="qrGrid"></div>
+            <div class="qr-center-badge"><span>KeepUsPostd</span></div>
+          </div>
+        </div>
+
+        <p class="scan-text">Scan to discover KeepUsPostd</p>
+        <span class="brand-url" style="cursor:pointer;" onclick="copyBrandUrl()" id="brandUrlDisplay">keepuspostd.com/brand/keepuspostd</span>
+<div style="font-size:0.72rem;color:#888;margin-top:8px;line-height:1.4;" id="brandUrlHint">
+  <i class="ph ph-link" style="font-size:12px;vertical-align:middle;"></i>
+  Click to copy &middot; Use as your social media bio link
+</div>
+
+        <!-- Scan Analytics Section -->
+        <div class="scan-analytics">
+          <div class="scan-analytics-header">
+            <h5>Scan Analytics</h5>
+            <span class="analytics-badge">Starter Plan</span>
+          </div>
+
+          <div class="scan-counter">
+            <span class="count" id="scanCount">1,247</span>
+            <span class="label">Total Scans</span>
+          </div>
+
+          <div class="scan-trend">
+            <div class="scan-trend-bars">
+              <div class="scan-trend-bar" style="height:40%"><span>Mon</span></div>
+              <div class="scan-trend-bar" style="height:65%"><span>Tue</span></div>
+              <div class="scan-trend-bar" style="height:45%"><span>Wed</span></div>
+              <div class="scan-trend-bar" style="height:80%"><span>Thu</span></div>
+              <div class="scan-trend-bar" style="height:55%"><span>Fri</span></div>
+              <div class="scan-trend-bar active" style="height:92%"><span>Sat</span></div>
+              <div class="scan-trend-bar" style="height:70%"><span>Sun</span></div>
+            </div>
+            <p class="scan-trend-label">Last 7 days &mdash; <strong>342 scans</strong></p>
+          </div>
+
+          <div class="scan-details">
+            <div class="scan-detail-item">
+              <span class="detail-value">289</span>
+              <span class="detail-label">This Week</span>
+            </div>
+            <div class="scan-detail-item">
+              <span class="detail-value">+18%</span>
+              <span class="detail-label">vs Last Week</span>
+            </div>
+            <div class="scan-detail-item locked">
+              <span class="detail-value">78%</span>
+              <span class="detail-label">Mobile</span>
+            </div>
+            <div class="scan-detail-item locked">
+              <span class="detail-value">64%</span>
+              <span class="detail-label">App Downloads</span>
+            </div>
+          </div>
+
+          <div class="scan-upsell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div>
+              <p class="upsell-text">Unlock geo data, device breakdown, and conversion funnels with a Growth plan or higher.</p>
+              <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Purchase Points Callout -->
+          <div class="scan-upsell" style="margin-top:14px;background:rgba(46,165,221,0.04);border-color:rgba(46,165,221,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <div>
+              <p class="upsell-text" style="color:#444;"><strong>Did you know?</strong> This Market Code also lives inside your customers' KeepUsPostd app. At checkout, the store clerk scans it from their phone to award purchase points.</p>
+              <a href="purchase-points-setup.html" class="btn-upsell">Set up Purchase Points &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Deep Link Info -->
+          <div class="scan-upsell" style="margin-top:14px;background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#16a34a;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div>
+              <p class="upsell-text" style="color:#444;"><strong>Deep Link Active</strong> — When someone scans this code and downloads the app, they'll land directly on your brand profile with your active campaigns. No searching required.</p>
+              <span style="font-size:.78rem;color:#888;">URL: keepuspostd.com/brand/keepuspostd</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <script>
+    // Generate a QR-code-like pattern (decorative, not a real QR code)
+    (function() {
+      var grid = document.getElementById('qrGrid');
+      // QR code pattern seed — creates a realistic-looking pattern
+      var pattern = [
+        1,1,1,1,1,1,1,0,1,0,1,0,0,0,1,1,1,1,1,1,1,
+        1,0,0,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,0,1,
+        1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,
+        1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,
+        1,0,1,1,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1,
+        1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0,0,0,1,
+        1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,
+        0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,
+        1,0,1,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,
+        0,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,1,0,0,1,0,
+        1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,1,
+        0,0,1,1,0,1,0,1,0,0,0,0,0,0,1,0,0,1,1,0,0,
+        1,0,0,0,1,0,1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,
+        0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,1,0,1,1,
+        1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,
+        1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,0,0,1,1,0,1,
+        1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,1,0,
+        1,0,1,1,1,0,1,0,1,1,0,1,0,0,1,0,1,0,0,0,1,
+        1,0,1,1,1,0,1,0,0,1,1,0,1,1,0,1,0,1,1,0,0,
+        1,0,0,0,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1,1,
+        1,1,1,1,1,1,1,0,0,1,0,1,1,0,0,1,1,0,1,0,1
+      ];
+      for (var i = 0; i < pattern.length; i++) {
+        var cell = document.createElement('div');
+        cell.className = 'qr-cell' + (pattern[i] === 0 ? ' w' : '');
+        grid.appendChild(cell);
+      }
+    })();
+
+    function downloadQR() {
+      kupToast('QR Code download started. In production, this generates and saves a PNG file.', 'info');
+    }
+
+    function copyBrandUrl() {
+      var url = 'https://keepuspostd.com/brand/keepuspostd';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+          var hint = document.getElementById('brandUrlHint');
+          if (hint) { hint.innerHTML = '<i class="ph ph-check" style="font-size:12px;vertical-align:middle;color:#16a34a;"></i> Copied to clipboard!'; setTimeout(function() { hint.innerHTML = '<i class="ph ph-link" style="font-size:12px;vertical-align:middle;"></i> Click to copy &middot; Use as your social media bio link'; }, 2000); }
+          kupToast('Brand URL copied to clipboard!', 'success');
+        });
+      } else {
+        kupToast('URL: ' + url, 'info');
+      }
+    }
+  </script>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>
