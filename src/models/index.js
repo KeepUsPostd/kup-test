@@ -13,4 +13,7 @@ module.exports = {
   Partnership: require('./Partnership'),
   GuestReviewer: require('./GuestReviewer'),
   KioskReward: require('./KioskReward'),
+  Subscription: require('./Subscription'),
+  Transaction: require('./Transaction'),
+  Payout: require('./Payout'),
 };

@@ -59,6 +59,12 @@ app.use('/api/partnerships', require('./routes/partnerships'));
 // Kiosk routes (Phase 5 — guest reviews + instant rewards)
 app.use('/api/kiosk', require('./routes/kiosk'));
 
+// Billing routes (Phase 6 — subscriptions + PayPal)
+app.use('/api/billing', require('./routes/billing'));
+
+// Payout routes (Phase 6 — transactions + payout batches)
+app.use('/api/payouts', require('./routes/payouts'));
+
 // --- Error Handling Middleware ---
 app.use((err, req, res, next) => {
   console.error('Server error:', err.message);
@@ -80,7 +86,7 @@ const startServer = async () => {
     console.log(`\n🚀 KUP Test Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}`);
-    console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk\n`);
+    console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk, /api/billing, /api/payouts\n`);
   });
 };
 
