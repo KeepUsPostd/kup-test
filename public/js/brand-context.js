@@ -42,7 +42,38 @@ var KUP_BRAND_CONTEXT = (function() {
   function getActiveBrand() {
     try {
       var stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        var active = JSON.parse(stored);
+        // Enrich: if active brand is missing fields (abbreviation, color, etc),
+        // look it up in the full brands list and merge
+        if (!active.abbreviation || !active.color) {
+          var brands = getAllBrands();
+          var matchId = active.mongoId || active.id;
+          for (var i = 0; i < brands.length; i++) {
+            var b = brands[i];
+            if (b.id === matchId || b.mongoId === matchId || b.name === active.name) {
+              // Merge missing fields from the full brand entry
+              if (!active.abbreviation && b.abbreviation) active.abbreviation = b.abbreviation;
+              if (!active.color && b.color) active.color = b.color;
+              if (!active.mongoId && b.mongoId) active.mongoId = b.mongoId;
+              if (!active.logoUrl && b.logoUrl) active.logoUrl = b.logoUrl;
+              if (!active.plan && b.plan) active.plan = b.plan;
+              // Save the enriched version back
+              setActiveBrand(active);
+              break;
+            }
+          }
+        }
+        // Generate abbreviation from name if still missing
+        if (!active.abbreviation && active.name) {
+          var words = active.name.trim().split(/\s+/);
+          active.abbreviation = words.length === 1
+            ? words[0].substring(0, 2).toUpperCase()
+            : words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+          setActiveBrand(active);
+        }
+        return active;
+      }
     } catch(e) {}
     var brands = getAllBrands();
     var anchor = brands[0];
