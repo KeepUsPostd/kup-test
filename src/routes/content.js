@@ -5,7 +5,25 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { ContentSubmission, Partnership, Campaign, InfluencerProfile } = require('../models');
+const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward } = require('../models');
+
+// Tier-based cash rates (mirrored from payouts.js for server-side reward triggering)
+// Rule G7: Brands cannot override — comes from influencer tier
+const TIER_RATES = {
+  unverified: { cash_per_approval: 2, bonus_cash: 5 },
+  nano: { cash_per_approval: 5, bonus_cash: 10 },
+  micro: { cash_per_approval: 10, bonus_cash: 25 },
+  rising: { cash_per_approval: 25, bonus_cash: 50 },
+  established: { cash_per_approval: 50, bonus_cash: 100 },
+  premium: { cash_per_approval: 100, bonus_cash: 250 },
+};
+
+// Viral bonus thresholds — when metrics cross these, trigger bonus transactions
+const VIRAL_THRESHOLDS = [
+  { views: 10000, bonus: 25, label: '10K views' },
+  { views: 100000, bonus: 100, label: '100K views' },
+  { views: 1000000, bonus: 500, label: '1M views' },
+];
 
 // POST /api/content — Submit new content
 // Called by influencers when they submit content for a brand
@@ -194,7 +212,69 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
     console.log(`✅ Content approved: ${submission._id}`);
 
-    res.json({ message: 'Content approved', submission });
+    // === AUTO-TRIGGER CASH PER APPROVAL REWARD ===
+    // Check if this brand has an active cash_per_approval reward configured
+    let rewardTriggered = null;
+    try {
+      const cpaReward = await Reward.findOne({
+        brandId: submission.brandId,
+        type: 'cash_per_approval',
+        status: 'active',
+      });
+
+      if (cpaReward) {
+        // Resolve rate from influencer tier
+        const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+        const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
+        const rates = TIER_RATES[tier] || TIER_RATES.nano;
+        const amount = rates.cash_per_approval;
+
+        // Check budget cap
+        const withinBudget = !cpaReward.cashConfig.budgetCap ||
+          (cpaReward.cashConfig.budgetSpent + amount) <= cpaReward.cashConfig.budgetCap;
+
+        if (withinBudget) {
+          const transaction = await Transaction.create({
+            payerType: 'brand',
+            payerBrandId: submission.brandId,
+            payeeInfluencerId: submission.influencerProfileId,
+            type: 'cash_per_approval',
+            amount,
+            currency: 'USD',
+            contentSubmissionId: submission._id,
+            campaignId: submission.campaignId || null,
+            rewardId: cpaReward._id,
+            status: 'pending',
+          });
+
+          // Update budget spent + influencer stats
+          cpaReward.cashConfig.budgetSpent += amount;
+          await cpaReward.save();
+
+          if (influencer) {
+            influencer.totalCashEarned = (influencer.totalCashEarned || 0) + amount;
+            await influencer.save();
+          }
+
+          // Update partnership cash earned
+          if (submission.partnershipId) {
+            await Partnership.findByIdAndUpdate(submission.partnershipId, {
+              $inc: { totalCashEarned: amount },
+            });
+          }
+
+          rewardTriggered = { type: 'cash_per_approval', amount, tier, transactionId: transaction._id };
+          console.log(`💰 CPA reward: $${amount} (${tier} tier) → influencer ${submission.influencerProfileId}`);
+        } else {
+          console.log(`⚠️ CPA reward skipped: budget cap reached ($${cpaReward.cashConfig.budgetSpent}/$${cpaReward.cashConfig.budgetCap})`);
+        }
+      }
+    } catch (rewardErr) {
+      console.error('CPA reward trigger error (non-blocking):', rewardErr.message);
+      // Don't fail the approval — rewards are a bonus, not a requirement
+    }
+
+    res.json({ message: 'Content approved', submission, rewardTriggered });
   } catch (error) {
     console.error('Approve content error:', error.message);
     res.status(500).json({ error: 'Could not approve content' });
@@ -242,9 +322,11 @@ router.put('/:submissionId/reject', requireAuth, async (req, res) => {
 });
 
 // PUT /api/content/:submissionId/postd — Mark content as "Postd" (published)
-// Triggers Bonus Cash check (future implementation)
+// Captures platform + post URL, triggers Bonus Cash reward
 router.put('/:submissionId/postd', requireAuth, async (req, res) => {
   try {
+    const { platform, platformPostUrl } = req.body;
+
     const submission = await ContentSubmission.findById(req.params.submissionId);
 
     if (!submission) {
@@ -260,21 +342,109 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
 
     submission.status = 'postd';
     submission.postdAt = new Date();
+    if (platform) submission.platform = platform;
+    if (platformPostUrl) submission.platformPostUrl = platformPostUrl;
     await submission.save();
 
-    console.log(`📢 Content marked as Postd: ${submission._id}`);
+    console.log(`📢 Content marked as Postd: ${submission._id} on ${platform || 'unknown'}`);
 
-    res.json({ message: 'Content marked as Postd (published)', submission });
+    // === AUTO-TRIGGER BONUS CASH REWARD ===
+    let rewardTriggered = null;
+    try {
+      const bonusReward = await Reward.findOne({
+        brandId: submission.brandId,
+        type: 'bonus_cash',
+        status: 'active',
+      });
+
+      if (bonusReward) {
+        const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+        const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
+        const rates = TIER_RATES[tier] || TIER_RATES.nano;
+        const amount = rates.bonus_cash;
+
+        const withinBudget = !bonusReward.cashConfig.budgetCap ||
+          (bonusReward.cashConfig.budgetSpent + amount) <= bonusReward.cashConfig.budgetCap;
+
+        if (withinBudget) {
+          const transaction = await Transaction.create({
+            payerType: 'brand',
+            payerBrandId: submission.brandId,
+            payeeInfluencerId: submission.influencerProfileId,
+            type: 'bonus_cash',
+            amount,
+            currency: 'USD',
+            contentSubmissionId: submission._id,
+            campaignId: submission.campaignId || null,
+            rewardId: bonusReward._id,
+            status: 'pending',
+          });
+
+          bonusReward.cashConfig.budgetSpent += amount;
+          await bonusReward.save();
+
+          if (influencer) {
+            influencer.totalCashEarned = (influencer.totalCashEarned || 0) + amount;
+            await influencer.save();
+          }
+
+          if (submission.partnershipId) {
+            await Partnership.findByIdAndUpdate(submission.partnershipId, {
+              $inc: { totalCashEarned: amount },
+            });
+          }
+
+          rewardTriggered = { type: 'bonus_cash', amount, tier, transactionId: transaction._id };
+          console.log(`💰 Bonus Cash: $${amount} (${tier} tier) → influencer ${submission.influencerProfileId}`);
+        }
+      }
+    } catch (rewardErr) {
+      console.error('Bonus Cash trigger error (non-blocking):', rewardErr.message);
+    }
+
+    res.json({ message: 'Content marked as Postd (published)', submission, rewardTriggered });
   } catch (error) {
     console.error('Postd content error:', error.message);
     res.status(500).json({ error: 'Could not update content status' });
   }
 });
 
+// PUT /api/content/:submissionId/overlays — Save brand-applied text/logo overlays
+// Called when brand uses Save Edit on video content in the content manager
+router.put('/:submissionId/overlays', requireAuth, async (req, res) => {
+  try {
+    const { textOverlays, logoOverlay } = req.body;
+    const submission = await ContentSubmission.findById(req.params.submissionId);
+
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    submission.textOverlays = textOverlays || [];
+    submission.logoOverlay = logoOverlay || null;
+    await submission.save();
+
+    console.log(`🎨 Overlays saved for: ${submission._id} (${(textOverlays || []).length} text, logo: ${!!logoOverlay})`);
+
+    res.json({ message: 'Overlays saved', submission });
+  } catch (error) {
+    console.error('Save overlays error:', error.message);
+    res.status(500).json({ error: 'Could not save overlays' });
+  }
+});
+
 // PUT /api/content/:submissionId/metrics — Update engagement metrics
+// After updating, checks viral bonus thresholds and triggers rewards
 router.put('/:submissionId/metrics', requireAuth, async (req, res) => {
   try {
     const { likes, comments, shares, views } = req.body;
+
+    // Get the submission BEFORE updating to check which thresholds are newly crossed
+    const prevSubmission = await ContentSubmission.findById(req.params.submissionId);
+    if (!prevSubmission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+    const prevViews = (prevSubmission.metrics && prevSubmission.metrics.views) || 0;
 
     const submission = await ContentSubmission.findByIdAndUpdate(
       req.params.submissionId,
@@ -289,11 +459,57 @@ router.put('/:submissionId/metrics', requireAuth, async (req, res) => {
       { new: true }
     );
 
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
+    // === CHECK VIRAL BONUS THRESHOLDS ===
+    const newViews = views || 0;
+    const viralBonuses = [];
+
+    for (const threshold of VIRAL_THRESHOLDS) {
+      // Only trigger if we just crossed this threshold (wasn't already past it)
+      if (newViews >= threshold.views && prevViews < threshold.views) {
+        try {
+          // Check if this threshold was already rewarded (prevent duplicates)
+          const existing = await Transaction.findOne({
+            contentSubmissionId: submission._id,
+            type: 'viral_bonus',
+            amount: threshold.bonus,
+          });
+
+          if (!existing) {
+            const transaction = await Transaction.create({
+              payerType: 'platform', // viral bonuses paid by platform, not brand
+              payeeInfluencerId: submission.influencerProfileId,
+              type: 'viral_bonus',
+              amount: threshold.bonus,
+              currency: 'USD',
+              contentSubmissionId: submission._id,
+              campaignId: submission.campaignId || null,
+              status: 'pending',
+            });
+
+            // Update influencer earnings
+            await InfluencerProfile.findByIdAndUpdate(submission.influencerProfileId, {
+              $inc: { totalCashEarned: threshold.bonus },
+            });
+
+            viralBonuses.push({
+              threshold: threshold.label,
+              bonus: threshold.bonus,
+              transactionId: transaction._id,
+            });
+
+            console.log(`🔥 Viral bonus triggered: $${threshold.bonus} for ${threshold.label} on submission ${submission._id}`);
+          }
+        } catch (bonusErr) {
+          console.error('Viral bonus trigger error:', bonusErr.message);
+        }
+      }
     }
 
-    res.json({ message: 'Metrics updated', submission });
+    res.json({
+      message: 'Metrics updated',
+      submission,
+      viralBonuses: viralBonuses.length > 0 ? viralBonuses : null,
+    });
   } catch (error) {
     console.error('Update metrics error:', error.message);
     res.status(500).json({ error: 'Could not update metrics' });

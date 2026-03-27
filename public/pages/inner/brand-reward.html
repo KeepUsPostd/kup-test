@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Reward — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit;transition:all .2s}
+
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}.auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}.auth-logo img{height:32px}.auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}.auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent}.auth-nav li a:hover{color:var(--kup-blue)}.auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}.auth-right{display:flex;align-items:center;gap:20px}.profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none}.profile-trigger:hover{background:#f0f0f0}.profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}.profile-info{text-align:left}.profile-info .name{font-weight:600;font-size:.85rem;line-height:1.2}.profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+
+    /* Two-column wizard layout */
+    .wizard-layout{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 64px)}
+    .wizard-form{background:var(--kup-white);border-right:1px solid #eee;padding:32px 28px;overflow-y:auto}
+    .wizard-form h3{font-size:1.1rem;font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+    .wizard-form h3 .back-link{font-size:.82rem;font-weight:500;color:#888;cursor:pointer}.wizard-form h3 .back-link:hover{color:var(--kup-blue)}
+    .wizard-progress{display:flex;gap:8px;margin:16px 0 28px}
+    .progress-step{flex:1;height:4px;border-radius:4px;background:#eee}.progress-step.active{background:var(--kup-blue)}.progress-step.done{background:#16a34a}
+    .step-label{font-size:.78rem;color:#888;margin-bottom:20px;font-weight:600}
+
+    .form-section{display:none}
+    .form-section.active-step{display:block}
+    .form-section h6{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin:24px 0 12px;padding-top:16px;border-top:1px solid #f0f0f0}
+    .form-section h6:first-child{border-top:none;padding-top:0;margin-top:0}
+    .form-group{margin-bottom:16px}
+    .form-group label{font-size:.82rem;font-weight:600;color:#444;margin-bottom:6px;display:block}
+    .form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.88rem}
+    .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .form-group textarea{resize:vertical;min-height:80px}
+    .form-group .helper{font-size:.75rem;color:#999;margin-top:4px}
+
+    .radio-group{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+    .radio-group label{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:500;color:#444;cursor:pointer;padding:10px 14px;border:1px solid #eee;border-radius:var(--radius-sm);transition:all .15s}
+    .radio-group label:hover{border-color:var(--kup-blue);background:rgba(46,165,221,.02)}
+    .radio-group input[type="radio"]{accent-color:var(--kup-blue);width:18px;height:18px}
+
+    .upload-box{border:2px dashed #ddd;border-radius:var(--radius-md);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s}
+    .upload-box:hover{border-color:var(--kup-blue);background:rgba(46,165,221,.02)}
+    .upload-box svg{width:40px;height:40px;stroke:#bbb;margin-bottom:12px}
+    .upload-box p{font-size:.82rem;color:#888;margin:0}
+    .upload-box .btn-upload{display:inline-block;margin-top:12px;padding:8px 20px;background:var(--kup-blue);color:#fff;border-radius:var(--radius-sm);font-weight:600;font-size:.82rem;border:none;cursor:pointer}
+    .upload-box .size-hint{font-size:.72rem;color:#bbb;margin-top:8px}
+
+    .wizard-actions{display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #eee}
+    .btn-wizard{padding:12px 24px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;border:none;transition:all .2s}
+    .btn-wizard.primary{background:var(--kup-blue);color:#fff;flex:1}.btn-wizard.primary:hover{background:#258fc4}
+    .btn-wizard.secondary{background:#f0f0f0;color:#666}.btn-wizard.secondary:hover{background:#e4e4e4}
+    .btn-wizard.success{background:#16a34a;color:#fff;flex:1}.btn-wizard.success:hover{background:#15803d}
+
+    /* RIGHT: Reward Preview */
+    .wizard-preview h3{font-size:1.1rem;font-weight:700;margin:0 0 20px}.wizard-preview h3 span{font-weight:400;color:#888}
+
+    /* ============== RIGHT PREVIEW PANEL ============== */
+    .wizard-preview{padding:32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+    .preview-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:12px;text-align:center;width:310px}
+    .preview-inner{display:flex;align-items:flex-start;gap:28px;width:100%}
+    .step-tips{flex:1;min-width:0;max-width:260px}
+    .step-tips-card{background:#fff;border:1px solid #eee;border-radius:var(--radius-md);padding:20px;margin-bottom:16px}
+    .step-tips-card h4{font-size:.85rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+    .step-tips-card h4 .tip-icon{font-size:1rem}
+    .step-tips-card p{font-size:.78rem;color:#888;line-height:1.6;margin:0}
+    .step-tips-card ul{margin:8px 0 0;padding:0 0 0 16px;font-size:.75rem;color:#666;line-height:1.7}
+    .step-tips-card ul li{margin-bottom:4px}
+    .step-tips-card .tip-highlight{color:var(--kup-blue);font-weight:600}
+    .step-tips-group{display:none}
+    .step-tips-group.active{display:block}
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+    .preview-hint{font-size:.72rem;color:#aaa;text-align:center;margin-top:12px;font-style:italic;max-width:310px}
+
+    .auth-footer{text-align:center;padding:24px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}.auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap{position:relative}.notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:8px;border-radius:50%;transition:background .15s}.notif-btn:hover{background:#f0f0f0}.notif-btn svg{width:22px;height:22px}.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#e74c3c;border-radius:50%;border:2px solid var(--kup-white)}.kup-notif-popover{position:absolute;top:calc(100% + 12px);right:-60px;width:380px;background:#fff;border:1px solid #eee;border-radius:var(--radius-md);box-shadow:0 12px 40px rgba(0,0,0,.12);display:none;z-index:300;overflow:hidden}.kup-notif-popover.show{display:block}.notif-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px}.notif-header h4{font-size:1rem;font-weight:700;margin:0}.notif-mark-read{background:none;border:none;font-size:.78rem;color:var(--kup-blue);font-weight:600;cursor:pointer;font-family:var(--kup-font)}.notif-tabs{display:flex;border-bottom:1px solid #f0f0f0;padding:0 20px}.notif-tab{flex:1;text-align:center;padding:10px 0;font-size:.82rem;font-weight:600;color:#888;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:var(--kup-font);transition:all .2s}.notif-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}.notif-list{max-height:360px;overflow-y:auto;padding:0;margin:0;list-style:none}.notif-item{display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #f8f8f8;cursor:pointer;transition:background .15s}.notif-item:hover{background:#fafbfc}.notif-item.unread{background:rgba(46,165,221,.03)}.notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}.notif-icon.submission{background:rgba(46,165,221,.1);color:var(--kup-blue)}.notif-icon.approval{background:rgba(237,132,68,.1);color:var(--kup-orange)}.notif-icon.payment{background:rgba(22,163,74,.1);color:#16a34a}.notif-icon.joined{background:rgba(112,123,187,.1);color:#707BBB}.notif-body{flex:1;min-width:0}.notif-text{font-size:.82rem;color:#444;line-height:1.4;margin:0}.notif-text strong{font-weight:700;color:#1a1a1a}.notif-time{font-size:.72rem;color:#bbb;margin-top:3px}
+    .profile-menu{position:relative}.profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #eee;border-radius:var(--radius-md);box-shadow:0 8px 30px rgba(0,0,0,.1);min-width:220px;display:none;z-index:200;overflow:hidden}.profile-dropdown.show{display:block}.profile-dropdown a{display:block;padding:12px 20px;font-size:.85rem;color:#444}.profile-dropdown a:hover{background:#f8f9fa;color:var(--kup-blue)}.profile-dropdown .divider{border-top:1px solid #eee;margin:4px 0}.profile-dropdown a.logout{color:#e74c3c}
+    .kup-toast-container{position:fixed;top:80px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}.kup-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:14px 20px;background:#fff;border-radius:var(--radius-sm);box-shadow:0 8px 30px rgba(0,0,0,.12);font-family:var(--kup-font);font-size:.85rem;font-weight:600;color:#1a1a1a;min-width:280px;max-width:400px;transform:translateX(120%);animation:kupToastIn .3s ease forwards;border-left:4px solid var(--kup-blue)}.kup-toast.success{border-left-color:#16a34a}.kup-toast.error{border-left-color:#dc2626}.kup-toast.info{border-left-color:var(--kup-blue)}.kup-toast.warning{border-left-color:#f59e0b}.kup-toast.dismissing{animation:kupToastOut .3s ease forwards}
+    @keyframes kupToastIn{to{transform:translateX(0)}}
+    @keyframes kupToastOut{to{transform:translateX(120%);opacity:0}}
+
+    /* ============== REWARD TYPE CARDS ============== */
+    .reward-type-section{margin-bottom:24px}
+    .reward-type-label{display:flex;align-items:center;gap:8px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding:8px 12px;border-radius:var(--radius-sm)}
+    .reward-type-label.non-cash{background:rgba(22,163,74,.06);color:#16a34a}
+    .reward-type-label.cash{background:rgba(237,132,68,.08);color:var(--kup-orange)}
+    .reward-type-label .label-icon{font-size:1rem}
+    .offer-cards{display:flex;flex-direction:column;gap:10px}
+    .offer-card{display:flex;align-items:flex-start;gap:14px;padding:16px;border:2px solid #eee;border-radius:var(--radius-md);cursor:pointer;transition:all .2s;position:relative}
+    .offer-card:hover{border-color:#ccc;background:#fafbfc}
+    .offer-card.selected{border-color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .offer-card-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:#f5f6fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem}
+    .offer-card.selected .offer-card-icon{background:rgba(46,165,221,.1)}
+    .offer-card-body{flex:1}
+    .offer-card-title{font-size:.9rem;font-weight:700;margin:0 0 3px}
+    .offer-card-desc{font-size:.78rem;color:#888;margin:0 0 6px;line-height:1.4}
+    .offer-card-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .offer-card-badge.included{background:rgba(22,163,74,.08);color:#16a34a}
+    .offer-card-badge.upgrade{background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .offer-card-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s}
+    .offer-card.selected .offer-card-check{background:var(--kup-blue);border-color:var(--kup-blue)}
+    .offer-card.selected .offer-card-check::after{content:'';width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px}
+    .offer-card-upgrade{border-style:dashed}
+    .offer-card-link{display:block;font-size:.78rem;color:var(--kup-blue);font-weight:600;margin-top:6px}
+
+    /* ============== EARNING METHOD CARDS ============== */
+    .earning-method-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+    .earning-method-card{display:flex;align-items:flex-start;gap:14px;padding:16px;border:2px solid #eee;border-radius:var(--radius-md);cursor:pointer;transition:all .2s}
+    .earning-method-card:hover{border-color:#ccc;background:#fafbfc}
+    .earning-method-card.selected{border-color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .earning-method-card-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:#f5f6fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem}
+    .earning-method-card.selected .earning-method-card-icon{background:rgba(46,165,221,.1)}
+    .earning-method-card-body{flex:1}
+    .earning-method-card-title{font-size:.9rem;font-weight:700;margin:0 0 3px}
+    .earning-method-card-desc{font-size:.78rem;color:#888;margin:0 0 4px;line-height:1.4}
+    .earning-method-card-hint{font-size:.72rem;color:#bbb;font-style:italic;margin:0}
+    .earning-method-card-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s}
+    .earning-method-card.selected .earning-method-card-check{background:var(--kup-blue);border-color:var(--kup-blue)}
+    .earning-method-card.selected .earning-method-card-check::after{content:'';width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px}
+    .per-approval-confirm{margin-top:16px;padding:16px;background:rgba(46,165,221,.04);border-radius:var(--radius-sm);border-left:3px solid var(--kup-blue);font-size:.85rem;color:#444;line-height:1.5}
+
+    /* ============== POINT CONFIGURATION ============== */
+    .point-config{display:none;margin-top:4px}.point-config.active{display:block}
+    .point-category{border:1px solid #eee;border-radius:var(--radius-md);margin-bottom:12px;overflow:hidden;transition:all .2s}
+    .point-category.disabled{opacity:.5}
+    .point-category-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:#fafbfc}
+    .point-category-header h6{font-size:.88rem;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:#1a1a1a;border:none;padding:0}
+    .point-category-header h6 .cat-emoji{font-size:1.1rem}
+    .point-category-header .cat-subtitle{font-size:.72rem;color:#999;font-weight:400;font-style:italic;margin-left:4px}
+    .point-category-body{padding:0 16px 16px;display:none}
+    .point-category.enabled .point-category-body{display:block}
+    .point-category.enabled{border-color:var(--kup-blue);background:rgba(46,165,221,.01)}
+    .point-category.enabled .point-category-header{background:rgba(46,165,221,.04)}
+    .point-input-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.85rem}
+    .point-input-row:last-child{border-bottom:none}
+    .point-input-row label{font-weight:500;color:#444;flex:1}
+    .point-input-row .pts-input-wrap{display:flex;align-items:center;gap:6px}
+    .point-input-row input[type="number"]{width:80px;padding:8px 10px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.85rem;text-align:center}
+    .point-input-row input[type="number"]:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .point-input-row .pts-suffix{font-size:.78rem;font-weight:600;color:#888}
+    .purchase-tier{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.85rem}
+    .purchase-tier:last-child{border-bottom:none}
+    .purchase-tier .tier-label{font-weight:600;color:var(--kup-blue);width:60px;flex-shrink:0}
+    .purchase-tier .tier-spend{display:flex;align-items:center;gap:4px;flex:1}
+    .purchase-tier .tier-arrow{color:#bbb;font-size:.9rem}
+    .purchase-tier .tier-earn{display:flex;align-items:center;gap:4px}
+    .purchase-tier input{width:70px;padding:8px 10px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.85rem;text-align:center}
+    .purchase-tier input:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .purchase-tier .tier-prefix{font-weight:700;color:#444;font-size:.9rem}
+    .unlock-threshold{margin-top:16px;padding:16px;background:rgba(237,132,68,.04);border:2px solid rgba(237,132,68,.2);border-radius:var(--radius-md)}
+    .unlock-threshold h6{font-size:.88rem;font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:#1a1a1a;border:none;padding:0}
+    .unlock-threshold .threshold-row{display:flex;align-items:center;gap:8px}
+    .unlock-threshold input{width:100px;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.95rem;font-weight:700;text-align:center}
+    .unlock-threshold input:focus{outline:none;border-color:var(--kup-orange);box-shadow:0 0 0 3px rgba(237,132,68,.1)}
+    .unlock-threshold .threshold-suffix{font-size:.85rem;font-weight:600;color:#888}
+
+    /* ============== KUP TOGGLE (iOS-style) ============== */
+    .kup-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+    .kup-toggle input{opacity:0;width:0;height:0}
+    .kup-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:all .25s}
+    .kup-toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:all .25s}
+    .kup-toggle input:checked + .kup-toggle-slider{background:var(--kup-blue)}
+    .kup-toggle input:checked + .kup-toggle-slider::before{transform:translateX(20px)}
+
+    /* ============== POINT / EARNING BADGES ============== */
+    .point-cat-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .point-cat-tag.content-pts{background:rgba(22,163,74,.08);color:#16a34a}
+    .point-cat-tag.purchase-pts{background:rgba(46,165,221,.1);color:var(--kup-blue)}
+    .point-cat-tag.gratitude-pts{background:rgba(112,123,187,.1);color:#707BBB}
+    .unlock-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .per-approval-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(46,165,221,.1);color:var(--kup-blue)}
+    .cash-amount-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .earning-badge{padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .earning-badge.point-based{background:rgba(22,163,74,.08);color:#16a34a}
+    .earning-badge.per-approval{background:rgba(46,165,221,.1);color:var(--kup-blue)}
+
+    /* ============== STEP 2 DYNAMIC FIELDS ============== */
+    .step2-fields{display:none}.step2-fields.active{display:block}
+    .input-amount-wrap{display:flex;align-items:stretch;margin-bottom:4px}
+    .input-amount-prefix{display:flex;align-items:center;justify-content:center;width:44px;background:#f5f6fa;border:1px solid #ddd;border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);font-weight:700;color:#444;font-size:1rem}
+    .input-amount-wrap input{border-radius:0 var(--radius-sm) var(--radius-sm) 0;flex:1}
+    .content-type-checks{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .content-type-checks label{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:500;color:#444;cursor:pointer;padding:8px 12px;border:1px solid #eee;border-radius:var(--radius-sm)}
+    .content-type-checks label:hover{border-color:var(--kup-blue);background:rgba(46,165,221,.02)}
+    .content-type-checks input[type="checkbox"]{accent-color:var(--kup-blue);width:16px;height:16px}
+    .auto-toggle{display:flex;align-items:center;gap:10px;padding:12px;background:#f8f9fa;border-radius:var(--radius-sm);margin-top:12px;font-size:.85rem;font-weight:500;color:#444}
+    .auto-toggle input[type="checkbox"]{accent-color:var(--kup-blue);width:18px;height:18px}
+    .payment-note{font-size:.82rem;color:#666;background:rgba(46,165,221,.04);padding:12px 14px;border-radius:var(--radius-sm);margin-top:12px;border-left:3px solid var(--kup-blue)}
+
+    /* ============== REVIEW STEP ============== */
+    .review-summary{background:#f8f9fa;border-radius:var(--radius-md);padding:24px;margin-bottom:20px}
+    .review-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:.85rem}
+    .review-row:last-child{border-bottom:none}
+    .review-label{font-weight:600;color:#888}
+    .review-value{font-weight:600;color:#1a1a1a;text-align:right;max-width:60%;word-wrap:break-word;overflow-wrap:break-word}
+    .review-badges{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .type-badge{padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .type-badge.non-cash{background:rgba(22,163,74,.08);color:#16a34a}
+    .type-badge.cash-type{background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    /* stage-pill removed — replaced by point-cat-tag + earning badges */
+    .wizard-actions-publish{flex-direction:column;align-items:stretch;text-align:center;border-top:none;padding-top:0}
+
+    @media(max-width:1024px){.wizard-layout{grid-template-columns:380px 1fr}}
+    @media(max-width:768px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{display:none}}
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <header class="auth-header"><div class="auth-header-inner">
+    <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+    <ul class="auth-nav"><li><a href="activity.html">Activity</a></li><li><a href="campaigns.html" role="tab">Campaigns</a></li><li><a href="content.html">Content</a></li><li><a href="influencers.html">Influencers</a></li><li><a href="cash-rewards.html" class="active">Cash &amp; Rewards</a></li></ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+  </div></header>
+
+  <!-- ============ BRAND REWARD 4-STEP WIZARD ============ -->
+  <div class="wizard-layout">
+    <div class="wizard-form">
+      <h3>Create Reward <span class="back-link" onclick="window.location='brand-reward-settings.html'">&lt; Back to Rewards</span></h3>
+      <div class="wizard-progress">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+
+      <!-- STEP 1: Reward Type -->
+      <div id="step1" class="form-section active-step">
+        <p class="step-label" id="step1Label">Step 1 of 4 &mdash; Reward Type</p>
+        <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">What type of reward?</h6>
+        <p style="font-size:.82rem;color:#888;margin-bottom:20px">Select the reward you want to create for your influencers.</p>
+
+        <div class="reward-type-section">
+          <div class="reward-type-label non-cash"><span class="label-icon"><i class="ph ph-gift"></i></span> Non-Cash Rewards</div>
+          <div class="offer-cards">
+            <div class="offer-card" data-type="points" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-star"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Points / Store Credit</h4>
+                <p class="offer-card-desc">Award redeemable points per approved submission</p>
+                <span class="offer-card-badge included">Included in Starter</span>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+            <div class="offer-card" data-type="free-product" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-gift"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Free Product or Service</h4>
+                <p class="offer-card-desc">Send a product or offer a service for an honest review</p>
+                <span class="offer-card-badge included">Included in Starter</span>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+            <div class="offer-card" data-type="discount" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-tag"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Discount / Coupon</h4>
+                <p class="offer-card-desc">Offer a percentage off or dollar amount discount code</p>
+                <span class="offer-card-badge included">Included in Starter</span>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reward-type-section" style="margin-top:20px">
+          <div class="reward-type-label cash"><span class="label-icon"><i class="ph ph-money"></i></span> Cash Offers</div>
+          <p style="font-size:0.75rem;color:#999;margin:-8px 0 12px;font-style:italic">Paid plans can enable multiple cash options at once</p>
+          <div class="offer-cards">
+            <div class="offer-card offer-card-upgrade" data-type="cash-per-approval" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-money"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Cash Per Approval</h4>
+                <p class="offer-card-desc">Pay influencers per approved submission based on their influence level</p>
+                <span class="offer-card-badge upgrade">Growth Plan</span>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+            <div class="offer-card offer-card-upgrade" data-type="bonus-cash" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-target"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Bonus Cash</h4>
+                <p class="offer-card-desc">Automatic bonus when an influencer posts content</p>
+                <span class="offer-card-badge upgrade">Growth Plan</span>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+            <div class="offer-card offer-card-upgrade" data-type="postd-pay" onclick="selectRewardType(this)">
+              <div class="offer-card-icon"><i class="ph ph-currency-dollar"></i></div>
+              <div class="offer-card-body">
+                <h4 class="offer-card-title">Postd Pay</h4>
+                <p class="offer-card-desc">Send any amount to any influencer, anytime</p>
+                <span class="offer-card-badge upgrade">Growth Plan</span>
+                <a href="postd-pay.html" class="offer-card-link" onclick="event.stopPropagation()">Managed in Cash &amp; Rewards &rarr;</a>
+              </div>
+              <div class="offer-card-check"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" onclick="window.location='brand-reward-settings.html'">Cancel</button>
+          <button class="btn-wizard primary" onclick="goToStep(2)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Reward Details (dynamic per type) -->
+      <div id="step2" class="form-section">
+        <p class="step-label" id="step2Label">Step 2 of 4 &mdash; Reward Details</p>
+        <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Set up your reward</h6>
+        <p style="font-size:.82rem;color:#888;margin-bottom:20px" id="step2Subtitle">Fill in the details for your reward.</p>
+
+        <!-- Points / Store Credit -->
+        <div class="step2-fields" id="fields-points">
+          <div class="form-group"><label>Reward Title</label><input type="text" id="ptTitle" placeholder="e.g., 500 Loyalty Points" maxlength="21"><p class="helper">What influencers see when they earn this reward (21 char max)</p></div>
+          <div class="form-group"><label>Points Value per Approval</label><input type="number" id="ptValue" placeholder="e.g., 500" min="1"><p class="helper">How many points each approved submission is worth</p></div>
+          <div class="form-group"><label>Redemption Description</label><textarea id="ptDesc" placeholder="Describe how influencers can redeem points (e.g., 'Redeem in our online store — 100 points = $1')" maxlength="85"></textarea><p class="helper">85 character max</p></div>
+          <h6>Reward Image</h6>
+          <div class="upload-box reward-upload-box" onclick="this.querySelector('input[type=file]').click()"><img class="reward-preview-img" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Reward image"><svg class="reward-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p class="reward-upload-text">Add reward image</p><button class="btn-upload" type="button" onclick="event.stopPropagation()">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p><input type="file" class="reward-image-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>
+        </div>
+
+        <!-- Free Product or Service -->
+        <div class="step2-fields" id="fields-free-product">
+          <div class="form-group"><label>Reward Title</label><input type="text" id="fpTitle" placeholder="e.g., Free Sample Box" maxlength="21"><p class="helper">21 character max</p></div>
+          <div class="form-group"><label>Reward Description</label><textarea id="fpDesc" placeholder="Tell influencers about your reward and how they can receive it" maxlength="85"></textarea><p class="helper">85 character max</p></div>
+          <div class="form-group"><label>Estimated Value</label><input type="text" id="fpValue" placeholder="e.g., $25 value"><p class="helper">Approximate retail value shown to influencers</p></div>
+          <h6>Reward Image</h6>
+          <div class="upload-box reward-upload-box" onclick="this.querySelector('input[type=file]').click()"><img class="reward-preview-img" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Reward image"><svg class="reward-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p class="reward-upload-text">Add reward image</p><button class="btn-upload" type="button" onclick="event.stopPropagation()">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p><input type="file" class="reward-image-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>
+          <h6>Shipping Method</h6>
+          <div class="radio-group"><label><input type="radio" name="fpShipping" value="address"> Shipping via address</label><label><input type="radio" name="fpShipping" value="email" checked> Shipping via email</label><label><input type="radio" name="fpShipping" value="pickup"> In-store pickup</label></div>
+        </div>
+
+        <!-- Discount / Coupon -->
+        <div class="step2-fields" id="fields-discount">
+          <div class="form-group"><label>Reward Title</label><input type="text" id="dcTitle" placeholder="e.g., 20% Off First Order" maxlength="21"><p class="helper">21 character max</p></div>
+          <h6>Discount Type</h6>
+          <div class="radio-group"><label><input type="radio" name="dcType" value="percent" checked> Percentage off</label><label><input type="radio" name="dcType" value="dollar"> Dollar amount off</label><label><input type="radio" name="dcType" value="freeship"> Free shipping</label></div>
+          <div class="form-group" style="margin-top:16px"><label>Discount Value</label><input type="text" id="dcValue" placeholder="e.g., 20% or $10"><p class="helper">The discount amount or percentage</p></div>
+          <div class="form-group"><label>Coupon Code <span style="font-weight:400;color:#bbb">(optional)</span></label><input type="text" id="dcCode" placeholder="e.g., WELCOME20"><p class="helper">Leave blank to auto-generate a unique code</p></div>
+          <h6>Expiration</h6>
+          <div class="radio-group"><label><input type="radio" name="dcExpiry" value="30" checked> (30) day expiration</label><label><input type="radio" name="dcExpiry" value="60"> (60) day expiration</label><label><input type="radio" name="dcExpiry" value="0"> No expiration</label></div>
+        </div>
+
+        <!-- Cash Per Approval -->
+        <div class="step2-fields" id="fields-cash-per-approval">
+          <div class="tier-rate-info" style="background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.15);border-radius:8px;padding:16px 20px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:1.1rem"><i class="ph ph-chart-bar"></i></span><strong style="font-size:0.88rem;color:#1a1a1a">Payout Based on Influence Level</strong></div>
+            <p style="font-size:0.82rem;color:#666;margin:0 0 8px;line-height:1.5">Each influencer is automatically classified by their level of influence when they join the platform. Cash Per Approval payouts are determined by their tier &mdash; you don&rsquo;t need to set an amount.</p>
+            <a href="cash-account.html#influencer-rates" style="font-size:0.78rem;font-weight:600;color:var(--kup-blue)">View Influence Tier Rates &rarr;</a>
+          </div>
+          <div class="form-group"><label>Payment Note Template</label><textarea id="cpaMemo" placeholder="e.g., Thank you for your approved submission for our brand!" maxlength="85"></textarea><p class="helper">85 character max — shown with each payment</p></div>
+          <div class="payment-note"><i class="ph ph-credit-card"></i> Payments are processed via PayPal Business. Influencers receive funds directly to their PayPal Business account.</div>
+        </div>
+
+        <!-- Bonus Cash -->
+        <div class="step2-fields" id="fields-bonus-cash">
+          <div class="tier-rate-info" style="background:rgba(237,132,68,0.06);border:1px solid rgba(237,132,68,0.15);border-radius:8px;padding:16px 20px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:1.1rem"><i class="ph ph-chart-bar"></i></span><strong style="font-size:0.88rem;color:#1a1a1a">Bonus Based on Influence Level</strong></div>
+            <p style="font-size:0.82rem;color:#666;margin:0 0 8px;line-height:1.5">Bonus Cash amounts are determined by each influencer&rsquo;s tier when they post approved content to their own community. You don&rsquo;t need to set an amount.</p>
+            <a href="cash-account.html#influencer-rates" style="font-size:0.78rem;font-weight:600;color:var(--kup-orange)">View Influence Tier Rates &rarr;</a>
+          </div>
+          <div class="form-group"><label>Qualifying Content Types</label><div class="content-type-checks"><label><input type="checkbox" checked> Instagram Reel</label><label><input type="checkbox" checked> TikTok Video</label><label><input type="checkbox"> YouTube Short</label><label><input type="checkbox"> Instagram Story</label><label><input type="checkbox"> Blog Post</label></div></div>
+          <div class="auto-toggle"><input type="checkbox" checked id="bcAutoSend"> Automatically send bonus when content is verified</div>
+          <div class="form-group" style="margin-top:16px"><label>Budget Cap <span style="font-weight:400;color:#bbb">(optional)</span></label><div class="input-amount-wrap"><div class="input-amount-prefix">$</div><input type="number" id="bcBudget" placeholder="No limit" min="0" step="1"></div><p class="helper">Stop bonuses when total reaches this amount. Leave blank for unlimited.</p></div>
+          <div class="payment-note"><i class="ph ph-credit-card"></i> Bonus payments are processed via PayPal Business when content posting is verified.</div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" onclick="goToStep(1)"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard primary" onclick="goToStep(3)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Earning Mechanism (Non-Cash only, Cash skips) -->
+      <div id="step3" class="form-section">
+        <p class="step-label" id="step3Label">Step 3 of 4 &mdash; Points</p>
+        <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">How do influencers earn this reward?</h6>
+        <p style="font-size:.82rem;color:#888;margin-bottom:20px">Choose how influencers unlock your non-cash reward.</p>
+
+        <!-- Earning Method Selector -->
+        <div class="earning-method-cards">
+          <div class="earning-method-card" data-method="point-based" onclick="selectEarningMethod(this)">
+            <div class="earning-method-card-icon"><i class="ph ph-trophy"></i></div>
+            <div class="earning-method-card-body">
+              <h4 class="earning-method-card-title">Point-Based</h4>
+              <p class="earning-method-card-desc">Influencers accumulate points to unlock this reward</p>
+              <p class="earning-method-card-hint">Best for repeat traffic, loyalty programs</p>
+            </div>
+            <div class="earning-method-card-check"></div>
+          </div>
+          <div class="earning-method-card" data-method="per-approval" onclick="selectEarningMethod(this)">
+            <div class="earning-method-card-icon"><i class="ph ph-lightning"></i></div>
+            <div class="earning-method-card-body">
+              <h4 class="earning-method-card-title">Per Approval</h4>
+              <p class="earning-method-card-desc">Reward triggers instantly when you approve content</p>
+              <p class="earning-method-card-hint">Best for events, conferences, one-off offers</p>
+            </div>
+            <div class="earning-method-card-check"></div>
+          </div>
+        </div>
+
+        <!-- Per Approval Confirmation (shown when Per Approval selected) -->
+        <div class="per-approval-confirm" id="perApprovalConfirm" style="display:none">
+          <i class="ph ph-lightning"></i> <strong>Per Approval</strong> &mdash; This reward will be automatically triggered each time you approve an influencer's content submission. No points or thresholds needed.
+        </div>
+
+        <!-- Point Configuration (shown when Point-Based selected) -->
+        <div class="point-config" id="pointConfig">
+
+          <!-- A. Content Points -->
+          <div class="point-category enabled" id="catContent">
+            <div class="point-category-header" onclick="toggleCategory('content')">
+              <h6><span class="cat-emoji"><i class="ph ph-microphone"></i></span> Content Points <span class="cat-subtitle">Reviews &amp; submissions</span></h6>
+              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" checked onchange="toggleCategory('content')"><span class="kup-toggle-slider"></span></label>
+            </div>
+            <div class="point-category-body">
+              <div class="point-input-row"><label>Submitted to brand</label><div class="pts-input-wrap"><input type="number" id="ptContentSubmit" value="10" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="point-input-row"><label>Approved by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentApprove" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="point-input-row"><label>Published by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentPublish" value="40" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="point-input-row"><label>Bonus (posted to own community)</label><div class="pts-input-wrap"><input type="number" id="ptContentBonus" value="15" min="0"><span class="pts-suffix">pts</span></div></div>
+            </div>
+          </div>
+
+          <!-- B. Purchase Points -->
+          <div class="point-category" id="catPurchase">
+            <div class="point-category-header" onclick="toggleCategory('purchase')">
+              <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">Replaces traditional punch cards</span></h6>
+              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleCategory('purchase')"><span class="kup-toggle-slider"></span></label>
+            </div>
+            <div class="point-category-body">
+              <div class="purchase-tier"><span class="tier-label">Level 1</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend1" placeholder="25" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn1" placeholder="50" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="purchase-tier"><span class="tier-label">Level 2</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend2" placeholder="50" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn2" placeholder="120" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="purchase-tier"><span class="tier-label">Level 3</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend3" placeholder="100" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn3" placeholder="300" min="0"><span class="pts-suffix">pts</span></div></div>
+            </div>
+          </div>
+
+          <!-- C. Gratitude Points -->
+          <div class="point-category" id="catGratitude">
+            <div class="point-category-header" onclick="toggleCategory('gratitude')">
+              <h6><span class="cat-emoji"><i class="ph ph-confetti"></i></span> Gratitude Points <span class="cat-subtitle">Milestones &amp; celebrations</span></h6>
+              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleCategory('gratitude')"><span class="kup-toggle-slider"></span></label>
+            </div>
+            <div class="point-category-body">
+              <div class="point-input-row"><label>Joins as influencer</label><div class="pts-input-wrap"><input type="number" id="ptGratJoin" value="50" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="point-input-row"><label>Birthday</label><div class="pts-input-wrap"><input type="number" id="ptGratBday" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
+              <div class="point-input-row"><label>Partnership anniversary</label><div class="pts-input-wrap"><input type="number" id="ptGratAnniv" value="100" min="0"><span class="pts-suffix">pts</span></div></div>
+            </div>
+          </div>
+
+          <!-- D. Unlock Threshold (always visible) -->
+          <div class="unlock-threshold">
+            <h6><i class="ph ph-lock"></i> Unlock Threshold</h6>
+            <div class="threshold-row">
+              <span style="font-size:.85rem;font-weight:500;color:#444">Total points to unlock:</span>
+              <input type="number" id="unlockThreshold" value="500" min="1">
+              <span class="threshold-suffix">pts</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" onclick="goToStep(2)"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard primary" onclick="proceedToReview()">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Review -->
+      <div id="step4" class="form-section">
+        <p class="step-label" id="step4Label">Step 4 of 4 &mdash; Review</p>
+        <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Review your reward</h6>
+        <p style="font-size:.82rem;color:#888;margin-bottom:20px">Confirm everything looks good before saving.</p>
+
+        <div class="review-badges" id="reviewBadges"></div>
+        <div class="review-summary" id="reviewSummary"></div>
+
+        <div style="margin-bottom:16px"><button class="btn-wizard secondary" onclick="goBackFromReview()" style="font-size:.82rem;padding:8px 16px"><i class="ph ph-arrow-left"></i> Back</button></div>
+        <div class="wizard-actions wizard-actions-publish">
+          <button class="btn-wizard success" style="padding:14px;font-size:.95rem" onclick="handleSaveReward()">Save Reward</button>
+          <p style="font-size:.78rem;color:#999;margin:6px 0 16px">Your reward will be active and available to assign to influencers</p>
+          <button class="btn-wizard secondary" style="width:100%" onclick="handleSaveDraft()">Save as Draft</button>
+          <p style="font-size:.78rem;color:#999;margin:6px 0 0">Save for later, activate when ready</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Reward Preview -->
+    <div class="wizard-preview">
+      <div class="preview-inner">
+
+      <!-- Tips Column -->
+      <div class="step-tips">
+        <!-- Step 1 Tips -->
+        <div class="step-tips-group active" id="tips1">
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-star"></i></span> Choose Wisely</h4>
+            <p>Non-cash rewards (free products, discounts, points) are included in <span class="tip-highlight">Starter</span>. Cash rewards unlock on Growth plans.</p>
+          </div>
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-chart-line-up"></i></span> What Works Best</h4>
+            <p>Brands offering <span class="tip-highlight">points + free product</span> see 2x more creator applications than single-reward campaigns.</p>
+          </div>
+        </div>
+        <!-- Step 2 Tips -->
+        <div class="step-tips-group" id="tips2">
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-clipboard-text"></i></span> Be Specific</h4>
+            <p>Clear descriptions attract <span class="tip-highlight">40% more creators</span>. Say exactly what they'll receive and how they earn it.</p>
+          </div>
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-target"></i></span> Set Smart Limits</h4>
+            <p>Adding a <span class="tip-highlight">budget cap</span> prevents overspending while keeping your reward active until you're ready to pause.</p>
+          </div>
+        </div>
+        <!-- Step 3 Tips -->
+        <div class="step-tips-group" id="tips3">
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-coins"></i></span> Points That Work</h4>
+            <p>The default point values (10/25/40/15) are optimized based on platform data. Adjust the <span class="tip-highlight">unlock threshold</span> to control when creators can redeem.</p>
+          </div>
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-confetti"></i></span> Gratitude Bonus</h4>
+            <p>Enabling <span class="tip-highlight">birthday and anniversary points</span> increases creator retention by 35%. Small gestures go a long way.</p>
+          </div>
+        </div>
+        <!-- Step 4 Tips -->
+        <div class="step-tips-group" id="tips4">
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-check-circle"></i></span> Almost There!</h4>
+            <p>Review everything before saving. You can always <span class="tip-highlight">edit rewards later</span> from your Reward Settings page.</p>
+          </div>
+          <div class="step-tips-card">
+            <h4><span class="tip-icon"><i class="ph ph-lightbulb"></i></span> Pro Tip</h4>
+            <p>Save as draft to test internally first. <span class="tip-highlight">Activate when ready</span> — creators will see it instantly in the marketplace.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone Mockup Column -->
+      <div class="phone-column">
+        <p class="preview-label">App Reward Preview</p>
+        <div class="phone-frame">
+          <!-- Status Bar -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 4px;font-size:.68rem;font-weight:600;color:#1a1a1a">
+            <span>9:41</span>
+            <div style="display:flex;gap:4px;align-items:center"><span style="font-size:.6rem">&#9679;&#9679;&#9679;&#9679;</span> <span style="font-size:.7rem">&#128246;</span> <span style="font-size:.7rem">&#128267;</span></div>
+          </div>
+          <!-- Reward Screen Content -->
+          <div style="padding:0 16px;overflow-y:auto;overflow-x:hidden;height:calc(100% - 100px)">
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:8px;padding:12px 0 16px">
+              <span style="font-size:.9rem;cursor:pointer">&#8592;</span>
+              <span style="font-size:.9rem;font-weight:700;flex:1">Reward Details</span>
+            </div>
+            <!-- Reward Image -->
+            <div id="phoneRewardImage" style="height:140px;border-radius:12px;background:linear-gradient(135deg,#f8e8d4,#f0d4b8);display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden">
+              <span style="font-size:2.5rem">&#127873;</span>
+            </div>
+            <!-- Reward Info -->
+            <h4 id="phoneRewardTitle" style="font-size:1rem;font-weight:700;margin:0 0 6px;word-wrap:break-word;overflow-wrap:break-word">Reward Title</h4>
+            <p id="phoneRewardDesc" style="font-size:.78rem;color:#888;margin:0 0 12px;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">Reward description will appear here as you create it...</p>
+            <!-- Reward Meta -->
+            <div id="phoneRewardMeta" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+              <span id="phoneRewardType" style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;background:rgba(46,165,221,.08);color:#2EA5DD">Type</span>
+              <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;background:rgba(22,163,74,.08);color:#16a34a">Active</span>
+            </div>
+            <!-- How to Earn (dynamic) -->
+            <div id="phoneHowToEarn" style="background:#f8f9fa;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+              <h5 style="font-size:.78rem;font-weight:700;margin:0 0 10px;color:#444">How to Earn</h5>
+              <div id="phoneEarnRows" style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Submit content</span><span style="font-weight:700;color:#2EA5DD">— pts</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Get approved</span><span style="font-weight:700;color:#2EA5DD">— pts</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Published (Postd)</span><span style="font-weight:700;color:#2EA5DD">— pts</span></div>
+              </div>
+            </div>
+            <!-- Unlock Progress (dynamic) -->
+            <div id="phoneUnlockWrap" style="background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <h5 style="font-size:.78rem;font-weight:700;margin:0;color:#444">Unlock Progress</h5>
+                <span id="phoneUnlockPts" style="font-size:.7rem;font-weight:700;color:#ED8444">0 / — pts</span>
+              </div>
+              <div style="height:6px;background:#eee;border-radius:6px;overflow:hidden">
+                <div style="height:100%;width:0%;background:var(--kup-gradient);border-radius:6px"></div>
+              </div>
+              <p id="phoneUnlockHint" style="font-size:.68rem;color:#bbb;margin:6px 0 0">Earn points to unlock this reward</p>
+            </div>
+          </div>
+          <!-- Bottom Nav -->
+          <div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:8px 0;border-top:1px solid #eee;background:#fff;font-size:.6rem;color:#bbb">
+            <div style="text-align:center"><span style="font-size:.85rem">&#127968;</span><br>Home</div>
+            <div style="text-align:center"><span style="font-size:.85rem">&#128269;</span><br>Discover</div>
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;margin-top:-16px">+</div>
+            <div style="text-align:center;color:#2EA5DD;font-weight:700"><span style="font-size:.85rem">&#128176;</span><br>Rewards</div>
+            <div style="text-align:center"><span style="font-size:.85rem">&#128100;</span><br>Profile</div>
+          </div>
+        </div>
+        <p class="preview-hint"><em>This is how creators see your reward in the app.</em></p>
+      </div>
+
+      </div><!-- /.preview-inner -->
+    </div>
+  </div>
+
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'\u2713', error:'\u2715', info:'\u2139', warning:'\u26A0' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <script>
+    /* ============ REWARD WIZARD STATE ============ */
+    var currentStep = 1;
+    var selectedType = null;
+    var earningMethod = null; // 'point-based' or 'per-approval'
+
+    /* ============ HELPER: Is this a cash type? ============ */
+    function isCashType(type) {
+      return ['cash-per-approval','bonus-cash','postd-pay'].indexOf(type) >= 0;
+    }
+
+    /* ============ HELPER: Does this config need point setup? ============ */
+    function needsPointConfig() {
+      return !isCashType(selectedType) && earningMethod === 'point-based';
+    }
+
+    /* ============ HELPER: Get total steps for current flow ============ */
+    function getTotalSteps() {
+      // Non-Cash + Point-Based = 4 steps (Type → Details → Points → Review)
+      // Non-Cash + Per Approval = 3 steps (Type → Details → Review) — skip step 3
+      // Cash = 3 steps (Type → Details → Review) — skip step 3
+      if (!isCashType(selectedType) && earningMethod === 'point-based') return 4;
+      if (!isCashType(selectedType) && !earningMethod) return 4; // default before choosing
+      return 3;
+    }
+
+    /* ============ HELPER: Get the review step number ============ */
+    function getReviewStep() {
+      return getTotalSteps();
+    }
+
+    /* ============ UPDATE STEP LABELS ============ */
+    function updateStepLabels() {
+      var total = getTotalSteps();
+      var el1 = document.getElementById('step1Label');
+      var el2 = document.getElementById('step2Label');
+      var el3 = document.getElementById('step3Label');
+      var el4 = document.getElementById('step4Label');
+      if (el1) el1.textContent = 'Step 1 of ' + total + ' \u2014 Reward Type';
+      if (el2) el2.textContent = 'Step 2 of ' + total + ' \u2014 Reward Details';
+      if (total === 4) {
+        // Non-Cash Point-Based: Type → Details → Points → Review
+        if (el3) el3.textContent = 'Step 3 of 4 \u2014 Points';
+        if (el4) el4.textContent = 'Step 4 of 4 \u2014 Review';
+      } else if (isCashType(selectedType)) {
+        // Cash: Type → Details → Review (step3 div hidden, step4 = Step 3)
+        if (el4) el4.textContent = 'Step 3 of 3 \u2014 Review';
+      } else {
+        // Non-Cash Per Approval: Type → Details → Earning Method → Review
+        // Still 3 dots but earning method + review share step 3
+        if (el3) el3.textContent = 'Step 3 of 3 \u2014 Earning Method';
+        if (el4) el4.textContent = 'Step 3 of 3 \u2014 Review';
+      }
+    }
+
+    /* ============ UPDATE PROGRESS DOTS ============ */
+    function updateProgressDots(activeStep) {
+      var total = getTotalSteps();
+      var dots = document.querySelectorAll('.progress-step');
+      dots.forEach(function(d, i) {
+        d.className = 'progress-step';
+        d.style.display = (i < total) ? '' : 'none';
+        if (i < activeStep - 1) d.classList.add('done');
+        if (i === activeStep - 1) d.classList.add('active');
+      });
+    }
+
+    /* ============ STEP NAVIGATION ============ */
+    // Internal steps: 1=Type, 2=Details, 3=EarningMethod(non-cash only), 4=Review(always #step4 div)
+    function goToStep(step) {
+      // Validate before going forward
+      if (step > currentStep && !validateStep(currentStep)) return;
+
+      // Cash types: skip step 3 entirely (2 → 4)
+      if (step === 3 && isCashType(selectedType)) {
+        showReview();
+        return;
+      }
+
+      // Show the actual step div
+      document.querySelectorAll('.form-section').forEach(function(s) { s.classList.remove('active-step'); });
+      document.getElementById('step' + step).classList.add('active-step');
+      currentStep = step;
+      updateStepLabels();
+      updateProgressDots(currentStep <= 2 ? currentStep : (isCashType(selectedType) ? currentStep : currentStep));
+      window.scrollTo(0, 0);
+
+      if (step === 2 && selectedType) renderStep2(selectedType);
+
+      // Switch contextual tips panel
+      document.querySelectorAll('.step-tips-group').forEach(function(g) { g.classList.remove('active'); });
+      var tipsEl = document.getElementById('tips' + step);
+      if (tipsEl) tipsEl.classList.add('active');
+    }
+
+    // Called from Step 3 Continue button
+    function proceedToReview() {
+      if (!validateStep(3)) return;
+      showReview();
+    }
+
+    // Show the review step (#step4 div) with correct progress
+    function showReview() {
+      document.querySelectorAll('.form-section').forEach(function(s) { s.classList.remove('active-step'); });
+      document.getElementById('step4').classList.add('active-step');
+      var total = getTotalSteps();
+      currentStep = total; // Set current step to last step number
+      updateStepLabels();
+      updateProgressDots(total);
+      populateReview();
+      window.scrollTo(0, 0);
+    }
+
+    /* ============ VALIDATION ============ */
+    function validateStep(step) {
+      if (step === 1) {
+        if (!selectedType) { kupToast('Please select a reward type', 'warning'); return false; }
+        if (selectedType === 'postd-pay') { window.location = 'postd-pay.html'; return false; }
+        return true;
+      }
+      if (step === 2) {
+        if (selectedType === 'points') {
+          if (!document.getElementById('ptTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
+          if (!document.getElementById('ptValue').value) { kupToast('Please enter a points value', 'warning'); return false; }
+        } else if (selectedType === 'free-product') {
+          if (!document.getElementById('fpTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
+        } else if (selectedType === 'discount') {
+          if (!document.getElementById('dcTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
+        } else if (selectedType === 'cash-per-approval') {
+          // Amount is tier-based — no validation needed
+        } else if (selectedType === 'bonus-cash') {
+          // Amount is tier-based — no validation needed
+        }
+        return true;
+      }
+      if (step === 3 && !isCashType(selectedType)) {
+        // Validate earning method is selected
+        if (!earningMethod) { kupToast('Please choose an earning method', 'warning'); return false; }
+        // If point-based, validate at least one category enabled + threshold
+        if (earningMethod === 'point-based') {
+          var anyEnabled = document.querySelector('.point-category.enabled');
+          if (!anyEnabled) { kupToast('Enable at least one point category', 'warning'); return false; }
+          var threshold = parseInt(document.getElementById('unlockThreshold').value) || 0;
+          if (threshold <= 0) { kupToast('Set a point threshold greater than 0', 'warning'); return false; }
+        }
+        return true;
+      }
+      return true;
+    }
+
+    /* ============ REWARD TYPE SELECTION (multi-select for cash) ============ */
+    function selectRewardType(card) {
+      var type = card.getAttribute('data-type');
+      var cashTypes = ['cash-per-approval', 'bonus-cash', 'postd-pay'];
+      var isCash = cashTypes.indexOf(type) >= 0;
+
+      if (isCash) {
+        // Deselect all non-cash cards
+        document.querySelectorAll('.offer-card:not(.offer-card-upgrade)').forEach(function(c) { c.classList.remove('selected'); });
+        // Toggle this cash card
+        card.classList.toggle('selected');
+        // Set selectedType to first selected cash type (for backward compat)
+        var selectedCash = document.querySelectorAll('.offer-card-upgrade.selected');
+        selectedType = selectedCash.length > 0 ? selectedCash[0].getAttribute('data-type') : null;
+      } else {
+        // Non-cash: exclusive select (deselect everything, select this one)
+        document.querySelectorAll('.offer-card').forEach(function(c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        selectedType = type;
+      }
+
+      // Reset earning method when type changes
+      earningMethod = null;
+      document.querySelectorAll('.earning-method-card').forEach(function(c) { c.classList.remove('selected'); });
+      document.getElementById('pointConfig').classList.remove('active');
+      document.getElementById('perApprovalConfirm').style.display = 'none';
+      updateStepLabels();
+      updateProgressDots(1);
+      updatePreview();
+    }
+
+    /* Helper: get all selected cash types from DOM */
+    function getSelectedCashTypes() {
+      var result = [];
+      document.querySelectorAll('.offer-card-upgrade.selected').forEach(function(c) {
+        result.push(c.getAttribute('data-type'));
+      });
+      return result;
+    }
+
+    /* ============ RENDER STEP 2 FIELDS ============ */
+    function renderStep2(type) {
+      document.querySelectorAll('.step2-fields').forEach(function(f) { f.classList.remove('active'); });
+      var fieldMap = { 'points':'fields-points', 'free-product':'fields-free-product', 'discount':'fields-discount', 'cash-per-approval':'fields-cash-per-approval', 'bonus-cash':'fields-bonus-cash' };
+      var subtitles = { 'points':'Configure your points reward for influencers.', 'free-product':'Describe the product or service you\'re offering.', 'discount':'Set up your discount or coupon for influencers.', 'cash-per-approval':'Cash Per Approval pays influencers based on their influence tier.', 'bonus-cash':'Bonus Cash pays influencers when they post approved content to their community.' };
+
+      if (isCashType(type)) {
+        // Show fields for ALL selected cash types (multi-select)
+        var cashTypes = getSelectedCashTypes();
+        cashTypes.forEach(function(ct) {
+          var targetId = fieldMap[ct];
+          if (targetId) document.getElementById(targetId).classList.add('active');
+        });
+        document.getElementById('step2Subtitle').textContent = cashTypes.length > 1
+          ? 'Configure your selected cash payment methods.'
+          : (subtitles[type] || 'Fill in the details for your reward.');
+      } else {
+        var targetId = fieldMap[type];
+        if (targetId) document.getElementById(targetId).classList.add('active');
+        document.getElementById('step2Subtitle').textContent = subtitles[type] || 'Fill in the details for your reward.';
+      }
+    }
+
+    /* ============ EARNING METHOD SELECTION ============ */
+    function selectEarningMethod(card) {
+      document.querySelectorAll('.earning-method-card').forEach(function(c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      earningMethod = card.getAttribute('data-method');
+
+      var pointConfigEl = document.getElementById('pointConfig');
+      var perApprovalEl = document.getElementById('perApprovalConfirm');
+
+      if (earningMethod === 'point-based') {
+        pointConfigEl.classList.add('active');
+        perApprovalEl.style.display = 'none';
+      } else {
+        pointConfigEl.classList.remove('active');
+        perApprovalEl.style.display = 'block';
+      }
+      updateStepLabels();
+      updateProgressDots(3);
+      updatePreview();
+    }
+
+    /* ============ TOGGLE POINT CATEGORY ============ */
+    function toggleCategory(catName) {
+      var catMap = { 'content':'catContent', 'purchase':'catPurchase', 'gratitude':'catGratitude' };
+      var catEl = document.getElementById(catMap[catName]);
+      if (!catEl) return;
+      var checkbox = catEl.querySelector('.kup-toggle input');
+      // If called from header click (not checkbox), toggle the checkbox
+      if (!event || event.target.tagName !== 'INPUT') {
+        checkbox.checked = !checkbox.checked;
+      }
+      if (checkbox.checked) {
+        catEl.classList.remove('disabled');
+        catEl.classList.add('enabled');
+      } else {
+        catEl.classList.remove('enabled');
+        catEl.classList.add('disabled');
+      }
+      updatePreview();
+    }
+
+    /* ============ READ POINT CONFIG FROM DOM ============ */
+    function readPointConfigFromDOM() {
+      var config = { categories: [], threshold: parseInt(document.getElementById('unlockThreshold').value) || 0 };
+      // Content
+      if (document.getElementById('catContent').classList.contains('enabled')) {
+        config.categories.push({
+          name: 'Content Pts',
+          cssClass: 'content-pts',
+          values: {
+            submitted: parseInt(document.getElementById('ptContentSubmit').value) || 0,
+            approved: parseInt(document.getElementById('ptContentApprove').value) || 0,
+            published: parseInt(document.getElementById('ptContentPublish').value) || 0,
+            bonus: parseInt(document.getElementById('ptContentBonus').value) || 0
+          }
+        });
+      }
+      // Purchase
+      if (document.getElementById('catPurchase').classList.contains('enabled')) {
+        config.categories.push({
+          name: 'Purchase Pts',
+          cssClass: 'purchase-pts',
+          values: {
+            tiers: [
+              { spend: document.getElementById('ptPurchaseSpend1').value, earn: document.getElementById('ptPurchaseEarn1').value },
+              { spend: document.getElementById('ptPurchaseSpend2').value, earn: document.getElementById('ptPurchaseEarn2').value },
+              { spend: document.getElementById('ptPurchaseSpend3').value, earn: document.getElementById('ptPurchaseEarn3').value }
+            ]
+          }
+        });
+      }
+      // Gratitude
+      if (document.getElementById('catGratitude').classList.contains('enabled')) {
+        config.categories.push({
+          name: 'Gratitude',
+          cssClass: 'gratitude-pts',
+          values: {
+            join: parseInt(document.getElementById('ptGratJoin').value) || 0,
+            birthday: parseInt(document.getElementById('ptGratBday').value) || 0,
+            anniversary: parseInt(document.getElementById('ptGratAnniv').value) || 0
+          }
+        });
+      }
+      return config;
+    }
+
+    /* ============ LIVE PREVIEW — wired to phone mockup ============ */
+    function updatePreview() {
+      var typeNames = { 'points':'Points / Store Credit', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
+
+      /* --- Type badge --- */
+      var typeEl = document.getElementById('phoneRewardType');
+      if (isCashType(selectedType)) {
+        var cashTypes = getSelectedCashTypes();
+        if (typeEl) {
+          typeEl.textContent = cashTypes.map(function(ct) { return typeNames[ct] || ct; }).join(' + ');
+          typeEl.style.background = 'rgba(237,132,68,.08)';
+          typeEl.style.color = '#ED8444';
+        }
+      } else {
+        if (typeEl) {
+          typeEl.textContent = typeNames[selectedType] || 'Type';
+          typeEl.style.background = 'rgba(46,165,221,.08)';
+          typeEl.style.color = '#2EA5DD';
+        }
+      }
+
+      /* --- Title --- */
+      var title = '';
+      if (selectedType === 'points') title = (document.getElementById('ptTitle') || {}).value || '';
+      else if (selectedType === 'free-product') title = (document.getElementById('fpTitle') || {}).value || '';
+      else if (selectedType === 'discount') title = (document.getElementById('dcTitle') || {}).value || '';
+      else if (isCashType(selectedType)) {
+        var ct2 = getSelectedCashTypes();
+        title = ct2.length > 1 ? 'Cash Rewards (' + ct2.length + ' types)' : (typeNames[selectedType] || '');
+      }
+      var titleEl = document.getElementById('phoneRewardTitle');
+      if (titleEl) titleEl.textContent = title || 'Reward Title';
+
+      /* --- Description --- */
+      var desc = '';
+      if (selectedType === 'points') desc = (document.getElementById('ptDesc') || {}).value || '';
+      else if (selectedType === 'free-product') desc = (document.getElementById('fpDesc') || {}).value || '';
+      else if (selectedType === 'discount') desc = (document.getElementById('dcTitle') || {}).value || '';
+      else if (isCashType(selectedType)) desc = (document.getElementById('cpaMemo') || {}).value || '';
+      var descEl = document.getElementById('phoneRewardDesc');
+      if (descEl) descEl.textContent = desc || 'Reward description will appear here as you create it...';
+
+      /* --- How to Earn section (dynamic) --- */
+      var earnRows = document.getElementById('phoneEarnRows');
+      var howToEarn = document.getElementById('phoneHowToEarn');
+      if (earnRows) {
+        if (isCashType(selectedType)) {
+          // Cash types: show payout info instead of points
+          var cashTypes = getSelectedCashTypes();
+          var html = '';
+          cashTypes.forEach(function(ct) {
+            if (ct === 'cash-per-approval') html += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Per Approval</span><span style="font-weight:700;color:#ED8444">Tier Rate</span></div>';
+            if (ct === 'bonus-cash') html += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Bonus Cash</span><span style="font-weight:700;color:#ED8444">Tier Rate</span></div>';
+            if (ct === 'postd-pay') html += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Postd Pay</span><span style="font-weight:700;color:#707BBB">Enabled</span></div>';
+          });
+          earnRows.innerHTML = html || '<div style="font-size:.75rem;color:#bbb">Select cash types...</div>';
+          if (howToEarn) howToEarn.style.display = 'block';
+        } else if (earningMethod === 'per-approval') {
+          earnRows.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Each approval</span><span style="font-weight:700;color:#2EA5DD">\u26A1 Instant</span></div>';
+          if (howToEarn) howToEarn.style.display = 'block';
+        } else if (earningMethod === 'point-based') {
+          var submit = (document.getElementById('ptContentSubmit') || {}).value || '—';
+          var approve = (document.getElementById('ptContentApprove') || {}).value || '—';
+          var publish = (document.getElementById('ptContentPublish') || {}).value || '—';
+          var bonus = (document.getElementById('ptContentBonus') || {}).value || '';
+          var html2 = '';
+          html2 += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Submit content</span><span style="font-weight:700;color:#2EA5DD">' + submit + ' pts</span></div>';
+          html2 += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Get approved</span><span style="font-weight:700;color:#2EA5DD">' + approve + ' pts</span></div>';
+          html2 += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Published (Postd)</span><span style="font-weight:700;color:#2EA5DD">' + publish + ' pts</span></div>';
+          if (bonus) html2 += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Bonus review</span><span style="font-weight:700;color:#2EA5DD">' + bonus + ' pts</span></div>';
+          // Purchase tiers
+          var ps1 = (document.getElementById('ptPurchaseSpend1') || {}).value;
+          var pe1 = (document.getElementById('ptPurchaseEarn1') || {}).value;
+          if (ps1 && pe1) html2 += '<div style="display:flex;justify-content:space-between;font-size:.75rem"><span style="color:#666">Spend $' + ps1 + '</span><span style="font-weight:700;color:#16a34a">' + pe1 + ' pts</span></div>';
+          earnRows.innerHTML = html2;
+          if (howToEarn) howToEarn.style.display = 'block';
+        } else {
+          earnRows.innerHTML = '<div style="font-size:.75rem;color:#bbb">Configure earning method...</div>';
+          if (howToEarn) howToEarn.style.display = 'block';
+        }
+      }
+
+      /* --- Unlock Progress (dynamic threshold) --- */
+      var unlockWrap = document.getElementById('phoneUnlockWrap');
+      var unlockPts = document.getElementById('phoneUnlockPts');
+      var unlockHint = document.getElementById('phoneUnlockHint');
+      if (earningMethod === 'point-based') {
+        var threshold = (document.getElementById('unlockThreshold') || {}).value || 0;
+        if (unlockWrap) unlockWrap.style.display = 'block';
+        if (unlockPts) unlockPts.textContent = '0 / ' + (threshold || '—') + ' pts';
+        if (unlockHint) unlockHint.textContent = threshold ? 'Earn ' + threshold + ' points to unlock this reward' : 'Set a point threshold to unlock';
+      } else if (isCashType(selectedType)) {
+        if (unlockWrap) unlockWrap.style.display = 'none';
+      } else {
+        if (unlockWrap) unlockWrap.style.display = 'none';
+      }
+    }
+
+    /* ============ POPULATE REVIEW ============ */
+    function populateReview() {
+      var typeNames = { 'points':'Points / Store Credit', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
+      var cash = isCashType(selectedType);
+      var badgesEl = document.getElementById('reviewBadges');
+
+      // Build badges
+      var badgesHtml = '';
+      if (cash) {
+        var cashTypes = getSelectedCashTypes();
+        badgesHtml += '<span class="type-badge cash-type">CASH \u00B7 ' + cashTypes.map(function(ct) { return typeNames[ct] || ct; }).join(' + ') + '</span>';
+        cashTypes.forEach(function(ct) {
+          if (ct === 'cash-per-approval') badgesHtml += '<span class="earning-badge point-based"><i class="ph ph-chart-bar"></i> CPA Tier Rate</span>';
+          else if (ct === 'bonus-cash') badgesHtml += '<span class="earning-badge per-approval"><i class="ph ph-chart-bar"></i> Bonus Tier Rate</span>';
+          else if (ct === 'postd-pay') badgesHtml += '<span class="earning-badge point-based"><i class="ph ph-credit-card"></i> Postd Pay</span>';
+        });
+      } else {
+        badgesHtml += '<span class="type-badge non-cash">NON-CASH \u00B7 ' + (typeNames[selectedType] || '') + '</span>';
+        if (earningMethod === 'point-based') {
+          badgesHtml += '<span class="earning-badge point-based">\uD83C\uDFC6 Point-Based</span>';
+          var config = readPointConfigFromDOM();
+          config.categories.forEach(function(cat) {
+            badgesHtml += '<span class="point-cat-tag ' + cat.cssClass + '">' + cat.name + '</span>';
+          });
+          if (config.threshold > 0) {
+            badgesHtml += '<span class="unlock-badge">\uD83D\uDD12 ' + config.threshold + ' pts</span>';
+          }
+        } else if (earningMethod === 'per-approval') {
+          badgesHtml += '<span class="earning-badge per-approval">\u26A1 Per Approval</span>';
+        }
+      }
+      badgesEl.innerHTML = badgesHtml;
+
+      // Build review rows
+      var rows = [];
+
+      if (cash) {
+        // Multi-cash review: list all selected cash types with their details
+        var cashTypes = getSelectedCashTypes();
+        rows.push({l:'Reward Type', v:cashTypes.map(function(ct) { return typeNames[ct] || ct; }).join(', ')});
+        rows.push({l:'Processing', v:'PayPal Business'});
+
+        cashTypes.forEach(function(ct) {
+          if (ct === 'cash-per-approval') {
+            if (cashTypes.length > 1) rows.push({l:'', v:''});
+            rows.push({l:'<strong>Cash Per Approval</strong>', v:'<i class="ph ph-chart-bar"></i> Tier-Based Rate'});
+            rows.push({l:'Payout', v:'Based on influencer\u2019s influence tier'});
+            rows.push({l:'Note', v:(document.getElementById('cpaMemo') ? document.getElementById('cpaMemo').value : '') || '\u2014'});
+          }
+          if (ct === 'bonus-cash') {
+            if (cashTypes.length > 1) rows.push({l:'', v:''});
+            rows.push({l:'<strong>Bonus Cash</strong>', v:'<i class="ph ph-chart-bar"></i> Tier-Based Rate'});
+            rows.push({l:'Payout', v:'Based on influencer\u2019s influence tier'});
+            var checks = document.querySelectorAll('#fields-bonus-cash .content-type-checks input:checked');
+            var types = []; checks.forEach(function(c) { types.push(c.parentElement.textContent.trim()); });
+            rows.push({l:'Content Types', v:types.join(', ') || '\u2014'});
+            rows.push({l:'Auto-send', v:(document.getElementById('bcAutoSend') ? document.getElementById('bcAutoSend').checked : false) ? 'Yes' : 'No'});
+            var budget = document.getElementById('bcBudget') ? document.getElementById('bcBudget').value : '';
+            rows.push({l:'Budget Cap', v:budget ? '$' + parseFloat(budget).toFixed(2) : 'Unlimited'});
+          }
+          if (ct === 'postd-pay') {
+            if (cashTypes.length > 1) rows.push({l:'', v:''});
+            rows.push({l:'<strong>Postd Pay</strong>', v:'Enabled'});
+            rows.push({l:'Details', v:'Managed in Cash &amp; Rewards \u2192 Postd Pay'});
+          }
+        });
+      } else {
+        // Non-cash review (unchanged)
+        rows.push({l:'Reward Type', v:typeNames[selectedType] || '\u2014'});
+        rows.push({l:'Earning Method', v: earningMethod === 'point-based' ? 'Point-Based' : 'Per Approval'});
+
+        if (selectedType === 'points') {
+          rows.push({l:'Title', v:document.getElementById('ptTitle').value || '\u2014'});
+          rows.push({l:'Points per Approval', v:document.getElementById('ptValue').value || '\u2014'});
+          rows.push({l:'Redemption', v:document.getElementById('ptDesc').value || '\u2014'});
+        } else if (selectedType === 'free-product') {
+          rows.push({l:'Title', v:document.getElementById('fpTitle').value || '\u2014'});
+          rows.push({l:'Description', v:document.getElementById('fpDesc').value || '\u2014'});
+          rows.push({l:'Estimated Value', v:document.getElementById('fpValue').value || '\u2014'});
+          var ship = document.querySelector('input[name="fpShipping"]:checked');
+          rows.push({l:'Shipping', v:ship ? ship.value : '\u2014'});
+        } else if (selectedType === 'discount') {
+          rows.push({l:'Title', v:document.getElementById('dcTitle').value || '\u2014'});
+          var discType = document.querySelector('input[name="dcType"]:checked');
+          rows.push({l:'Discount Type', v:discType ? discType.parentElement.textContent.trim() : '\u2014'});
+          rows.push({l:'Value', v:document.getElementById('dcValue').value || '\u2014'});
+          rows.push({l:'Coupon Code', v:document.getElementById('dcCode').value || 'Auto-generated'});
+          var exp = document.querySelector('input[name="dcExpiry"]:checked');
+          rows.push({l:'Expiration', v:exp ? (exp.value === '0' ? 'None' : exp.value + ' days') : '\u2014'});
+        }
+
+        // Point config details (for point-based)
+        if (earningMethod === 'point-based') {
+          var config = readPointConfigFromDOM();
+          config.categories.forEach(function(cat) {
+            if (cat.name === 'Content Pts') {
+              rows.push({l:'Content: Submit', v:cat.values.submitted + ' pts'});
+              rows.push({l:'Content: Approve', v:cat.values.approved + ' pts'});
+              rows.push({l:'Content: Publish', v:cat.values.published + ' pts'});
+              rows.push({l:'Content: Bonus', v:cat.values.bonus + ' pts'});
+            } else if (cat.name === 'Purchase Pts') {
+              cat.values.tiers.forEach(function(t, i) {
+                if (t.spend || t.earn) rows.push({l:'Purchase L' + (i+1), v:'$' + (t.spend||'0') + ' \u2192 ' + (t.earn||'0') + ' pts'});
+              });
+            } else if (cat.name === 'Gratitude') {
+              rows.push({l:'Grat: Join', v:cat.values.join + ' pts'});
+              rows.push({l:'Grat: Birthday', v:cat.values.birthday + ' pts'});
+              rows.push({l:'Grat: Anniversary', v:cat.values.anniversary + ' pts'});
+            }
+          });
+          rows.push({l:'Unlock Threshold', v:config.threshold + ' pts'});
+        }
+      }
+
+      var summaryEl = document.getElementById('reviewSummary');
+      summaryEl.innerHTML = rows.map(function(r) { return '<div class="review-row"><span class="review-label">' + r.l + '</span><span class="review-value">' + r.v + '</span></div>'; }).join('');
+    }
+
+    /* ============ BACK FROM REVIEW ============ */
+    function goBackFromReview() {
+      if (isCashType(selectedType)) {
+        // Cash: Review is step 3 → go back to step 2
+        goToStep(2);
+      } else {
+        // Non-Cash: go back to step 3 (earning method / point config)
+        goToStep(3);
+      }
+    }
+
+    /* ============ SAVE ACTIONS ============ */
+    function handleSaveReward() { kupToast('Reward created successfully!', 'success'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
+    function handleSaveDraft() { kupToast('Reward saved as draft', 'info'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
+
+    /* ============ LIVE PREVIEW LISTENERS ============ */
+    document.addEventListener('input', function(e) {
+      if (['ptTitle','ptValue','ptDesc','fpTitle','fpDesc','fpValue','dcTitle','dcValue','cpaMemo','unlockThreshold',
+           'ptContentSubmit','ptContentApprove','ptContentPublish','ptContentBonus',
+           'ptPurchaseSpend1','ptPurchaseEarn1','ptPurchaseSpend2','ptPurchaseEarn2','ptPurchaseSpend3','ptPurchaseEarn3',
+           'ptGratJoin','ptGratBday','ptGratAnniv'].indexOf(e.target.id) >= 0) { updatePreview(); }
+    });
+  </script>
+  <!--
+    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
+    Reward deep-dive: /brands/KeepUsPostd/product/REWARD_SYSTEM_ARCHITECTURE.md
+    Key APIs for this page:
+      KUP_PLATFORM.REWARD_RULES, .REWARD_TYPES, .EARNING_METHODS
+      KUP_PLATFORM.isCashType(type), .needsPointConfig(type, method)
+      KUP_PLATFORM.getWizardSteps(type, method), .canAccess(tier, feature)
+  -->
+  <script src="/js/platform-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    /* ============== REWARD IMAGE UPLOAD ============== */
+    var rewardImageUrl = null; // Stores the uploaded URL for the active reward type
+
+    document.querySelectorAll('.reward-image-input').forEach(function(input) {
+      input.addEventListener('change', async function(e) {
+        e.stopPropagation();
+        var file = this.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { kupToast('File too large. Max 5 MB', 'error'); return; }
+        if (!file.type.startsWith('image/')) { kupToast('Please select an image file', 'error'); return; }
+
+        var box = this.closest('.reward-upload-box');
+        var preview = box.querySelector('.reward-preview-img');
+        var icon = box.querySelector('.reward-upload-icon');
+        var text = box.querySelector('.reward-upload-text');
+
+        // Show local preview
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          preview.src = ev.target.result;
+          preview.style.display = 'block';
+          if (icon) icon.style.display = 'none';
+          if (text) text.textContent = file.name;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        try {
+          var result = await kupApi.upload('/api/upload', [file], 'media');
+          if (result && result.urls && result.urls.length > 0) {
+            rewardImageUrl = result.urls[0];
+            kupToast('Reward image uploaded', 'success');
+          } else {
+            kupToast('Upload failed', 'error');
+          }
+        } catch (err) {
+          console.error('Reward image upload error:', err);
+          kupToast('Upload failed', 'error');
+        }
+      });
+    });
+  </script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

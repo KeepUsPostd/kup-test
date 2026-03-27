@@ -70,6 +70,30 @@ const kupApi = {
     return await response.json();
   },
 
+  // UPLOAD request — sends files via FormData (multipart)
+  // Usage: const result = await kupApi.upload('/api/upload', fileInput.files, 'media');
+  // Or single file: await kupApi.upload('/api/upload', [file], 'media');
+  async upload(path, files, fieldName = 'media') {
+    const token = await this.getToken();
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append(fieldName, files[i]);
+    }
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    // Don't set Content-Type — browser sets it automatically with multipart boundary
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (response.status === 401) {
+      window.location.href = '/pages/login.html';
+      return;
+    }
+    return await response.json();
+  },
+
   // DELETE request
   async delete(path) {
     const headers = await this.getHeaders();

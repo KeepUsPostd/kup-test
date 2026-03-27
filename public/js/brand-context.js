@@ -300,11 +300,25 @@ var KUP_BRAND_CONTEXT = (function() {
 
   function updateHeaderBrandName() {
     var activeBrand = getActiveBrand();
+    var abbr = activeBrand.abbreviation || 'KP';
+    var color = activeBrand.color || '#2EA5DD';
+    var logoUrl = activeBrand.logoUrl || null;
 
     // Update profile trigger brand text
     var brandEl = document.querySelector('.profile-info .brand');
     if (brandEl) {
       brandEl.textContent = activeBrand.name;
+    }
+    // Also update .profile-brand (used in some page variants)
+    var profileBrandEl = document.querySelector('.profile-info .profile-brand');
+    if (profileBrandEl) {
+      profileBrandEl.textContent = activeBrand.name;
+    }
+
+    // Update the profile avatar circle in the header to show brand initials/logo
+    var profileAvatar = document.querySelector('.profile-menu .profile-avatar');
+    if (profileAvatar) {
+      renderBrandLogo(profileAvatar, abbr, color, logoUrl);
     }
   }
 
@@ -395,11 +409,24 @@ var KUP_BRAND_CONTEXT = (function() {
   //  help center chat, content IDs, etc. to reflect the active brand.
   // ================================================================
 
+  // Helper: render a logo element — shows uploaded image if available, otherwise brand initials
+  function renderBrandLogo(el, abbr, color, logoUrl) {
+    if (!el) return;
+    if (logoUrl) {
+      el.innerHTML = '<img src="' + logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Brand Logo">';
+      el.style.background = 'transparent';
+    } else {
+      el.textContent = abbr;
+      el.style.background = color;
+    }
+  }
+
   function syncBrandElements() {
     var ab = getActiveBrand();
     var abbr = ab.abbreviation || 'KP';
     var name = ab.name || 'KeepUsPostd';
     var color = ab.color || '#2EA5DD';
+    var logoUrl = ab.logoUrl || null; // Set by API sync
 
     // --- Sidebar brand identity (logo + name) ---
     // Covers: brand-home, brand-reward-settings, market-code,
@@ -407,7 +434,7 @@ var KUP_BRAND_CONTEXT = (function() {
     var identityBlock = document.querySelector('.brand-identity');
     if (identityBlock) {
       var logoEl = identityBlock.querySelector('.logo, .logo-circle');
-      if (logoEl) { logoEl.textContent = abbr; logoEl.style.background = color; }
+      renderBrandLogo(logoEl, abbr, color, logoUrl);
       var nameEl = identityBlock.querySelector('.brand-name');
       if (nameEl) nameEl.textContent = name;
       var handleEl = identityBlock.querySelector('.brand-handle');
@@ -416,7 +443,7 @@ var KUP_BRAND_CONTEXT = (function() {
 
     // --- App profile preview card (brand-home, brand-profile) ---
     var appLogo = document.querySelector('.app-profile-logo');
-    if (appLogo) { appLogo.textContent = abbr; appLogo.style.background = color; }
+    renderBrandLogo(appLogo, abbr, color, logoUrl);
     var appNameH4 = document.querySelector('.app-profile-name h4');
     if (appNameH4) appNameH4.textContent = name;
     // brand-profile has an id="previewName" variant
@@ -425,7 +452,7 @@ var KUP_BRAND_CONTEXT = (function() {
 
     // --- Google Business preview card ---
     var gbpLogo = document.querySelector('.google-preview-logo');
-    if (gbpLogo) { gbpLogo.textContent = abbr; gbpLogo.style.background = color; }
+    renderBrandLogo(gbpLogo, abbr, color, logoUrl);
     var gbpName = document.querySelector('.google-preview-name');
     if (gbpName) gbpName.textContent = name;
 
@@ -493,6 +520,17 @@ var KUP_BRAND_CONTEXT = (function() {
               match.mongoId = apiBrand._id;
               changed = true;
             }
+            // Sync logoUrl from API
+            if (apiBrand.logoUrl && match.logoUrl !== apiBrand.logoUrl) {
+              match.logoUrl = apiBrand.logoUrl;
+              changed = true;
+            }
+            // Sync name-derived abbreviation if missing
+            if (!match.abbreviation && apiBrand.name) {
+              var words = apiBrand.name.trim().split(/\s+/);
+              match.abbreviation = words.length === 1 ? words[0].substring(0, 2).toUpperCase() : words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
+              changed = true;
+            }
           } else {
             // Brand exists in API but not locally — add it
             stored.push({
@@ -503,7 +541,8 @@ var KUP_BRAND_CONTEXT = (function() {
               plan: apiBrand.planTier || 'starter',
               isAnchor: false,
               state: apiBrand.status || 'active',
-              mongoId: apiBrand._id
+              mongoId: apiBrand._id,
+              logoUrl: apiBrand.logoUrl || null
             });
             changed = true;
           }
@@ -522,6 +561,10 @@ var KUP_BRAND_CONTEXT = (function() {
             }
           }
           if (updatedActive) setActiveBrand(updatedActive);
+
+          // Re-render all brand elements now that we have logoUrl from API
+          syncBrandElements();
+          updateHeaderBrandName();
 
           console.log('🔄 Brand context synced with API (' + data.brands.length + ' brands)');
         }

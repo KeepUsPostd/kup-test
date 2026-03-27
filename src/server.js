@@ -77,7 +77,15 @@ app.use(express.json());     // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse form data
 
 // --- Serve static files (HTML, CSS, JS, images) ---
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Override MIME types: .MOV/.mov → video/mp4 so browsers can play them
+// (video/quicktime is not supported in most browsers)
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  setHeaders: (res, filePath) => {
+    if (/\.mov$/i.test(filePath)) {
+      res.setHeader('Content-Type', 'video/mp4');
+    }
+  }
+}));
 
 // --- API Routes ---
 

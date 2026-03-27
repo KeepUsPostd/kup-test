@@ -57,6 +57,9 @@
     .edit-tool-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}
     .edit-tool-btn.active{color:#fff;background:var(--kup-blue)}
     .edit-tool-btn svg{width:16px;height:16px}
+    .edit-tool-btn.undo-btn{color:#f87171;border-left:1px solid rgba(255,255,255,0.1)}
+    .edit-tool-btn.undo-btn:hover{color:#fff;background:rgba(248,113,113,0.2)}
+    .toolbar-divider{width:1px;height:20px;background:rgba(255,255,255,0.12);margin:0 2px;align-self:center}
 
     /* Trim Panel */
     .edit-trim-panel{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);width:80%;max-width:600px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border-radius:10px;padding:16px 20px;z-index:10}
@@ -102,6 +105,10 @@
     .text-apply-btn{padding:8px 16px;background:var(--kup-blue);border:none;border-radius:6px;color:#fff;font-family:var(--kup-font);font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap}
     .text-apply-btn:hover{background:#258fc4}
 
+    /* Universal close button for tool panels */
+    .panel-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;line-height:1}
+    .panel-close:hover{background:rgba(255,255,255,0.15);color:#fff}
+
     /* Text overlays on the content frame */
     .text-overlay-item{position:absolute;left:0;right:0;padding:10px 16px;background:rgba(0,0,0,0.6);color:#fff;font-family:var(--kup-font);font-size:1rem;font-weight:700;text-align:center;cursor:move;display:flex;align-items:center;justify-content:center;gap:8px;z-index:5}
     .text-overlay-item.pos-top{top:56px}
@@ -130,6 +137,23 @@
     /* Zoom indicator */
     .zoom-indicator{position:absolute;bottom:70px;right:16px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);border-radius:6px;padding:5px 12px;font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.7);z-index:10;opacity:0;transition:opacity 0.3s;pointer-events:none}
     .zoom-indicator.show{opacity:1}
+
+    /* Edit Action Bar — floating above toolbar when image edits are unsaved */
+    .edit-action-bar{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);display:none;gap:8px;align-items:center;z-index:11}
+    .edit-action-bar.show{display:flex}
+    .save-edit-btn{padding:10px 24px;background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);border:none;border-radius:8px;color:#fff;font-family:var(--kup-font);font-size:0.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(22,163,74,0.4);transition:all 0.2s;display:flex;gap:8px;align-items:center}
+    .save-edit-btn:hover{transform:scale(1.03);box-shadow:0 6px 20px rgba(22,163,74,0.5)}
+    .save-edit-btn.saving{opacity:0.7;pointer-events:none}
+    .save-edit-btn .save-icon{width:16px;height:16px}
+    .cancel-edit-btn{padding:10px 20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#ccc;font-family:var(--kup-font);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;gap:6px;align-items:center}
+    .cancel-edit-btn:hover{background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.35)}
+    .cancel-edit-btn svg{width:15px;height:15px}
+
+    /* Revert to Original — in the details panel after an edit has been saved */
+    .revert-original-btn{width:100%;padding:9px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:6px;color:#f87171;font-family:var(--kup-font);font-size:.78rem;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
+    .revert-original-btn:hover{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.4)}
+    .revert-original-btn svg{width:14px;height:14px}
+    .revert-original-btn.reverting{opacity:0.6;pointer-events:none}
 
     /* Logo Overlay on Content Frame */
     .logo-overlay-item { position: absolute; z-index: 5; pointer-events: auto; cursor: move; }
@@ -574,6 +598,9 @@
       .edit-text-panel { flex-direction: column; gap: 6px; width: 90%; }
       .text-overlay-input { width: 100%; }
       .edit-logo-panel { flex-direction: column; gap: 8px; width: 90%; }
+      .edit-action-bar { bottom: 60px; }
+      .save-edit-btn { padding: 9px 18px; font-size: 0.78rem; }
+      .cancel-edit-btn { padding: 9px 14px; font-size: 0.78rem; }
 
       /* Nav arrows smaller */
       .nav-arrow { width: 36px; height: 36px; }
@@ -746,8 +773,25 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
           Fit
         </button>
+        <span class="toolbar-divider" id="undoDivider" style="display:none;"></span>
+        <button class="edit-tool-btn undo-btn" id="undoBtn" onclick="undoLastEdit()" title="Undo last edit" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Go Back
+        </button>
       </div>
       <div class="zoom-indicator" id="zoomIndicator">100%</div>
+
+      <!-- Edit Action Bar (appears when image has unsaved edits) -->
+      <div class="edit-action-bar" id="editActionBar">
+        <button class="cancel-edit-btn" onclick="cancelImageEdits()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancel
+        </button>
+        <button class="save-edit-btn" id="saveEditBtn" onclick="saveImageEdit()">
+          <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Edit
+        </button>
+      </div>
 
       <!-- Trim Panel -->
       <div class="edit-trim-panel" id="trimPanel" style="display:none;">
@@ -777,28 +821,29 @@
         <button class="crop-preset" data-ratio="4:5" onclick="setCropRatio(this,'4/5')">4:5 Portrait</button>
         <button class="crop-preset" data-ratio="16:9" onclick="setCropRatio(this,'16/9')">16:9 Landscape</button>
         <div class="crop-actions">
-          <button class="crop-preset" style="background:var(--kup-blue);border-color:var(--kup-blue);color:#fff;" onclick="applyCrop()">Done</button>
-          <button class="crop-preset" onclick="resetCropRatio();kupToast('Crop reset','info')">Reset</button>
+          <button class="crop-preset" style="background:var(--kup-blue);border-color:var(--kup-blue);color:#fff;" onclick="applyCrop()">Apply</button>
+          <button class="crop-preset" onclick="cropApplied=false;resetCropRatio();kupToast('Crop reset','info')">Reset</button>
         </div>
+        <button class="panel-close" onclick="toggleTool('crop')" title="Close">&times;</button>
       </div>
 
       <!-- Text Overlay Panel -->
       <div class="edit-text-panel" id="textPanel" style="display:none;">
-        <input type="text" class="text-overlay-input" id="textOverlayInput" placeholder="Add text overlay...">
+        <input type="text" class="text-overlay-input" id="textOverlayInput" placeholder="Type text, hit Add...">
         <select class="text-position-select" id="textPosition">
           <option value="top">Top</option>
           <option value="center">Center</option>
           <option value="bottom" selected>Bottom</option>
         </select>
         <button class="text-apply-btn" id="textApplyBtn" onclick="applyTextOverlay()">Add</button>
-        <button class="text-apply-btn" style="background:rgba(255,255,255,0.08);color:#888;" onclick="doneTextOverlay()">Done</button>
         <button class="text-apply-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:#888;" onclick="clearTextOverlays();kupToast('Text removed','info')">Clear</button>
+        <button class="panel-close" onclick="doneTextOverlay()" title="Close">&times;</button>
       </div>
 
       <!-- Logo Watermark Panel -->
       <div class="edit-logo-panel" id="logoPanel" style="display:none;">
         <div class="logo-preview-wrap">
-          <div class="logo-preview-thumb" id="logoPreviewThumb">LOGO</div>
+          <div class="logo-preview-thumb" id="logoPreviewThumb"></div>
         </div>
         <div class="logo-controls">
           <div class="logo-position-grid">
@@ -817,8 +862,9 @@
             <input type="range" class="logo-slider" id="logoSize" min="30" max="120" value="60" oninput="updateLogoOverlay()">
           </div>
         </div>
-        <button class="logo-apply-btn" onclick="applyLogoOverlay()">Done</button>
+        <button class="logo-apply-btn" onclick="applyLogoOverlay()">Apply</button>
         <button class="logo-apply-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#888;margin-left:4px;" onclick="clearLogoOverlay();kupToast('Logo removed','info')">Remove</button>
+        <button class="panel-close" onclick="toggleTool('logo')" title="Close" style="margin-left:4px;">&times;</button>
       </div>
 
       <button class="nav-arrow next" id="nextBtn" aria-label="Next content" onclick="navigateNext()">
@@ -866,6 +912,10 @@
             <button id="cmViewOriginalBtn" onclick="toggleOriginalView()" style="padding:6px 14px;border:1px solid rgba(255,255,255,0.15);background:none;border-radius:6px;color:#888;font-family:var(--kup-font);font-size:.75rem;font-weight:600;cursor:pointer;">View Original</button>
             <button id="cmViewEditedBtn" onclick="toggleEditedView()" style="padding:6px 14px;border:1px solid var(--kup-blue);background:rgba(46,165,221,0.1);border-radius:6px;color:var(--kup-blue);font-family:var(--kup-font);font-size:.75rem;font-weight:600;cursor:pointer;display:none;">View Edited</button>
           </div>
+          <button class="revert-original-btn" id="cmRevertBtn" onclick="revertToOriginal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Revert to Original
+          </button>
         </div>
 
         <!-- Countdown Bar (pending only) -->
@@ -900,6 +950,8 @@
 
         <!-- Download for Posting (approved only) -->
         <button class="btn-action postd" id="cmDownloadBtn" onclick="openDownloadModal()" style="display:none;"><i class="ph ph-download-simple"></i> Download for Posting</button>
+        <!-- Mark as Postd (approved only, shown alongside download) -->
+        <button class="btn-action postd" id="cmPostdBtn" onclick="markAsPostd()" style="display:none;margin-top:6px;background:#16a34a;"><i class="ph ph-share-network"></i> Mark as Postd</button>
       </div>
     </div>
   </div>
@@ -1056,6 +1108,26 @@
     </div>
   </div>
 
+  <!-- ============== BRANDED DIALOG (replaces native prompt/confirm) ============== -->
+  <div class="kup-modal-overlay" id="kupDialogOverlay" role="dialog" aria-modal="true">
+    <div class="kup-modal" style="max-width:440px;padding:28px 28px 24px;">
+      <button class="kup-modal-close" id="kupDialogClose" aria-label="Close">&times;</button>
+      <div id="kupDialogIcon" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.3rem;"></div>
+      <h3 id="kupDialogTitle" style="text-align:center;font-size:1.05rem;font-weight:700;margin:0 0 6px;color:#1a1a1a;"></h3>
+      <p id="kupDialogMessage" style="text-align:center;font-size:0.82rem;color:#888;margin:0 0 20px;line-height:1.5;"></p>
+      <div id="kupDialogInputWrap" style="display:none;margin-bottom:18px;">
+        <textarea id="kupDialogInput" style="width:100%;padding:10px 14px;border:2px solid #eee;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:0.82rem;resize:none;height:80px;outline:none;transition:border-color 0.2s;" placeholder=""></textarea>
+      </div>
+      <div id="kupDialogSelectWrap" style="display:none;margin-bottom:18px;">
+        <select id="kupDialogSelect" style="width:100%;padding:12px 14px;border:2px solid #eee;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:0.88rem;font-weight:600;outline:none;cursor:pointer;background:#fff;color:#1a1a1a;transition:border-color 0.2s;appearance:auto;"></select>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="kupDialogCancel" style="flex:1;padding:11px;border:2px solid #eee;border-radius:8px;background:none;font-family:var(--kup-font);font-weight:600;font-size:0.85rem;color:#888;cursor:pointer;transition:all 0.15s;">Cancel</button>
+        <button id="kupDialogConfirm" style="flex:1;padding:11px;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;color:#fff;"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============== DOWNLOAD FOR POSTING MODAL ============== -->
   <div class="download-modal-overlay" id="downloadModalOverlay">
     <div class="download-modal">
@@ -1182,7 +1254,9 @@
           mediaUrls: sub.mediaUrls || [],
           originalMediaUrls: sub.originalMediaUrls || null,
           caption: sub.caption || '',
-          rejectionReason: sub.rejectionReason || ''
+          rejectionReason: sub.rejectionReason || '',
+          savedTextOverlays: sub.textOverlays && sub.textOverlays.length > 0 ? sub.textOverlays : null,
+          savedLogoOverlay: sub.logoOverlay || null,
         };
 
         contentItems = [item];
@@ -1237,7 +1311,9 @@
             mediaUrls: sub.mediaUrls || [],
             originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
-            rejectionReason: sub.rejectionReason || ''
+            rejectionReason: sub.rejectionReason || '',
+            savedTextOverlays: sub.textOverlays && sub.textOverlays.length > 0 ? sub.textOverlays : null,
+            savedLogoOverlay: sub.logoOverlay || null,
           };
         });
 
@@ -1258,11 +1334,11 @@
     // ========== Demo Data Fallback ==========
     function loadDemoData() {
       contentItems = [
-        { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: '0:45', fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '', mediaUrls: [], caption: '' },
-        { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)', mediaUrls: [], caption: '' },
-        { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: '1:12', fileSize: '18.7 MB', status: 'pending', daysRemaining: 5, avatarStyle: '', mediaUrls: [], caption: '' },
-        { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '', mediaUrls: [], caption: '' },
-        { id: 4, type: 'Video', icon: '\u25B6', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: '0:33', fileSize: '9.8 MB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)', mediaUrls: [], caption: '' }
+        { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: null, fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '', mediaUrls: ['/uploads/1774574824452-vf305u.mov'], caption: 'Summer vibes with the new collection! 🌴☀️' },
+        { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)', mediaUrls: ['/uploads/1774566644170-0sarfo.jpeg'], caption: 'Loving the brand energy 🔥' },
+        { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: null, fileSize: '1.5 MB', status: 'pending', daysRemaining: 5, avatarStyle: '', mediaUrls: ['/uploads/1774566239610-vt0195.MOV'], caption: 'Quick unboxing for the launch!' },
+        { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '', mediaUrls: ['/uploads/1774566886289-7pzqsn.jpeg'], caption: 'Product shot in natural light' },
+        { id: 4, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: null, fileSize: '200 KB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)', mediaUrls: ['/uploads/1774566118590-6b741n.jpeg'], caption: '' }
       ];
       currentIndex = parseInt(paramId) || 0;
       loadContent(currentIndex);
@@ -1297,9 +1373,43 @@
       if (index < 0 || index >= contentItems.length) return;
       var item = contentItems[index];
 
-      // Reset zoom and trim when switching content
+      // Reset zoom, trim, and image edit state when switching content
       if (typeof resetZoom === 'function') resetZoom();
       if (typeof clearTrim === 'function') clearTrim();
+      if (typeof clearImageEditState === 'function') clearImageEditState();
+      // Before removing overlays, save any that exist on the CURRENT item
+      var prevItem = contentItems[currentIndex];
+      if (prevItem) {
+        var frame = document.querySelector('.content-frame');
+        var existingTexts = frame.querySelectorAll('.text-overlay-item');
+        if (existingTexts.length > 0) {
+          prevItem.savedTextOverlays = [];
+          existingTexts.forEach(function(el) {
+            var span = el.querySelector('span');
+            var pos = 'center';
+            if (el.classList.contains('pos-top')) pos = 'top';
+            else if (el.classList.contains('pos-bottom')) pos = 'bottom';
+            prevItem.savedTextOverlays.push({ text: span ? span.textContent : '', position: pos });
+          });
+        }
+        var existingLogo = frame.querySelector('.logo-overlay-item');
+        if (existingLogo) {
+          var logoPos = 'bottom-right';
+          if (existingLogo.classList.contains('pos-top-left')) logoPos = 'top-left';
+          else if (existingLogo.classList.contains('pos-top-right')) logoPos = 'top-right';
+          else if (existingLogo.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
+          var compOpacity = parseFloat(window.getComputedStyle(existingLogo).opacity) || 0.7;
+          var lMark = existingLogo.querySelector('.logo-mark');
+          var lSize = lMark ? parseFloat(window.getComputedStyle(lMark).fontSize) : 12;
+          prevItem.savedLogoOverlay = { position: logoPos, opacity: compOpacity, size: lSize };
+        }
+      }
+
+      // Now remove overlays from the DOM
+      document.querySelectorAll('.text-overlay-item, .logo-overlay-item').forEach(function(el) { el.remove(); });
+      textOverlayCount = 0;
+      logoApplied = false;
+      cropApplied = false;
 
       // === MEDIA PREVIEW (the main content area) ===
       var frame = document.querySelector('.content-frame');
@@ -1315,6 +1425,7 @@
           var video = document.createElement('video');
           video.src = mediaUrl;
           video.controls = true;
+          video.preload = 'auto';
           video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           video.setAttribute('playsinline', '');
           // Block download from native three-dot menu unless approved
@@ -1353,6 +1464,8 @@
         multiIndicator.textContent = '1 of ' + item.mediaUrls.length;
         frame.appendChild(multiIndicator);
       }
+
+      // (Overlay restoration moved to AFTER resetEditTools — see below)
 
       // Caption — show in details panel, not on the image
       var captionWrap = document.getElementById('cmCaptionWrap');
@@ -1417,19 +1530,26 @@
       var actions = document.getElementById('cmActions');
       var decision = document.getElementById('cmDecision');
       var downloadBtn = document.getElementById('cmDownloadBtn');
+      var postdBtn = document.getElementById('cmPostdBtn');
       if (item.status === 'pending') {
         actions.style.display = '';
         decision.style.display = 'none';
         downloadBtn.style.display = 'none';
+        postdBtn.style.display = 'none';
       } else {
         actions.style.display = 'none';
         decision.style.display = 'flex';
         downloadBtn.style.display = item.status === 'approved' ? '' : 'none';
+        postdBtn.style.display = item.status === 'approved' ? '' : 'none';
         if (item.status === 'approved') {
           decision.className = 'cm-decision-recorded';
           document.getElementById('cmDecisionIcon').className = 'decision-icon approved';
           document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-check"></i>';
           document.getElementById('cmDecisionText').textContent = 'Content Approved';
+          // Show reward info if it was just triggered
+          if (item.rewardTriggered) {
+            document.getElementById('cmDecisionText').textContent = 'Approved — $' + item.rewardTriggered.amount + ' earned by influencer';
+          }
         } else if (item.status === 'rejected') {
           decision.className = 'cm-decision-recorded rejected';
           document.getElementById('cmDecisionIcon').className = 'decision-icon rejected-icon';
@@ -1442,8 +1562,12 @@
           decision.className = 'cm-decision-recorded';
           document.getElementById('cmDecisionIcon').className = 'decision-icon approved';
           document.getElementById('cmDecisionIcon').innerHTML = '<i class="ph ph-share-network"></i>';
-          document.getElementById('cmDecisionText').textContent = 'Content Postd';
+          var postdText = 'Content Postd';
+          if (item.platform) postdText += ' on ' + item.platform.charAt(0).toUpperCase() + item.platform.slice(1);
+          if (item.rewardTriggered) postdText += ' — $' + item.rewardTriggered.amount + ' bonus earned';
+          document.getElementById('cmDecisionText').textContent = postdText;
           downloadBtn.style.display = 'none';
+          postdBtn.style.display = 'none';
         }
       }
 
@@ -1461,6 +1585,31 @@
       window.history.replaceState(null, '', newUrl);
 
       resetEditTools();
+
+      // === RESTORE SAVED VIDEO OVERLAYS ===
+      // Must run AFTER resetEditTools() which clears text/logo overlays
+      if (item.savedTextOverlays && item.savedTextOverlays.length > 0) {
+        var restoreFrame = document.querySelector('.content-frame');
+        item.savedTextOverlays.forEach(function(t) {
+          var overlay = document.createElement('div');
+          overlay.className = 'text-overlay-item pos-' + t.position;
+          overlay.innerHTML = '<span>' + t.text + '</span>';
+          restoreFrame.appendChild(overlay);
+        });
+      }
+      if (item.savedLogoOverlay) {
+        var restoreFrame2 = document.querySelector('.content-frame');
+        var lo = item.savedLogoOverlay;
+        var logoDiv = document.createElement('div');
+        logoDiv.className = 'logo-overlay-item pos-' + lo.position;
+        logoDiv.style.opacity = lo.opacity;
+        if (brandLogoUrl) {
+          logoDiv.innerHTML = '<div class="logo-mark" style="padding:4px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (lo.size / 60 * 2) + 'rem;max-width:6rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
+        } else {
+          logoDiv.innerHTML = '<div class="logo-mark" style="font-size:' + lo.size + 'px;">' + brandInitials + '</div>';
+        }
+        restoreFrame2.appendChild(logoDiv);
+      }
     }
 
     // ========== Navigation ==========
@@ -1482,8 +1631,13 @@
           if (result && result.submission) {
             item.status = 'approved';
             item.daysRemaining = null;
+            item.rewardTriggered = result.rewardTriggered || null;
             loadContent(currentIndex);
-            kupToast('Content approved!', 'success');
+            if (result.rewardTriggered) {
+              kupToast('Content approved! $' + result.rewardTriggered.amount + ' earned by influencer (' + result.rewardTriggered.tier + ' tier)', 'success');
+            } else {
+              kupToast('Content approved!', 'success');
+            }
             setTimeout(function() { openRatingModal(item.influencer); }, 800);
             return;
           } else {
@@ -1506,8 +1660,18 @@
     }
 
     async function rejectContent() {
-      var reason = prompt('Why are you rejecting this content? (required)');
+      var reason = await kupDialog({
+        type: 'prompt',
+        title: 'Reject Content',
+        message: 'Let the influencer know why this content doesn\'t meet requirements.',
+        placeholder: 'e.g. Video is too dark, needs better lighting...',
+        confirmText: 'Reject',
+        confirmColor: '#dc2626',
+        icon: '✋',
+        iconBg: 'rgba(220,38,38,0.1)',
+      });
       if (!reason || !reason.trim()) {
+        if (reason === null) return; // cancelled, don't show error
         kupToast('Rejection reason is required', 'error');
         return;
       }
@@ -1555,6 +1719,88 @@
       item.daysRemaining = 5;
       loadContent(currentIndex);
       kupToast('Decision undone', 'info');
+    }
+
+    // ========== Mark as Postd (with platform + URL prompt) ==========
+    async function markAsPostd() {
+      var item = contentItems[currentIndex];
+      if (!item || item.status !== 'approved') {
+        kupToast('Content must be approved first', 'warning');
+        return;
+      }
+
+      // Build a custom dialog for platform + URL
+      var platformOptions = [
+        { value: 'instagram', label: 'Instagram' },
+        { value: 'tiktok', label: 'TikTok' },
+        { value: 'youtube', label: 'YouTube' },
+        { value: 'facebook', label: 'Facebook' },
+        { value: 'twitter', label: 'X / Twitter' },
+      ];
+
+      // Use kupDialog for platform selection
+      var platform = await kupDialog({
+        type: 'select',
+        title: 'Mark as Postd',
+        message: 'Where did you post this content?',
+        options: platformOptions,
+        confirmText: 'Next',
+        icon: '📢',
+        iconBg: 'rgba(46,165,221,0.1)',
+      });
+
+      if (!platform) return; // cancelled
+
+      // Now ask for the post URL
+      var postUrl = await kupDialog({
+        type: 'prompt',
+        title: 'Post URL',
+        message: 'Paste the link to the published post (helps track engagement):',
+        placeholder: 'https://instagram.com/p/...',
+        confirmText: 'Mark as Postd',
+        confirmColor: '#16a34a',
+        icon: '🔗',
+        iconBg: 'rgba(22,163,74,0.1)',
+        allowEmpty: true,
+      });
+
+      if (postUrl === null) return; // cancelled (empty string is OK — URL is optional)
+
+      // Call the API
+      if (isRealData && item.mongoId) {
+        try {
+          var result = await kupApi.put('/api/content/' + item.mongoId + '/postd', {
+            platform: platform,
+            platformPostUrl: postUrl.trim() || null,
+          });
+          if (result && result.submission) {
+            item.status = 'postd';
+            item.platform = platform;
+            item.platformPostUrl = postUrl.trim() || null;
+            item.rewardTriggered = result.rewardTriggered || null;
+            loadContent(currentIndex);
+            if (result.rewardTriggered) {
+              kupToast('Content Postd! $' + result.rewardTriggered.amount + ' bonus cash earned by influencer 🎉', 'success');
+            } else {
+              kupToast('Content marked as Postd!', 'success');
+            }
+            return;
+          } else {
+            kupToast(result.message || 'Could not mark as Postd', 'error');
+            return;
+          }
+        } catch (err) {
+          console.error('Postd error:', err);
+          kupToast('Error marking as Postd', 'error');
+          return;
+        }
+      }
+
+      // Demo mode fallback
+      item.status = 'postd';
+      item.platform = platform;
+      loadContent(currentIndex);
+      kupToast('Content marked as Postd!', 'success');
     }
 
     // ========== Feedback Modal ==========
@@ -1606,6 +1852,103 @@
       document.getElementById('cmFeedbackInstructions').value = '';
     }
 
+    // ========== Branded Dialog (replaces native prompt/confirm) ==========
+    // Usage:
+    //   kupDialog({ type:'confirm', title:'...', message:'...' }).then(ok => { if(ok) ... })
+    //   kupDialog({ type:'prompt', title:'...', placeholder:'...' }).then(text => { if(text) ... })
+    var _kupDialogResolve = null;
+
+    function kupDialog(opts) {
+      // opts: { type:'confirm'|'prompt'|'select', title, message, placeholder, confirmText, confirmColor, icon, iconBg, options, allowEmpty }
+      var overlay = document.getElementById('kupDialogOverlay');
+      var icon = document.getElementById('kupDialogIcon');
+      var title = document.getElementById('kupDialogTitle');
+      var message = document.getElementById('kupDialogMessage');
+      var inputWrap = document.getElementById('kupDialogInputWrap');
+      var input = document.getElementById('kupDialogInput');
+      var selectWrap = document.getElementById('kupDialogSelectWrap');
+      var select = document.getElementById('kupDialogSelect');
+      var confirmBtn = document.getElementById('kupDialogConfirm');
+
+      title.textContent = opts.title || 'Confirm';
+      message.textContent = opts.message || '';
+      message.style.display = opts.message ? '' : 'none';
+      confirmBtn.textContent = opts.confirmText || 'Confirm';
+      confirmBtn.style.background = opts.confirmColor || '#ED8444';
+
+      // Icon
+      icon.style.background = opts.iconBg || 'rgba(237,132,68,0.1)';
+      icon.innerHTML = opts.icon || '\u26A0\uFE0F';
+
+      // Reset all input types
+      inputWrap.style.display = 'none';
+      selectWrap.style.display = 'none';
+
+      if (opts.type === 'prompt') {
+        inputWrap.style.display = '';
+        input.value = '';
+        input.placeholder = opts.placeholder || 'Type here...';
+        setTimeout(function() { input.focus(); }, 100);
+      } else if (opts.type === 'select' && opts.options) {
+        selectWrap.style.display = '';
+        select.innerHTML = '';
+        opts.options.forEach(function(opt) {
+          var option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = opt.label;
+          select.appendChild(option);
+        });
+      }
+
+      // Store allowEmpty flag
+      overlay.setAttribute('data-allow-empty', opts.allowEmpty ? 'true' : 'false');
+
+      overlay.classList.add('show');
+
+      return new Promise(function(resolve) {
+        _kupDialogResolve = resolve;
+      });
+    }
+
+    function _kupDialogDismiss(result) {
+      document.getElementById('kupDialogOverlay').classList.remove('show');
+      if (_kupDialogResolve) {
+        _kupDialogResolve(result);
+        _kupDialogResolve = null;
+      }
+    }
+
+    document.getElementById('kupDialogConfirm').addEventListener('click', function() {
+      var inputWrap = document.getElementById('kupDialogInputWrap');
+      var selectWrap = document.getElementById('kupDialogSelectWrap');
+      var overlay = document.getElementById('kupDialogOverlay');
+      var allowEmpty = overlay.getAttribute('data-allow-empty') === 'true';
+
+      if (selectWrap.style.display !== 'none') {
+        // Select mode — return selected value
+        _kupDialogDismiss(document.getElementById('kupDialogSelect').value);
+      } else if (inputWrap.style.display !== 'none') {
+        // Prompt mode — return the text (allow empty if flagged)
+        var val = document.getElementById('kupDialogInput').value;
+        _kupDialogDismiss(allowEmpty ? val : val.trim());
+      } else {
+        // Confirm mode — return true
+        _kupDialogDismiss(true);
+      }
+    });
+
+    document.getElementById('kupDialogCancel').addEventListener('click', function() {
+      _kupDialogDismiss(null);
+    });
+
+    document.getElementById('kupDialogClose').addEventListener('click', function() {
+      _kupDialogDismiss(null);
+    });
+
+    document.getElementById('kupDialogOverlay').addEventListener('click', function(e) {
+      if (e.target === this) _kupDialogDismiss(null);
+    });
+
     // ========== Toast ==========
     function kupToast(message, type) {
       type = type || 'info';
@@ -1626,7 +1969,7 @@
       ratingState = { 'content-quality': 0, 'timeliness': 0, 'communication': 0, 'brief-compliance': 0 };
       document.getElementById('ratingFeedback').value = '';
       document.getElementById('ratingCharCount').textContent = '0';
-      document.getElementById('ratingFormState').style.display = '';
+      document.getElementById('ratingFormState').style.display = 'block';
       document.getElementById('ratingSubmittedState').style.display = 'none';
       document.getElementById('ratingSubmitBtn').disabled = true;
 
@@ -1699,10 +2042,16 @@
       document.getElementById('ratingCharCount').textContent = this.value.length;
     });
 
-    // Submit rating
+    // Submit rating → show success state, then auto-close after 2 seconds
     document.getElementById('ratingSubmitBtn').addEventListener('click', function() {
       document.getElementById('ratingFormState').style.display = 'none';
-      document.getElementById('ratingSubmittedState').style.display = '';
+      document.getElementById('ratingSubmittedState').style.display = 'block';
+
+      // Auto-close the modal after a short delay so user sees the confirmation
+      setTimeout(function() {
+        closeRatingModal();
+        kupToast('Rating submitted — thank you!', 'success');
+      }, 2000);
     });
 
     // Skip / Done / Close
@@ -1764,7 +2113,9 @@
       if (activeTool === tool) {
         document.getElementById(panels[tool]).style.display = 'none';
         document.getElementById(btns[tool]).classList.remove('active');
-        if (tool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); resetCropRatio(); }
+        if (tool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); if (!cropApplied) resetCropRatio(); }
+        // Remove logo preview if user closed without applying
+        if (tool === 'logo' && !logoApplied) { clearLogoOverlay(); }
         activeTool = null;
         return;
       }
@@ -1773,7 +2124,9 @@
       if (activeTool) {
         document.getElementById(panels[activeTool]).style.display = 'none';
         document.getElementById(btns[activeTool]).classList.remove('active');
-        if (activeTool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); resetCropRatio(); }
+        if (activeTool === 'crop') { document.getElementById('cropGrid').classList.remove('show'); if (!cropApplied) resetCropRatio(); }
+        // Remove logo preview if switching away without applying
+        if (activeTool === 'logo' && !logoApplied) { clearLogoOverlay(); }
       }
 
       // Activate new tool
@@ -1806,10 +2159,49 @@
     // ---- TRIM ----
     function initTrimPanel() {
       var item = contentItems[currentIndex];
-      if (!item || !item.duration) return;
+      if (!item) return;
+
+      // Get duration from the item data OR from the actual video element
+      var durationStr = item.duration;
+      if (!durationStr) {
+        var videoEl = document.querySelector('.content-frame video');
+        if (videoEl && videoEl.duration && isFinite(videoEl.duration)) {
+          var totalSec = Math.round(videoEl.duration);
+          durationStr = formatTime(totalSec);
+          item.duration = durationStr; // Cache it for future use
+        }
+      }
+
+      // If we still don't have a duration, try again after video loads
+      if (!durationStr) {
+        var videoEl2 = document.querySelector('.content-frame video');
+        if (videoEl2) {
+          videoEl2.addEventListener('loadedmetadata', function onMeta() {
+            videoEl2.removeEventListener('loadedmetadata', onMeta);
+            if (videoEl2.duration && isFinite(videoEl2.duration)) {
+              var sec = Math.round(videoEl2.duration);
+              item.duration = formatTime(sec);
+              initTrimPanel(); // Re-init now that we have duration
+            }
+          });
+        }
+        // Set placeholder values while waiting
+        document.getElementById('trimStart').textContent = '0:00';
+        document.getElementById('trimEnd').textContent = '0:00';
+        document.getElementById('trimDuration').textContent = 'Loading video...';
+        return;
+      }
+
       document.getElementById('trimStart').textContent = '0:00';
-      document.getElementById('trimEnd').textContent = item.duration;
-      document.getElementById('trimDuration').textContent = 'Duration: ' + item.duration;
+      document.getElementById('trimEnd').textContent = durationStr;
+      document.getElementById('trimDuration').textContent = 'Duration: ' + durationStr;
+
+      // Also update the duration row in the details panel
+      var durationRow = document.getElementById('cmDurationRow');
+      if (durationRow) {
+        durationRow.style.display = '';
+        document.getElementById('cmDuration').textContent = durationStr;
+      }
 
       // Generate waveform bars
       var waveform = document.getElementById('trimWaveform');
@@ -1821,11 +2213,11 @@
         waveform.appendChild(bar);
       }
 
-      // Reset handle positions
-      document.getElementById('trimHandleLeft').style.left = 'calc(10% - 7px)';
-      document.getElementById('trimHandleRight').style.right = 'calc(10% - 7px)';
-      document.getElementById('trimSelection').style.left = '10%';
-      document.getElementById('trimSelection').style.right = '10%';
+      // Reset handles to full range (0% to 100%) matching the labels
+      document.getElementById('trimHandleLeft').style.left = 'calc(0% - 7px)';
+      document.getElementById('trimHandleRight').style.right = 'calc(0% - 7px)';
+      document.getElementById('trimSelection').style.left = '0%';
+      document.getElementById('trimSelection').style.right = '0%';
     }
 
     // Trim handle dragging
@@ -1853,7 +2245,7 @@
         var totalSec = parseInt(parts[0]) * 60 + parseInt(parts[1]);
 
         if (dragging.classList.contains('left')) {
-          var rightPct = 100 - parseFloat(sel.style.right || '10');
+          var rightPct = 100 - parseFloat(sel.style.right || '0');
           if (pct >= rightPct - 5) pct = rightPct - 5;
           dragging.style.left = 'calc(' + pct + '% - 7px)';
           sel.style.left = pct + '%';
@@ -1862,7 +2254,7 @@
           var endSec = Math.round(totalSec * rightPct / 100);
           document.getElementById('trimDuration').textContent = 'Duration: ' + formatTime(endSec - startSec);
         } else {
-          var leftPct = parseFloat(sel.style.left || '10');
+          var leftPct = parseFloat(sel.style.left || '0');
           if (pct <= leftPct + 5) pct = leftPct + 5;
           dragging.style.right = 'calc(' + (100 - pct) + '% - 7px)';
           sel.style.right = (100 - pct) + '%';
@@ -1899,14 +2291,14 @@
         var parts = (item.duration || '0:00').split(':');
         var totalSec = parseInt(parts[0]) * 60 + parseInt(parts[1]);
         if (dragging.classList.contains('left')) {
-          var rightPct = 100 - parseFloat(sel.style.right || '10');
+          var rightPct = 100 - parseFloat(sel.style.right || '0');
           if (pct >= rightPct - 5) pct = rightPct - 5;
           dragging.style.left = 'calc(' + pct + '% - 7px)';
           sel.style.left = pct + '%';
           document.getElementById('trimStart').textContent = formatTime(Math.round(totalSec * pct / 100));
           document.getElementById('trimDuration').textContent = 'Duration: ' + formatTime(Math.round(totalSec * (rightPct - pct) / 100));
         } else {
-          var leftPct = parseFloat(sel.style.left || '10');
+          var leftPct = parseFloat(sel.style.left || '0');
           if (pct <= leftPct + 5) pct = leftPct + 5;
           dragging.style.right = 'calc(' + (100 - pct) + '% - 7px)';
           sel.style.right = (100 - pct) + '%';
@@ -1969,7 +2361,75 @@
           item.duration = result.duration;
         }
 
-        kupToast('Video trimmed to ' + startText + ' – ' + endText + ' (' + result.duration + ')', 'success');
+        // Update duration display in details panel
+        var durationRow = document.getElementById('cmDurationRow');
+        if (durationRow) {
+          durationRow.style.display = '';
+          document.getElementById('cmDuration').textContent = result.duration;
+        }
+
+        // Show edited badge + revert button in details panel
+        var editedBadge = document.getElementById('cmEditedBadge');
+        if (editedBadge) {
+          editedBadge.style.display = '';
+          document.getElementById('cmEditedInfo').textContent = 'Video trimmed by brand';
+          document.getElementById('cmViewOriginalBtn').style.display = '';
+          document.getElementById('cmViewEditedBtn').style.display = 'none';
+        }
+
+        // Push undo so "Go Back" reverts the trim via server API
+        var prevUrls = item.originalMediaUrls ? [].concat(item.originalMediaUrls) : null;
+        var prevDuration = null; // Will be re-detected from restored video
+        (function(savedPrevUrls, savedSubmissionId, savedItem) {
+          undoStack.push({
+            label: 'Trimmed video',
+            undo: async function() {
+              // Call server to revert to original
+              var revertResult = await kupApi.post('/api/upload/revert-edit', {
+                submissionId: savedSubmissionId,
+              });
+              // Swap video back to original
+              var vid = document.querySelector('.content-frame video');
+              if (vid && revertResult.urls && revertResult.urls.length > 0) {
+                vid.src = revertResult.urls[0];
+                vid.load();
+              }
+              // Update local data
+              savedItem.mediaUrls = revertResult.urls;
+              savedItem.originalMediaUrls = null;
+              savedItem.editedMediaUrls = null;
+              savedItem.savedTextOverlays = null;
+              savedItem.savedLogoOverlay = null;
+              // Clear overlays from database too
+              if (isRealData && savedItem.mongoId) {
+                kupApi.put('/api/content/' + savedItem.mongoId + '/overlays', {
+                  textOverlays: [], logoOverlay: null,
+                }).catch(function(e) { console.warn('Could not clear overlays from DB:', e); });
+              }
+              savedItem.duration = null; // Will be re-detected
+              // Hide edited badge
+              document.getElementById('cmEditedBadge').style.display = 'none';
+              // Re-detect duration from restored video
+              if (vid) {
+                vid.addEventListener('loadedmetadata', function onMeta() {
+                  vid.removeEventListener('loadedmetadata', onMeta);
+                  if (vid.duration && isFinite(vid.duration)) {
+                    var sec = Math.round(vid.duration);
+                    savedItem.duration = formatTime(sec);
+                    var durationRow = document.getElementById('cmDurationRow');
+                    if (durationRow) {
+                      durationRow.style.display = '';
+                      document.getElementById('cmDuration').textContent = savedItem.duration;
+                    }
+                  }
+                });
+              }
+            }
+          });
+          updateUndoButton();
+        })(prevUrls, submissionId, item);
+
+        kupToast('Video trimmed & saved! ' + startText + ' – ' + endText + ' (' + result.duration + ')', 'success');
         toggleTool('trim');
 
       } catch (err) {
@@ -1991,7 +2451,8 @@
       if (!item || !item.originalMediaUrls) return;
       var media = document.querySelector('.content-frame video') || document.querySelector('.content-frame img');
       if (media) {
-        media.src = item.originalMediaUrls[0];
+        var url = item.originalMediaUrls[0];
+        media.src = url;
         if (media.tagName === 'VIDEO') media.load();
       }
       document.getElementById('cmViewOriginalBtn').style.display = 'none';
@@ -2004,12 +2465,457 @@
       if (!item) return;
       var media = document.querySelector('.content-frame video') || document.querySelector('.content-frame img');
       if (media) {
-        media.src = item.mediaUrls[0];
+        var url = item.mediaUrls[0];
+        media.src = url;
         if (media.tagName === 'VIDEO') media.load();
       }
       document.getElementById('cmViewOriginalBtn').style.display = '';
       document.getElementById('cmViewEditedBtn').style.display = 'none';
       kupToast('Showing edited version', 'info');
+    }
+
+    // ---- IMAGE EDIT PERSISTENCE + UNDO STACK ----
+    // Each edit action pushes an undo function onto the stack.
+    // "Go Back" in the toolbar pops the last one. "Cancel" in the floating bar undoes all.
+    var imageEditPending = false;
+    var undoStack = []; // Array of { label: 'Added logo', undo: function }
+
+    function pushUndo(label, undoFn) {
+      undoStack.push({ label: label, undo: undoFn });
+      updateUndoButton();
+      markImageEdited();
+    }
+
+    async function undoLastEdit() {
+      if (undoStack.length === 0) return;
+      var action = undoStack.pop();
+      try {
+        await action.undo();
+      } catch (err) {
+        console.error('Undo failed:', err);
+        kupToast('Undo failed: ' + (err.message || 'Error'), 'error');
+        undoStack.push(action); // Put it back
+        return;
+      }
+      kupToast('Undid: ' + action.label, 'info');
+      updateUndoButton();
+      // If no more actions, hide the Save/Cancel bar too
+      if (undoStack.length === 0) {
+        clearImageEditState();
+      }
+    }
+
+    function updateUndoButton() {
+      var btn = document.getElementById('undoBtn');
+      var divider = document.getElementById('undoDivider');
+      if (undoStack.length > 0) {
+        btn.style.display = '';
+        divider.style.display = '';
+      } else {
+        btn.style.display = 'none';
+        divider.style.display = 'none';
+      }
+    }
+
+    function markImageEdited() {
+      imageEditPending = true;
+      var bar = document.getElementById('editActionBar');
+      bar.classList.add('show');
+    }
+
+    function clearImageEditState() {
+      imageEditPending = false;
+      undoStack = [];
+      zoomUndoPushed = false;
+      cropApplied = false;
+      updateUndoButton();
+      var bar = document.getElementById('editActionBar');
+      if (bar) bar.classList.remove('show');
+    }
+
+    // Cancel unsaved edits — undo everything back to the saved version
+    function cancelImageEdits() {
+      // Run all undos in reverse order
+      while (undoStack.length > 0) {
+        var action = undoStack.pop();
+        action.undo();
+      }
+      logoApplied = false;
+      updateUndoButton();
+      clearImageEditState();
+      kupToast('All edits discarded', 'info');
+    }
+
+    // Revert to Original — after an edit was saved, go back to the influencer's
+    // original version. Updates the database so the original becomes active again.
+    async function revertToOriginal() {
+      var item = contentItems[currentIndex];
+      if (!item) return;
+
+      var submissionId = item.mongoId || item.id;
+      if (!submissionId) {
+        kupToast('No submission to revert', 'error');
+        return;
+      }
+
+      // Confirm with the user
+      var confirmed = await kupDialog({
+        type: 'confirm',
+        title: 'Revert to Original',
+        message: 'This will remove all brand edits (trim, crop, text, logo) and restore the influencer\'s original submission.',
+        confirmText: 'Revert',
+        confirmColor: '#dc2626',
+        icon: '↩️',
+        iconBg: 'rgba(220,38,38,0.1)',
+      });
+      if (!confirmed) return;
+
+      var revertBtn = document.getElementById('cmRevertBtn');
+      revertBtn.classList.add('reverting');
+      revertBtn.textContent = 'Reverting...';
+
+      try {
+        var result = await kupApi.post('/api/upload/revert-edit', {
+          submissionId: submissionId,
+        });
+
+        // Update the image/video source to the restored original
+        var media = document.querySelector('.content-frame img') || document.querySelector('.content-frame video');
+        if (media && result.urls && result.urls.length > 0) {
+          var restoredUrl = result.urls[0];
+          media.src = restoredUrl;
+          if (media.tagName === 'VIDEO') media.load();
+        }
+
+        // Update local content item data
+        item.mediaUrls = result.urls;
+        item.originalMediaUrls = null;
+        item.editedMediaUrls = null;
+        item.savedTextOverlays = null;
+        item.savedLogoOverlay = null;
+        // Clear overlays from database too
+        if (isRealData && item.mongoId) {
+          kupApi.put('/api/content/' + item.mongoId + '/overlays', {
+            textOverlays: [], logoOverlay: null,
+          }).catch(function(e) { console.warn('Could not clear overlays from DB:', e); });
+        }
+
+        // Hide the edited badge (no longer edited)
+        document.getElementById('cmEditedBadge').style.display = 'none';
+
+        // Clean up any visual overlays that might be lingering
+        resetZoom();
+        document.querySelectorAll('.text-overlay-item, .logo-overlay-item').forEach(function(el) { el.remove(); });
+        textOverlayCount = 0;
+        resetCropRatio();
+        clearImageEditState();
+
+        kupToast('Reverted to original', 'success');
+
+      } catch (err) {
+        console.error('Revert failed:', err);
+        kupToast('Revert failed: ' + (err.message || 'Server error'), 'error');
+      } finally {
+        revertBtn.classList.remove('reverting');
+        revertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Revert to Original';
+      }
+    }
+
+    // Save the current image view (with all edits) as a new file
+    // Uses <canvas> to composite: image + zoom/crop + text overlays + logo overlay
+    async function saveImageEdit() {
+      var frame = document.querySelector('.content-frame');
+      var img = frame.querySelector('img');
+      var videoEl = frame.querySelector('video');
+      var mediaEl = img || videoEl;
+
+      if (!mediaEl) {
+        kupToast('No content to save', 'error');
+        return;
+      }
+
+      var isVideo = !!videoEl && !img;
+
+      // For videos: overlays can't be baked into video data.
+      // Save overlay info on the item so they persist across loadContent calls.
+      if (isVideo) {
+        var item = contentItems[currentIndex];
+        if (item && !item.originalMediaUrls) {
+          item.originalMediaUrls = [].concat(item.mediaUrls);
+        }
+
+        // Capture text overlays from the DOM
+        if (item) {
+          var savedTexts = [];
+          frame.querySelectorAll('.text-overlay-item').forEach(function(el) {
+            var span = el.querySelector('span');
+            var pos = 'center';
+            if (el.classList.contains('pos-top')) pos = 'top';
+            else if (el.classList.contains('pos-bottom')) pos = 'bottom';
+            savedTexts.push({ text: span ? span.textContent : '', position: pos });
+          });
+          item.savedTextOverlays = savedTexts;
+
+          // Capture logo overlay
+          var logoEl = frame.querySelector('.logo-overlay-item');
+          if (logoEl) {
+            var logoPos = 'bottom-right';
+            if (logoEl.classList.contains('pos-top-left')) logoPos = 'top-left';
+            else if (logoEl.classList.contains('pos-top-right')) logoPos = 'top-right';
+            else if (logoEl.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
+            var computedOpacity = parseFloat(window.getComputedStyle(logoEl).opacity) || 0.7;
+            var logoMark = logoEl.querySelector('.logo-mark');
+            var fontSize = logoMark ? parseFloat(window.getComputedStyle(logoMark).fontSize) : 12;
+            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: fontSize };
+          } else {
+            item.savedLogoOverlay = null;
+          }
+        }
+
+        // Show edited badge
+        var editedBadge = document.getElementById('cmEditedBadge');
+        editedBadge.style.display = '';
+        document.getElementById('cmEditedInfo').textContent = 'Video overlays applied';
+        document.getElementById('cmViewOriginalBtn').style.display = '';
+        document.getElementById('cmViewEditedBtn').style.display = 'none';
+
+        // Persist overlays to the database so they survive page reloads
+        if (isRealData && item.mongoId) {
+          kupApi.put('/api/content/' + item.mongoId + '/overlays', {
+            textOverlays: item.savedTextOverlays || [],
+            logoOverlay: item.savedLogoOverlay || null,
+          }).then(function() {
+            console.log('Overlays saved to database');
+          }).catch(function(err) {
+            console.warn('Could not save overlays to DB:', err);
+          });
+        }
+
+        // Clear edit state but keep overlays visible
+        cropApplied = false;
+        imageEditPending = false;
+        undoStack = [];
+        updateUndoButton();
+        var bar = document.getElementById('editActionBar');
+        if (bar) bar.classList.remove('show');
+
+        kupToast('Overlays applied to video', 'success');
+        return;
+      }
+
+      // Make sure image is fully loaded before we try to draw it
+      if (!img.complete || img.naturalWidth === 0) {
+        await new Promise(function(resolve) {
+          img.onload = resolve;
+          img.onerror = resolve;
+          setTimeout(resolve, 3000);
+        });
+      }
+
+      var saveBtn = document.getElementById('saveEditBtn');
+      saveBtn.classList.add('saving');
+      saveBtn.innerHTML = '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Saving...';
+
+      try {
+        // Create a canvas at the frame's visible dimensions (what the user sees)
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        // Use the frame's display size — this captures the crop ratio too
+        // (e.g. if cropped to 1:1, the frame is square → canvas is square)
+        var frameRect = frame.getBoundingClientRect();
+        var outputW = Math.round(frameRect.width * 2); // 2x for retina quality
+        var outputH = Math.round(frameRect.height * 2);
+        canvas.width = outputW;
+        canvas.height = outputH;
+
+        // Fill background (in case of any transparency)
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, outputW, outputH);
+
+        // Calculate how the image is displayed with object-fit:cover + zoom/pan
+        var imgW = img.naturalWidth;
+        var imgH = img.naturalHeight;
+        var frameW = frameRect.width;
+        var frameH = frameRect.height;
+
+        // object-fit:cover math — figure out the visible portion of the image
+        var imgRatio = imgW / imgH;
+        var frameRatio = frameW / frameH;
+        var drawW, drawH, srcX, srcY, srcW, srcH;
+
+        if (imgRatio > frameRatio) {
+          // Image is wider than frame — crop sides
+          drawH = imgH;
+          drawW = imgH * frameRatio;
+          srcX = (imgW - drawW) / 2;
+          srcY = 0;
+        } else {
+          // Image is taller than frame — crop top/bottom
+          drawW = imgW;
+          drawH = imgW / frameRatio;
+          srcX = 0;
+          srcY = (imgH - drawH) / 2;
+        }
+
+        srcW = drawW;
+        srcH = drawH;
+
+        // Apply zoom + pan offsets
+        // When zoomed, we see a smaller portion of the image centered around pan offsets
+        if (zoomLevel > 1) {
+          var visibleW = srcW / zoomLevel;
+          var visibleH = srcH / zoomLevel;
+          // Pan offsets are in CSS pixels, convert to image source pixels
+          var panRatioX = panX / (frameW / 2);
+          var panRatioY = panY / (frameH / 2);
+          var panSrcX = -panRatioX * (srcW / 2) / zoomLevel;
+          var panSrcY = -panRatioY * (srcH / 2) / zoomLevel;
+
+          srcX += (srcW - visibleW) / 2 + panSrcX;
+          srcY += (srcH - visibleH) / 2 + panSrcY;
+          srcW = visibleW;
+          srcH = visibleH;
+        }
+
+        // Clamp source rectangle to image bounds
+        srcX = Math.max(0, Math.min(imgW - 1, srcX));
+        srcY = Math.max(0, Math.min(imgH - 1, srcY));
+        srcW = Math.min(srcW, imgW - srcX);
+        srcH = Math.min(srcH, imgH - srcY);
+
+        // Draw the image portion onto the canvas
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outputW, outputH);
+
+        // Draw text overlays — read actual screen positions from the DOM
+        // Overlays are absolutely positioned in the frame (not the image),
+        // so their getBoundingClientRect is correct regardless of zoom level
+        var scaleX = outputW / frameRect.width;
+        var scaleY = outputH / frameRect.height;
+
+        var textOverlays = frame.querySelectorAll('.text-overlay-item');
+        textOverlays.forEach(function(overlay) {
+          var text = overlay.querySelector('span').textContent;
+          var overlayRect = overlay.getBoundingClientRect();
+
+          // Position relative to the frame, scaled to canvas
+          var x = (overlayRect.left - frameRect.left) * scaleX;
+          var y = (overlayRect.top - frameRect.top) * scaleY;
+          var w = overlayRect.width * scaleX;
+          var h = overlayRect.height * scaleY;
+
+          // Draw background bar
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.fillRect(x, y, w, h);
+
+          // Draw text — match the CSS font-size (1rem ≈ 16px on screen)
+          var fontSize = Math.round(16 * scaleY);
+          ctx.font = '700 ' + fontSize + 'px Montserrat, sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, x + w / 2, y + h / 2);
+        });
+
+        // Draw logo overlay — read actual screen position from DOM
+        var logoOverlay = frame.querySelector('.logo-overlay-item');
+        if (logoOverlay) {
+          var logoRect = logoOverlay.getBoundingClientRect();
+          var lx = (logoRect.left - frameRect.left) * scaleX;
+          var ly = (logoRect.top - frameRect.top) * scaleY;
+          var lw = logoRect.width * scaleX;
+          var lh = logoRect.height * scaleY;
+
+          var computedOpacity = parseFloat(window.getComputedStyle(logoOverlay).opacity) || 0.7;
+          ctx.globalAlpha = computedOpacity;
+
+          // Draw logo background
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.beginPath();
+          ctx.roundRect(lx, ly, lw, lh, 4 * scaleX);
+          ctx.fill();
+
+          // Draw brand initials text — match the actual rendered font size
+          var logoMark = logoOverlay.querySelector('.logo-mark');
+          var logoFontPx = parseFloat(window.getComputedStyle(logoMark).fontSize) || 12;
+          var canvasLogoFont = Math.round(logoFontPx * scaleY);
+          ctx.font = '800 ' + canvasLogoFont + 'px Montserrat, sans-serif';
+          ctx.fillStyle = '#1a1a2e';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(brandInitials, lx + lw / 2, ly + lh / 2);
+          ctx.globalAlpha = 1;
+        }
+
+        // Convert canvas to blob
+        var blob = await new Promise(function(resolve) {
+          canvas.toBlob(resolve, 'image/png', 0.95);
+        });
+
+        // Get the original image URL (the path part)
+        var originalUrl;
+        try {
+          var urlObj = new URL(img.src);
+          originalUrl = urlObj.pathname;
+        } catch(e) {
+          originalUrl = img.getAttribute('src');
+        }
+
+        // Get submission ID
+        var item = contentItems[currentIndex];
+        var submissionId = item ? (item.mongoId || item.id) : null;
+
+        // Upload via FormData (raw fetch, not kupApi which forces JSON)
+        var formData = new FormData();
+        formData.append('editedImage', blob, 'edited-' + Date.now() + '.png');
+        if (submissionId) formData.append('submissionId', submissionId);
+        if (originalUrl) formData.append('originalUrl', originalUrl);
+
+        var token = await getAuthToken();
+        var response = await fetch('/api/upload/save-image-edit', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          var errData = await response.json().catch(function() { return {}; });
+          throw new Error(errData.error || 'Upload failed');
+        }
+
+        var result = await response.json();
+
+        // Image: overlays are baked into the canvas output
+        img.src = result.url;
+
+        if (item) {
+          if (!item.originalMediaUrls) item.originalMediaUrls = [].concat(item.mediaUrls);
+          item.mediaUrls = [result.url];
+        }
+
+        // Show edited badge
+        var editedBadge = document.getElementById('cmEditedBadge');
+        editedBadge.style.display = '';
+        document.getElementById('cmEditedInfo').textContent = 'Brand has edited this content';
+        document.getElementById('cmViewOriginalBtn').style.display = '';
+        document.getElementById('cmViewEditedBtn').style.display = 'none';
+
+        // Reset everything — edits are now baked into the saved image
+        resetZoom();
+        resetCropRatio();
+        document.querySelectorAll('.text-overlay-item, .logo-overlay-item').forEach(function(el) { el.remove(); });
+        textOverlayCount = 0;
+        clearImageEditState();
+
+        kupToast('Edit saved — use "Revert to Original" in the panel to undo', 'success');
+
+      } catch (err) {
+        console.error('Save image edit failed:', err);
+        kupToast('Save failed: ' + (err.message || 'Server error'), 'error');
+      } finally {
+        saveBtn.classList.remove('saving');
+        saveBtn.innerHTML = '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Edit';
+      }
     }
 
     function formatTime(sec) {
@@ -2038,6 +2944,21 @@
     function applyCrop() {
       var activePreset = document.querySelector('.crop-preset.active[data-ratio]');
       var ratioLabel = activePreset ? activePreset.getAttribute('data-ratio') : 'original';
+      var prevRatio = document.querySelector('.content-frame').style.aspectRatio || '9/16';
+      var newRatio = activePreset ? activePreset.getAttribute('data-ratio').replace(':', '/') : prevRatio;
+      // Only push undo if the ratio actually changed
+      if (newRatio !== prevRatio) {
+        var savedPrevRatio = prevRatio; // capture for closure
+        pushUndo('Crop to ' + ratioLabel, function() {
+          document.querySelector('.content-frame').style.aspectRatio = savedPrevRatio;
+          document.querySelectorAll('.crop-preset').forEach(function(b) { b.classList.remove('active'); });
+          var match = document.querySelector('.crop-preset[data-ratio="' + savedPrevRatio.replace('/', ':') + '"]');
+          if (match) match.classList.add('active');
+          // If undoing back to original ratio, clear the flag
+          if (savedPrevRatio === originalAspectRatio) cropApplied = false;
+        });
+      }
+      cropApplied = true;
       kupToast('Cropped to ' + ratioLabel, 'success');
       toggleTool('crop');
     }
@@ -2055,12 +2976,27 @@
 
       var overlay = document.createElement('div');
       overlay.className = 'text-overlay-item pos-' + position;
-      overlay.innerHTML = '<span>' + text + '</span><button class="text-overlay-remove" onclick="this.parentElement.remove()" title="Remove">&times;</button>';
+      overlay.innerHTML = '<span>' + text + '</span><button class="text-overlay-remove" onclick="removeTextOverlay(this.parentElement)" title="Remove">&times;</button>';
       textOverlayCount++;
       frame.appendChild(overlay);
 
+      // Push undo for this specific text overlay
+      var addedOverlay = overlay; // capture reference
+      pushUndo('Text: "' + (text.length > 15 ? text.slice(0, 15) + '…' : text) + '"', function() {
+        if (addedOverlay.parentElement) addedOverlay.remove();
+        textOverlayCount = Math.max(0, textOverlayCount - 1);
+      });
+
       input.value = '';
-      kupToast('Text overlay added', 'info');
+      kupToast('Text added — tap Text again to add more', 'info');
+      toggleTool('text'); // Auto-close panel after adding
+    }
+
+    function removeTextOverlay(el) {
+      el.remove();
+      textOverlayCount = Math.max(0, textOverlayCount - 1);
+      // If no more visual edits, hide the action bar
+      if (!hasVisualEdits()) clearImageEditState();
     }
 
     function clearTextOverlays() {
@@ -2088,6 +3024,59 @@
 
     // ---- LOGO WATERMARK ----
     var logoState = { position: 'top-left', opacity: 70, size: 60 };
+    var cropApplied = false; // true once user clicks Apply Crop — prevents reset on panel close
+    var logoApplied = false; // true once user clicks Apply — vs just previewing
+    var brandLogoUrl = null; // Real brand logo URL loaded from API
+    var brandInitials = 'KP'; // Brand initials fallback (default KP for KeepUsPostd)
+
+    // Generate initials from a brand name (e.g. "Wild Mercy Pictures" → "WMP")
+    function getBrandInitials(name) {
+      if (!name) return 'KP';
+      var words = name.trim().split(/\s+/);
+      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+      return words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+    }
+
+    // Load brand logo URL and initials from the brand's profile
+    async function loadBrandLogo() {
+      try {
+        var brand = typeof getActiveBrand === 'function' ? getActiveBrand() : null;
+        // Set initials from localStorage brand context first (instant)
+        if (brand) {
+          brandInitials = brand.abbreviation || getBrandInitials(brand.name) || 'KP';
+        }
+        var brandId = brand ? (brand.mongoId || brand.id) : null;
+        if (!brandId) return;
+        var data = await kupApi.get('/api/brands/' + brandId);
+        if (data && data.brand) {
+          if (data.brand.logoUrl) {
+            brandLogoUrl = data.brand.logoUrl;
+            console.log('Brand logo loaded:', brandLogoUrl);
+          }
+          // Update initials from API data (more accurate)
+          if (data.brand.name) {
+            brandInitials = getBrandInitials(data.brand.name);
+          }
+        }
+        // Update the logo panel preview thumb
+        var thumb = document.getElementById('logoPreviewThumb');
+        if (thumb) {
+          if (brandLogoUrl) {
+            thumb.innerHTML = '<img src="' + brandLogoUrl + '" style="max-width:100%;max-height:100%;object-fit:contain" alt="Logo">';
+          } else {
+            thumb.textContent = brandInitials;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load brand logo:', e);
+      }
+    }
+    // Load on page init (non-blocking)
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (user) loadBrandLogo();
+      });
+    }
 
     function showLogoPreview() {
       var existing = document.querySelector('.logo-overlay-item');
@@ -2096,7 +3085,13 @@
         var overlay = document.createElement('div');
         overlay.className = 'logo-overlay-item pos-' + logoState.position;
         overlay.style.opacity = logoState.opacity / 100;
-        overlay.innerHTML = '<div class="logo-mark" style="font-size:' + (logoState.size / 60 * 0.7) + 'rem">LOGO</div>';
+        if (brandLogoUrl) {
+          // Real brand logo — show as image
+          overlay.innerHTML = '<div class="logo-mark" style="padding:4px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 2) + 'rem;max-width:6rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
+        } else {
+          // Fallback — show brand initials as logo placeholder
+          overlay.innerHTML = '<div class="logo-mark" style="font-size:' + (logoState.size / 60 * 0.7) + 'rem">' + brandInitials + '</div>';
+        }
         frame.appendChild(overlay);
       }
     }
@@ -2116,13 +3111,50 @@
       if (!existing) { showLogoPreview(); existing = document.querySelector('.logo-overlay-item'); }
       if (existing) {
         existing.style.opacity = logoState.opacity / 100;
-        existing.querySelector('.logo-mark').style.fontSize = (logoState.size / 60 * 0.7) + 'rem';
         existing.className = 'logo-overlay-item pos-' + logoState.position;
+        var mark = existing.querySelector('.logo-mark');
+        if (mark) {
+          var img = mark.querySelector('img');
+          if (img) {
+            // Real logo image — scale by size slider
+            img.style.height = (logoState.size / 60 * 2) + 'rem';
+          } else {
+            // Text fallback — scale font size
+            mark.style.fontSize = (logoState.size / 60 * 0.7) + 'rem';
+          }
+        }
       }
     }
 
     function applyLogoOverlay() {
       showLogoPreview();
+      var wasApplied = logoApplied;
+      logoApplied = true;
+
+      // Push undo — always removes the logo since this is the "apply" action
+      // If logo was already applied before, undo restores previous settings
+      if (wasApplied) {
+        // Logo was already applied — save current state so undo restores it
+        var prevState = {
+          position: logoState.position,
+          opacity: logoState.opacity,
+          size: logoState.size
+        };
+        pushUndo('Changed logo', function() {
+          logoState.position = prevState.position;
+          logoState.opacity = prevState.opacity;
+          logoState.size = prevState.size;
+          updateLogoOverlay();
+        });
+      } else {
+        // First time applying — undo removes it entirely
+        pushUndo('Added logo', function() {
+          var logo = document.querySelector('.logo-overlay-item');
+          if (logo) logo.remove();
+          logoApplied = false;
+        });
+      }
+
       kupToast('Logo watermark applied', 'success');
       toggleTool('logo');
     }
@@ -2130,6 +3162,7 @@
     function clearLogoOverlay() {
       var logo = document.querySelector('.logo-overlay-item');
       if (logo) logo.remove();
+      logoApplied = false;
     }
 
     // ---- ZOOM + PAN ----
@@ -2138,17 +3171,42 @@
     var zoomLevel = 1;
     var panX = 0, panY = 0; // Translate offsets in px
 
+    var zoomUndoPushed = false; // Only push one undo entry for the entire zoom session
+
     function zoomIn() {
+      var wasAtDefault = (zoomLevel === 1);
       zoomLevel = Math.min(5, zoomLevel + 0.5);
       clampPan();
       applyZoom();
+      // Push one undo for the whole zoom session (first time going above 1x)
+      if (wasAtDefault && zoomLevel > 1 && !zoomUndoPushed) {
+        zoomUndoPushed = true;
+        pushUndo('Zoomed in', function() {
+          zoomLevel = 1;
+          panX = 0; panY = 0;
+          applyZoom();
+          zoomUndoPushed = false;
+          var frame = document.querySelector('.content-frame');
+          if (frame) frame.style.cursor = '';
+          document.getElementById('zoomResetBtn').style.display = 'none';
+          document.getElementById('zoomOutBtn').style.display = 'none';
+        });
+      }
     }
 
     function zoomOut() {
       zoomLevel = Math.max(1, zoomLevel - 0.5);
-      if (zoomLevel <= 1) { panX = 0; panY = 0; }
+      if (zoomLevel <= 1) { panX = 0; panY = 0; zoomUndoPushed = false; }
       clampPan();
       applyZoom();
+    }
+
+    function hasVisualEdits() {
+      var frame = document.querySelector('.content-frame');
+      if (!frame) return false;
+      return frame.querySelectorAll('.text-overlay-item').length > 0
+        || frame.querySelector('.logo-overlay-item') !== null
+        || zoomLevel > 1;
     }
 
     function applyZoom() {
@@ -2197,6 +3255,7 @@
     function resetZoom() {
       zoomLevel = 1;
       panX = 0; panY = 0;
+      zoomUndoPushed = false;
       var frame = document.querySelector('.content-frame');
       var media = frame.querySelector('img, video');
       if (media) { media.style.transform = ''; media.style.transformOrigin = ''; }
@@ -2214,11 +3273,23 @@
       // === SCROLL WHEEL ZOOM ===
       frame.addEventListener('wheel', function(e) {
         e.preventDefault();
+        var wasAtDefault = (zoomLevel === 1);
         var delta = e.deltaY > 0 ? -0.25 : 0.25;
         zoomLevel = Math.max(1, Math.min(5, zoomLevel + delta));
-        if (zoomLevel <= 1) { panX = 0; panY = 0; }
+        if (zoomLevel <= 1) { panX = 0; panY = 0; zoomUndoPushed = false; }
         clampPan();
         applyZoom();
+        // Push one undo for the whole zoom session
+        if (wasAtDefault && zoomLevel > 1 && !zoomUndoPushed) {
+          zoomUndoPushed = true;
+          pushUndo('Zoomed in', function() {
+            zoomLevel = 1; panX = 0; panY = 0;
+            applyZoom(); zoomUndoPushed = false;
+            frame.style.cursor = '';
+            document.getElementById('zoomResetBtn').style.display = 'none';
+            document.getElementById('zoomOutBtn').style.display = 'none';
+          });
+        }
       }, { passive: false });
 
       // === MOUSE DRAG TO PAN (desktop) ===
@@ -2369,7 +3440,7 @@
         if (item.mediaUrls && item.mediaUrls.length > 0) {
           var isVid = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm)$/i.test(item.mediaUrls[0]);
           if (isVid) {
-            thumbContent = '<video src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" muted></video>';
+            thumbContent = '<video src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" muted preload="auto"></video>';
           } else {
             thumbContent = '<img src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" alt="Content thumbnail">';
           }
@@ -2420,23 +3491,53 @@
     }
 
     // ========== Download Modal ==========
-    function openDownloadModal(itemId) {
+    // Stores the current signature payload for the download in progress
+    var currentSignaturePayload = null;
+
+    async function openDownloadModal(itemId) {
       var id = itemId !== undefined ? itemId : currentIndex;
       var item = contentItems[id];
       if (!item) return;
 
-      // Populate modal
+      // Populate modal basics
       document.getElementById('dlAvatar').textContent = item.initials;
       if (item.avatarStyle) { document.getElementById('dlAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('dlAvatar').style.background = ''; }
       document.getElementById('dlInfluencer').textContent = item.influencer;
       document.getElementById('dlType').textContent = item.type + ' \u00B7 ' + item.fileSize;
 
-      // Generate KUP ID
-      var kupNum = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-      document.getElementById('dlKupId').textContent = 'KP-2026-' + kupNum;
-      document.getElementById('dlSigInfluencer').textContent = item.influencer;
-      document.getElementById('dlSigCampaign').textContent = item.campaign;
-      document.getElementById('dlSigDate').textContent = 'Mar 5, 2026';
+      // Generate real Content Signature from API (or use cached)
+      currentSignaturePayload = null;
+      if (isRealData && item.mongoId) {
+        try {
+          var sigData = await kupApi.post('/api/upload/generate-signature', { submissionId: item.mongoId });
+          if (sigData && sigData.kupId) {
+            document.getElementById('dlKupId').textContent = sigData.kupId;
+            document.getElementById('dlSigInfluencer').textContent = sigData.influencer;
+            document.getElementById('dlSigCampaign').textContent = sigData.campaign;
+            var approvedDate = sigData.approvedAt ? new Date(sigData.approvedAt) : new Date();
+            document.getElementById('dlSigDate').textContent = approvedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            currentSignaturePayload = sigData.signaturePayload;
+          }
+        } catch (sigErr) {
+          console.warn('Could not generate signature:', sigErr);
+        }
+      }
+
+      // Fallback for demo mode
+      if (!currentSignaturePayload) {
+        var kupNum = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+        document.getElementById('dlKupId').textContent = 'KP-2026-' + kupNum;
+        document.getElementById('dlSigInfluencer').textContent = item.influencer;
+        document.getElementById('dlSigCampaign').textContent = item.campaign;
+        document.getElementById('dlSigDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        // Demo signature payload
+        currentSignaturePayload = JSON.stringify({
+          kupId: document.getElementById('dlKupId').textContent,
+          influencer: item.influencer,
+          campaign: item.campaign,
+          platform: 'keepuspostd.com',
+        });
+      }
 
       // Reset format selection
       document.querySelectorAll('.download-format').forEach(function(b) { b.classList.remove('active'); });
@@ -2454,9 +3555,322 @@
       btn.classList.add('active');
     }
 
-    function executeDownload() {
-      closeDownloadModal();
-      kupToast('Content downloaded with Content Signature', 'success');
+    async function executeDownload() {
+      var item = contentItems[currentIndex];
+      if (!item || !item.mediaUrls || !item.mediaUrls.length) {
+        kupToast('No media to download', 'error');
+        closeDownloadModal();
+        return;
+      }
+
+      var mediaUrl = item.mediaUrls[0];
+      var isVideo = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm|avi)$/i.test(mediaUrl);
+      var selectedFormat = document.querySelector('.download-format.active');
+      var format = selectedFormat ? selectedFormat.getAttribute('data-format') : 'original';
+      var kupId = document.getElementById('dlKupId').textContent;
+
+      console.log('[Download] isVideo:', isVideo, 'isRealData:', isRealData, 'mongoId:', item.mongoId, 'mediaUrl:', mediaUrl, 'type:', item.type);
+
+      if (isVideo) {
+        // ALL video downloads go through the server to embed Content Signature + overlays
+        if (isRealData && item.mongoId) {
+          kupToast('Preparing signed download...', 'info');
+          try {
+            var renderResult = await kupApi.post('/api/upload/render-with-overlays', {
+              submissionId: item.mongoId,
+              signaturePayload: currentSignaturePayload,
+            });
+            if (renderResult && renderResult.url) {
+              triggerFileDownload(renderResult.url, kupId + '.mp4');
+              closeDownloadModal();
+              kupToast('Video downloaded with Content Signature', 'success');
+            } else {
+              throw new Error('No URL returned');
+            }
+          } catch (renderErr) {
+            console.error('Render download error:', renderErr);
+            triggerFileDownload(mediaUrl, kupId + '.mp4');
+            closeDownloadModal();
+            kupToast('Video downloaded (signature could not be embedded)', 'info');
+          }
+        } else {
+          // Demo mode or no mongoId — gather overlays from DOM and send to server directly
+          var frame = document.querySelector('.content-frame');
+
+          // Gather text overlays from DOM + saved data
+          var vTextItems = [];
+          var vDomTexts = frame ? frame.querySelectorAll('.text-overlay-item') : [];
+          console.log('[Download] DOM text overlays found:', vDomTexts.length);
+          if (vDomTexts.length > 0) {
+            vDomTexts.forEach(function(el) {
+              var span = el.querySelector('span');
+              if (!span) return;
+              var pos = 'center';
+              if (el.classList.contains('pos-top')) pos = 'top';
+              else if (el.classList.contains('pos-bottom')) pos = 'bottom';
+              vTextItems.push({ text: span.textContent, position: pos });
+            });
+          } else if (item.savedTextOverlays && item.savedTextOverlays.length > 0) {
+            console.log('[Download] Using savedTextOverlays:', item.savedTextOverlays.length);
+            vTextItems = item.savedTextOverlays;
+          }
+
+          // Gather logo overlay from DOM + saved data
+          var vLogoData = null;
+          var vLogoEl = frame ? frame.querySelector('.logo-overlay-item') : null;
+          console.log('[Download] DOM logo overlay found:', !!vLogoEl);
+          if (vLogoEl) {
+            var vLogoPos = 'bottom-right';
+            if (vLogoEl.classList.contains('pos-top-left')) vLogoPos = 'top-left';
+            else if (vLogoEl.classList.contains('pos-top-right')) vLogoPos = 'top-right';
+            else if (vLogoEl.classList.contains('pos-bottom-left')) vLogoPos = 'bottom-left';
+            vLogoData = { position: vLogoPos, opacity: parseFloat(window.getComputedStyle(vLogoEl).opacity) || 0.7, logoUrl: brandLogoUrl || null, brandInitials: brandInitials || 'KP' };
+          } else if (item.savedLogoOverlay) {
+            console.log('[Download] Using savedLogoOverlay:', item.savedLogoOverlay);
+            vLogoData = item.savedLogoOverlay;
+            if (brandLogoUrl && !vLogoData.logoUrl) vLogoData.logoUrl = brandLogoUrl;
+          }
+
+          console.log('[Download] Final overlay data — text:', vTextItems.length, 'logo:', !!vLogoData, 'isRealData:', isRealData, 'mongoId:', item.mongoId);
+
+          // If there are overlays, send to server for FFmpeg render (direct mode)
+          if (vTextItems.length > 0 || vLogoData) {
+            kupToast('Rendering video with overlays...', 'info');
+            try {
+              var token = await getAuthToken();
+              var renderResp = await fetch('/api/upload/render-with-overlays', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({
+                  videoUrl: mediaUrl,
+                  textOverlays: vTextItems,
+                  logoOverlay: vLogoData,
+                  signaturePayload: currentSignaturePayload,
+                }),
+              });
+              var renderResult = await renderResp.json();
+              if (renderResult && renderResult.url) {
+                triggerFileDownload(renderResult.url, kupId + '.mp4');
+                closeDownloadModal();
+                kupToast('Video downloaded with overlays', 'success');
+              } else {
+                throw new Error(renderResult.error || 'No URL returned');
+              }
+            } catch (renderErr) {
+              console.error('Direct render error:', renderErr);
+              triggerFileDownload(mediaUrl, kupId + '.mp4');
+              closeDownloadModal();
+              kupToast('Video downloaded (overlays could not be rendered)', 'info');
+            }
+          } else {
+            // No overlays — just download the raw file
+            triggerFileDownload(mediaUrl, kupId + '.mp4');
+            closeDownloadModal();
+            kupToast('Video downloaded', 'success');
+          }
+        }
+      } else {
+        // Images: canvas renders overlays + steganographic Content Signature
+        try {
+          var frame = document.querySelector('.content-frame');
+          var imgEl = frame.querySelector('img');
+          if (!imgEl || !imgEl.complete || imgEl.naturalWidth === 0) {
+            triggerFileDownload(mediaUrl, kupId + '.jpg');
+            closeDownloadModal();
+            kupToast('Image downloaded', 'success');
+            return;
+          }
+
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          var natW = imgEl.naturalWidth;
+          var natH = imgEl.naturalHeight;
+          canvas.width = natW;
+          canvas.height = natH;
+          ctx.drawImage(imgEl, 0, 0, natW, natH);
+
+          // Gather overlays: prefer DOM elements, fall back to saved data
+          var textItems = [];
+          var domTexts = frame.querySelectorAll('.text-overlay-item');
+          if (domTexts.length > 0) {
+            domTexts.forEach(function(el) {
+              var span = el.querySelector('span');
+              if (!span) return;
+              var pos = 'center';
+              if (el.classList.contains('pos-top')) pos = 'top';
+              else if (el.classList.contains('pos-bottom')) pos = 'bottom';
+              textItems.push({ text: span.textContent, position: pos });
+            });
+          } else if (item.savedTextOverlays && item.savedTextOverlays.length > 0) {
+            textItems = item.savedTextOverlays;
+          }
+
+          // Draw text overlays onto canvas
+          textItems.forEach(function(t) {
+            ctx.font = 'bold ' + Math.round(natW * 0.04) + 'px Montserrat, sans-serif';
+            ctx.textAlign = 'center';
+            var yPos = natH * 0.5;
+            if (t.position === 'top') yPos = natH * 0.08;
+            else if (t.position === 'bottom') yPos = natH * 0.92;
+            var barHeight = natW * 0.06;
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(0, yPos - barHeight * 0.6, natW, barHeight);
+            ctx.fillStyle = '#fff';
+            ctx.fillText(t.text, natW / 2, yPos);
+          });
+
+          // Gather logo: prefer DOM, fall back to saved data
+          var logoData = null;
+          var logoEl = frame.querySelector('.logo-overlay-item');
+          if (logoEl) {
+            var logoPos = 'bottom-right';
+            if (logoEl.classList.contains('pos-top-left')) logoPos = 'top-left';
+            else if (logoEl.classList.contains('pos-top-right')) logoPos = 'top-right';
+            else if (logoEl.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
+            logoData = { position: logoPos, opacity: parseFloat(window.getComputedStyle(logoEl).opacity) || 0.7 };
+          } else if (item.savedLogoOverlay) {
+            logoData = item.savedLogoOverlay;
+          }
+
+          if (logoData) {
+            var refD = Math.min(natW, natH);
+            var marg = Math.round(refD * 0.04);
+            ctx.globalAlpha = logoData.opacity || 0.7;
+
+            // Try to draw the real brand logo image
+            var logoDrawn = false;
+            if (brandLogoUrl) {
+              try {
+                var logoImg = new Image();
+                logoImg.crossOrigin = 'anonymous';
+                await new Promise(function(resolve, reject) {
+                  logoImg.onload = resolve;
+                  logoImg.onerror = reject;
+                  logoImg.src = brandLogoUrl;
+                });
+                var maxLogoH = Math.round(natH * 0.08);
+                var logoScale = Math.min(1, maxLogoH / logoImg.naturalHeight);
+                var drawLW = Math.round(logoImg.naturalWidth * logoScale);
+                var drawLH = Math.round(logoImg.naturalHeight * logoScale);
+                var lgX = natW - drawLW - marg, lgY = natH - drawLH - marg;
+                if (logoData.position === 'top-left') { lgX = marg; lgY = marg; }
+                else if (logoData.position === 'top-right') { lgX = natW - drawLW - marg; lgY = marg; }
+                else if (logoData.position === 'bottom-left') { lgX = marg; lgY = natH - drawLH - marg; }
+                ctx.drawImage(logoImg, lgX, lgY, drawLW, drawLH);
+                logoDrawn = true;
+              } catch (logoErr) {
+                console.warn('Could not load brand logo for canvas:', logoErr);
+              }
+            }
+
+            // Fallback: brand initials text
+            if (!logoDrawn) {
+              var initialsText = brandInitials || 'KP';
+              var logoFontSize = Math.max(12, Math.round(refD * 0.04));
+              var padding = Math.round(logoFontSize * 0.6);
+              ctx.font = '800 ' + logoFontSize + 'px Montserrat, sans-serif';
+              ctx.textBaseline = 'middle';
+              var lw = ctx.measureText(initialsText).width;
+              var boxW = lw + padding * 2;
+              var boxH = logoFontSize + padding * 1.5;
+              var bx = natW - boxW - marg, by = natH - boxH - marg;
+              if (logoData.position === 'top-left') { bx = marg; by = marg; }
+              else if (logoData.position === 'top-right') { bx = natW - boxW - marg; by = marg; }
+              else if (logoData.position === 'bottom-left') { bx = marg; by = natH - boxH - marg; }
+              ctx.fillStyle = 'rgba(255,255,255,0.9)';
+              ctx.fillRect(bx, by, boxW, boxH);
+              ctx.fillStyle = '#1a1a2e';
+              ctx.fillText(initialsText, bx + padding, by + boxH / 2);
+            }
+            ctx.globalAlpha = 1.0;
+          }
+
+          // === EMBED CONTENT SIGNATURE VIA STEGANOGRAPHY ===
+          // Encode the signature payload into the least significant bits of pixel data.
+          // This is invisible to the human eye but can be extracted by KUP's recognition system.
+          if (currentSignaturePayload) {
+            embedSignatureInCanvas(ctx, natW, natH, currentSignaturePayload);
+          }
+
+          // Convert to blob and download
+          var mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+          var fileExt = format === 'png' ? 'png' : 'jpg';
+          canvas.toBlob(function(blob) {
+            var url = URL.createObjectURL(blob);
+            triggerFileDownload(url, kupId + '.' + fileExt);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+          }, mimeType, 0.95);
+
+          closeDownloadModal();
+          kupToast('Image downloaded with Content Signature', 'success');
+        } catch (err) {
+          console.error('Download error:', err);
+          triggerFileDownload(mediaUrl, kupId || 'kup-content');
+          closeDownloadModal();
+          kupToast('Content downloaded', 'success');
+        }
+      }
+    }
+
+    // Steganography: encode a string into the LSB (least significant bit) of pixel data.
+    // The signature is invisible — changing the last bit of each color channel is imperceptible.
+    // Format: 32-bit length header + UTF-8 payload bits stored in LSBs of RGB channels.
+    function embedSignatureInCanvas(ctx, width, height, payload) {
+      // Convert payload string to binary
+      var encoder = new TextEncoder();
+      var bytes = encoder.encode(payload);
+      var bits = [];
+
+      // 32-bit length header (so we know how many bits to read back)
+      var len = bytes.length;
+      for (var b = 31; b >= 0; b--) {
+        bits.push((len >> b) & 1);
+      }
+
+      // Payload bits
+      for (var i = 0; i < bytes.length; i++) {
+        for (var b = 7; b >= 0; b--) {
+          bits.push((bytes[i] >> b) & 1);
+        }
+      }
+
+      // Embed into bottom-right corner pixels (least noticeable area)
+      // We need bits.length pixels / 3 channels = bits.length / 3 pixels
+      var pixelsNeeded = Math.ceil(bits.length / 3);
+      var startRow = height - Math.ceil(pixelsNeeded / width) - 1;
+      if (startRow < 0) startRow = 0;
+
+      var imageData = ctx.getImageData(0, startRow, width, height - startRow);
+      var data = imageData.data;
+      var bitIdx = 0;
+
+      for (var p = 0; p < data.length && bitIdx < bits.length; p += 4) {
+        // R channel
+        if (bitIdx < bits.length) {
+          data[p] = (data[p] & 0xFE) | bits[bitIdx++];
+        }
+        // G channel
+        if (bitIdx < bits.length) {
+          data[p + 1] = (data[p + 1] & 0xFE) | bits[bitIdx++];
+        }
+        // B channel
+        if (bitIdx < bits.length) {
+          data[p + 2] = (data[p + 2] & 0xFE) | bits[bitIdx++];
+        }
+        // Alpha channel untouched
+      }
+
+      ctx.putImageData(imageData, 0, startRow);
+    }
+
+    // Helper: trigger a browser file download
+    function triggerFileDownload(url, filename) {
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     // Download modal overlay click to close

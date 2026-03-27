@@ -230,7 +230,10 @@
 
     <!-- Brand Badge (shown when ?brandId= present) -->
     <div class="brand-badge" id="brandBadge" style="display:none;">
-      <img id="brandLogo" src="" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23222%22 width=%2244%22 height=%2244%22/><text x=%2222%22 y=%2228%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2218%22>?</text></svg>'">
+      <div id="brandLogoWrap" style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0">
+        <img id="brandLogo" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none">
+        <div id="brandInitialsCircle" style="width:100%;height:100%;background:var(--kup-gradient,linear-gradient(135deg,#2EA5DD,#1a1a2e));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.9rem"></div>
+      </div>
       <div class="brand-info">
         <h3 id="brandName">Brand</h3>
         <p>Invited you to create content</p>
@@ -316,9 +319,18 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data && data.brand) {
-            document.getElementById('brandName').textContent = data.brand.name || 'Brand';
+            var bName = data.brand.name || 'Brand';
+            document.getElementById('brandName').textContent = bName;
             if (data.brand.logoUrl) {
-              document.getElementById('brandLogo').src = data.brand.logoUrl;
+              var logoImg = document.getElementById('brandLogo');
+              logoImg.src = data.brand.logoUrl;
+              logoImg.style.display = 'block';
+              document.getElementById('brandInitialsCircle').style.display = 'none';
+            } else {
+              // Show brand initials as logo fallback
+              var words = bName.trim().split(/\s+/);
+              var initials = words.length === 1 ? words[0].substring(0, 2).toUpperCase() : words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+              document.getElementById('brandInitialsCircle').textContent = initials;
             }
             document.getElementById('brandBadge').style.display = 'flex';
           }

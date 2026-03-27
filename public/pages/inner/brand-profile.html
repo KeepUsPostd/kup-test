@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Profile — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --kup-orange:#ED8444; --kup-blue:#2EA5DD; --kup-black:#000; --kup-body-bg:#F5F6FA; --kup-purple:#707BBB; --kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); --kup-white:#FFF; --kup-font:'Montserrat',sans-serif; --radius-sm:6px; --radius-md:12px; }
+    *,*::before,*::after{box-sizing:border-box}body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit;transition:all .2s}
+
+    /* AUTH HEADER (compact) */
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}.auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}.auth-logo img{height:32px}.auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}.auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent}.auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}.auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}.auth-right{display:flex;align-items:center;gap:20px}
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none}.profile-trigger:hover{background:#f0f0f0}.profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}.profile-info{text-align:left}.profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}.profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* AI Assist (optional convenience — Flow B) */
+    .ai-assist-optional{background:rgba(46,165,221,.04);border:1px solid rgba(46,165,221,.15);border-radius:var(--radius-md);padding:20px;margin-bottom:24px}
+    .ai-assist-header{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+    .ai-assist-header h6{font-size:.88rem;font-weight:700;margin:0;color:#1a1a1a;text-transform:none;letter-spacing:0;border:none;padding:0}
+    .ai-assist-header .sparkle{font-size:1.1rem}
+    .ai-assist-subtitle{font-size:.78rem;color:#888;margin:0 0 14px}
+    .ai-url-row{display:flex;gap:8px}
+    .ai-url-row input{flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.85rem}
+    .ai-url-row input:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .btn-ai-fill{padding:10px 20px;background:var(--kup-blue);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.82rem;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:background .2s}
+    .btn-ai-fill:hover{background:#258fc4}
+    .btn-ai-fill:disabled{opacity:.6;cursor:not-allowed}
+    .spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spinSm .6s linear infinite}
+    @keyframes spinSm{to{transform:rotate(360deg)}}
+    .ai-assist-divider{border:none;border-top:1px solid #eee;margin:20px 0 0}
+
+    /* AI Mode Tabs (3-mode input) */
+    .ai-mode-tabs{display:flex;gap:3px;background:#f0f1f5;border-radius:4px;padding:3px;margin-bottom:14px}
+    .ai-mode-tab{flex:1;padding:8px 6px;border:none;background:none;border-radius:3px;font-family:var(--kup-font);font-size:.72rem;font-weight:600;color:#888;cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap}
+    .ai-mode-tab:hover{color:#555;background:rgba(255,255,255,.5)}
+    .ai-mode-tab.active{background:#fff;color:var(--kup-blue);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .ai-mode-content{display:none}.ai-mode-content.active{display:block}
+    .describe-textarea-sm{resize:vertical;min-height:70px;width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.82rem;line-height:1.4;transition:border-color .2s}
+    .describe-textarea-sm:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .describe-textarea-sm::placeholder{color:#bbb}
+    .btn-ai-fill.full-width{width:100%;margin-top:10px;justify-content:center}
+    .ai-helper-text{font-size:.72rem;color:#aaa;margin-top:6px}
+
+    /* Agency badge */
+    .agency-badge{display:inline-block;padding:4px 14px;background:rgba(46,165,221,.1);color:var(--kup-blue);font-size:.72rem;font-weight:700;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
+    /* =============================================
+       BRAND PROFILE WIZARD — 3 Steps
+       Source: manage-brand-profile.component.html
+       Step 1: Brand basics (name, category, description)
+       Step 2: Brand info (website, phone, email, location, socials)
+       Step 3: Brand assets (logo, banner upload) + Submit
+       Nielsen #1: Progress indicator shows system status
+       Nielsen #3: Back/Next for user control
+       Nielsen #5: Error prevention with validation
+       ============================================= */
+    .wizard-layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 64px)}
+
+    /* LEFT: Form panel */
+    .wizard-form{background:var(--kup-white);border-right:1px solid #eee;padding:32px 28px;overflow-y:auto}
+    .wizard-form h3{font-size:1.1rem;font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+    .wizard-form h3 .back-link{font-size:.82rem;font-weight:500;color:#888;cursor:pointer}.wizard-form h3 .back-link:hover{color:var(--kup-blue)}
+
+    /* Progress */
+    .wizard-progress{display:flex;gap:8px;margin:16px 0 28px}
+    .progress-step{flex:1;height:4px;border-radius:4px;background:#eee}
+    .progress-step.active{background:var(--kup-blue)}
+    .progress-step.done{background:#16a34a}
+    .step-label{font-size:.78rem;color:#888;margin-bottom:20px;font-weight:600}
+
+    /* Form styles */
+    .form-section h6{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin:24px 0 12px;padding-top:16px;border-top:1px solid #f0f0f0}
+    .form-section h6:first-child{border-top:none;padding-top:0;margin-top:0}
+    .form-group{margin-bottom:16px}
+    .form-group label{font-size:.82rem;font-weight:600;color:#444;margin-bottom:6px;display:block}
+    .form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.88rem;transition:border-color .2s}
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--kup-blue);box-shadow:0 0 0 3px rgba(46,165,221,.1)}
+    .form-group textarea{resize:vertical;min-height:100px}
+    .form-group .helper{font-size:.75rem;color:#999;margin-top:4px}
+    .form-group .error{font-size:.75rem;color:#dc2626;margin-top:4px;display:none}
+
+    /* Social input row */
+    .social-input{display:flex;gap:0;align-items:stretch}
+    .social-input .social-icon{width:44px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;border:1px solid #ddd;border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);font-size:.85rem;font-weight:700;color:#888}
+    .social-input input{border-radius:0 var(--radius-sm) var(--radius-sm) 0;flex:1}
+
+    /* Upload box */
+    .upload-box{border:2px dashed #ddd;border-radius:var(--radius-md);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s}
+    .upload-box:hover{border-color:var(--kup-blue);background:rgba(46,165,221,.02)}
+    .upload-box svg{width:40px;height:40px;stroke:#bbb;margin-bottom:12px}
+    .upload-box p{font-size:.82rem;color:#888;margin:0}
+    .upload-box .btn-upload{display:inline-block;margin-top:12px;padding:8px 20px;background:var(--kup-blue);color:#fff;border-radius:var(--radius-sm);font-weight:600;font-size:.82rem;border:none;cursor:pointer}
+    .upload-box .size-hint{font-size:.72rem;color:#bbb;margin-top:8px}
+
+    /* Wizard buttons */
+    .wizard-actions{display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #eee}
+    .btn-wizard{padding:12px 24px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;border:none;transition:all .2s}
+    .btn-wizard.primary{background:var(--kup-blue);color:#fff}.btn-wizard.primary:hover{background:#258fc4}
+    .btn-wizard.secondary{background:#f0f0f0;color:#666}.btn-wizard.secondary:hover{background:#e4e4e4}
+    .btn-wizard.success{background:#16a34a;color:#fff}.btn-wizard.success:hover{background:#15803d}
+
+    /* RIGHT: App Display preview */
+    .wizard-preview{padding:32px 40px;overflow-y:auto}
+    .wizard-preview h3{font-size:1.1rem;font-weight:700;margin:0 0 20px}.wizard-preview h3 span{font-weight:400;color:#888}
+    .app-display{background:#fff;border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden;max-width:800px}
+    .app-banner{height:200px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:.85rem}
+    .app-profile{padding:24px 28px}
+    .app-profile-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+    .app-profile-left{display:flex;gap:16px}
+    .app-profile-logo{width:72px;height:72px;border-radius:var(--radius-md);background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.2rem;margin-top:-40px;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    .app-profile-name h4{font-size:1.2rem;font-weight:700;margin:0 0 4px}.app-profile-name p{font-size:.82rem;color:#888;margin:0}
+    .app-stats{display:flex;gap:24px;margin-bottom:16px}.app-stats .stat{font-size:.85rem}.app-stats .stat strong{color:var(--kup-blue);font-weight:700}
+    .app-description{font-size:.85rem;color:#555;line-height:1.6;max-width:600px;word-wrap:break-word;overflow-wrap:break-word}
+
+    .auth-footer{text-align:center;padding:24px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}.auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    @media(max-width:1024px){.wizard-layout{grid-template-columns:360px 1fr}}
+    @media(max-width:768px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{display:none}.auth-header-inner{padding:0 16px}.auth-nav li a{padding:0 14px;font-size:.82rem}.profile-info{display:none}}
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <!-- AUTH HEADER -->
+  <header class="auth-header"><div class="auth-header-inner">
+    <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+    <ul class="auth-nav" role="tablist"><li><a href="activity.html" class="active">Activity</a></li><li><a href="campaigns.html" role="tab">Campaigns</a></li><li><a href="content.html">Content</a></li><li><a href="influencers.html">Influencers</a></li><li><a href="cash-rewards.html">Cash &amp; Rewards</a></li></ul>
+    <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+  </div></header>
+
+  <!-- WIZARD LAYOUT -->
+  <div class="wizard-layout">
+    <!-- LEFT: Form -->
+    <div class="wizard-form">
+      <h3>Manage Brand <span class="back-link" onclick="window.location='brand-home.html'">&lt; Back to Home</span></h3>
+
+      <!-- Progress indicator -->
+      <div class="wizard-progress">
+        <div class="progress-step active" id="prog1"></div>
+        <div class="progress-step" id="prog2"></div>
+        <div class="progress-step" id="prog3"></div>
+      </div>
+
+      <!-- Step 1: Brand Basics -->
+      <div id="step1" class="form-section">
+        <p class="step-label">Brand Profile | Page 1 of 3</p>
+
+        <!-- AI Assist (optional convenience — 3 modes) -->
+        <div class="ai-assist-optional">
+          <div class="ai-assist-header">
+            <span class="sparkle">✨</span>
+            <h6>Quick fill with AI</h6>
+          </div>
+          <p class="ai-assist-subtitle">Auto-fill your brand details from a website, social page, or description.</p>
+
+          <div class="ai-mode-tabs">
+            <button class="ai-mode-tab active" data-mode="bp-website">🌐 Website</button>
+            <button class="ai-mode-tab" data-mode="bp-social">📱 Social</button>
+            <button class="ai-mode-tab" data-mode="bp-describe">✍️ Describe</button>
+          </div>
+
+          <!-- Mode: Website -->
+          <div class="ai-mode-content active" id="bp-website">
+            <div class="ai-url-row">
+              <input type="url" id="aiUrl" placeholder="https://yourbrand.com">
+              <button class="btn-ai-fill" id="btnAiFill">Auto-Fill</button>
+            </div>
+          </div>
+
+          <!-- Mode: Social Page -->
+          <div class="ai-mode-content" id="bp-social">
+            <div class="ai-url-row">
+              <input type="url" id="aiSocialUrl" placeholder="Instagram, Facebook, or TikTok URL">
+              <button class="btn-ai-fill" id="btnSocialFill">Auto-Fill</button>
+            </div>
+            <p class="ai-helper-text">Works with IG, FB, TikTok, LinkedIn, and X profiles</p>
+          </div>
+
+          <!-- Mode: Describe It -->
+          <div class="ai-mode-content" id="bp-describe">
+            <textarea class="describe-textarea-sm" id="aiPrompt" placeholder="Describe your brand in a few sentences…" maxlength="500"></textarea>
+            <button class="btn-ai-fill full-width" id="btnDescribeFill">Build Profile</button>
+          </div>
+
+          <hr class="ai-assist-divider">
+        </div>
+
+        <div class="form-group">
+          <label>Brand Name *</label>
+          <input type="text" id="brandName" placeholder="Brand name (required)" value="KeepUsPostd">
+          <p class="helper">Use the name of your brand, business or organization.</p>
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="category">
+            <option value="">Select a category</option>
+            <option value="tech" selected>Technology & SaaS</option>
+            <option value="fashion">Fashion & Apparel</option>
+            <option value="food">Food & Beverage</option>
+            <option value="fitness">Health & Fitness</option>
+            <option value="beauty">Beauty & Cosmetics</option>
+            <option value="travel">Travel & Hospitality</option>
+            <option value="entertainment">Entertainment</option>
+          </select>
+          <p class="helper">Enter a category that best describes your brand.</p>
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea id="description" placeholder="Brand Description (required)" maxlength="150">KeepUsPostd connects brands with authentic influencers to create genuine content partnerships.</textarea>
+          <p class="helper">Tell influencers a little about your brand. (150 char max)</p>
+        </div>
+        <div class="wizard-actions">
+          <button class="btn-wizard primary" onclick="showStep(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Brand Info -->
+      <div id="step2" class="form-section" style="display:none">
+        <p class="step-label">Brand Profile | Brand Info | Page 2 of 3</p>
+
+        <h6>Brand Information</h6>
+        <div class="form-group"><label>Website</label><input type="url" placeholder="https://keepuspostd.com" value="https://keepuspostd.com"></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="Phone Number" maxlength="10"></div>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="Email" value="hello@keepuspostd.com"></div>
+
+        <h6>Location</h6>
+        <div class="form-group"><label>Address</label><input type="text" placeholder="Address" value="123 Innovation Blvd"></div>
+        <div class="form-group"><label>City</label><input type="text" placeholder="City" value="Austin"></div>
+        <div class="form-group"><label>State</label><input type="text" placeholder="State" value="TX"></div>
+        <div class="form-group"><label>Zip</label><input type="text" placeholder="Zip" maxlength="6" value="78701"></div>
+
+        <h6>Social Channels</h6>
+        <div class="form-group"><div class="social-input"><span class="social-icon">f</span><input type="text" placeholder="Facebook URL"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">ig</span><input type="text" placeholder="Instagram handle" value="@keepuspostd"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">X</span><input type="text" placeholder="X handle" value="@Keepuspostd"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">tt</span><input type="text" placeholder="TikTok handle" value="@keepuspostd"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">in</span><input type="text" placeholder="LinkedIn URL"></div></div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" onclick="showStep(1)">← Back</button>
+          <button class="btn-wizard primary" onclick="showStep(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Brand Assets -->
+      <div id="step3" class="form-section" style="display:none">
+        <p class="step-label">Brand Profile | Brand Assets | Page 3 of 3</p>
+
+        <h6>Brand Logo</h6>
+        <div class="upload-box" id="logoUploadBox" onclick="document.getElementById('logoFileInput').click()">
+          <img id="logoPreviewImg" style="display:none;max-width:128px;max-height:128px;border-radius:8px;object-fit:contain" alt="Logo preview">
+          <svg id="logoUploadIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p id="logoUploadText">Upload brand logo</p>
+          <button class="btn-upload" type="button">Choose File</button>
+          <p class="size-hint">Recommended: 256 &times; 256 px (PNG or JPG) &bull; Max 2 MB</p>
+          <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+        </div>
+
+        <h6>Brand Banner</h6>
+        <div class="upload-box" id="bannerUploadBox" style="margin-top:16px" onclick="document.getElementById('bannerFileInput').click()">
+          <img id="bannerPreviewImg" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Banner preview">
+          <svg id="bannerUploadIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p id="bannerUploadText">Upload brand banner</p>
+          <button class="btn-upload" type="button">Choose File</button>
+          <p class="size-hint">Recommended: 1200 &times; 400 px (PNG, JPG, or WebP) &bull; Max 5 MB</p>
+          <input type="file" id="bannerFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn-wizard secondary" onclick="showStep(2)">← Back</button>
+          <button class="btn-wizard success" id="updateBrandBtn" onclick="saveBrandProfile()">Update Brand</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Live Preview -->
+    <div class="wizard-preview">
+      <h3>Marketplace App Display <span>| Brand Profile</span></h3>
+      <div class="app-display">
+        <div class="app-banner" id="previewBanner">Brand Banner Image</div>
+        <div class="app-profile">
+          <div class="app-profile-top">
+            <div class="app-profile-left">
+              <div class="app-profile-logo" id="previewLogo">KP</div>
+              <div class="app-profile-name">
+                <h4 id="previewName">KeepUsPostd</h4>
+                <p id="previewAddress">123 Innovation Blvd, Austin, TX 78701</p>
+              </div>
+            </div>
+          </div>
+          <div class="app-stats"><div class="stat"><strong>247</strong> influencers</div><div class="stat"><strong>89</strong> videos</div><div class="stat"><strong>531</strong> images</div></div>
+          <p class="app-description" id="previewDesc">KeepUsPostd connects brands with authentic influencers to create genuine content partnerships.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============== TOAST NOTIFICATIONS ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = notifPopover.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) notifPopover.classList.add('show');
+      });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot');
+        if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; }
+          else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = profileDropdown.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) profileDropdown.classList.add('show');
+      });
+    }
+
+    function closeAllPopovers() {
+      if (notifPopover) notifPopover.classList.remove('show');
+      if (profileDropdown) profileDropdown.classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+
+    /* ============== WIZARD STEP NAVIGATION ============== */
+    function showStep(step) {
+      document.querySelectorAll('.form-section').forEach(s => s.style.display = 'none');
+      document.getElementById('step' + step).style.display = 'block';
+      document.querySelectorAll('.progress-step').forEach((p, i) => {
+        p.className = 'progress-step';
+        if (i < step - 1) p.classList.add('done');
+        if (i === step - 1) p.classList.add('active');
+      });
+    }
+    // Live preview updates
+    document.getElementById('brandName')?.addEventListener('input', e => { document.getElementById('previewName').textContent = e.target.value || 'Brand Name'; });
+    document.getElementById('description')?.addEventListener('input', e => { document.getElementById('previewDesc').textContent = e.target.value || 'Brand description...'; });
+
+    /* ============== AI MODE TAB SWITCHING ============== */
+    document.querySelectorAll('.ai-mode-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.ai-mode-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.ai-mode-content').forEach(function(c) { c.classList.remove('active'); });
+        tab.classList.add('active');
+        var mode = tab.getAttribute('data-mode');
+        document.getElementById(mode).classList.add('active');
+      });
+    });
+
+    /* ============== Shared: populate fields + preview ============== */
+    function applyAIData(data, toastMsg) {
+      var nameEl = document.getElementById('brandName');
+      var catEl = document.getElementById('category');
+      var descEl = document.getElementById('description');
+      if (nameEl) nameEl.value = data.name || '';
+      if (catEl) catEl.value = data.category || 'tech';
+      if (descEl) descEl.value = data.description || '';
+
+      // Populate Step 2 fields
+      var step2Inputs = document.querySelectorAll('#step2 input');
+      step2Inputs.forEach(function(inp) {
+        var ph = (inp.placeholder || '').toLowerCase();
+        if (inp.type === 'url' || ph.includes('http')) inp.value = data.website || '';
+        else if (inp.type === 'email' || ph.includes('email')) inp.value = data.email || '';
+        else if (ph.includes('city')) inp.value = data.city || '';
+        else if (ph.includes('state')) inp.value = data.state || '';
+        else if (ph.includes('zip')) inp.value = data.zip || '';
+      });
+
+      // Populate social fields if present
+      var socials = document.querySelectorAll('#step2 .social-input input');
+      socials.forEach(function(inp) {
+        var ph = (inp.placeholder || '').toLowerCase();
+        if (ph.includes('instagram') && data.instagram) inp.value = data.instagram;
+        else if (ph.includes('x handle') && data.twitter) inp.value = data.twitter;
+        else if (ph.includes('tiktok') && data.tiktok) inp.value = data.tiktok;
+        else if (ph.includes('facebook') && data.facebook) inp.value = data.facebook;
+        else if (ph.includes('linkedin') && data.linkedin) inp.value = data.linkedin;
+      });
+
+      // Update live preview
+      var pn = document.getElementById('previewName');
+      var pd = document.getElementById('previewDesc');
+      var pa = document.getElementById('previewAddress');
+      if (pn) pn.textContent = data.name || '';
+      if (pd) pd.textContent = data.description || '';
+      var addrParts = [data.city, data.state, data.zip].filter(Boolean);
+      if (pa && addrParts.length) pa.textContent = addrParts.join(', ');
+
+      kupToast(toastMsg || 'Brand details auto-filled!', 'success');
+    }
+
+    function spinBtn(btn, spinning, label) {
+      btn.disabled = spinning;
+      if (spinning) { btn.innerHTML = '<span class="spinner-sm"></span> ' + (label || 'Scanning…'); }
+      else { btn.innerHTML = btn.getAttribute('data-label') || 'Auto-Fill'; }
+    }
+
+    // Store original labels
+    document.querySelectorAll('.btn-ai-fill').forEach(function(b) { b.setAttribute('data-label', b.textContent.trim()); });
+
+    /* ============== Mode 1: Website URL ============== */
+    document.getElementById('btnAiFill').addEventListener('click', function() {
+      var url = document.getElementById('aiUrl').value.trim();
+      if (!url) { kupToast('Please enter a website URL', 'warning'); return; }
+      var btn = this;
+      spinBtn(btn, true, 'Scanning…');
+
+      setTimeout(function() {
+        var domain = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split('.')[0];
+        var cap = domain.charAt(0).toUpperCase() + domain.slice(1);
+        applyAIData({
+          name: cap, category: 'tech',
+          description: cap + ' is a cutting-edge platform delivering innovative solutions for modern businesses and consumers.',
+          website: url.startsWith('http') ? url : 'https://' + url,
+          email: 'hello@' + domain + '.com',
+          city: 'Los Angeles', state: 'CA', zip: '90001',
+          instagram: '@' + domain, twitter: '@' + domain, tiktok: '@' + domain
+        }, 'Brand details pulled from website!');
+        spinBtn(btn, false);
+      }, 1500);
+    });
+
+    /* ============== Mode 2: Social Page ============== */
+    document.getElementById('btnSocialFill').addEventListener('click', function() {
+      var url = document.getElementById('aiSocialUrl').value.trim();
+      if (!url) { kupToast('Please enter a social media URL', 'warning'); return; }
+      var btn = this;
+      spinBtn(btn, true, 'Scanning…');
+
+      setTimeout(function() {
+        var platform = 'social', handle = '';
+        var lUrl = url.toLowerCase();
+        if (lUrl.includes('instagram')) { platform = 'Instagram'; handle = url.split('/').filter(Boolean).pop(); }
+        else if (lUrl.includes('facebook') || lUrl.includes('fb.com')) { platform = 'Facebook'; handle = url.split('/').filter(Boolean).pop(); }
+        else if (lUrl.includes('tiktok')) { platform = 'TikTok'; handle = url.split('/').filter(Boolean).pop().replace('@',''); }
+        else if (lUrl.includes('linkedin')) { platform = 'LinkedIn'; handle = url.split('/').filter(Boolean).pop(); }
+        else if (lUrl.includes('twitter') || lUrl.includes('x.com')) { platform = 'X'; handle = url.split('/').filter(Boolean).pop().replace('@',''); }
+        else { handle = url.split('/').filter(Boolean).pop() || 'brand'; }
+        handle = handle.replace(/[^a-zA-Z0-9_]/g, '');
+        var cap = handle.charAt(0).toUpperCase() + handle.slice(1);
+
+        var result = {
+          name: cap, category: 'tech',
+          description: cap + ' connects with their audience through ' + platform + ', creating authentic content and meaningful brand partnerships.',
+          city: 'United States', state: '', zip: ''
+        };
+        if (platform === 'Instagram') result.instagram = '@' + handle;
+        else if (platform === 'TikTok') result.tiktok = '@' + handle;
+        else if (platform === 'X') result.twitter = '@' + handle;
+        else if (platform === 'Facebook') result.facebook = url;
+        else if (platform === 'LinkedIn') result.linkedin = url;
+
+        applyAIData(result, 'Brand pulled from ' + platform + ' profile!');
+        spinBtn(btn, false);
+      }, 1800);
+    });
+
+    /* ============== Mode 3: Describe It ============== */
+    document.getElementById('btnDescribeFill').addEventListener('click', function() {
+      var prompt = document.getElementById('aiPrompt').value.trim();
+      if (!prompt) { kupToast('Please describe your brand', 'warning'); return; }
+      var btn = this;
+      spinBtn(btn, true, 'Building…');
+
+      setTimeout(function() {
+        // Extract name from prompt
+        var nameMatch = prompt.match(/(?:called|named|is)\s+["']?([A-Z][a-zA-Z\s&]+)/);
+        var words = prompt.split(/\s+/).filter(function(w) { return w.length > 3; });
+        var brandName = nameMatch ? nameMatch[1].trim() : words.slice(0, 2).join(' ');
+        brandName = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+        if (brandName.length > 25) brandName = brandName.substring(0, 25);
+
+        // Detect industry
+        var category = 'tech';
+        var pLower = prompt.toLowerCase();
+        if (/bake|food|restaurant|cafe|kitchen|vegan|organic/.test(pLower)) category = 'food';
+        else if (/fashion|cloth|style|apparel|boutique/.test(pLower)) category = 'fashion';
+        else if (/beauty|skin|cosmetic|makeup|salon/.test(pLower)) category = 'beauty';
+        else if (/fitness|gym|health|wellness|yoga/.test(pLower)) category = 'fitness';
+        else if (/travel|hotel|tourism|adventure/.test(pLower)) category = 'travel';
+        else if (/film|movie|music|entertain|media/.test(pLower)) category = 'entertainment';
+
+        // Detect location
+        var city = 'United States';
+        var locMatch = prompt.match(/in\s+([A-Z][a-zA-Z\s,]+)/);
+        if (locMatch && locMatch[1].trim().length <= 30) city = locMatch[1].trim();
+
+        applyAIData({
+          name: brandName, category: category,
+          description: prompt.length <= 150 ? prompt : prompt.substring(0, 147) + '...',
+          city: city, state: '', zip: ''
+        }, 'Brand profile built from your description!');
+        spinBtn(btn, false);
+      }, 2000);
+    });
+
+    /* ============== AGENCY VARIANT ============== */
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('type') === 'agency') {
+        // Update heading
+        var heading = document.querySelector('.wizard-form h3');
+        if (heading) {
+          heading.innerHTML = '<span class="agency-badge">AGENCY ACCOUNT</span><br>Add Brand Client <span class="back-link" onclick="window.location=\'brand-home.html\'">&lt; Back to Dashboard</span>';
+        }
+      }
+    })();
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    /* ============== IMAGE UPLOAD WIRING ============== */
+    // Tracks uploaded URLs so we can save them with the brand profile
+    var uploadedLogoUrl = null;
+    var uploadedBannerUrl = null;
+
+    // Generate brand initials from name
+    function getBrandInitials(name) {
+      if (!name) return 'KP';
+      var words = name.trim().split(/\s+/);
+      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+      return words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+    }
+
+    // Load existing brand data into the form and preview
+    (function loadExistingBrandData() {
+      var brand = typeof getActiveBrand === 'function' ? getActiveBrand() : null;
+      if (!brand) return;
+
+      // Set initials immediately from localStorage
+      var initials = brand.abbreviation || getBrandInitials(brand.name);
+      var previewLogo = document.getElementById('previewLogo');
+      if (previewLogo) {
+        previewLogo.textContent = initials;
+        if (brand.color || brand.generatedColor) {
+          previewLogo.style.background = brand.color || brand.generatedColor;
+        }
+      }
+      // Set preview name
+      var previewName = document.getElementById('previewName');
+      if (previewName && brand.name) previewName.textContent = brand.name;
+
+      // Load from API for logoUrl/heroImageUrl (async)
+      var brandId = brand.mongoId || brand.id;
+      if (brandId && typeof kupApi !== 'undefined') {
+        kupApi.get('/api/brands/' + brandId).then(function(data) {
+          if (!data || !data.brand) return;
+          var b = data.brand;
+          // Fill form fields
+          var nameEl = document.getElementById('brandName');
+          if (nameEl && b.name) nameEl.value = b.name;
+          var catEl = document.getElementById('category');
+          if (catEl && b.category) catEl.value = b.category;
+          var descEl = document.getElementById('description');
+          if (descEl && b.description) descEl.value = b.description;
+          // Update preview name
+          if (previewName && b.name) previewName.textContent = b.name;
+          // Update preview description
+          var previewDesc = document.getElementById('previewDesc');
+          if (previewDesc && b.description) previewDesc.textContent = b.description;
+
+          // If brand has a logo, show it in preview
+          if (b.logoUrl) {
+            if (previewLogo) {
+              previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+            }
+            // Also show in the upload preview
+            var logoPreviewImg = document.getElementById('logoPreviewImg');
+            if (logoPreviewImg) {
+              logoPreviewImg.src = b.logoUrl;
+              logoPreviewImg.style.display = 'block';
+              var logoIcon = document.getElementById('logoUploadIcon');
+              if (logoIcon) logoIcon.style.display = 'none';
+              var logoText = document.getElementById('logoUploadText');
+              if (logoText) logoText.textContent = 'Logo uploaded';
+            }
+          } else {
+            // No logo — show initials with brand color
+            var bi = getBrandInitials(b.name);
+            if (previewLogo) {
+              previewLogo.textContent = bi;
+            }
+          }
+
+          // If brand has a banner, show it
+          if (b.heroImageUrl) {
+            var previewBanner = document.getElementById('previewBanner');
+            if (previewBanner) {
+              previewBanner.style.backgroundImage = 'url(' + b.heroImageUrl + ')';
+              previewBanner.style.backgroundSize = 'cover';
+              previewBanner.style.backgroundPosition = 'center';
+              previewBanner.textContent = '';
+            }
+            var bannerPreviewImg = document.getElementById('bannerPreviewImg');
+            if (bannerPreviewImg) {
+              bannerPreviewImg.src = b.heroImageUrl;
+              bannerPreviewImg.style.display = 'block';
+              var bannerIcon = document.getElementById('bannerUploadIcon');
+              if (bannerIcon) bannerIcon.style.display = 'none';
+              var bannerText = document.getElementById('bannerUploadText');
+              if (bannerText) bannerText.textContent = 'Banner uploaded';
+            }
+          }
+        }).catch(function(err) {
+          console.warn('Could not load brand data:', err);
+        });
+      }
+    })();
+
+    // Generic image upload handler — uploads file, shows preview, returns URL
+    async function handleImageUpload(file, previewImg, uploadIcon, uploadText, maxMB) {
+      if (!file) return null;
+      if (file.size > (maxMB || 5) * 1024 * 1024) {
+        kupToast('File too large. Max ' + (maxMB || 5) + ' MB', 'error');
+        return null;
+      }
+      if (!file.type.startsWith('image/')) {
+        kupToast('Please select an image file', 'error');
+        return null;
+      }
+
+      // Show local preview immediately
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+        if (uploadIcon) uploadIcon.style.display = 'none';
+        if (uploadText) uploadText.textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to server
+      try {
+        var result = await kupApi.upload('/api/upload', [file], 'media');
+        if (result && result.urls && result.urls.length > 0) {
+          kupToast('Image uploaded', 'success');
+          return result.urls[0];
+        } else {
+          kupToast('Upload failed', 'error');
+          return null;
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        kupToast('Upload failed: ' + (err.message || 'Unknown error'), 'error');
+        return null;
+      }
+    }
+
+    // Logo file input
+    document.getElementById('logoFileInput').addEventListener('change', async function(e) {
+      e.stopPropagation();
+      var file = this.files[0];
+      if (!file) return;
+      var url = await handleImageUpload(
+        file,
+        document.getElementById('logoPreviewImg'),
+        document.getElementById('logoUploadIcon'),
+        document.getElementById('logoUploadText'),
+        2 // 2MB max for logos
+      );
+      if (url) {
+        uploadedLogoUrl = url;
+        // Update live preview
+        var previewLogo = document.getElementById('previewLogo');
+        if (previewLogo) {
+          previewLogo.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+        }
+      }
+    });
+
+    // Banner file input
+    document.getElementById('bannerFileInput').addEventListener('change', async function(e) {
+      e.stopPropagation();
+      var file = this.files[0];
+      if (!file) return;
+      var url = await handleImageUpload(
+        file,
+        document.getElementById('bannerPreviewImg'),
+        document.getElementById('bannerUploadIcon'),
+        document.getElementById('bannerUploadText'),
+        5 // 5MB max for banners
+      );
+      if (url) {
+        uploadedBannerUrl = url;
+        // Update live preview
+        var previewBanner = document.getElementById('previewBanner');
+        if (previewBanner) {
+          previewBanner.style.backgroundImage = 'url(' + url + ')';
+          previewBanner.style.backgroundSize = 'cover';
+          previewBanner.style.backgroundPosition = 'center';
+          previewBanner.textContent = '';
+        }
+      }
+    });
+
+    // Prevent upload box click from double-firing
+    document.querySelectorAll('.upload-box .btn-upload').forEach(function(btn) {
+      btn.addEventListener('click', function(e) { e.stopPropagation(); });
+    });
+
+    // Save brand profile — collects all form data + uploaded images and saves via API
+    async function saveBrandProfile() {
+      var brand = getActiveBrand ? getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || brand.id) : null;
+
+      // Collect form data
+      var updates = {};
+      var nameEl = document.getElementById('brandName');
+      var catEl = document.getElementById('category');
+      var descEl = document.getElementById('description');
+      if (nameEl && nameEl.value.trim()) updates.name = nameEl.value.trim();
+      if (catEl && catEl.value) updates.category = catEl.value;
+      if (descEl && descEl.value.trim()) updates.description = descEl.value.trim();
+
+      // Add uploaded image URLs
+      if (uploadedLogoUrl) updates.logoUrl = uploadedLogoUrl;
+      if (uploadedBannerUrl) updates.heroImageUrl = uploadedBannerUrl;
+
+      if (Object.keys(updates).length === 0) {
+        kupToast('No changes to save', 'info');
+        return;
+      }
+
+      if (!brandId) {
+        kupToast('No brand selected — select a brand first', 'warning');
+        return;
+      }
+
+      try {
+        var result = await kupApi.put('/api/brands/' + brandId, updates);
+        if (result && !result.error) {
+          kupToast('Brand profile updated!', 'success');
+        } else {
+          kupToast('Failed to save: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (err) {
+        console.error('Save brand error:', err);
+        kupToast('Could not save brand profile', 'error');
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

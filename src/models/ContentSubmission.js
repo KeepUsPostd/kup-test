@@ -36,12 +36,35 @@ const contentSubmissionSchema = new mongoose.Schema({
   mediaUrls: [{ type: String }],              // Current/active version (starts as original, updated on edit)
   originalMediaUrls: [{ type: String }],       // Influencer's original submission (never changes after first edit)
   editedMediaUrls: [{ type: String }],         // Brand-edited versions (trimmed, cropped, etc.)
+
+  // Brand-applied overlays (saved from content manager editing tools)
+  textOverlays: [{
+    text: { type: String },
+    position: { type: String, enum: ['top', 'center', 'bottom'], default: 'center' },
+  }],
+  logoOverlay: {
+    type: {
+      position: { type: String, default: 'bottom-right' },
+      opacity: { type: Number, default: 0.7 },
+      size: { type: Number, default: 12 },
+    },
+    default: null,
+  },
+
   platform: {
     type: String,
     enum: ['instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'kiosk'],
     default: null,
   },
   platformPostUrl: { type: String, default: null },
+
+  // Content Signature — invisible tracking metadata embedded in downloaded files
+  // Generated on first download, persists for life of the content
+  contentSignature: {
+    kupId: { type: String, default: null },         // e.g. "KP-2026-A3F7X"
+    generatedAt: { type: Date, default: null },
+    downloadCount: { type: Number, default: 0 },
+  },
 
   // Status lifecycle
   status: {
