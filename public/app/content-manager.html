@@ -1173,8 +1173,8 @@
   <!-- Firebase + API helpers (needed for auth + API calls) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
+  <script src="/js/firebase-client.js?v=1774619962"></script>
+  <script src="/js/api.js?v=1774619962"></script>
 
   <div class="kup-toast-container" id="toastContainer"></div>
   <script>
@@ -3087,7 +3087,7 @@
         overlay.style.opacity = logoState.opacity / 100;
         if (brandLogoUrl) {
           // Real brand logo — show as image
-          overlay.innerHTML = '<div class="logo-mark" style="padding:4px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 2) + 'rem;max-width:6rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
+          overlay.innerHTML = '<div class="logo-mark" style="padding:6px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 4) + 'rem;max-width:10rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
         } else {
           // Fallback — show brand initials as logo placeholder
           overlay.innerHTML = '<div class="logo-mark" style="font-size:' + (logoState.size / 60 * 0.7) + 'rem">' + brandInitials + '</div>';
@@ -3117,7 +3117,7 @@
           var img = mark.querySelector('img');
           if (img) {
             // Real logo image — scale by size slider
-            img.style.height = (logoState.size / 60 * 2) + 'rem';
+            img.style.height = (logoState.size / 60 * 4) + 'rem';
           } else {
             // Text fallback — scale font size
             mark.style.fontSize = (logoState.size / 60 * 0.7) + 'rem';
@@ -4009,9 +4009,9 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
+    <script src="/js/resume-banner.js?v=1774619962"></script>
+    <script src="/js/onboarding.js?v=1774619962"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

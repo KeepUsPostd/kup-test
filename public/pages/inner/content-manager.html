@@ -3087,7 +3087,7 @@
         overlay.style.opacity = logoState.opacity / 100;
         if (brandLogoUrl) {
           // Real brand logo — show as image
-          overlay.innerHTML = '<div class="logo-mark" style="padding:4px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 2) + 'rem;max-width:6rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
+          overlay.innerHTML = '<div class="logo-mark" style="padding:6px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 4) + 'rem;max-width:10rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
         } else {
           // Fallback — show brand initials as logo placeholder
           overlay.innerHTML = '<div class="logo-mark" style="font-size:' + (logoState.size / 60 * 0.7) + 'rem">' + brandInitials + '</div>';
@@ -3117,7 +3117,7 @@
           var img = mark.querySelector('img');
           if (img) {
             // Real logo image — scale by size slider
-            img.style.height = (logoState.size / 60 * 2) + 'rem';
+            img.style.height = (logoState.size / 60 * 4) + 'rem';
           } else {
             // Text fallback — scale font size
             mark.style.fontSize = (logoState.size / 60 * 0.7) + 'rem';
