@@ -218,9 +218,9 @@
 
       <!-- Progress indicator -->
       <div class="wizard-progress">
-        <div class="progress-step active" id="prog1"></div>
-        <div class="progress-step" id="prog2"></div>
-        <div class="progress-step" id="prog3"></div>
+        <div class="progress-step active" id="prog1" onclick="showStep(1)" style="cursor:pointer" title="Brand Basics"></div>
+        <div class="progress-step" id="prog2" onclick="showStep(2)" style="cursor:pointer" title="Contact & Location"></div>
+        <div class="progress-step" id="prog3" onclick="showStep(3)" style="cursor:pointer" title="Brand Assets (Logo & Banner)"></div>
       </div>
 
       <!-- Step 1: Brand Basics -->
@@ -459,6 +459,11 @@
         if (i === step - 1) p.classList.add('active');
       });
     }
+    // Auto-jump to Page 3 (Brand Assets) if URL has #assets hash
+    if (window.location.hash === '#assets') {
+      showStep(3);
+    }
+
     // Live preview updates
     document.getElementById('brandName')?.addEventListener('input', e => { document.getElementById('previewName').textContent = e.target.value || 'Brand Name'; });
     document.getElementById('description')?.addEventListener('input', e => { document.getElementById('previewDesc').textContent = e.target.value || 'Brand description...'; });
