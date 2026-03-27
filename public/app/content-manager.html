@@ -103,10 +103,10 @@
     .text-apply-btn:hover{background:#258fc4}
 
     /* Text overlays on the content frame */
-    .text-overlay-item{position:absolute;left:0;right:0;padding:10px 16px;background:rgba(0,0,0,0.6);color:#fff;font-family:var(--kup-font);font-size:1rem;font-weight:700;text-align:center;cursor:move;display:flex;align-items:center;justify-content:center;gap:8px}
-    .text-overlay-item.pos-top{top:16px}
+    .text-overlay-item{position:absolute;left:0;right:0;padding:10px 16px;background:rgba(0,0,0,0.6);color:#fff;font-family:var(--kup-font);font-size:1rem;font-weight:700;text-align:center;cursor:move;display:flex;align-items:center;justify-content:center;gap:8px;z-index:5}
+    .text-overlay-item.pos-top{top:56px}
     .text-overlay-item.pos-center{top:50%;transform:translateY(-50%)}
-    .text-overlay-item.pos-bottom{bottom:16px}
+    .text-overlay-item.pos-bottom{bottom:56px}
     .text-overlay-remove{background:rgba(255,255,255,0.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .text-overlay-remove:hover{background:rgba(239,68,68,0.6)}
 
@@ -132,9 +132,9 @@
     .zoom-indicator.show{opacity:1}
 
     /* Logo Overlay on Content Frame */
-    .logo-overlay-item { position: absolute; z-index: 10; pointer-events: auto; cursor: move; }
-    .logo-overlay-item.pos-top-left { top: 12px; left: 12px; }
-    .logo-overlay-item.pos-top-right { top: 12px; right: 12px; }
+    .logo-overlay-item { position: absolute; z-index: 5; pointer-events: auto; cursor: move; }
+    .logo-overlay-item.pos-top-left { top: 56px; left: 12px; }
+    .logo-overlay-item.pos-top-right { top: 56px; right: 12px; }
     .logo-overlay-item.pos-bottom-left { bottom: 12px; left: 12px; }
     .logo-overlay-item.pos-bottom-right { bottom: 12px; right: 12px; }
     .logo-overlay-item .logo-mark { background: rgba(255,255,255,0.9); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--kup-font); color: #1a1a2e; padding: 4px 8px; }
