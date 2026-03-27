@@ -1604,7 +1604,7 @@
         logoDiv.className = 'logo-overlay-item pos-' + lo.position;
         logoDiv.style.opacity = lo.opacity;
         if (brandLogoUrl) {
-          logoDiv.innerHTML = '<div class="logo-mark" style="padding:4px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (lo.size / 60 * 2) + 'rem;max-width:6rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
+          logoDiv.innerHTML = '<div class="logo-mark" style="padding:6px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (lo.size / 60 * 4) + 'rem;max-width:10rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
         } else {
           logoDiv.innerHTML = '<div class="logo-mark" style="font-size:' + lo.size + 'px;">' + brandInitials + '</div>';
         }
@@ -2891,6 +2891,46 @@
         if (item) {
           if (!item.originalMediaUrls) item.originalMediaUrls = [].concat(item.mediaUrls);
           item.mediaUrls = [result.url];
+
+          // Capture overlay metadata before DOM elements are removed
+          var logoEl = frame.querySelector('.logo-overlay-item');
+          if (logoEl) {
+            var logoPos = 'bottom-right';
+            if (logoEl.classList.contains('pos-top-left')) logoPos = 'top-left';
+            else if (logoEl.classList.contains('pos-top-right')) logoPos = 'top-right';
+            else if (logoEl.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
+            var computedOpacity = parseFloat(window.getComputedStyle(logoEl).opacity) || 0.7;
+            var logoMark = logoEl.querySelector('.logo-mark');
+            var logoImg = logoMark ? logoMark.querySelector('img') : null;
+            var fontSize = logoMark ? parseFloat(window.getComputedStyle(logoMark).fontSize) : 12;
+            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: fontSize };
+          } else {
+            item.savedLogoOverlay = null;
+          }
+
+          var textEls = frame.querySelectorAll('.text-overlay-item');
+          var savedTexts = [];
+          textEls.forEach(function(te) {
+            var tPos = 'bottom-center';
+            if (te.classList.contains('pos-top-center')) tPos = 'top-center';
+            else if (te.classList.contains('pos-center')) tPos = 'center';
+            var span = te.querySelector('span');
+            if (span) savedTexts.push({ text: span.textContent, position: tPos });
+          });
+          item.savedTextOverlays = savedTexts.length > 0 ? savedTexts : [];
+
+          // Save overlay metadata to database (same as video path)
+          var isRealData = item.mongoId || (item.id && item.id.length > 10);
+          if (isRealData && (item.mongoId || item.id)) {
+            kupApi.put('/api/content/' + (item.mongoId || item.id) + '/overlays', {
+              textOverlays: item.savedTextOverlays || [],
+              logoOverlay: item.savedLogoOverlay || null,
+            }).then(function() {
+              console.log('Image overlays saved to database');
+            }).catch(function(err) {
+              console.warn('Could not save image overlays to DB:', err);
+            });
+          }
         }
 
         // Show edited badge
