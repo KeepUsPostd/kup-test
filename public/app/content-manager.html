@@ -39,7 +39,7 @@
 
     /* Left: Content Preview */
     .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:16px 60px;position:relative;overflow:hidden;height:100%}
-    .cm-preview .content-frame{width:auto;height:calc(100% - 50px);aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0}
+    .cm-preview .content-frame{width:auto;height:calc(100% - 70px);aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0;overflow:hidden}
     .cm-preview .content-frame .play-btn{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
     .cm-preview .content-frame .play-btn:hover{background:rgba(255,255,255,.25);transform:scale(1.05)}
     .cm-preview .content-frame .play-btn svg{width:32px;height:32px;fill:#fff;margin-left:4px}
@@ -52,7 +52,7 @@
     .nav-arrow.next{right:20px}
 
     /* ============== EDITING TOOLBAR ============== */
-    .edit-toolbar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:2px;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border-radius:10px;padding:4px;z-index:10}
+    .edit-toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:2px;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border-radius:10px;padding:4px;z-index:10}
     .edit-tool-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:none;border:none;color:rgba(255,255,255,0.7);font-family:var(--kup-font);font-size:0.78rem;font-weight:600;cursor:pointer;border-radius:8px;transition:all 0.15s}
     .edit-tool-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}
     .edit-tool-btn.active{color:#fff;background:var(--kup-blue)}
@@ -400,7 +400,7 @@
     /* ============== CONTENT TYPE ICON / TEXT ============== */
     .content-type-icon { font-size: 3rem; color: rgba(255,255,255,0.6); }
     .content-type-text { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-top: 8px; }
-    .content-frame { position:relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transition:aspect-ratio 0.3s ease; }
+    .content-frame { position:relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transition:aspect-ratio 0.3s ease; overflow:hidden; }
 
     /* ============== COUNTDOWN BAR ============== */
     .cm-countdown { margin: 16px 0; }
@@ -550,8 +550,8 @@
 
       /* Layout: single column, preview fills viewport */
       .cm-layout { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 48px); position: relative; }
-      .cm-preview { height: calc(100vh - 48px - 140px); min-height: 300px; padding: 12px 20px; }
-      .content-frame { max-height: 100%; }
+      .cm-preview { height: calc(100vh - 48px - 80px); min-height: 300px; padding: 12px 20px; }
+      .content-frame { max-height: 100%; overflow: hidden; }
 
       /* Edit toolbar compact */
       .edit-toolbar { gap: 0; padding: 3px; }
@@ -581,7 +581,7 @@
         border-left: none;
         border-top: 1px solid #444;
         border-radius: 16px 16px 0 0;
-        transform: translateY(calc(100% - 140px));
+        transform: translateY(calc(100% - 80px));
         transition: transform 0.3s ease;
         box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
       }
@@ -619,7 +619,7 @@
       .cm-message textarea { min-height: 50px; }
 
       /* Adjust preview height when sheet is collapsed */
-      .cm-preview { height: calc(100vh - 48px - 140px); }
+      .cm-preview { height: calc(100vh - 48px - 80px); }
 
       /* Library grid on mobile */
       .cm-library { padding: 16px; }
@@ -802,6 +802,12 @@
         </div>
 
         <div id="cmCampaignWrap"><span class="cm-campaign" id="cmCampaign">Summer Promo</span></div>
+
+        <!-- Caption (shown when content has one) -->
+        <div id="cmCaptionWrap" style="display:none;margin-bottom:14px;">
+          <div style="font-size:.75rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;">Caption</div>
+          <div id="cmCaption" style="font-size:.85rem;color:#ccc;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"></div>
+        </div>
 
         <div class="detail-row"><span class="label">Type</span><span class="value" id="cmType">Video</span></div>
         <div class="detail-row"><span class="label">Submitted</span><span class="value" id="cmDate">2 hours ago</span></div>
@@ -1242,7 +1248,7 @@
       // === MEDIA PREVIEW (the main content area) ===
       var frame = document.querySelector('.content-frame');
       // Clear previous media (keep crop grid)
-      var existingMedia = frame.querySelectorAll('img, video, .content-type-icon, .content-type-text, .caption-overlay');
+      var existingMedia = frame.querySelectorAll('img, video, .content-type-icon, .content-type-text, .multi-indicator');
       existingMedia.forEach(function(el) { el.remove(); });
 
       if (item.mediaUrls && item.mediaUrls.length > 0) {
@@ -1253,24 +1259,15 @@
           var video = document.createElement('video');
           video.src = mediaUrl;
           video.controls = true;
-          video.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px;';
+          video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           video.setAttribute('playsinline', '');
           frame.insertBefore(video, frame.firstChild);
         } else {
           var img = document.createElement('img');
           img.src = mediaUrl;
           img.alt = 'Submitted content';
-          img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px;';
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           frame.insertBefore(img, frame.firstChild);
-        }
-
-        // Show caption overlay if exists
-        if (item.caption) {
-          var captionDiv = document.createElement('div');
-          captionDiv.className = 'caption-overlay';
-          captionDiv.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:0.85rem;line-height:1.4;border-radius:0 0 12px 12px;';
-          captionDiv.textContent = item.caption;
-          frame.appendChild(captionDiv);
         }
       } else {
         // No media — show placeholder icon
@@ -1290,10 +1287,19 @@
       // === MULTIPLE MEDIA INDICATOR ===
       if (item.mediaUrls && item.mediaUrls.length > 1) {
         var multiIndicator = document.createElement('div');
-        multiIndicator.className = 'caption-overlay';
-        multiIndicator.style.cssText = 'position:absolute;top:12px;right:12px;padding:4px 10px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:600;border-radius:50px;';
+        multiIndicator.className = 'multi-indicator';
+        multiIndicator.style.cssText = 'position:absolute;top:12px;right:12px;padding:4px 10px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.72rem;font-weight:600;border-radius:50px;z-index:5;';
         multiIndicator.textContent = '1 of ' + item.mediaUrls.length;
         frame.appendChild(multiIndicator);
+      }
+
+      // Caption — show in details panel, not on the image
+      var captionWrap = document.getElementById('cmCaptionWrap');
+      if (item.caption) {
+        captionWrap.style.display = '';
+        document.getElementById('cmCaption').textContent = item.caption;
+      } else {
+        captionWrap.style.display = 'none';
       }
 
       // Influencer
