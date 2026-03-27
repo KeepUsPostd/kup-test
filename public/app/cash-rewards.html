@@ -1367,7 +1367,7 @@
             <div class="divider"></div>
             <a href="help-center.html">Help Center</a>
             <div class="divider"></div>
-            <a href="#" class="logout" onclick="firebase.auth().signOut().then(function(){window.location.href='/pages/login.html'});return false;">Log Out</a>
+            <a href="/pages/login.html" class="logout">Log Out</a>
           </div>
         </div>
       </div>
@@ -2020,51 +2020,6 @@
   <footer class="auth-footer">
     Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
   </footer>
-
-  <!-- Firebase SDK + Auth -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
-
-  <script>
-    // ========== Auth Gate ==========
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) { window.location.href = '/pages/login.html'; return; }
-      loadCashRewardsData();
-    });
-
-    function getActiveBrand() {
-      try { var s = localStorage.getItem('kup_active_brand'); if (s) return JSON.parse(s); } catch(e) {}
-      return null;
-    }
-
-    async function loadCashRewardsData() {
-      var brand = getActiveBrand();
-      if (!brand || !brand._id) return;
-
-      try {
-        // Load transactions for this brand
-        var resp = await kupApi.get('/api/payouts/transactions?brandId=' + brand._id);
-        if (resp && resp.stats) {
-          // Update stat cards if they exist
-          var totalEl = document.querySelector('[data-stat="total-spent"]');
-          if (totalEl) totalEl.textContent = '$' + (resp.stats.paidAmount || 0).toFixed(2);
-          var pendingEl = document.querySelector('[data-stat="pending-amount"]');
-          if (pendingEl) pendingEl.textContent = '$' + (resp.stats.pendingAmount || 0).toFixed(2);
-        }
-
-        // Load subscription info
-        var subResp = await kupApi.get('/api/billing/subscription');
-        if (subResp && subResp.plan) {
-          var planBadge = document.querySelector('[data-stat="plan-tier"]');
-          if (planBadge) planBadge.textContent = subResp.plan.charAt(0).toUpperCase() + subResp.plan.slice(1);
-        }
-      } catch(err) {
-        console.error('Failed to load cash/rewards data:', err);
-      }
-    }
-  </script>
 
   <script>
     /* ============== TOAST NOTIFICATION SYSTEM ============== */

@@ -1012,132 +1012,35 @@
   </div>
 
   <script>
-    /* ══════════════════════════════════════════
-       KIOSK DISPLAY — Wired to Real API
-       Loads brand config via GET /api/kiosk/:brandCode
-       Creates sessions via POST /api/kiosk/session
-       ══════════════════════════════════════════ */
-
-    // API base URL (same server)
-    var API_BASE = window.location.origin;
-
-    // Kiosk state
-    var kioskConfig = null;  // loaded from API
-    var currentReview = 0;
-    var carouselInterval = null;
-    var isRecording = false;
-    var recordingTimer = null;
-    var recordSeconds = 0;
-    var maxRecordSeconds = 30;
-    var rewardTimeout = null;
-    var countdownInterval = null;
-
-    /* ── Mock review data (display loop — real reviews loaded in future) ── */
-    var reviews = [
-      { name: "Marcus T.", rating: 5, caption: "Best experience I've ever had! Absolutely incredible.", likes: 124, bg: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" },
+    /* ── Mock Data ── */
+    const reviews = [
+      { name: "Marcus T.", rating: 5, caption: "Best vegan tacos I've ever had! The jackfruit carnitas are incredible.", likes: 124, bg: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" },
       { name: "Aisha R.", rating: 5, caption: "My whole family loves this place. We come every weekend now!", likes: 89, bg: "linear-gradient(135deg, #2d1b36 0%, #1a1a2e 50%, #162447 100%)" },
-      { name: "Jordan K.", rating: 4, caption: "Great food, great vibes. The staff is so friendly and generous.", likes: 67, bg: "linear-gradient(135deg, #1b2838 0%, #203a43 50%, #2c5364 100%)" },
-      { name: "Lisa M.", rating: 5, caption: "I can't say enough good things. Absolutely delicious!", likes: 203, bg: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" }
+      { name: "Jordan K.", rating: 4, caption: "Great food, great vibes. The staff is so friendly and the portions are generous.", likes: 67, bg: "linear-gradient(135deg, #1b2838 0%, #203a43 50%, #2c5364 100%)" },
+      { name: "Lisa M.", rating: 5, caption: "I'm not even vegan but these tacos converted me. Absolutely delicious!", likes: 203, bg: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" }
     ];
 
-    /* ── Load Brand Config ── */
-    async function loadKioskBrand() {
-      // Get brand code from URL param
-      var params = new URLSearchParams(window.location.search);
-      var brandCode = params.get('brand');
-
-      if (!brandCode) {
-        // No brand code — show generic demo mode
-        console.log('No brand code in URL. Running in demo mode.');
-        buildCarousel();
-        startCarousel();
-        return;
-      }
-
-      try {
-        var resp = await fetch(API_BASE + '/api/kiosk/' + encodeURIComponent(brandCode));
-        if (!resp.ok) {
-          console.error('Kiosk not found or inactive');
-          buildCarousel();
-          startCarousel();
-          return;
-        }
-
-        var data = await resp.json();
-        kioskConfig = data.kiosk;
-
-        // Apply brand data to display
-        applyBrandConfig(kioskConfig);
-
-        buildCarousel();
-        startCarousel();
-      } catch(err) {
-        console.error('Failed to load kiosk config:', err);
-        buildCarousel();
-        startCarousel();
-      }
-    }
-
-    function applyBrandConfig(config) {
-      if (!config) return;
-
-      // Brand name + initials in top bars
-      document.querySelectorAll('.brand-name').forEach(function(el) {
-        el.textContent = config.brandName;
-      });
-      document.querySelectorAll('.brand-logo').forEach(function(el) {
-        if (config.brandLogo) {
-          el.innerHTML = '<img src="' + config.brandLogo + '" alt="' + config.brandName + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-        } else {
-          el.textContent = config.brandInitials;
-        }
-      });
-
-      // CTA button reward text
-      var ctaRewardText = document.querySelector('.cta-button span span:last-child');
-      if (ctaRewardText) {
-        ctaRewardText.innerHTML = '<span style="display:block;">Record Your Review</span><span style="display:block; font-size:0.9rem; font-weight:600; opacity:0.9;">Get ' + config.rewardValue + '!</span>';
-      }
-
-      // Step 1: Offer card
-      var offerTitle = document.querySelector('.offer-title');
-      if (offerTitle) {
-        var limit = config.recordingLimit || 30;
-        offerTitle.textContent = 'Record a ' + limit + '-second review';
-      }
-      var offerReward = document.querySelector('.offer-reward');
-      if (offerReward) offerReward.textContent = 'Get ' + config.rewardValue + '!';
-      var offerDesc = document.querySelector('.offer-desc');
-      if (offerDesc) offerDesc.textContent = 'Share what you love about ' + config.brandName + ' and we\'ll reward you on the spot.';
-
-      // Recording limit
-      maxRecordSeconds = config.recordingLimit || 30;
-
-      // Step 3: Recording label
-      var recLabel = document.querySelector('.camera-controls-overlay span strong');
-      if (recLabel) recLabel.textContent = config.brandName;
-
-      // Step 4: Reward label
-      var rewardLabel = document.querySelector('.reward-label');
-      if (rewardLabel) rewardLabel.textContent = config.rewardValue.toUpperCase();
-
-      // Brand color customization
-      if (config.brandColor) {
-        document.documentElement.style.setProperty('--kup-orange', config.brandColor);
-      }
-    }
+    /* ── State ── */
+    let currentReview = 0;
+    let carouselInterval = null;
+    let isRecording = false;
+    let recordingTimer = null;
+    let recordSeconds = 0;
+    let rewardTimeout = null;
+    let countdownInterval = null;
 
     /* ── Init Video Feed ── */
     function buildCarousel() {
-      var wrapper = document.getElementById('videoFeed');
-      var dots = document.getElementById('carouselDots');
+      const wrapper = document.getElementById('videoFeed');
+      const dots = document.getElementById('carouselDots');
       dots.innerHTML = '';
 
       var cardsHTML = '';
       reviews.forEach(function(review, i) {
-        var initials = review.name.split(' ').map(function(w) { return w[0]; }).join('');
-        var stars = '';
-        for (var s = 0; s < 5; s++) stars += '<span class="star">&#9733;</span>';
+        const initials = review.name.split(' ').map(function(w) { return w[0]; }).join('');
+        const stars = Array.from({ length: 5 }, function(_, si) {
+          return '<span class="star">&#9733;</span>';
+        }).join('');
 
         cardsHTML +=
           '<div class="video-card' + (i === 0 ? ' active' : '') + '" style="background:' + review.bg + ';">' +
@@ -1161,7 +1064,7 @@
             '<div class="video-playing-bar"></div>' +
           '</div>';
 
-        var dot = document.createElement('div');
+        const dot = document.createElement('div');
         dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
         dots.appendChild(dot);
       });
@@ -1172,7 +1075,6 @@
     function cycleReview() {
       var cards = document.querySelectorAll('.video-card');
       var dots = document.querySelectorAll('.carousel-dot');
-      if (cards.length === 0) return;
       cards[currentReview].classList.remove('active');
       dots[currentReview].classList.remove('active');
       currentReview = (currentReview + 1) % reviews.length;
@@ -1210,7 +1112,8 @@
     /* ── Step Navigation ── */
     function goToStep(n) {
       for (var i = 1; i <= 4; i++) {
-        document.getElementById('recordStep' + i).classList.remove('active');
+        var step = document.getElementById('recordStep' + i);
+        step.classList.remove('active');
       }
       document.getElementById('recordStep' + n).classList.add('active');
 
@@ -1221,7 +1124,7 @@
       }
 
       if (n === 4) {
-        submitKioskSession();
+        showReward();
       }
     }
 
@@ -1237,6 +1140,9 @@
 
     function toggleRecording() {
       var btn = document.getElementById('recordBtn');
+      var dot = document.getElementById('recDot');
+      var btnRerecord = document.getElementById('btnRerecord');
+      var btnDone = document.getElementById('btnDone');
 
       if (!isRecording) {
         isRecording = true;
@@ -1250,7 +1156,7 @@
           recordSeconds++;
           updateTimerDisplay();
           document.getElementById('cameraTimeBadge').textContent = Math.floor(recordSeconds/60) + ':' + (recordSeconds%60<10?'0':'') + recordSeconds%60;
-          if (recordSeconds >= maxRecordSeconds) {
+          if (recordSeconds >= 30) {
             stopRecording();
           }
         }, 1000);
@@ -1281,53 +1187,25 @@
     function updateTimerDisplay() {
       var mins = Math.floor(recordSeconds / 60);
       var secs = recordSeconds % 60;
-      var maxMins = Math.floor(maxRecordSeconds / 60);
-      var maxSecs = maxRecordSeconds % 60;
-      var display = mins + ':' + (secs < 10 ? '0' : '') + secs + ' / ' + maxMins + ':' + (maxSecs < 10 ? '0' : '') + maxSecs;
+      var display = mins + ':' + (secs < 10 ? '0' : '') + secs + ' / 0:30';
       document.getElementById('timerDisplay').textContent = display;
     }
 
-    /* ── Submit Kiosk Session (API call) ── */
-    async function submitKioskSession() {
-      var firstName = document.getElementById('customerName').value.trim() || 'Friend';
-      var phone = document.getElementById('customerPhone').value.trim() || '0000000000';
-
-      document.getElementById('rewardName').textContent = 'Thank you, ' + firstName + '!';
-
-      if (kioskConfig && kioskConfig.brandId) {
-        // Real API call — create session + get reward code
-        try {
-          var resp = await fetch(API_BASE + '/api/kiosk/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              brandId: kioskConfig.brandId,
-              firstName: firstName,
-              phone: phone,
-            }),
-          });
-
-          var data = await resp.json();
-
-          if (resp.ok && data.reward) {
-            document.getElementById('rewardCode').textContent = data.reward.code;
-            var rewardLabel = document.querySelector('.reward-label');
-            if (rewardLabel) rewardLabel.textContent = data.reward.rewardValue.toUpperCase();
-          } else {
-            // API error — generate local code as fallback
-            console.error('Session error:', data.error || 'Unknown');
-            document.getElementById('rewardCode').textContent = generateLocalCode();
-          }
-        } catch(err) {
-          console.error('Session API failed:', err);
-          document.getElementById('rewardCode').textContent = generateLocalCode();
-        }
-      } else {
-        // Demo mode — generate local code
-        document.getElementById('rewardCode').textContent = generateLocalCode();
+    /* ── Reward ── */
+    function generateCode() {
+      var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+      var code = '';
+      for (var i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
+      return 'KUP-' + code;
+    }
 
-      // Start countdown bar (auto-return to display after 20s)
+    function showReward() {
+      var name = document.getElementById('customerName').value.trim() || 'Friend';
+      document.getElementById('rewardName').textContent = 'Thank you, ' + name + '!';
+      document.getElementById('rewardCode').textContent = generateCode();
+
       var bar = document.getElementById('countdownBar');
       bar.style.width = '100%';
       bar.style.transition = 'none';
@@ -1342,15 +1220,6 @@
       rewardTimeout = setTimeout(function() {
         showDisplay();
       }, 20000);
-    }
-
-    function generateLocalCode() {
-      var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-      var code = '';
-      for (var i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return 'KUP-' + code;
     }
 
     /* ── Reset ── */
@@ -1379,7 +1248,8 @@
     }
 
     /* ── Boot ── */
-    loadKioskBrand();
+    buildCarousel();
+    startCarousel();
   </script>
 
 </body>

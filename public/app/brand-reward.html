@@ -358,7 +358,7 @@
           <div class="form-group"><label>Points Value per Approval</label><input type="number" id="ptValue" placeholder="e.g., 500" min="1"><p class="helper">How many points each approved submission is worth</p></div>
           <div class="form-group"><label>Redemption Description</label><textarea id="ptDesc" placeholder="Describe how influencers can redeem points (e.g., 'Redeem in our online store — 100 points = $1')" maxlength="85"></textarea><p class="helper">85 character max</p></div>
           <h6>Reward Image</h6>
-          <div class="upload-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p>Add reward image</p><button class="btn-upload">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p></div>
+          <div class="upload-box reward-upload-box" onclick="this.querySelector('input[type=file]').click()"><img class="reward-preview-img" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Reward image"><svg class="reward-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p class="reward-upload-text">Add reward image</p><button class="btn-upload" type="button" onclick="event.stopPropagation()">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p><input type="file" class="reward-image-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>
         </div>
 
         <!-- Free Product or Service -->
@@ -367,7 +367,7 @@
           <div class="form-group"><label>Reward Description</label><textarea id="fpDesc" placeholder="Tell influencers about your reward and how they can receive it" maxlength="85"></textarea><p class="helper">85 character max</p></div>
           <div class="form-group"><label>Estimated Value</label><input type="text" id="fpValue" placeholder="e.g., $25 value"><p class="helper">Approximate retail value shown to influencers</p></div>
           <h6>Reward Image</h6>
-          <div class="upload-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p>Add reward image</p><button class="btn-upload">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p></div>
+          <div class="upload-box reward-upload-box" onclick="this.querySelector('input[type=file]').click()"><img class="reward-preview-img" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Reward image"><svg class="reward-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p class="reward-upload-text">Add reward image</p><button class="btn-upload" type="button" onclick="event.stopPropagation()">Choose File</button><p class="size-hint">Recommended: 800 &times; 420 px (PNG, JPG, or WebP) &bull; Max 5 MB</p><input type="file" class="reward-image-input" accept="image/png,image/jpeg,image/webp" style="display:none"></div>
           <h6>Shipping Method</h6>
           <div class="radio-group"><label><input type="radio" name="fpShipping" value="address"> Shipping via address</label><label><input type="radio" name="fpShipping" value="email" checked> Shipping via email</label><label><input type="radio" name="fpShipping" value="pickup"> In-store pickup</label></div>
         </div>
@@ -1219,142 +1219,9 @@
       }
     }
 
-    /* ============ SAVE ACTIONS (wired to API) ============ */
-    function collectRewardPayload(saveAsDraft) {
-      // Get active brand from localStorage
-      var brandId = null;
-      try {
-        var stored = localStorage.getItem('kup_active_brand');
-        if (stored) brandId = JSON.parse(stored).id;
-      } catch(e) {}
-      if (!brandId) { kupToast('No brand selected.', 'error'); return null; }
-
-      // Map UI type names to API enum values
-      var typeMap = {
-        'points': 'points_store_credit',
-        'free-product': 'free_product',
-        'discount': 'discount',
-        'cash-per-approval': 'cash_per_approval',
-        'bonus-cash': 'bonus_cash',
-        'postd-pay': 'postd_pay'
-      };
-
-      var apiType = typeMap[selectedType] || selectedType;
-      var apiEarning = null;
-      if (earningMethod === 'point-based') apiEarning = 'point_based';
-      else if (earningMethod === 'per-approval') apiEarning = 'per_approval';
-
-      // Collect title/desc based on type
-      var title = '', desc = '';
-      if (selectedType === 'points') {
-        title = (document.getElementById('ptTitle') || {}).value || 'Points Reward';
-        desc = (document.getElementById('ptDesc') || {}).value || '';
-      } else if (selectedType === 'free-product') {
-        title = (document.getElementById('fpTitle') || {}).value || 'Free Product';
-        desc = (document.getElementById('fpDesc') || {}).value || '';
-      } else if (selectedType === 'discount') {
-        title = (document.getElementById('dcTitle') || {}).value || 'Discount';
-        desc = '';
-      } else if (isCashType(selectedType)) {
-        title = 'Cash Reward';
-        desc = (document.getElementById('cpaMemo') || {}).value || '';
-      }
-
-      var payload = {
-        brandId: brandId,
-        type: apiType,
-        earningMethod: apiEarning,
-        title: title.substring(0, 21),
-        description: desc.substring(0, 85),
-      };
-
-      // Point config
-      if (apiEarning === 'point_based') {
-        payload.pointConfig = {
-          contentEnabled: document.getElementById('toggleContent') ? document.getElementById('toggleContent').checked : false,
-          contentPoints: {
-            submitted: parseInt((document.getElementById('ptContentSubmit') || {}).value) || 10,
-            approved: parseInt((document.getElementById('ptContentApprove') || {}).value) || 25,
-            published: parseInt((document.getElementById('ptContentPublish') || {}).value) || 40,
-            bonus: parseInt((document.getElementById('ptContentBonus') || {}).value) || 15,
-          },
-          purchaseEnabled: document.getElementById('togglePurchase') ? document.getElementById('togglePurchase').checked : false,
-          purchaseTiers: [],
-          gratitudeEnabled: document.getElementById('toggleGratitude') ? document.getElementById('toggleGratitude').checked : false,
-          gratitudePoints: {
-            join: parseInt((document.getElementById('ptGratJoin') || {}).value) || 50,
-            birthday: parseInt((document.getElementById('ptGratBday') || {}).value) || 25,
-            anniversary: parseInt((document.getElementById('ptGratAnniv') || {}).value) || 100,
-          },
-          unlockThreshold: parseInt((document.getElementById('unlockThreshold') || {}).value) || 500,
-        };
-        // Collect purchase tiers
-        for (var ti = 1; ti <= 3; ti++) {
-          var spend = parseInt((document.getElementById('ptPurchaseSpend' + ti) || {}).value);
-          var earn = parseInt((document.getElementById('ptPurchaseEarn' + ti) || {}).value);
-          if (spend && earn) {
-            payload.pointConfig.purchaseTiers.push({ spendThreshold: spend, pointsEarned: earn });
-          }
-        }
-      }
-
-      // Cash config
-      if (isCashType(selectedType)) {
-        payload.cashConfig = {
-          budgetCap: parseInt((document.getElementById('budgetCap') || {}).value) || null,
-        };
-      }
-
-      // Discount config
-      if (selectedType === 'discount') {
-        var dcTypeEl = document.querySelector('input[name="discountType"]:checked');
-        payload.discountConfig = {
-          discountType: dcTypeEl ? dcTypeEl.value : 'percentage',
-          discountValue: parseFloat((document.getElementById('dcValue') || {}).value) || 0,
-          discountCode: (document.getElementById('dcCode') || {}).value || null,
-        };
-      }
-
-      // Product config
-      if (selectedType === 'free-product') {
-        payload.productConfig = {
-          productName: (document.getElementById('fpTitle') || {}).value || '',
-          productValue: parseFloat((document.getElementById('fpValue') || {}).value) || null,
-        };
-      }
-
-      return payload;
-    }
-
-    async function handleSaveReward() {
-      var payload = collectRewardPayload(false);
-      if (!payload) return;
-
-      try {
-        var data = await kupApi.post('/api/rewards', payload);
-        // Activate immediately
-        if (data.reward && data.reward._id) {
-          await kupApi.put('/api/rewards/' + data.reward._id + '/status', { status: 'active' });
-        }
-        kupToast('Reward created successfully!', 'success');
-        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
-      } catch (err) {
-        kupToast(err.message || 'Failed to save reward.', 'error');
-      }
-    }
-
-    async function handleSaveDraft() {
-      var payload = collectRewardPayload(true);
-      if (!payload) return;
-
-      try {
-        await kupApi.post('/api/rewards', payload);
-        kupToast('Reward saved as draft', 'info');
-        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
-      } catch (err) {
-        kupToast(err.message || 'Failed to save draft.', 'error');
-      }
-    }
+    /* ============ SAVE ACTIONS ============ */
+    function handleSaveReward() { kupToast('Reward created successfully!', 'success'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
+    function handleSaveDraft() { kupToast('Reward saved as draft', 'info'); setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500); }
 
     /* ============ LIVE PREVIEW LISTENERS ============ */
     document.addEventListener('input', function(e) {
@@ -1374,21 +1241,54 @@
       KUP_PLATFORM.isCashType(type), .needsPointConfig(type, method)
       KUP_PLATFORM.getWizardSteps(type, method), .canAccess(tier, feature)
   -->
-  <!-- Firebase SDK -->
+  <script src="/js/platform-config.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
-
   <script>
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = '/pages/login.html'; return; }
-      var logoutLink = document.querySelector('.logout');
-      if (logoutLink) { logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); }); }
+    /* ============== REWARD IMAGE UPLOAD ============== */
+    var rewardImageUrl = null; // Stores the uploaded URL for the active reward type
+
+    document.querySelectorAll('.reward-image-input').forEach(function(input) {
+      input.addEventListener('change', async function(e) {
+        e.stopPropagation();
+        var file = this.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { kupToast('File too large. Max 5 MB', 'error'); return; }
+        if (!file.type.startsWith('image/')) { kupToast('Please select an image file', 'error'); return; }
+
+        var box = this.closest('.reward-upload-box');
+        var preview = box.querySelector('.reward-preview-img');
+        var icon = box.querySelector('.reward-upload-icon');
+        var text = box.querySelector('.reward-upload-text');
+
+        // Show local preview
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          preview.src = ev.target.result;
+          preview.style.display = 'block';
+          if (icon) icon.style.display = 'none';
+          if (text) text.textContent = file.name;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        try {
+          var result = await kupApi.upload('/api/upload', [file], 'media');
+          if (result && result.urls && result.urls.length > 0) {
+            rewardImageUrl = result.urls[0];
+            kupToast('Reward image uploaded', 'success');
+          } else {
+            kupToast('Upload failed', 'error');
+          }
+        } catch (err) {
+          console.error('Reward image upload error:', err);
+          kupToast('Upload failed', 'error');
+        }
+      });
     });
   </script>
-
-  <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/onboarding.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

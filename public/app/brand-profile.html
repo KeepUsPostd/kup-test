@@ -146,22 +146,93 @@
     .btn-wizard.secondary{background:#f0f0f0;color:#666}.btn-wizard.secondary:hover{background:#e4e4e4}
     .btn-wizard.success{background:#16a34a;color:#fff}.btn-wizard.success:hover{background:#15803d}
 
-    /* RIGHT: App Display preview */
-    .wizard-preview{padding:32px 40px;overflow-y:auto}
+    /* RIGHT: App Display preview — tips left, phone right */
+    .wizard-preview{padding:32px 40px;overflow-y:auto;display:flex;gap:32px;align-items:flex-start;justify-content:center}
     .wizard-preview h3{font-size:1.1rem;font-weight:700;margin:0 0 20px}.wizard-preview h3 span{font-weight:400;color:#888}
-    .app-display{background:#fff;border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden;max-width:800px}
-    .app-banner{height:200px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:.85rem}
-    .app-profile{padding:24px 28px}
-    .app-profile-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-    .app-profile-left{display:flex;gap:16px}
-    .app-profile-logo{width:72px;height:72px;border-radius:var(--radius-md);background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.2rem;margin-top:-40px;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.1)}
-    .app-profile-name h4{font-size:1.2rem;font-weight:700;margin:0 0 4px}.app-profile-name p{font-size:.82rem;color:#888;margin:0}
-    .app-stats{display:flex;gap:24px;margin-bottom:16px}.app-stats .stat{font-size:.85rem}.app-stats .stat strong{color:var(--kup-blue);font-weight:700}
-    .app-description{font-size:.85rem;color:#555;line-height:1.6;max-width:600px;word-wrap:break-word;overflow-wrap:break-word}
+    /* Tips Column (left of phone) */
+    .tips-column{width:300px;flex-shrink:0;padding-top:40px}
+    .tips-column .preview-label{font-size:.85rem;font-weight:700;color:#444;margin-bottom:16px}
+    /* Phone Column — label + phone + hint stacked */
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+
+    /* Phone Frame — clean, no black bezel */
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+
+    /* Phone Status Bar */
+    .phone-status-bar{display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px;font-size:.7rem;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:45;height:44px;pointer-events:none}
+    .phone-status-bar .status-time{font-size:.78rem;font-weight:700;padding-bottom:4px}
+    .phone-status-bar .status-icons{display:flex;gap:4px;align-items:center;font-size:.6rem;padding-bottom:5px}
+    .phone-status-bar .status-icons span{display:inline-block}
+
+    /* Phone Screen (scrollable inner) */
+    .phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .phone-screen::-webkit-scrollbar{display:none}
+
+    /* Hero Banner */
+    .app-preview-banner{height:150px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative}
+    .app-preview-banner .back-btn-mock,.app-preview-banner .more-btn-mock{position:absolute;top:50px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    .app-preview-banner .back-btn-mock{left:12px}
+    .app-preview-banner .more-btn-mock{right:12px}
+
+    /* Centered Avatar */
+    .app-preview-avatar-wrap{display:flex;justify-content:center;margin-top:-32px;position:relative;z-index:10}
+    .app-preview-logo{width:64px;height:64px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+
+    /* Brand Info (centered) */
+    .app-preview-info{text-align:center;padding:8px 16px 0}
+    .app-preview-name{font-size:1.05rem;font-weight:800;margin:0 0 2px;color:#1a1a1a;min-height:22px;word-break:break-word;display:flex;align-items:center;justify-content:center;gap:4px}
+    .app-preview-category{font-size:.72rem;color:var(--kup-blue);font-weight:600;margin-bottom:1px;min-height:16px}
+    .app-preview-location{font-size:.68rem;color:#888;margin-bottom:6px;min-height:14px}
+    .app-preview-badge-row{display:flex;justify-content:center;margin-top:4px;margin-bottom:4px}
+    .app-preview-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:rgba(22,163,74,.08);color:#16a34a}
+
+    /* Stats Row */
+    .app-preview-stats{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-stat-box{flex:1;background:#f8f9fa;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center}
+    .app-preview-stat-box .stat-num{font-size:.9rem;font-weight:800;color:#1a1a1a;line-height:1.2}
+    .app-preview-stat-box .stat-label{font-size:.55rem;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px}
+
+    /* Action Buttons */
+    .app-preview-actions{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-actions .btn-mock{flex:1;padding:8px 0;border-radius:8px;font-family:var(--kup-font);font-size:.72rem;font-weight:700;text-align:center;border:none;cursor:default}
+    .app-preview-actions .btn-mock-primary{background:var(--kup-blue);color:#fff}
+    .app-preview-actions .btn-mock-secondary{background:#f0f0f0;color:#aaa;border:1px solid #e0e0e0}
+
+    /* Tab Bar */
+    .app-preview-tabs{display:flex;padding:12px 14px 0;border-bottom:1px solid #eee;gap:0}
+    .app-preview-tab{flex:1;text-align:center;padding:8px 0;font-size:.65rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;cursor:default}
+    .app-preview-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
+
+    /* Description area */
+    .app-preview-body{padding:12px 16px 70px}
+    .app-preview-desc{font-size:.72rem;color:#888;line-height:1.6;min-height:36px;word-break:break-word}
+    .preview-offer-tag{display:inline-block;padding:3px 10px;background:rgba(237,132,68,.1);color:var(--kup-orange);border-radius:20px;font-size:.65rem;font-weight:700;margin-top:8px}
+
+    /* Bottom Nav */
+    .app-preview-nav{position:absolute;bottom:14px;left:0;right:0;height:50px;background:#fff;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:30}
+    .app-preview-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.52rem;color:#ccc;font-weight:600}
+    .app-preview-nav-item.active{color:var(--kup-blue)}
+    .app-preview-nav-item .nav-icon-mock{font-size:.9rem}
+    .app-preview-nav-fab{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;box-shadow:0 3px 10px rgba(46,165,221,.3);margin-top:-10px}
+
+    .preview-hint{font-size:.78rem;color:#bbb;text-align:center;margin-top:12px;font-style:italic;width:310px}
+    .preview-label{font-size:.85rem;font-weight:700;color:#444;margin-bottom:12px;text-align:center}
+
+    /* Home indicator bar */
+    .phone-home-bar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#ccc;border-radius:4px;z-index:60}
+
+    /* Step Tips */
+    .step-tips-group{display:none}
+    .step-tips-group.active{display:block}
+    .step-tip{display:flex;gap:10px;padding:14px 16px;background:#fff;border-radius:var(--radius-md);margin-bottom:12px;font-size:.82rem;color:#555;line-height:1.5;border:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .step-tip .tip-icon{font-size:1.1rem;flex-shrink:0}
+    .step-tip a{color:var(--kup-blue);font-weight:600}
 
     .auth-footer{text-align:center;padding:24px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}.auth-footer a{color:var(--kup-blue);font-weight:500}
 
-    @media(max-width:1024px){.wizard-layout{grid-template-columns:360px 1fr}}
+    @media(max-width:1200px){.wizard-preview{gap:20px}.tips-column{width:260px}}
+    @media(max-width:1024px){.wizard-layout{grid-template-columns:360px 1fr}.wizard-preview{flex-direction:column-reverse;align-items:center}.tips-column{width:310px;padding-top:0}}
     @media(max-width:768px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{display:none}.auth-header-inner{padding:0 16px}.auth-nav li a{padding:0 14px;font-size:.82rem}.profile-info{display:none}}
   
     /* Sticky Footer */
@@ -218,9 +289,9 @@
 
       <!-- Progress indicator -->
       <div class="wizard-progress">
-        <div class="progress-step active" id="prog1"></div>
-        <div class="progress-step" id="prog2"></div>
-        <div class="progress-step" id="prog3"></div>
+        <div class="progress-step active" id="prog1" onclick="showStep(1)" style="cursor:pointer" title="Brand Basics"></div>
+        <div class="progress-step" id="prog2" onclick="showStep(2)" style="cursor:pointer" title="Contact & Location"></div>
+        <div class="progress-step" id="prog3" onclick="showStep(3)" style="cursor:pointer" title="Brand Assets (Logo & Banner)"></div>
       </div>
 
       <!-- Step 1: Brand Basics -->
@@ -329,46 +400,115 @@
         <p class="step-label">Brand Profile | Brand Assets | Page 3 of 3</p>
 
         <h6>Brand Logo</h6>
-        <div class="upload-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <p>Upload brand logo</p>
-          <button class="btn-upload">Choose File</button>
+        <div class="upload-box" id="logoUploadBox" onclick="document.getElementById('logoFileInput').click()">
+          <img id="logoPreviewImg" style="display:none;max-width:128px;max-height:128px;border-radius:8px;object-fit:contain" alt="Logo preview">
+          <svg id="logoUploadIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p id="logoUploadText">Upload brand logo</p>
+          <button class="btn-upload" type="button">Choose File</button>
           <p class="size-hint">Recommended: 256 &times; 256 px (PNG or JPG) &bull; Max 2 MB</p>
+          <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
         </div>
 
         <h6>Brand Banner</h6>
-        <div class="upload-box" style="margin-top:16px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <p>Upload brand banner</p>
-          <button class="btn-upload">Choose File</button>
+        <div class="upload-box" id="bannerUploadBox" style="margin-top:16px" onclick="document.getElementById('bannerFileInput').click()">
+          <img id="bannerPreviewImg" style="display:none;max-width:100%;max-height:120px;border-radius:8px;object-fit:cover" alt="Banner preview">
+          <svg id="bannerUploadIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p id="bannerUploadText">Upload brand banner</p>
+          <button class="btn-upload" type="button">Choose File</button>
           <p class="size-hint">Recommended: 1200 &times; 400 px (PNG, JPG, or WebP) &bull; Max 5 MB</p>
+          <input type="file" id="bannerFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
         </div>
 
         <div class="wizard-actions">
           <button class="btn-wizard secondary" onclick="showStep(2)">← Back</button>
-          <button class="btn-wizard success" onclick="kupToast('Brand profile updated!', 'success')">Update Brand</button>
+          <button class="btn-wizard success" id="updateBrandBtn" onclick="saveBrandProfile()">Update Brand</button>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT: Live Preview -->
+    <!-- RIGHT: Tips + Live Preview -->
     <div class="wizard-preview">
-      <h3>Marketplace App Display <span>| Brand Profile</span></h3>
-      <div class="app-display">
-        <div class="app-banner">Brand Banner Image</div>
-        <div class="app-profile">
-          <div class="app-profile-top">
-            <div class="app-profile-left">
-              <div class="app-profile-logo">KP</div>
-              <div class="app-profile-name">
-                <h4 id="previewName">KeepUsPostd</h4>
-                <p id="previewAddress">123 Innovation Blvd, Austin, TX 78701</p>
+      <!-- Tips Column (left side) -->
+      <div class="tips-column">
+        <div class="step-tips-group active" id="tips-step1">
+          <div class="step-tip"><span class="tip-icon">💡</span><span><strong>Quick Tip</strong><br>Enter your website URL and we'll <a href="#">auto-fill your brand info</a> using AI — saving you time on setup.</span></div>
+          <div class="step-tip"><span class="tip-icon">✅</span><span><strong>Stand Out</strong><ul style="margin:6px 0 0;padding-left:18px"><li>Use a <strong>clear, short brand name</strong></li><li>Write a description that <a href="#">speaks to influencers</a></li><li>Add your social links — creators check these</li><li>Choose the right industry for discoverability</li></ul></span></div>
+          <div class="step-tip"><span class="tip-icon">📊</span><span><strong>Did You Know?</strong><br>Brands with complete profiles get <a href="#">4x more influencer partnerships</a> than incomplete ones.</span></div>
+        </div>
+        <div class="step-tips-group" id="tips-step2">
+          <div class="step-tip"><span class="tip-icon">🌐</span><span><strong>Build Trust</strong><br>Adding your website and social links helps influencers verify your brand is authentic.</span></div>
+          <div class="step-tip"><span class="tip-icon">📍</span><span><strong>Go Local</strong><br>Your location helps nearby influencers find you for in-person content opportunities.</span></div>
+          <div class="step-tip"><span class="tip-icon">📱</span><span><strong>Stay Connected</strong><br>Phone and email let your partnered influencers reach you directly for collabs.</span></div>
+        </div>
+        <div class="step-tips-group" id="tips-step3">
+          <div class="step-tip"><span class="tip-icon">🎨</span><span><strong>Your Logo Everywhere</strong><br>It appears on every content overlay, review kiosk, and marketplace listing.</span></div>
+          <div class="step-tip"><span class="tip-icon">📸</span><span><strong>First Impressions</strong><br>Upload a banner that represents your brand — it's the first thing influencers see.</span></div>
+          <div class="step-tip"><span class="tip-icon">✨</span><span><strong>5x More Engagement</strong><br>Brands with logos and banners see dramatically higher engagement from influencers.</span></div>
+        </div>
+      </div>
+
+      <!-- Phone Column (right side) -->
+      <div class="phone-column">
+        <p class="preview-label">APP DISPLAY PREVIEW</p>
+        <div class="phone-frame">
+          <!-- Status Bar -->
+          <div class="phone-status-bar">
+            <span class="status-time">9:41</span>
+            <span class="status-icons"><span>&#9679;&#9679;&#9679;&#9679;</span> <span>&#128246;</span> <span>&#128267;</span></span>
+          </div>
+          <div class="phone-screen">
+            <!-- Hero Banner -->
+            <div class="app-preview-banner" id="previewBanner">
+              <span class="back-btn-mock">&#8592;</span>
+              <span class="more-btn-mock">&#8943;</span>
+            </div>
+            <!-- Centered Avatar -->
+            <div class="app-preview-avatar-wrap">
+              <div class="app-preview-logo" id="previewLogo">KP</div>
+            </div>
+            <!-- Brand Info -->
+            <div class="app-preview-info">
+              <h3 class="app-preview-name" id="previewName">Your Brand</h3>
+              <p class="app-preview-category" id="previewCategory">Industry</p>
+              <p class="app-preview-location" id="previewAddress"></p>
+              <div class="app-preview-badge-row">
+                <span class="app-preview-badge">&#10003; Verified Brand</span>
               </div>
             </div>
+            <!-- Stats Row -->
+            <div class="app-preview-stats">
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatReviews">0</div><div class="stat-label">Reviews</div></div>
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatRating">0</div><div class="stat-label">Rating</div></div>
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatInfluencers">0</div><div class="stat-label">Influencers</div></div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="app-preview-actions">
+              <div class="btn-mock btn-mock-primary">Partner</div>
+              <div class="btn-mock btn-mock-secondary">+ Add Review</div>
+            </div>
+            <!-- Tab Bar -->
+            <div class="app-preview-tabs">
+              <div class="app-preview-tab active">About</div>
+              <div class="app-preview-tab">Content</div>
+              <div class="app-preview-tab">Rewards</div>
+              <div class="app-preview-tab">Campaigns</div>
+            </div>
+            <!-- About Content -->
+            <div class="app-preview-body">
+              <p class="app-preview-desc" id="previewDesc">Your brand description will appear here...</p>
+            </div>
           </div>
-          <div class="app-stats"><div class="stat"><strong>247</strong> influencers</div><div class="stat"><strong>89</strong> videos</div><div class="stat"><strong>531</strong> images</div></div>
-          <p class="app-description" id="previewDesc">KeepUsPostd connects brands with authentic influencers to create genuine content partnerships.</p>
+          <!-- Bottom Nav -->
+          <div class="app-preview-nav">
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#127968;</span>Home</div>
+            <div class="app-preview-nav-item active"><span class="nav-icon-mock">&#128269;</span>Discover</div>
+            <div class="app-preview-nav-fab">+</div>
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128176;</span>Rewards</div>
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128100;</span>Profile</div>
+          </div>
+          <div class="phone-home-bar"></div>
         </div>
+        <p class="preview-hint"><em>This is how your brand will appear in the KeepUsPostd Marketplace.</em></p>
       </div>
     </div>
   </div>
@@ -454,10 +594,23 @@
         if (i < step - 1) p.classList.add('done');
         if (i === step - 1) p.classList.add('active');
       });
+      // Toggle tips
+      document.querySelectorAll('.step-tips-group').forEach(g => g.classList.remove('active'));
+      var tipGroup = document.getElementById('tips-step' + step);
+      if (tipGroup) tipGroup.classList.add('active');
     }
+    // Auto-jump to Page 3 (Brand Assets) if URL has #assets hash
+    if (window.location.hash === '#assets') {
+      showStep(3);
+    }
+
     // Live preview updates
     document.getElementById('brandName')?.addEventListener('input', e => { document.getElementById('previewName').textContent = e.target.value || 'Brand Name'; });
     document.getElementById('description')?.addEventListener('input', e => { document.getElementById('previewDesc').textContent = e.target.value || 'Brand description...'; });
+    document.getElementById('category')?.addEventListener('change', e => {
+      var el = document.getElementById('previewCategory');
+      if (el) el.textContent = e.target.value || 'Industry';
+    });
 
     /* ============== AI MODE TAB SWITCHING ============== */
     document.querySelectorAll('.ai-mode-tab').forEach(function(tab) {
@@ -630,10 +783,277 @@
       }
     })();
   </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js?v=1774619962"></script>
+  <script src="/js/api.js?v=1774619962"></script>
+  <script>
+    /* ============== IMAGE UPLOAD WIRING ============== */
+    // Tracks uploaded URLs so we can save them with the brand profile
+    var uploadedLogoUrl = null;
+    var uploadedBannerUrl = null;
+
+    // Generate brand initials from name
+    function getBrandInitials(name) {
+      if (!name) return 'KP';
+      var words = name.trim().split(/\s+/);
+      if (words.length === 1) return words[0].charAt(0).toUpperCase();
+      return words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+    }
+
+    // Load existing brand data into the form and preview
+    (function loadExistingBrandData() {
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.getActiveBrand) ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      // Fallback: read directly from localStorage if brand-context.js hasn't loaded yet
+      if (!brand) {
+        try {
+          var stored = localStorage.getItem('kup_active_brand');
+          if (stored) brand = JSON.parse(stored);
+        } catch(e) {}
+      }
+      if (!brand) return;
+
+      // Set initials immediately from localStorage
+      var initials = brand.abbreviation || getBrandInitials(brand.name);
+      var previewLogo = document.getElementById('previewLogo');
+      if (previewLogo) {
+        previewLogo.textContent = initials;
+        if (brand.color || brand.generatedColor) {
+          previewLogo.style.background = brand.color || brand.generatedColor;
+        }
+      }
+      // Set preview name
+      var previewName = document.getElementById('previewName');
+      if (previewName && brand.name) previewName.textContent = brand.name;
+
+      // Load from API for logoUrl/heroImageUrl (async)
+      // IMPORTANT: Wait for Firebase auth to be ready before making API calls,
+      // otherwise kupApi sends a request without a token → 401 → redirect to login
+      var brandId = brand.mongoId || brand.id;
+      if (brandId && typeof kupApi !== 'undefined' && typeof auth !== 'undefined') {
+        auth.onAuthStateChanged(function(user) {
+          if (!user) return; // Not logged in, skip API call
+          kupApi.get('/api/brands/' + brandId).then(function(data) {
+          if (!data || !data.brand) return;
+          var b = data.brand;
+          // Fill form fields
+          var nameEl = document.getElementById('brandName');
+          if (nameEl && b.name) nameEl.value = b.name;
+          var catEl = document.getElementById('category');
+          if (catEl && b.category) catEl.value = b.category;
+          var descEl = document.getElementById('description');
+          if (descEl && b.description) descEl.value = b.description;
+          // Update preview name
+          if (previewName && b.name) previewName.textContent = b.name;
+          // Update preview description
+          var previewDesc = document.getElementById('previewDesc');
+          if (previewDesc && b.description) previewDesc.textContent = b.description;
+
+          // If brand has a logo, show it in preview
+          if (b.logoUrl) {
+            if (previewLogo) {
+              previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+            }
+            // Also show in the upload preview
+            var logoPreviewImg = document.getElementById('logoPreviewImg');
+            if (logoPreviewImg) {
+              logoPreviewImg.src = b.logoUrl;
+              logoPreviewImg.style.display = 'block';
+              var logoIcon = document.getElementById('logoUploadIcon');
+              if (logoIcon) logoIcon.style.display = 'none';
+              var logoText = document.getElementById('logoUploadText');
+              if (logoText) logoText.textContent = 'Logo uploaded';
+            }
+          } else {
+            // No logo — show initials with brand color
+            var bi = getBrandInitials(b.name);
+            if (previewLogo) {
+              previewLogo.textContent = bi;
+            }
+          }
+
+          // If brand has a banner, show it
+          if (b.heroImageUrl) {
+            var previewBanner = document.getElementById('previewBanner');
+            if (previewBanner) {
+              previewBanner.style.backgroundImage = 'url(' + b.heroImageUrl + ')';
+              previewBanner.style.backgroundSize = 'cover';
+              previewBanner.style.backgroundPosition = 'center';
+              previewBanner.textContent = '';
+            }
+            var bannerPreviewImg = document.getElementById('bannerPreviewImg');
+            if (bannerPreviewImg) {
+              bannerPreviewImg.src = b.heroImageUrl;
+              bannerPreviewImg.style.display = 'block';
+              var bannerIcon = document.getElementById('bannerUploadIcon');
+              if (bannerIcon) bannerIcon.style.display = 'none';
+              var bannerText = document.getElementById('bannerUploadText');
+              if (bannerText) bannerText.textContent = 'Banner uploaded';
+            }
+          }
+
+          // Update category in preview
+          var previewCategory = document.getElementById('previewCategory');
+          if (previewCategory && b.category) previewCategory.textContent = b.category;
+
+          // Update stats
+          var sr = document.getElementById('previewStatReviews');
+          var sra = document.getElementById('previewStatRating');
+          var si = document.getElementById('previewStatInfluencers');
+          if (sr) sr.textContent = b.stats?.totalContent || 0;
+          if (sra) sra.textContent = b.stats?.averageRating || '0';
+          if (si) si.textContent = b.stats?.totalInfluencers || 0;
+
+          // Update address
+          var previewAddr = document.getElementById('previewAddress');
+          if (previewAddr) {
+            var addrParts = [b.city, b.state, b.zip].filter(Boolean);
+            if (addrParts.length) previewAddr.textContent = addrParts.join(', ');
+            else if (b.websiteUrl) previewAddr.textContent = b.websiteUrl;
+          }
+        }).catch(function(err) {
+          console.warn('Could not load brand data:', err);
+        });
+        }); // end auth.onAuthStateChanged
+      }
+    })();
+
+    // Generic image upload handler — uploads file, shows preview, returns URL
+    async function handleImageUpload(file, previewImg, uploadIcon, uploadText, maxMB) {
+      if (!file) return null;
+      if (file.size > (maxMB || 5) * 1024 * 1024) {
+        kupToast('File too large. Max ' + (maxMB || 5) + ' MB', 'error');
+        return null;
+      }
+      if (!file.type.startsWith('image/')) {
+        kupToast('Please select an image file', 'error');
+        return null;
+      }
+
+      // Show local preview immediately
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+        if (uploadIcon) uploadIcon.style.display = 'none';
+        if (uploadText) uploadText.textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to server
+      try {
+        var result = await kupApi.upload('/api/upload', [file], 'media');
+        if (result && result.urls && result.urls.length > 0) {
+          kupToast('Image uploaded', 'success');
+          return result.urls[0];
+        } else {
+          kupToast('Upload failed', 'error');
+          return null;
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        kupToast('Upload failed: ' + (err.message || 'Unknown error'), 'error');
+        return null;
+      }
+    }
+
+    // Logo file input
+    document.getElementById('logoFileInput').addEventListener('change', async function(e) {
+      e.stopPropagation();
+      var file = this.files[0];
+      if (!file) return;
+      var url = await handleImageUpload(
+        file,
+        document.getElementById('logoPreviewImg'),
+        document.getElementById('logoUploadIcon'),
+        document.getElementById('logoUploadText'),
+        2 // 2MB max for logos
+      );
+      if (url) {
+        uploadedLogoUrl = url;
+        // Update live preview
+        var previewLogo = document.getElementById('previewLogo');
+        if (previewLogo) {
+          previewLogo.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+        }
+      }
+    });
+
+    // Banner file input
+    document.getElementById('bannerFileInput').addEventListener('change', async function(e) {
+      e.stopPropagation();
+      var file = this.files[0];
+      if (!file) return;
+      var url = await handleImageUpload(
+        file,
+        document.getElementById('bannerPreviewImg'),
+        document.getElementById('bannerUploadIcon'),
+        document.getElementById('bannerUploadText'),
+        5 // 5MB max for banners
+      );
+      if (url) {
+        uploadedBannerUrl = url;
+        // Update live preview
+        var previewBanner = document.getElementById('previewBanner');
+        if (previewBanner) {
+          previewBanner.style.backgroundImage = 'url(' + url + ')';
+          previewBanner.style.backgroundSize = 'cover';
+          previewBanner.style.backgroundPosition = 'center';
+          previewBanner.textContent = '';
+        }
+      }
+    });
+
+    // Prevent upload box click from double-firing
+    document.querySelectorAll('.upload-box .btn-upload').forEach(function(btn) {
+      btn.addEventListener('click', function(e) { e.stopPropagation(); });
+    });
+
+    // Save brand profile — collects all form data + uploaded images and saves via API
+    async function saveBrandProfile() {
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.getActiveBrand) ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || brand.id) : null;
+
+      // Collect form data
+      var updates = {};
+      var nameEl = document.getElementById('brandName');
+      var catEl = document.getElementById('category');
+      var descEl = document.getElementById('description');
+      if (nameEl && nameEl.value.trim()) updates.name = nameEl.value.trim();
+      if (catEl && catEl.value) updates.category = catEl.value;
+      if (descEl && descEl.value.trim()) updates.description = descEl.value.trim();
+
+      // Add uploaded image URLs
+      if (uploadedLogoUrl) updates.logoUrl = uploadedLogoUrl;
+      if (uploadedBannerUrl) updates.heroImageUrl = uploadedBannerUrl;
+
+      if (Object.keys(updates).length === 0) {
+        kupToast('No changes to save', 'info');
+        return;
+      }
+
+      if (!brandId) {
+        kupToast('No brand selected — select a brand first', 'warning');
+        return;
+      }
+
+      try {
+        var result = await kupApi.put('/api/brands/' + brandId, updates);
+        if (result && !result.error) {
+          kupToast('Brand profile updated!', 'success');
+        } else {
+          kupToast('Failed to save: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (err) {
+        console.error('Save brand error:', err);
+        kupToast('Could not save brand profile', 'error');
+      }
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
+    <script src="/js/resume-banner.js?v=1774619962"></script>
+    <script src="/js/onboarding.js?v=1774619962"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

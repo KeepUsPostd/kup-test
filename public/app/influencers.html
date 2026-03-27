@@ -3753,51 +3753,6 @@
       KUP_PLATFORM.INFLUENCER_TABS, .INFLUENCE_TIERS, .DISCOVERY_TIERS, .INFLUENCER_RULES
       KUP_PLATFORM.RATING_SYSTEM
   -->
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
-
-  <script>
-    // Auth gate + load partnerships
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = '/pages/login.html'; return; }
-
-      let brandId = null;
-      try {
-        const stored = localStorage.getItem('kup_active_brand');
-        if (stored) brandId = JSON.parse(stored).id;
-      } catch(e) {}
-
-      if (!brandId) { window.location.href = 'manage-brands.html'; return; }
-
-      try {
-        const data = await kupApi.get('/api/partnerships?brandId=' + brandId);
-        updateInfluencerStats(data.stats || {}, data.partnerships || []);
-      } catch (err) {
-        console.error('Failed to load partnerships:', err);
-      }
-
-      // Wire logout
-      const logoutLink = document.querySelector('.logout');
-      if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
-      }
-    });
-
-    function updateInfluencerStats(stats, partnerships) {
-      // Update stat card values
-      const statValues = document.querySelectorAll('.stat-card-value');
-      if (statValues[0]) statValues[0].textContent = stats.total || 0;
-      if (statValues[1]) statValues[1].textContent = stats.active || 0;
-
-      // Update tab badges
-      const tabBadges = document.querySelectorAll('.tab-badge, .kup-tab-badge');
-      if (tabBadges[0]) tabBadges[0].textContent = stats.total || 0;
-    }
-  </script>
-
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>

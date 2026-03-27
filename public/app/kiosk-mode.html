@@ -290,7 +290,7 @@
             <div class="divider"></div>
             <a href="help-center.html">Help Center</a>
             <div class="divider"></div>
-            <a href="#" class="logout" onclick="firebase.auth().signOut().then(function(){window.location.href='/pages/login.html'});return false;">Log Out</a>
+            <a href="/pages/login.html" class="logout">Log Out</a>
           </div>
         </div>
       </div>
@@ -525,155 +525,7 @@
   <!-- ========== FOOTER ========== -->
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
 
-  <!-- Firebase SDK + Auth -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
-
   <script>
-    // ========== Auth Gate ==========
-    firebase.auth().onAuthStateChanged(async function(user) {
-      if (!user) {
-        window.location.href = '/pages/login.html';
-        return;
-      }
-      // Load kiosk config for the active brand
-      loadKioskConfig();
-    });
-
-    // Get active brand from localStorage
-    function getActiveBrand() {
-      try {
-        var stored = localStorage.getItem('kup_active_brand');
-        if (stored) return JSON.parse(stored);
-      } catch(e) {}
-      return null;
-    }
-
-    // ========== Load Kiosk Config from API ==========
-    async function loadKioskConfig() {
-      var brand = getActiveBrand();
-      if (!brand || !brand._id) {
-        kupToast('No active brand selected. Go to Manage Brands first.', 'error');
-        return;
-      }
-
-      try {
-        var resp = await kupApi.get('/api/kiosk/config/' + brand._id);
-
-        // Populate form fields with saved config
-        var k = resp.kiosk;
-        if (k.kioskOfferTitle) document.getElementById('offerTitle').value = k.kioskOfferTitle;
-        if (k.kioskRewardValue) document.getElementById('rewardValue').value = k.kioskRewardValue;
-        if (k.kioskDailyRewardCap) document.getElementById('dailyCap').value = k.kioskDailyRewardCap;
-
-        // Reward type select
-        var rtMap = { 'free_item': 'free-item', 'discount_percent': 'discount-pct', 'discount_fixed': 'discount-dollar', 'points': 'points' };
-        if (k.kioskRewardType && rtMap[k.kioskRewardType]) {
-          document.getElementById('rewardType').value = rtMap[k.kioskRewardType];
-        }
-
-        // Recording limit
-        if (k.kioskRecordingLimit) {
-          document.getElementById('recordingLimit').value = String(k.kioskRecordingLimit);
-        }
-
-        // Toggle: Kiosk enabled
-        var toggleInput = document.getElementById('kioskToggleInput');
-        toggleInput.checked = !!k.kioskEnabled;
-        updateKioskStatus(k.kioskEnabled, k.kioskActiveLocations || 0);
-
-        // Toggle: Auto-approve (3rd toggle on page — the one inside kiosk-form-toggle)
-        var toggles = document.querySelectorAll('.kiosk-form-toggle .kiosk-toggle input[type="checkbox"]');
-        if (toggles[0]) toggles[0].checked = !!k.kioskAutoApprove;
-        if (toggles[1]) toggles[1].checked = !!k.kioskRequireSmsVerify;
-
-        // Branding color
-        if (k.kioskBrandingColor) {
-          document.getElementById('brandColor').value = k.kioskBrandingColor;
-          document.getElementById('colorPickerInput').value = k.kioskBrandingColor;
-          document.getElementById('colorSwatch').style.background = k.kioskBrandingColor;
-        }
-
-        // Kiosk URL
-        if (k.kioskBrandCode) {
-          var kioskUrl = window.location.origin + '/app/kiosk-display.html?brand=' + k.kioskBrandCode;
-          document.getElementById('kioskUrlDisplay').textContent = kioskUrl;
-        }
-
-        // Update sidebar brand info
-        var brandNameEl = document.querySelector('.brand-identity .brand-name');
-        if (brandNameEl) brandNameEl.textContent = brand.name || 'Your Brand';
-        var brandInitials = document.querySelector('.brand-identity .logo-circle');
-        if (brandInitials) brandInitials.textContent = (brand.initials || brand.name.substring(0,2)).toUpperCase();
-
-        // Stats
-        if (resp.stats) {
-          var countEl = document.querySelector('.scan-counter .count');
-          if (countEl) countEl.textContent = resp.stats.totalRewards || 0;
-        }
-
-      } catch(err) {
-        console.error('Failed to load kiosk config:', err);
-        // Brand might not have kiosk configured yet — that's OK, use defaults
-      }
-    }
-
-    function updateKioskStatus(enabled, locations) {
-      var statusDot = document.getElementById('statusDot');
-      var statusText = document.getElementById('statusText');
-      if (enabled) {
-        statusDot.className = 'status-dot active';
-        statusText.innerHTML = 'Active &mdash; ' + Math.max(1, locations) + ' Location' + (locations !== 1 ? 's' : '');
-      } else {
-        statusDot.className = 'status-dot inactive';
-        statusText.innerHTML = 'Inactive';
-      }
-    }
-
-    // ========== Save Kiosk Settings (wired to API) ==========
-    async function saveKioskSettings() {
-      var brand = getActiveBrand();
-      if (!brand || !brand._id) {
-        kupToast('No active brand selected.', 'error');
-        return;
-      }
-
-      // Map UI reward type to API enum
-      var rtUItoAPI = { 'free-item': 'free_item', 'discount-pct': 'discount_percent', 'discount-dollar': 'discount_fixed', 'points': 'points' };
-
-      // Get toggle states
-      var toggles = document.querySelectorAll('.kiosk-form-toggle .kiosk-toggle input[type="checkbox"]');
-
-      var payload = {
-        kioskEnabled: document.getElementById('kioskToggleInput').checked,
-        kioskOfferTitle: document.getElementById('offerTitle').value.trim(),
-        kioskRewardType: rtUItoAPI[document.getElementById('rewardType').value] || 'discount_percent',
-        kioskRewardValue: document.getElementById('rewardValue').value.trim(),
-        kioskRecordingLimit: parseInt(document.getElementById('recordingLimit').value) || 60,
-        kioskAutoApprove: toggles[0] ? toggles[0].checked : false,
-        kioskRequireSmsVerify: toggles[1] ? toggles[1].checked : false,
-        kioskDailyRewardCap: parseInt(document.getElementById('dailyCap').value) || 50,
-        kioskBrandingColor: document.getElementById('brandColor').value,
-      };
-
-      try {
-        var resp = await kupApi.put('/api/kiosk/config/' + brand._id, payload);
-        kupToast('Kiosk settings saved successfully!', 'success');
-
-        // Update kiosk URL if brand code was generated
-        if (resp.kiosk && resp.kiosk.kioskBrandCode) {
-          var kioskUrl = window.location.origin + '/app/kiosk-display.html?brand=' + resp.kiosk.kioskBrandCode;
-          document.getElementById('kioskUrlDisplay').textContent = kioskUrl;
-        }
-
-        updateKioskStatus(payload.kioskEnabled, resp.kiosk ? resp.kiosk.kioskActiveLocations : 0);
-      } catch(err) {
-        kupToast('Failed to save kiosk settings: ' + (err.message || 'Unknown error'), 'error');
-      }
-    }
-
     // ========== QR Grid Generation ==========
     (function() {
       var grid = document.getElementById('kioskQrGrid');
@@ -709,29 +561,32 @@
 
     // ========== Kiosk Mode Toggle ==========
     var kioskToggleInput = document.getElementById('kioskToggleInput');
+    var statusDot = document.getElementById('statusDot');
+    var statusText = document.getElementById('statusText');
+
     if (kioskToggleInput) {
       kioskToggleInput.addEventListener('change', function() {
-        updateKioskStatus(this.checked, 1);
-        kupToast(this.checked ? 'Kiosk Mode enabled' : 'Kiosk Mode disabled', this.checked ? 'success' : 'info');
+        if (this.checked) {
+          statusDot.className = 'status-dot active';
+          statusText.innerHTML = 'Active &mdash; 1 Location';
+          kupToast('Kiosk Mode enabled', 'success');
+        } else {
+          statusDot.className = 'status-dot inactive';
+          statusText.innerHTML = 'Inactive';
+          kupToast('Kiosk Mode disabled', 'info');
+        }
       });
     }
 
     // ========== Preview Kiosk ==========
     function previewKiosk() {
-      var brand = getActiveBrand();
-      var urlEl = document.getElementById('kioskUrlDisplay');
-      if (urlEl && urlEl.textContent.includes('brand=')) {
-        window.open(urlEl.textContent, '_blank');
-      } else {
-        window.open('kiosk-display.html', '_blank');
-      }
+      window.open('kiosk-display.html', '_blank');
     }
 
     // ========== Copy Kiosk URL ==========
     function copyKioskUrl() {
-      var urlEl = document.getElementById('kioskUrlDisplay');
-      var url = urlEl ? urlEl.textContent : '';
-      if (navigator.clipboard && url) {
+      var url = 'https://keepuspostd.com/kiosk/keepuspostd';
+      if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(function() {
           var hint = document.getElementById('kioskUrlHint');
           if (hint) {
@@ -743,6 +598,11 @@
       } else {
         kupToast('URL: ' + url, 'info');
       }
+    }
+
+    // ========== Save Kiosk Settings ==========
+    function saveKioskSettings() {
+      kupToast('Kiosk settings saved successfully!', 'success');
     }
 
     // ========== Color Picker Sync ==========
