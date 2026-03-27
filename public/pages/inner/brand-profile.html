@@ -648,7 +648,7 @@
     function getBrandInitials(name) {
       if (!name) return 'KP';
       var words = name.trim().split(/\s+/);
-      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+      if (words.length === 1) return words[0].charAt(0).toUpperCase();
       return words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
     }
 

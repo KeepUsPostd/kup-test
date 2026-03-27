@@ -6,6 +6,15 @@ const { requireAuth } = require('../middleware/auth');
 const { requireBrandRole } = require('../middleware/brandAccess');
 const { Brand, BrandProfile, BrandMember } = require('../models');
 
+// Generate consistent brand initials: single word → first letter, multi-word → first letter of each (max 3)
+function computeInitials(name) {
+  if (!name) return 'K';
+  const words = name.trim().split(/\s+/);
+  return words.length === 1
+    ? words[0].charAt(0).toUpperCase()
+    : words.map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3);
+}
+
 // Plan limits from PLATFORM_ARCHITECTURE.md
 const PLAN_LIMITS = {
   starter: { brands: 1, campaignsPerBrand: 1, influencers: 10, adminSeats: 1 },
@@ -56,10 +65,7 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // Generate initials and color from name
-    const words = name.trim().split(/\s+/);
-    const initials = words.length >= 2
-      ? (words[0][0] + words[1][0]).toUpperCase()
-      : name.substring(0, 2).toUpperCase();
+    const initials = computeInitials(name);
 
     // Deterministic color from name hash
     let hash = 0;
@@ -126,11 +132,13 @@ router.get('/', requireAuth, async (req, res) => {
       status: { $ne: 'deleted' },
     });
 
-    // Attach role info to each brand
+    // Attach role info + recompute initials for consistency
     const brandsWithRoles = brands.map(brand => {
       const membership = memberships.find(m => m.brandId.equals(brand._id));
+      const obj = brand.toObject();
+      obj.initials = computeInitials(obj.name);
       return {
-        ...brand.toObject(),
+        ...obj,
         userRole: membership ? membership.role : null,
       };
     });
@@ -151,8 +159,11 @@ router.get('/:brandId', requireAuth, requireBrandRole('viewer'), async (req, res
       return res.status(404).json({ error: 'Brand not found' });
     }
 
+    // Recompute initials for consistency (single word = first letter only)
+    const brandObj = brand.toObject();
+    brandObj.initials = computeInitials(brandObj.name);
     res.json({
-      brand,
+      brand: brandObj,
       userRole: req.brandMembership.role,
     });
   } catch (error) {

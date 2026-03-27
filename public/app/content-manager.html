@@ -1476,7 +1476,7 @@
         captionWrap.style.display = 'none';
       }
 
-      // Influencer
+      // Influencer avatar — show their initials
       document.getElementById('cmAvatar').textContent = item.initials;
       if (item.avatarStyle) { document.getElementById('cmAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('cmAvatar').removeAttribute('style'); }
       document.getElementById('cmInfluencer').textContent = item.influencer;
@@ -3033,14 +3033,14 @@
     function getBrandInitials(name) {
       if (!name) return 'KP';
       var words = name.trim().split(/\s+/);
-      if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+      if (words.length === 1) return words[0].charAt(0).toUpperCase();
       return words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
     }
 
     // Load brand logo URL and initials from the brand's profile
     async function loadBrandLogo() {
       try {
-        var brand = typeof getActiveBrand === 'function' ? getActiveBrand() : null;
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.getActiveBrand) ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
         // Set initials from localStorage brand context first (instant)
         if (brand) {
           brandInitials = brand.abbreviation || getBrandInitials(brand.name) || 'KP';

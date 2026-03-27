@@ -68,7 +68,7 @@ var KUP_BRAND_CONTEXT = (function() {
         if (!active.abbreviation && active.name) {
           var words = active.name.trim().split(/\s+/);
           active.abbreviation = words.length === 1
-            ? words[0].substring(0, 2).toUpperCase()
+            ? words[0].charAt(0).toUpperCase()
             : words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
           setActiveBrand(active);
         }
@@ -559,7 +559,7 @@ var KUP_BRAND_CONTEXT = (function() {
             // Sync name-derived abbreviation if missing
             if (!match.abbreviation && apiBrand.name) {
               var words = apiBrand.name.trim().split(/\s+/);
-              match.abbreviation = words.length === 1 ? words[0].substring(0, 2).toUpperCase() : words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
+              match.abbreviation = words.length === 1 ? words[0].charAt(0).toUpperCase() : words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
               changed = true;
             }
           } else {

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <!-- KUP Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <style>
+    body { background: #fff; color: #111; min-height: 100vh; overflow-x: hidden; }
+
+    /* ---- Top nav bar (Contra-style) ---- */
+    .cd-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #f0f0f0;
+      padding: 12px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .cd-topbar-left {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .cd-back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #666; font-size: 0.82rem; font-weight: 600;
+      text-decoration: none; transition: color 0.2s;
+      font-family: var(--kup-font);
+    }
+    .cd-back-btn:hover { color: #111; }
+    .cd-topbar-logo { height: 22px; }
+    .cd-topbar-ctas { display: flex; align-items: center; gap: 12px; }
+    .cd-topbar-login {
+      font-size: 0.8rem; font-weight: 600; color: #444;
+      text-decoration: none; font-family: var(--kup-font);
+    }
+    .cd-topbar-login:hover { color: #111; }
+    .cd-topbar-signup {
+      font-size: 0.78rem; font-weight: 700; padding: 8px 22px;
+      border-radius: 24px; text-decoration: none; color: #fff;
+      background: #111; transition: opacity 0.2s;
+      font-family: var(--kup-font);
+    }
+    .cd-topbar-signup:hover { opacity: 0.8; color: #fff; }
+
+    /* ---- Main split layout ---- */
+    .cd-page {
+      display: flex; min-height: 100vh; padding-top: 52px;
+      justify-content: center; /* center both sections horizontally */
+      max-width: 1080px; margin: 0 auto;
+    }
+
+    /* Left: Phone-shaped card */
+    .cd-main {
+      flex: 0 0 auto;
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 20px 0;
+    }
+
+    /* Right: Sidebar — hugs the phone */
+    .cd-sidebar {
+      width: 340px; flex-shrink: 0;
+      padding: 20px 12px 32px 20px; position: sticky; top: 52px;
+      height: calc(100vh - 52px); overflow-y: auto;
+      border-left: 1px solid #f0f0f0;
+    }
+
+    /* ---- Phone-shaped card (no casing, just rounded content) ---- */
+    .cd-phone-card {
+      max-width: 400px; width: 100%;
+      background: #fff; border-radius: 36px;
+      overflow: hidden; overflow-y: auto;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+      border: 1px solid #f0f0f0;
+      height: calc(100vh - 92px);
+      scrollbar-width: none;
+    }
+    .cd-phone-card::-webkit-scrollbar { display: none; }
+
+    /* Hero image header (matches clicked card) */
+    .cd-hero-img {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover;
+      display: block;
+    }
+    .cd-hero-overlay {
+      position: relative;
+    }
+    .cd-hero-overlay::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(transparent, #fff);
+    }
+    .cd-hero-back {
+      position: absolute; top: 16px; left: 16px; z-index: 2;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      color: #333; text-decoration: none; font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+    }
+    .cd-hero-back:hover { background: #fff; color: #111; }
+    .cd-hero-platform {
+      position: absolute; top: 16px; right: 16px; z-index: 2;
+      padding: 5px 12px; border-radius: 16px;
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+      font-size: 0.7rem; font-weight: 600; color: #333;
+      font-family: var(--kup-font);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .cd-hero-participants {
+      position: absolute; bottom: 24px; left: 20px; z-index: 2;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cd-hero-participants img {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid #fff; margin-left: -8px;
+    }
+    .cd-hero-participants img:first-child { margin-left: 0; }
+    .cd-hero-participants span {
+      font-size: 0.7rem; color: #fff; font-weight: 500;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      font-family: var(--kup-font);
+    }
+
+    /* Phone content body */
+    .cd-phone-body {
+      padding: 0 24px 32px; position: relative; margin-top: -20px; z-index: 1;
+    }
+
+    /* Creator profile section inside phone */
+    .cd-profile-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+    }
+    .cd-profile-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      object-fit: cover; border: 3px solid #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .cd-profile-name {
+      font-size: 1.1rem; font-weight: 800; color: #111;
+      font-family: var(--kup-font); line-height: 1.2;
+    }
+    .cd-profile-handle {
+      font-size: 0.78rem; color: #999; font-family: var(--kup-font);
+    }
+
+    /* Badges inside phone */
+    .cd-phone-badges {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;
+    }
+    .cd-phone-badge {
+      font-size: 0.65rem; font-weight: 600; padding: 4px 12px;
+      border-radius: 16px; background: #f5f5f5; color: #555;
+      font-family: var(--kup-font);
+    }
+    .cd-phone-badge-tier {
+      background: var(--kup-gradient); color: #fff;
+    }
+
+    /* Stats row inside phone */
+    .cd-phone-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-bottom: 20px;
+    }
+    .cd-phone-stat {
+      text-align: center; background: #fafafa; border-radius: 12px;
+      padding: 12px 8px;
+    }
+    .cd-phone-stat-val {
+      font-size: 1.05rem; font-weight: 800; color: #111; display: block;
+      font-family: var(--kup-font);
+    }
+    .cd-phone-stat-lbl {
+      font-size: 0.55rem; color: #999; text-transform: uppercase;
+      letter-spacing: 0.5px; font-family: var(--kup-font);
+    }
+
+    /* Caption / post content */
+    .cd-phone-caption {
+      font-size: 0.85rem; color: #444; line-height: 1.7;
+      margin-bottom: 20px; font-family: var(--kup-font);
+    }
+
+    /* Engagement row */
+    .cd-phone-engagement {
+      display: flex; gap: 16px; align-items: center;
+      padding: 14px 0; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 20px;
+    }
+    .cd-phone-eng-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.78rem; color: #666; font-family: var(--kup-font);
+    }
+    .cd-phone-eng-item strong { color: #111; font-weight: 700; }
+
+    /* Tags inside phone */
+    .cd-phone-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+    }
+    .cd-phone-tag {
+      font-size: 0.65rem; font-weight: 500; padding: 4px 10px;
+      border-radius: 12px; background: #f5f5f7; color: #2EA5DD;
+      font-family: var(--kup-font);
+    }
+
+    /* Brand partnership in phone */
+    .cd-phone-brand {
+      display: flex; align-items: center; gap: 12px;
+      background: #fafafa; border-radius: 14px; padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .cd-phone-brand-logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--kup-gradient); display: flex; align-items: center;
+      justify-content: center; font-size: 0.85rem; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .cd-phone-brand-name {
+      font-size: 0.8rem; font-weight: 700; color: #111; font-family: var(--kup-font);
+    }
+    .cd-phone-brand-sub {
+      font-size: 0.65rem; color: #999; font-family: var(--kup-font);
+    }
+    .cd-phone-brand-status {
+      margin-left: auto; font-size: 0.6rem; font-weight: 700; color: #16a34a;
+      background: #f0fdf4; padding: 4px 10px; border-radius: 8px;
+    }
+
+    /* KUP app CTA buttons inside phone */
+    .cd-phone-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .cd-phone-action-btn {
+      flex: 1; min-width: 100px; padding: 10px 14px;
+      border-radius: 12px; border: 1px solid #e8e8e8; background: #fff;
+      font-size: 0.7rem; font-weight: 600; color: #333;
+      font-family: var(--kup-font); cursor: pointer; text-align: center;
+      transition: background 0.15s;
+    }
+    .cd-phone-action-btn:hover { background: #f8f8f8; }
+
+    /* ======== RIGHT SIDEBAR ======== */
+    .cd-sb-section { margin-bottom: 28px; }
+    .cd-sb-label {
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
+      color: #999; font-weight: 700; margin-bottom: 12px;
+      font-family: var(--kup-font);
+    }
+    .cd-sb-title {
+      font-size: 1.5rem; font-weight: 800; color: #111;
+      line-height: 1.15; margin-bottom: 4px;
+      font-family: var(--kup-font);
+    }
+    .cd-sb-handle {
+      font-size: 0.82rem; color: #999; margin-bottom: 16px;
+      font-family: var(--kup-font);
+    }
+    .cd-sb-location {
+      font-size: 0.78rem; color: #888; display: flex; align-items: center; gap: 5px;
+      margin-bottom: 20px; font-family: var(--kup-font);
+    }
+
+    /* Sidebar badges */
+    .cd-sb-badges {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+    }
+    .cd-sb-badge {
+      font-size: 0.65rem; font-weight: 600; padding: 5px 12px;
+      border-radius: 16px; background: #f5f5f5; color: #555;
+      font-family: var(--kup-font);
+    }
+
+    /* Sidebar stats */
+    .cd-sb-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .cd-sb-stat {
+      background: #fafafa; border-radius: 12px; padding: 14px 12px;
+      text-align: center;
+    }
+    .cd-sb-stat-val {
+      font-size: 1.1rem; font-weight: 800; color: #111; display: block;
+      font-family: var(--kup-font);
+    }
+    .cd-sb-stat-lbl {
+      font-size: 0.55rem; color: #999; text-transform: uppercase;
+      letter-spacing: 0.5px; font-family: var(--kup-font);
+    }
+
+    /* Sidebar bio */
+    .cd-sb-bio {
+      font-size: 0.82rem; color: #666; line-height: 1.65;
+      margin-bottom: 24px; font-family: var(--kup-font);
+    }
+
+    /* How it works (sidebar) */
+    .cd-sb-steps { margin-bottom: 24px; }
+    .cd-sb-step {
+      display: flex; gap: 12px; align-items: flex-start;
+      margin-bottom: 16px; position: relative;
+    }
+    .cd-sb-step:last-child { margin-bottom: 0; }
+    .cd-sb-step-num {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800; color: #fff;
+      font-family: var(--kup-font);
+    }
+    .cd-sb-step-num.s1 { background: #2EA5DD; }
+    .cd-sb-step-num.s2 { background: #8B5CF6; }
+    .cd-sb-step-num.s3 { background: #10B981; }
+    .cd-sb-step-num.s4 { background: #F59E0B; }
+    .cd-sb-step-title {
+      font-size: 0.75rem; font-weight: 700; color: #111;
+      font-family: var(--kup-font); margin-bottom: 2px;
+    }
+    .cd-sb-step-desc {
+      font-size: 0.68rem; color: #888; line-height: 1.45;
+      font-family: var(--kup-font);
+    }
+
+    /* Cost comparison (sidebar) */
+    .cd-sb-cost {
+      display: flex; gap: 12px; margin-bottom: 20px;
+    }
+    .cd-sb-cost-col {
+      flex: 1; text-align: center; background: #fafafa;
+      border-radius: 12px; padding: 14px 10px;
+    }
+    .cd-sb-cost-col.old { opacity: 0.5; }
+    .cd-sb-cost-label {
+      font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #999; margin-bottom: 4px; font-family: var(--kup-font);
+    }
+    .cd-sb-cost-price {
+      font-size: 1.2rem; font-weight: 800; font-family: var(--kup-font);
+    }
+    .cd-sb-cost-col.old .cd-sb-cost-price {
+      color: #bbb; text-decoration: line-through;
+    }
+    .cd-sb-cost-col.kup .cd-sb-cost-price {
+      background: var(--kup-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .cd-sb-cost-detail {
+      font-size: 0.58rem; color: #aaa; margin-top: 2px;
+      font-family: var(--kup-font);
+    }
+
+    /* Trust signals (sidebar) */
+    .cd-sb-trust {
+      display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;
+    }
+    .cd-sb-trust-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.7rem; color: #666; font-family: var(--kup-font);
+    }
+    .cd-sb-trust-icon {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: #f0fdf4; color: #10B981;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    /* Sidebar CTA */
+    .cd-sb-cta {
+      display: block; width: 100%; padding: 12px 20px; text-align: center;
+      border-radius: 24px; text-decoration: none; color: #fff;
+      background: #111; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--kup-font); transition: opacity 0.2s;
+      margin-bottom: 10px;
+    }
+    .cd-sb-cta:hover { opacity: 0.8; color: #fff; }
+    .cd-sb-cta-ghost {
+      display: block; width: 100%; padding: 12px 20px; text-align: center;
+      border-radius: 24px; text-decoration: none; color: #555;
+      background: #f5f5f5; font-size: 0.8rem; font-weight: 600;
+      font-family: var(--kup-font); transition: background 0.2s;
+    }
+    .cd-sb-cta-ghost:hover { background: #eee; color: #333; }
+
+    /* Divider */
+    .cd-sb-divider {
+      height: 1px; background: #f0f0f0; margin: 24px 0;
+    }
+
+    /* Sidebar scrollbar styling */
+    .cd-sidebar::-webkit-scrollbar { width: 4px; }
+    .cd-sidebar::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+    /* ---- Animations ---- */
+    .cd-main { animation: cd-fade-up 0.5s ease both; }
+    .cd-sidebar { animation: cd-fade-up 0.5s ease 0.12s both; }
+    @keyframes cd-fade-up {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 991px) {
+      .cd-page { flex-direction: column; }
+      .cd-main {
+        width: 100%; border-right: none; border-bottom: 1px solid #f0f0f0;
+        align-items: center; padding: 16px;
+      }
+      .cd-sidebar {
+        width: 100%; position: relative; top: auto;
+        height: auto; padding: 32px 24px 60px;
+      }
+      .cd-phone-card {
+        max-width: 400px; height: auto; min-height: 0;
+        border-radius: 32px;
+      }
+      .cd-sb-stats { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 576px) {
+      .cd-topbar { padding: 10px 16px; }
+      .cd-phone-card { border-radius: 24px; margin: 8px 12px; }
+      .cd-hero-img { aspect-ratio: 16/10; }
+      .cd-phone-body { padding: 0 16px 24px; }
+      .cd-sb-stats { grid-template-columns: repeat(2, 1fr); }
+      .cd-phone-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="cd-topbar">
+    <div class="cd-topbar-left">
+      <a href="home.html" class="cd-back-btn">
+        <i class="ph ph-arrow-left" style="font-size:18px;"></i>
+      </a>
+      <a href="home.html"><img src="/images/kup_gradient_new_logo.png" alt="KUP" class="cd-topbar-logo"></a>
+    </div>
+    <div class="cd-topbar-ctas">
+      <a href="login.html" class="cd-topbar-login">Log In</a>
+      <a href="register-brand.html" class="cd-topbar-signup">Sign Up</a>
+    </div>
+  </div>
+
+  <!-- Page Layout -->
+  <div class="cd-page">
+
+    <!-- LEFT: Phone-shaped content card (72%) -->
+    <div class="cd-main">
+      <div class="cd-phone-card" id="phoneCard">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT: Sidebar (28%) -->
+    <div class="cd-sidebar" id="sidebarContent">
+      <!-- Rendered by JS -->
+    </div>
+
+  </div>
+
+<script>
+  // ---- Creator Data ----
+  const kupInfluencers = [
+    { id:0, name:"Maya Delacroix", handle:"maya.eats", category:"Food & Culture", platform:"Instagram", followers:"42.1K", engagement:"4.8%", location:"New Orleans, LA", avatar:"https://i.pravatar.cc/150?img=47", postImg:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop", caption:"Found the most incredible hidden gem in the city and HAD to bring y'all along. The gumbo is absolutely unreal. Huge thanks to the team, highly recommend! #FoodReview #NewOrleans #KeepUsPostd", likes:"2,847", comments:"134", brandName:"Dooky Chase's Restaurant", postedAt:"2 hours ago", tags:["#FoodCulture","#NewOrleans","#KeepUsPostd"] },
+    { id:1, name:"Trey Mitchell", handle:"fitwithtrey", category:"Fitness & Wellness", platform:"TikTok", followers:"18.3K", engagement:"7.2%", location:"Atlanta, GA", avatar:"https://i.pravatar.cc/150?img=12", postImg:"https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=600&fit=crop", caption:"My new go-to spot for post-workout fuel. The macro-balanced meals here are a game changer for anyone serious about their goals! #FitnessLife #HealthyEating #KeepUsPostd", likes:"4,201", comments:"287", brandName:"GreenPlate Kitchen", postedAt:"5 hours ago", tags:["#FitnessLife","#HealthyEats","#KeepUsPostd"] },
+    { id:2, name:"Sasha Williams", handle:"shopwithsasha", category:"Fashion & Style", platform:"Instagram", followers:"31.7K", engagement:"5.1%", location:"Houston, TX", avatar:"https://i.pravatar.cc/150?img=25", postImg:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=600&fit=crop", caption:"This collection is everything I didn't know I needed. The quality is insane for the price. Run, don't walk! #Fashion #OOTD #KeepUsPostd", likes:"6,420", comments:"392", brandName:"Luxe & Simple Co.", postedAt:"1 day ago", tags:["#Fashion","#OOTD","#KeepUsPostd"] },
+    { id:3, name:"Jordan Reyes", handle:"jordanlocal", category:"Local Business", platform:"TikTok", followers:"12.9K", engagement:"8.4%", location:"Dallas, TX", avatar:"https://i.pravatar.cc/150?img=33", postImg:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&h=600&fit=crop", caption:"This is what community looks like. Been coming here for years and they just keep getting better. #SupportLocal #KeepUsPostd", likes:"1,893", comments:"211", brandName:"Barrio's Tacos", postedAt:"2 days ago", tags:["#SupportLocal","#Community","#KeepUsPostd"] },
+    { id:4, name:"Naomi Ellis", handle:"beautybynaomi", category:"Beauty & Skincare", platform:"Instagram", followers:"28.4K", engagement:"6.3%", location:"Miami, FL", avatar:"https://i.pravatar.cc/150?img=54", postImg:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop", caption:"The glow-up is REAL. Three weeks in and I cannot believe the difference. This is not an ad. This is just facts! #Skincare #BeautyRoutine #KeepUsPostd", likes:"8,132", comments:"445", brandName:"Radiant Beauty Bar", postedAt:"3 days ago", tags:["#BeautyRoutine","#GlowUp","#KeepUsPostd"] },
+    { id:5, name:"Chris Fontaine", handle:"chrisfontaineats", category:"Food & Travel", platform:"YouTube", followers:"67.2K", engagement:"3.9%", location:"Chicago, IL", avatar:"https://i.pravatar.cc/150?img=8", postImg:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop", caption:"You NEED to put this spot on your bucket list. The whole experience was next level and the team made us feel like family. 10/10! #FoodTravel #HiddenGems #KeepUsPostd", likes:"12,405", comments:"621", brandName:"The Harbor House", postedAt:"4 days ago", tags:["#FoodTravel","#HiddenGems","#KeepUsPostd"] },
+    { id:6, name:"Deja Morris", handle:"dejalifts", category:"Fitness & Wellness", platform:"TikTok", followers:"9.7K", engagement:"9.1%", location:"Houston, TX", avatar:"https://i.pravatar.cc/150?img=44", postImg:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop", caption:"This supplement line actually works and I only found it through KeepUsPostd. Small brand, big results. Support the locals! #WellnessLife #Fitness #KeepUsPostd", likes:"3,544", comments:"198", brandName:"Apex Nutrition Co.", postedAt:"1 day ago", tags:["#WellnessLife","#Fitness","#KeepUsPostd"] },
+    { id:7, name:"Aaliyah Grant", handle:"aaliyahcooks", category:"Food & Lifestyle", platform:"Instagram", followers:"22.1K", engagement:"5.6%", location:"New Orleans, LA", avatar:"https://i.pravatar.cc/150?img=49", postImg:"https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&h=600&fit=crop", caption:"Y'all... this praline shop is EVERYTHING. Walked in, scanned the QR code, left a review and they rewarded me same day. This is how brands should operate! #FoodLover #NewOrleans #KeepUsPostd", likes:"5,788", comments:"312", brandName:"Chaney's Pralines", postedAt:"3 hours ago", tags:["#FoodLover","#NewOrleans","#KeepUsPostd"] },
+    { id:8, name:"Marcus Webb", handle:"marcusinthewild", category:"Outdoor & Adventure", platform:"Instagram", followers:"35.6K", engagement:"4.4%", location:"Austin, TX", avatar:"https://i.pravatar.cc/150?img=15", postImg:"https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=800&h=600&fit=crop", caption:"Partnered with this brand through KeepUsPostd and the whole experience was seamless. Submitted my content, got approved in 24 hours, and the reward hit my wallet. This is the future. #OutdoorLife #BrandPartner #KeepUsPostd", likes:"7,209", comments:"403", brandName:"Wilder Goods", postedAt:"6 hours ago", tags:["#OutdoorLife","#Adventure","#KeepUsPostd"] }
+  ];
+
+  // ---- Get creator from URL ----
+  const params = new URLSearchParams(window.location.search);
+  const creatorId = parseInt(params.get('id')) || 0;
+  const c = kupInfluencers[creatorId] || kupInfluencers[0];
+
+  // ---- Derived data ----
+  const engNum = parseFloat(c.engagement);
+  const tier = engNum > 7 ? 'Elite Creator' : engNum > 5 ? 'Verified' : 'Rising Star';
+  const likesNum = parseInt(c.likes.replace(/,/g, '')) || 500;
+  const points = Math.round(likesNum * 0.8);
+  const cash = (points * 0.015).toFixed(2);
+  const progress = Math.min(Math.round((points / 2000) * 100), 92);
+  const remaining = Math.max(2000 - points, 0);
+  const brandInitial = c.brandName ? c.brandName.charAt(0).toUpperCase() : 'K';
+  const platformIcons = { Instagram: '📸', TikTok: '🎵', YouTube: '▶️' };
+  const platformIcon = platformIcons[c.platform] || '📱';
+  const followNum = parseFloat(c.followers.replace(/[K,]/g,'')) * (c.followers.includes('K') ? 1000 : 1);
+  const cpm = (engNum > 6 ? 3.2 : engNum > 4 ? 5.8 : 8.1).toFixed(1);
+  const reachRate = Math.round(engNum * 8.5);
+  const convRate = (engNum * 0.6).toFixed(1);
+  const tradCost = followNum > 30000 ? '$2,500' : '$1,200';
+
+  // ---- Update page title ----
+  document.title = c.name + ' — KeepUsPostd Creator';
+
+  // ---- Render phone card (left side) ----
+  document.getElementById('phoneCard').innerHTML = `
+    <!-- Hero image (same as the card they clicked) -->
+    <div class="cd-hero-overlay">
+      <a href="home.html" class="cd-hero-back"><i class="ph ph-arrow-left"></i></a>
+      <span class="cd-hero-platform">${platformIcon} ${c.platform}</span>
+      <img class="cd-hero-img" src="${c.postImg}" alt="${c.name}'s post" loading="lazy">
+    </div>
+
+    <!-- Content body -->
+    <div class="cd-phone-body">
+      <!-- Profile -->
+      <div class="cd-profile-row">
+        <img class="cd-profile-avatar" src="${c.avatar}" alt="${c.name}">
+        <div>
+          <div class="cd-profile-name">${c.name}</div>
+          <div class="cd-profile-handle">@${c.handle}</div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="cd-phone-badges">
+        <span class="cd-phone-badge cd-phone-badge-tier">${tier}</span>
+        <span class="cd-phone-badge">${c.category}</span>
+        <span class="cd-phone-badge"><i class="ph ph-map-pin" style="font-size:11px;"></i> ${c.location}</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="cd-phone-stats">
+        <div class="cd-phone-stat">
+          <span class="cd-phone-stat-val">${c.followers}</span>
+          <span class="cd-phone-stat-lbl">Followers</span>
+        </div>
+        <div class="cd-phone-stat">
+          <span class="cd-phone-stat-val">${c.engagement}</span>
+          <span class="cd-phone-stat-lbl">Engagement</span>
+        </div>
+        <div class="cd-phone-stat">
+          <span class="cd-phone-stat-val">${c.likes}</span>
+          <span class="cd-phone-stat-lbl">Avg Likes</span>
+        </div>
+      </div>
+
+      <!-- Caption -->
+      <div class="cd-phone-caption">${c.caption}</div>
+
+      <!-- Engagement -->
+      <div class="cd-phone-engagement">
+        <div class="cd-phone-eng-item"><i class="ph ph-heart" style="font-size:14px;"></i> <strong>${c.likes}</strong> likes</div>
+        <div class="cd-phone-eng-item"><i class="ph ph-chat-circle" style="font-size:14px;"></i> <strong>${c.comments}</strong> comments</div>
+        <div class="cd-phone-eng-item" style="margin-left:auto;color:#bbb;font-size:0.7rem;">${c.postedAt}</div>
+      </div>
+
+      <!-- Tags -->
+      <div class="cd-phone-tags">
+        ${c.tags.map(t => '<span class="cd-phone-tag">' + t + '</span>').join('')}
+        <span class="cd-phone-tag">#KUPCreator</span>
+      </div>
+
+      <!-- Brand partnership -->
+      <div class="cd-phone-brand">
+        <div class="cd-phone-brand-logo">${brandInitial}</div>
+        <div>
+          <div class="cd-phone-brand-name">${c.brandName}</div>
+          <div class="cd-phone-brand-sub">Content Campaign</div>
+        </div>
+        <span class="cd-phone-brand-status">Active</span>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="cd-phone-actions">
+        <button class="cd-phone-action-btn"><i class="ph ph-plus" style="font-size:12px;"></i> Create Post</button>
+        <button class="cd-phone-action-btn"><i class="ph ph-trophy" style="font-size:12px;"></i> Rewards</button>
+        <button class="cd-phone-action-btn"><i class="ph ph-compass" style="font-size:12px;"></i> Discover</button>
+      </div>
+    </div>
+  `;
+
+  // ---- Render sidebar (right side) ----
+  document.getElementById('sidebarContent').innerHTML = `
+    <!-- Creator identity -->
+    <div class="cd-sb-section">
+      <div class="cd-sb-title">${c.name}</div>
+      <div class="cd-sb-handle">@${c.handle}</div>
+      <div class="cd-sb-location"><i class="ph ph-map-pin" style="font-size:14px;"></i> ${c.location}</div>
+      <div class="cd-sb-badges">
+        <span class="cd-sb-badge">${platformIcon} ${c.platform}</span>
+        <span class="cd-sb-badge">${c.category}</span>
+      </div>
+    </div>
+
+    <div class="cd-sb-divider"></div>
+
+    <!-- Stats -->
+    <div class="cd-sb-section">
+      <div class="cd-sb-label">Performance</div>
+      <div class="cd-sb-stats">
+        <div class="cd-sb-stat">
+          <span class="cd-sb-stat-val">${c.followers}</span>
+          <span class="cd-sb-stat-lbl">Followers</span>
+        </div>
+        <div class="cd-sb-stat">
+          <span class="cd-sb-stat-val">${c.engagement}</span>
+          <span class="cd-sb-stat-lbl">Engagement</span>
+        </div>
+        <div class="cd-sb-stat">
+          <span class="cd-sb-stat-val">$${cpm}</span>
+          <span class="cd-sb-stat-lbl">CPM</span>
+        </div>
+        <div class="cd-sb-stat">
+          <span class="cd-sb-stat-val">${convRate}%</span>
+          <span class="cd-sb-stat-lbl">Conv. Rate</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cd-sb-divider"></div>
+
+    <!-- How it works -->
+    <div class="cd-sb-section">
+      <div class="cd-sb-label">How It Works</div>
+      <div class="cd-sb-steps">
+        <div class="cd-sb-step">
+          <div class="cd-sb-step-num s1">1</div>
+          <div>
+            <div class="cd-sb-step-title">Creator Joins</div>
+            <div class="cd-sb-step-desc">${c.name.split(' ')[0]} opted into your brand — zero outreach from you.</div>
+          </div>
+        </div>
+        <div class="cd-sb-step">
+          <div class="cd-sb-step-num s2">2</div>
+          <div>
+            <div class="cd-sb-step-title">Content Submitted</div>
+            <div class="cd-sb-step-desc">Authentic content is created and submitted for your review.</div>
+          </div>
+        </div>
+        <div class="cd-sb-step">
+          <div class="cd-sb-step-num s3">3</div>
+          <div>
+            <div class="cd-sb-step-title">You Approve</div>
+            <div class="cd-sb-step-desc">Review from your dashboard. Only approved content goes live.</div>
+          </div>
+        </div>
+        <div class="cd-sb-step">
+          <div class="cd-sb-step-num s4">4</div>
+          <div>
+            <div class="cd-sb-step-title">Both Win</div>
+            <div class="cd-sb-step-desc">Creators earn rewards. You get real content — zero upfront cost.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cd-sb-divider"></div>
+
+    <!-- Cost comparison -->
+    <div class="cd-sb-section">
+      <div class="cd-sb-label">Cost Comparison</div>
+      <div class="cd-sb-cost">
+        <div class="cd-sb-cost-col old">
+          <div class="cd-sb-cost-label">Traditional</div>
+          <div class="cd-sb-cost-price">${tradCost}</div>
+          <div class="cd-sb-cost-detail">per post</div>
+        </div>
+        <div class="cd-sb-cost-col kup">
+          <div class="cd-sb-cost-label">With KUP</div>
+          <div class="cd-sb-cost-price">$0</div>
+          <div class="cd-sb-cost-detail">upfront</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust signals -->
+    <div class="cd-sb-section">
+      <div class="cd-sb-trust">
+        <div class="cd-sb-trust-item">
+          <div class="cd-sb-trust-icon"><i class="ph ph-shield-check"></i></div>
+          Brand-Approved Content
+        </div>
+        <div class="cd-sb-trust-item">
+          <div class="cd-sb-trust-icon"><i class="ph ph-credit-card"></i></div>
+          No Upfront Cost
+        </div>
+        <div class="cd-sb-trust-item">
+          <div class="cd-sb-trust-icon"><i class="ph ph-lightning"></i></div>
+          24hr Approval Flow
+        </div>
+        <div class="cd-sb-trust-item">
+          <div class="cd-sb-trust-icon"><i class="ph ph-users-three"></i></div>
+          Real Engagement
+        </div>
+      </div>
+    </div>
+
+    <!-- CTAs -->
+    <a href="register-brand.html" class="cd-sb-cta">
+      Get creators like ${c.name.split(' ')[0]}
+    </a>
+    <a href="download-app.html" class="cd-sb-cta-ghost">
+      <i class="ph ph-device-mobile" style="font-size:14px;"></i> Download the App
+    </a>
+  `;
+</script>
+
+</body>
+</html>

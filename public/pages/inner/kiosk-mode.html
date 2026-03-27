@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiosk Mode &mdash; KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px}
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit;transition:all .2s}
+
+    /* ========== AUTH HEADER ========== */
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
+    .auth-logo img{height:32px}
+    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
+    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
+    .auth-right{display:flex;align-items:center;gap:20px}
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none;transition:background .2s}
+    .profile-trigger:hover{background:#f0f0f0}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+    .profile-info{text-align:left}
+    .profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}
+    .profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
+
+    /* ========== TWO-COLUMN WIZARD LAYOUT ========== */
+    .wizard-layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 64px - 57px)}
+
+    /* LEFT SIDEBAR */
+    .wizard-sidebar{background:var(--kup-white);border-right:1px solid #eee;padding:32px 28px;display:flex;flex-direction:column}
+    .sidebar-heading{display:flex;align-items:baseline;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+    .sidebar-heading h3{font-size:1.15rem;font-weight:700;margin:0}
+    .back-link{font-size:.82rem;font-weight:500;color:#888;transition:color .2s;white-space:nowrap}
+    .back-link:hover{color:var(--kup-blue)}
+
+    .brand-identity{display:flex;align-items:center;gap:14px;padding:18px 16px;background:#f8f9fa;border-radius:var(--radius-md);margin-bottom:28px}
+    .brand-identity .logo-circle{width:52px;height:52px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;flex-shrink:0}
+    .brand-identity .brand-name{font-weight:700;font-size:.95rem;color:#1a1a1a}
+    .brand-identity .brand-handle{font-size:.78rem;color:#888;margin-top:2px}
+
+    .sidebar-actions{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+    .btn-action{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;transition:all .2s;border:2px solid var(--kup-blue);text-align:center}
+    .btn-action.outline{background:transparent;color:var(--kup-blue)}
+    .btn-action.outline:hover{background:rgba(46,165,221,.06)}
+    .btn-action.filled{background:var(--kup-blue);color:#fff;border-color:var(--kup-blue)}
+    .btn-action.filled:hover{background:#258fc4}
+    .btn-action svg{width:18px;height:18px;flex-shrink:0}
+
+    .helper-text{font-size:.82rem;color:#888;line-height:1.6;margin-top:auto;padding-top:20px;border-top:1px solid #eee}
+
+    /* RIGHT CONTENT */
+    .wizard-content{padding:40px 48px;display:flex;flex-direction:column;align-items:flex-start;overflow-y:auto}
+
+    /* ========== KIOSK TOGGLE ========== */
+    .kiosk-toggle{position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:16px}
+    .kiosk-toggle input{display:none}
+    .kiosk-toggle .toggle-track{width:44px;height:24px;background:#ccc;border-radius:12px;position:relative;transition:background .25s}
+    .kiosk-toggle input:checked + .toggle-track{background:var(--kup-blue)}
+    .kiosk-toggle .toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+    .kiosk-toggle input:checked + .toggle-track::after{transform:translateX(20px)}
+    .kiosk-toggle .toggle-label{font-size:.88rem;font-weight:600;color:#1a1a1a}
+
+    /* ========== KIOSK STATUS ========== */
+    .kiosk-status{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+    .kiosk-status .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .kiosk-status .status-dot.active{background:#16a34a}
+    .kiosk-status .status-dot.inactive{background:#aaa}
+    .kiosk-status .status-text{font-size:.82rem;font-weight:500;color:#666}
+
+    /* ========== KIOSK SECTIONS (panels) ========== */
+    .kiosk-section{background:var(--kup-white);border-radius:var(--radius-md);border:1px solid #eee;padding:36px 40px;max-width:640px;width:100%;text-align:left;margin-bottom:24px}
+    .kiosk-section h5{font-size:1rem;font-weight:700;margin:0 0 4px;color:#1a1a1a}
+    .kiosk-section h6{font-size:.88rem;font-weight:600;color:var(--kup-blue);margin:0 0 24px}
+
+    /* ========== KIOSK FORM ========== */
+    .kiosk-form-group{margin-bottom:20px}
+    .kiosk-form-group label{display:block;font-size:.82rem;font-weight:600;color:#444;margin-bottom:6px}
+    .kiosk-form-group input,
+    .kiosk-form-group select{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.88rem;color:#1a1a1a;background:#fff;transition:border-color .2s;outline:none}
+    .kiosk-form-group input:focus,
+    .kiosk-form-group select:focus{border-color:var(--kup-blue)}
+    .kiosk-form-group .helper{font-size:.75rem;color:#999;margin-top:4px}
+
+    .kiosk-form-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f0}
+    .kiosk-form-toggle:last-of-type{border-bottom:none}
+    .kiosk-form-toggle .toggle-info{flex:1}
+    .kiosk-form-toggle .toggle-info .toggle-name{font-size:.85rem;font-weight:600;color:#1a1a1a}
+    .kiosk-form-toggle .toggle-info .helper{font-size:.75rem;color:#999;margin-top:2px}
+
+    .btn-save{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 32px;background:var(--kup-blue);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s;margin-top:8px}
+    .btn-save:hover{background:#258fc4}
+
+    /* ========== COLOR PICKER ========== */
+    .color-picker-row{display:flex;align-items:center;gap:12px}
+    .color-swatch{width:40px;height:40px;border-radius:var(--radius-sm);border:2px solid #eee;flex-shrink:0;cursor:pointer}
+
+    /* ========== FILE UPLOAD AREA ========== */
+    .file-upload-area{border:2px dashed #ddd;border-radius:var(--radius-sm);padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:8px}
+    .file-upload-area:hover{border-color:var(--kup-blue)}
+    .file-upload-area svg{width:32px;height:32px;color:#bbb;margin-bottom:8px}
+    .file-upload-area .upload-label{font-size:.85rem;font-weight:600;color:#444}
+    .file-upload-area .upload-hint{font-size:.75rem;color:#999;margin-top:4px}
+
+    /* ========== QR Code placeholder (small) ========== */
+    .qr-wrapper{margin:0 auto 16px;position:relative;width:160px;height:160px}
+    .qr-placeholder{width:160px;height:160px;border:3px solid #1a1a1a;border-radius:4px;background:#fff;position:relative;overflow:hidden}
+    .qr-grid{display:grid;grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);width:100%;height:100%;padding:6px}
+    .qr-cell{background:#1a1a1a}
+    .qr-cell.w{background:#fff}
+    .qr-center-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:4px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    .qr-center-badge span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--kup-gradient);border-radius:3px;color:#fff;font-weight:800;font-size:.5rem;letter-spacing:.5px}
+
+    .brand-url{display:inline-block;font-size:.82rem;color:var(--kup-blue);font-weight:500;padding:8px 20px;background:rgba(46,165,221,.06);border-radius:var(--radius-sm);margin-top:4px;letter-spacing:.02em;cursor:pointer}
+
+    /* ========== SCAN ANALYTICS (reused) ========== */
+    .scan-analytics{text-align:left}
+    .scan-analytics-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .scan-analytics-header h5{font-size:.95rem;font-weight:700;margin:0;color:#1a1a1a}
+    .analytics-badge{font-size:.7rem;font-weight:600;color:var(--kup-blue);background:rgba(46,165,221,.08);padding:4px 12px;border-radius:20px;letter-spacing:.02em}
+    .scan-counter{display:flex;align-items:baseline;gap:10px;margin-bottom:24px}
+    .scan-counter .count{font-size:2.4rem;font-weight:800;color:#1a1a1a;line-height:1}
+    .scan-counter .label{font-size:.82rem;color:#888;font-weight:500}
+    .scan-trend{margin-bottom:24px}
+    .scan-trend-bars{display:flex;align-items:flex-end;gap:6px;height:80px;padding:0 4px}
+    .scan-trend-bar{flex:1;background:rgba(46,165,221,.15);border-radius:4px 4px 0 0;position:relative;transition:background .2s;min-width:0}
+    .scan-trend-bar:hover{background:rgba(46,165,221,.35)}
+    .scan-trend-bar.active{background:var(--kup-blue)}
+    .scan-trend-bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:.62rem;color:#aaa;font-weight:500;white-space:nowrap}
+    .scan-trend-label{font-size:.78rem;color:#888;margin:28px 0 0;text-align:center}
+    .scan-trend-label strong{color:#1a1a1a}
+    .scan-details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+    .scan-detail-item{background:#f8f9fa;border-radius:var(--radius-sm);padding:14px 16px;text-align:center}
+    .scan-detail-item .detail-value{display:block;font-size:1.2rem;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+    .scan-detail-item .detail-label{font-size:.72rem;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+    .scan-detail-item.locked{position:relative;overflow:hidden}
+    .scan-detail-item.locked::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(2px)}
+    .scan-detail-item.locked .detail-value{filter:blur(3px)}
+    .scan-upsell{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,rgba(46,165,221,.04) 0%,rgba(112,123,187,.04) 100%);border:1px solid rgba(46,165,221,.12);border-radius:var(--radius-sm);padding:16px 18px}
+    .scan-upsell svg{width:20px;height:20px;flex-shrink:0;color:var(--kup-blue);margin-top:2px}
+    .upsell-text{font-size:.82rem;color:#666;margin:0 0 6px;line-height:1.5}
+    .btn-upsell{font-size:.82rem;font-weight:600;color:var(--kup-blue);text-decoration:none;transition:color .2s}
+    .btn-upsell:hover{color:#258fc4}
+
+    /* FOOTER */
+    .auth-footer{text-align:center;padding:16px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}
+    .auth-footer a{color:var(--kup-blue);font-weight:500}
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ========== RESPONSIVE ========== */
+    @media(max-width:1024px){
+      .wizard-layout{grid-template-columns:340px 1fr}
+      .kiosk-section{padding:28px 24px}
+    }
+    @media(max-width:768px){
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-sidebar{border-right:none;border-bottom:1px solid #eee;padding:24px 20px}
+      .helper-text{margin-top:16px}
+      .wizard-content{padding:24px 20px}
+      .kiosk-section{padding:24px 20px}
+      .auth-header-inner{padding:0 16px}
+      .auth-nav li a{padding:0 14px;font-size:.82rem}
+      .profile-info{display:none}
+      .sidebar-actions{flex-direction:row}
+      .sidebar-actions .btn-action{flex:1;min-height:44px}
+      .scan-analytics{padding-top:24px}
+      .scan-counter .count{font-size:2rem}
+      .scan-trend-bars{height:64px}
+      .scan-detail-item{padding:12px 14px}
+      .scan-upsell{padding:14px 16px}
+    }
+    @media(max-width:480px){
+      .sidebar-actions{flex-direction:column}
+      .sidebar-actions .btn-action{width:100%;justify-content:center}
+      .qr-wrapper{width:130px;height:130px}
+      .qr-placeholder{width:130px;height:130px}
+      .kiosk-section h5{font-size:.92rem}
+      .scan-counter .count{font-size:1.8rem}
+      .scan-detail-item{padding:10px 12px}
+      .scan-detail-item .detail-value{font-size:1rem}
+      .scan-trend-bars{height:56px}
+      .scan-analytics-header{flex-direction:column;align-items:flex-start;gap:8px}
+      .scan-upsell{flex-direction:column;text-align:center}
+      .scan-upsell svg{margin:0 auto}
+    }
+
+    /* Print styles */
+    @media print{
+      .auth-header,.wizard-sidebar,.auth-footer{display:none}
+      .wizard-layout{grid-template-columns:1fr}
+      .wizard-content{padding:20px}
+      .kiosk-section{border:none;box-shadow:none}
+    }
+
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ========== AUTH HEADER ========== -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+            <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== TWO-COLUMN LAYOUT ========== -->
+  <div class="wizard-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="wizard-sidebar">
+      <div class="sidebar-heading">
+        <h3>Kiosk Mode</h3>
+        <a href="brand-home.html" class="back-link">&lt; Back to Home</a>
+      </div>
+
+      <div class="brand-identity">
+        <div class="logo-circle">KP</div>
+        <div>
+          <div class="brand-name">KeepUsPostd</div>
+          <div class="brand-handle">@keepuspostd</div>
+        </div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button class="btn-action outline" onclick="previewKiosk()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview Kiosk
+        </button>
+        <button class="btn-action filled" onclick="copyKioskUrl()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Kiosk URL
+        </button>
+      </div>
+
+      <!-- Kiosk Toggle -->
+      <label class="kiosk-toggle" id="kioskModeToggle">
+        <input type="checkbox" checked id="kioskToggleInput">
+        <div class="toggle-track"></div>
+        <span class="toggle-label">Kiosk Mode</span>
+      </label>
+
+      <!-- Kiosk Status -->
+      <div class="kiosk-status" id="kioskStatus">
+        <span class="status-dot active" id="statusDot"></span>
+        <span class="status-text" id="statusText">Active &mdash; 1 Location</span>
+      </div>
+
+      <p class="helper-text">Deploy your kiosk on any iPad or tablet at your physical location. Customers can record reviews and earn instant rewards without downloading the app.</p>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="wizard-content">
+
+      <!-- Panel 1: Kiosk Settings -->
+      <div class="kiosk-section">
+        <h5>Configure Your Kiosk</h5>
+        <h6>In-Store / Outdoor / Event Review Station</h6>
+
+        <div class="kiosk-form-group">
+          <label for="offerTitle">Offer Title</label>
+          <input type="text" id="offerTitle" placeholder="Record a review, get a free taco!">
+        </div>
+
+        <div class="kiosk-form-group">
+          <label for="rewardType">Reward Type</label>
+          <select id="rewardType">
+            <option value="free-item">Free Item</option>
+            <option value="discount-pct">Discount (%)</option>
+            <option value="discount-dollar">Discount ($)</option>
+            <option value="points">Points</option>
+          </select>
+        </div>
+
+        <div class="kiosk-form-group">
+          <label for="rewardValue">Reward Value</label>
+          <input type="text" id="rewardValue" placeholder="Free Taco">
+        </div>
+
+        <div class="kiosk-form-group">
+          <label for="recordingLimit">Recording Limit</label>
+          <select id="recordingLimit">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">60 seconds</option>
+          </select>
+        </div>
+
+        <div class="kiosk-form-toggle">
+          <div class="toggle-info">
+            <div class="toggle-name">Auto-Approve Reviews</div>
+            <div class="helper">Automatically add kiosk reviews to your display loop</div>
+          </div>
+          <label class="kiosk-toggle" style="margin-bottom:0">
+            <input type="checkbox" checked>
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="kiosk-form-toggle">
+          <div class="toggle-info">
+            <div class="toggle-name">Require SMS Verification</div>
+            <div class="helper">Verify customer phone before recording</div>
+          </div>
+          <label class="kiosk-toggle" style="margin-bottom:0">
+            <input type="checkbox">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="kiosk-form-group" style="margin-top:20px">
+          <label for="dailyCap">Daily Reward Cap</label>
+          <input type="number" id="dailyCap" value="50">
+          <div class="helper">Maximum rewards issued per day (fraud prevention)</div>
+        </div>
+
+        <button class="btn-save" onclick="saveKioskSettings()">Save Kiosk Settings</button>
+      </div>
+
+      <!-- Panel 2: Kiosk Branding -->
+      <div class="kiosk-section">
+        <h5>Kiosk Appearance</h5>
+        <h6>Branding &amp; Customization</h6>
+
+        <div class="kiosk-form-group">
+          <label for="brandColor">Brand Color</label>
+          <div class="color-picker-row">
+            <div class="color-swatch" id="colorSwatch" style="background:#2EA5DD" onclick="document.getElementById('colorPickerInput').click()"></div>
+            <input type="text" id="brandColor" value="#2EA5DD" style="max-width:160px">
+            <input type="color" id="colorPickerInput" value="#2EA5DD" style="display:none">
+          </div>
+        </div>
+
+        <div class="kiosk-form-group">
+          <label>Logo Override</label>
+          <div class="file-upload-area" id="logoUploadArea">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="upload-label">Upload Custom Logo</div>
+            <div class="upload-hint">or use your brand profile logo</div>
+          </div>
+        </div>
+
+        <!-- KUP Branding Watermark Upsell -->
+        <div class="scan-upsell">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div>
+            <p class="upsell-text">KeepUsPostd branding appears at the bottom of your kiosk screen.</p>
+            <p class="upsell-text" style="margin-bottom:0">Upgrade to Pro to remove or replace with your brand logo.</p>
+            <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Kiosk Analytics -->
+      <div class="kiosk-section">
+        <div class="scan-analytics">
+          <div class="scan-analytics-header">
+            <h5>Kiosk Performance</h5>
+            <span class="analytics-badge">Growth Plan</span>
+          </div>
+
+          <div class="scan-counter">
+            <span class="count">47</span>
+            <span class="label">Total Reviews Recorded</span>
+          </div>
+
+          <div class="scan-trend">
+            <div class="scan-trend-bars">
+              <div class="scan-trend-bar" style="height:35%"><span>Mon</span></div>
+              <div class="scan-trend-bar" style="height:55%"><span>Tue</span></div>
+              <div class="scan-trend-bar" style="height:70%"><span>Wed</span></div>
+              <div class="scan-trend-bar" style="height:45%"><span>Thu</span></div>
+              <div class="scan-trend-bar active" style="height:90%"><span>Fri</span></div>
+              <div class="scan-trend-bar" style="height:60%"><span>Sat</span></div>
+              <div class="scan-trend-bar" style="height:40%"><span>Sun</span></div>
+            </div>
+            <p class="scan-trend-label">Last 7 days &mdash; <strong>47 reviews</strong></p>
+          </div>
+
+          <div class="scan-details">
+            <div class="scan-detail-item">
+              <span class="detail-value">32</span>
+              <span class="detail-label">Reviews This Week</span>
+            </div>
+            <div class="scan-detail-item">
+              <span class="detail-value">+24%</span>
+              <span class="detail-label">vs Last Week</span>
+            </div>
+            <div class="scan-detail-item locked">
+              <span class="detail-value">89%</span>
+              <span class="detail-label">Reward Redemption</span>
+            </div>
+            <div class="scan-detail-item locked">
+              <span class="detail-value">12</span>
+              <span class="detail-label">App Conversions</span>
+            </div>
+          </div>
+
+          <div class="scan-upsell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div>
+              <p class="upsell-text">Unlock detailed kiosk analytics, heat maps, and conversion funnels with a Pro plan.</p>
+              <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Kiosk URL & QR -->
+      <div class="kiosk-section">
+        <h5>Your Kiosk URL</h5>
+        <h6 style="margin-bottom:20px">Device Configuration</h6>
+
+        <span class="brand-url" onclick="copyKioskUrl()" id="kioskUrlDisplay">keepuspostd.com/kiosk/keepuspostd</span>
+        <div style="font-size:0.72rem;color:#888;margin-top:8px;margin-bottom:24px;line-height:1.4;" id="kioskUrlHint">
+          Click to copy &middot; Load this URL on your kiosk device
+        </div>
+
+        <div class="qr-wrapper" style="margin:0 0 16px">
+          <div class="qr-placeholder">
+            <div class="qr-grid" id="kioskQrGrid"></div>
+            <div class="qr-center-badge"><span>KUP</span></div>
+          </div>
+        </div>
+
+        <p class="helper" style="font-size:.78rem;color:#888;line-height:1.6;margin-top:16px">Load this URL on your kiosk device. Use iPad Guided Access to lock the browser to this page.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <script>
+    // ========== QR Grid Generation ==========
+    (function() {
+      var grid = document.getElementById('kioskQrGrid');
+      var pattern = [
+        1,1,1,1,1,1,1,0,1,0,1,0,0,0,1,1,1,1,1,1,1,
+        1,0,0,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,0,1,
+        1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,
+        1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,
+        1,0,1,1,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1,
+        1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0,0,0,1,
+        1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,
+        0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,
+        1,0,1,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,
+        0,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,1,0,0,1,0,
+        1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,0,1,
+        0,0,1,1,0,1,0,1,0,0,0,0,0,0,1,0,0,1,1,0,0,
+        1,0,0,0,1,0,1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,
+        0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,1,0,1,1,
+        1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,
+        1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,0,0,1,1,0,1,
+        1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,0,0,1,1,0,
+        1,0,1,1,1,0,1,0,1,1,0,1,0,0,1,0,1,0,0,0,1,
+        1,0,1,1,1,0,1,0,0,1,1,0,1,1,0,1,0,1,1,0,0,
+        1,0,0,0,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0,1,1,
+        1,1,1,1,1,1,1,0,0,1,0,1,1,0,0,1,1,0,1,0,1
+      ];
+      for (var i = 0; i < pattern.length; i++) {
+        var cell = document.createElement('div');
+        cell.className = 'qr-cell' + (pattern[i] === 0 ? ' w' : '');
+        grid.appendChild(cell);
+      }
+    })();
+
+    // ========== Kiosk Mode Toggle ==========
+    var kioskToggleInput = document.getElementById('kioskToggleInput');
+    var statusDot = document.getElementById('statusDot');
+    var statusText = document.getElementById('statusText');
+
+    if (kioskToggleInput) {
+      kioskToggleInput.addEventListener('change', function() {
+        if (this.checked) {
+          statusDot.className = 'status-dot active';
+          statusText.innerHTML = 'Active &mdash; 1 Location';
+          kupToast('Kiosk Mode enabled', 'success');
+        } else {
+          statusDot.className = 'status-dot inactive';
+          statusText.innerHTML = 'Inactive';
+          kupToast('Kiosk Mode disabled', 'info');
+        }
+      });
+    }
+
+    // ========== Preview Kiosk ==========
+    function previewKiosk() {
+      window.open('kiosk-display.html', '_blank');
+    }
+
+    // ========== Copy Kiosk URL ==========
+    function copyKioskUrl() {
+      var url = 'https://keepuspostd.com/kiosk/keepuspostd';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+          var hint = document.getElementById('kioskUrlHint');
+          if (hint) {
+            hint.innerHTML = '<span style="color:#16a34a;font-weight:600;">Copied to clipboard!</span>';
+            setTimeout(function() { hint.innerHTML = 'Click to copy &middot; Load this URL on your kiosk device'; }, 2000);
+          }
+          kupToast('Kiosk URL copied to clipboard!', 'success');
+        });
+      } else {
+        kupToast('URL: ' + url, 'info');
+      }
+    }
+
+    // ========== Save Kiosk Settings ==========
+    function saveKioskSettings() {
+      kupToast('Kiosk settings saved successfully!', 'success');
+    }
+
+    // ========== Color Picker Sync ==========
+    var colorPicker = document.getElementById('colorPickerInput');
+    var colorHex = document.getElementById('brandColor');
+    var colorSwatch = document.getElementById('colorSwatch');
+
+    if (colorPicker) {
+      colorPicker.addEventListener('input', function() {
+        colorHex.value = this.value.toUpperCase();
+        colorSwatch.style.background = this.value;
+      });
+    }
+    if (colorHex) {
+      colorHex.addEventListener('change', function() {
+        var val = this.value;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+          colorSwatch.style.background = val;
+          colorPicker.value = val;
+        }
+      });
+    }
+  </script>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'\u2713', error:'\u2715', info:'\u2139', warning:'\u26A0' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Rewards</span></a>
+    <a href="brand-home.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg><span>Menu</span></a>
+  </nav>
+</body>
+</html>

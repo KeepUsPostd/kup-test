@@ -1,0 +1,3770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Influencers — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: var(--kup-font); background-color: var(--kup-body-bg); color: #1a1a1a; line-height: 1.6; margin: 0; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* ============== AUTH HEADER ============== */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46, 165, 221, 0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== NOTIFICATION CENTER POPOVER ============== */
+    .kup-notif-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -60px;
+      width: 380px;
+      max-height: 480px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+    .kup-notif-popover.show { display: block; }
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+    }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read {
+      font-size: 0.78rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--kup-font);
+      font-weight: 600;
+    }
+    .notif-mark-read:hover { text-decoration: underline; }
+    .notif-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 20px;
+    }
+    .notif-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: var(--kup-font);
+      transition: all 0.2s;
+    }
+    .notif-tab:hover { color: #444; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f8f8f8;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
+
+    /* ============== INFLUENCERS PAGE ============== */
+    .page-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 24px;
+    }
+
+    /* ============== QUICK STATS ROW ============== */
+    .influencer-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    }
+    .stat-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-card-icon.total { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .stat-card-icon.active { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .stat-card-icon.engagement { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .stat-card-icon.pending { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .stat-card-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .stat-card-label {
+      font-size: 0.78rem;
+      color: #888;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* ============== INFLUENCER TABS ============== */
+    .influencer-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #eee;
+      margin-bottom: 24px;
+    }
+    .inf-tab {
+      padding: 12px 24px;
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #888;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .inf-tab:hover { color: #444; }
+    .inf-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .inf-tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #f0f0f0;
+      color: #888;
+    }
+    .inf-tab.active .inf-tab-badge { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .inf-tab-badge.alert { background: rgba(237,132,68,0.12); color: var(--kup-orange); }
+    .inf-tab.active .inf-tab-badge.alert { background: rgba(237,132,68,0.15); color: var(--kup-orange); }
+
+    /* Tab panels */
+    .inf-tab-panel { display: none; }
+    .inf-tab-panel.active { display: block; }
+
+    /* Slot counter */
+    .slot-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(46,165,221,0.06);
+      border: 1px solid rgba(46,165,221,0.15);
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      margin-left: 12px;
+    }
+    .slot-counter svg { flex-shrink: 0; }
+
+    /* ============== REQUEST CARDS ============== */
+    .request-cards { display: flex; flex-direction: column; gap: 12px; }
+    .request-card {
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .request-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+    .request-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .request-info { flex: 1; min-width: 0; }
+    .request-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      margin: 0 0 2px;
+    }
+    .request-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: #888;
+    }
+    .request-meta .tier-badge { font-size: 0.68rem; padding: 2px 8px; }
+    .request-stats {
+      display: flex;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+    .request-stat {
+      text-align: center;
+    }
+    .request-stat-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .request-stat-label {
+      font-size: 0.68rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .request-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-approve {
+      padding: 8px 18px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-approve:hover { background: #15803d; }
+    .btn-decline {
+      padding: 8px 18px;
+      background: white;
+      color: #666;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-decline:hover { border-color: #e74c3c; color: #e74c3c; }
+    .requests-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .requests-empty svg { margin-bottom: 12px; opacity: 0.3; }
+    .requests-empty p { font-size: 0.88rem; margin: 0; }
+
+    /* ============== INVITED TABLE ============== */
+    .invited-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .invited-status.sent { background: #FFF3E0; color: #e65100; }
+    .invited-status.accepted { background: #E8F5E9; color: #2e7d32; }
+    .invited-status.expired { background: #F5F5F5; color: #888; }
+    .btn-resend {
+      padding: 5px 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-resend:hover { border-color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+
+    /* ============== ROW ACTIONS MENU ============== */
+    .row-actions-wrap { position: relative; }
+    .btn-row-actions {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border: none;
+      background: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: #999;
+      font-size: 1.2rem;
+      transition: all 0.15s;
+    }
+    .btn-row-actions:hover { background: #f0f0f0; color: #444; }
+    .row-actions-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      min-width: 160px;
+      display: none;
+      z-index: 50;
+      overflow: hidden;
+    }
+    .row-actions-menu.show { display: block; }
+    .row-action-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.1s;
+    }
+    .row-action-item:hover { background: #f8f9fa; }
+    .row-action-item.danger { color: #e74c3c; }
+    .row-action-item.danger:hover { background: rgba(231,76,60,0.04); }
+
+    /* Search Bar */
+    .search-bar {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 24px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 12px 16px 12px 46px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.1);
+    }
+    .search-bar svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 20px;
+      stroke: #999;
+    }
+
+    /* Influencer count + Add button + Filter row */
+    .influencer-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .influencer-count {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #666;
+    }
+    .influencer-count strong {
+      color: var(--kup-blue);
+    }
+    .btn-add-influencer {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--kup-orange);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(237,132,68,0.25);
+    }
+    .btn-add-influencer:hover {
+      background: #d9743a;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(237,132,68,0.35);
+    }
+
+    /* ============== FILTER/SORT PANEL ============== */
+    .filter-wrap { position: relative; }
+    .btn-filter {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-filter:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-filter.active { border-color: var(--kup-blue); color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+    .kup-filter-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      width: 280px;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      padding: 20px;
+      z-index: 300;
+      display: none;
+    }
+    .kup-filter-panel.show { display: block; }
+    .filter-group { margin-bottom: 16px; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 0.85rem;
+      color: #444;
+      cursor: pointer;
+    }
+    .filter-option input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      margin-top: 16px;
+    }
+    .btn-filter-clear {
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .btn-filter-apply {
+      padding: 6px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-filter-apply:hover { background: #258fc4; }
+
+    /* Data Table */
+    .data-table {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .data-table table { width: 100%; border-collapse: collapse; }
+    .data-table thead th {
+      padding: 14px 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .data-table tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
+    .data-table tbody tr:hover { background: #fafbfc; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody td { padding: 16px 20px; font-size: 0.85rem; vertical-align: middle; }
+
+    /* Influencer cell */
+    .influencer-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .influencer-cell .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .influencer-cell .name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .influencer-cell .name:hover { text-decoration: underline; }
+    .influencer-cell .tier {
+      font-size: 0.72rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Tier badges */
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .tier-badge.nano { background: #E8F5E9; color: #2e7d32; }
+    .tier-badge.micro { background: #E3F2FD; color: #1565c0; }
+    .tier-badge.macro { background: #FFF3E0; color: #e65100; }
+    .tier-badge.mega { background: #F3E5F5; color: #7b1fa2; }
+
+    .stat-cell { text-align: center; font-weight: 600; color: #444; }
+    .time-cell { font-size: 0.82rem; color: #888; }
+
+    /* ============== AGGREGATE RATING DISPLAY ============== */
+    .kup-rating-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kup-rating-stars {
+      display: inline-flex;
+      gap: 1px;
+    }
+    .kup-rating-stars svg {
+      width: 14px; height: 14px;
+    }
+    .kup-rating-stars .star-filled { fill: #f59e0b; stroke: #f59e0b; stroke-width: 1; }
+    .kup-rating-stars .star-empty { fill: #e0e0e0; stroke: #ddd; stroke-width: 1; }
+    .kup-rating-stars .star-half { fill: url(#halfStarGrad); stroke: #f59e0b; stroke-width: 1; }
+    .kup-rating-score {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #444;
+      margin-left: 4px;
+    }
+    .kup-rating-count {
+      font-size: 0.68rem;
+      color: #999;
+      font-weight: 400;
+    }
+    .kup-rating-new {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 50px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: rgba(46,165,221,0.1);
+      color: var(--kup-blue);
+    }
+    .rating-cell { text-align: center; }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .status-badge.active-status { background: #E8F5E9; color: #2e7d32; }
+    .status-badge.pending-status { background: #FFF3E0; color: #e65100; }
+    .status-badge.inactive-status { background: #F5F5F5; color: #888; }
+
+
+    /* Pagination */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-top: 1px solid #eee;
+      background: #fafbfc;
+    }
+    .table-footer .showing { font-size: 0.82rem; color: #888; }
+    .pagination-btns { display: flex; gap: 4px; }
+    .page-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .page-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .page-btn.active { background: var(--kup-blue); color: white; border-color: var(--kup-blue); }
+
+    /* Footer */
+    .auth-footer { text-align: center; padding: 24px 32px; font-size: 0.78rem; color: #999; border-top: 1px solid #eee; background: var(--kup-white); }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* ============== KUP MODAL SYSTEM (Standardized) ============== */
+    .kup-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kup-modal-overlay.show { display: flex; }
+    .kup-modal {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .kup-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .kup-modal-close:hover { background: #e0e0e0; color: #333; }
+    .kup-modal h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .kup-modal p.modal-desc { font-size: 0.85rem; color: #666; margin: 0 0 24px; }
+    .kup-modal input[type="text"],
+    .kup-modal input[type="email"],
+    .kup-modal textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+    .kup-modal input:focus, .kup-modal textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-cancel:hover { background: var(--kup-body-bg); }
+    .btn-modal-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: #258fc4; }
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    .ip-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+    .ip-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0 auto 12px;
+    }
+    .ip-handle { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: #1a1a1a; }
+    .ip-name { font-size: 0.85rem; color: #888; margin: 0 0 8px; }
+    .ip-tier {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .ip-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .ip-stat strong { display: block; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+    .ip-stat span { display: block; font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .ip-socials {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ip-social-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ip-social-icon:hover { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .ip-bio { font-size: 0.85rem; color: #666; line-height: 1.5; margin: 0 0 20px; text-align: center; }
+    .ip-submissions-label { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .ip-submissions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .ip-thumb {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-sm);
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #bbb;
+      overflow: hidden;
+    }
+    .ip-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-ip-outline {
+      padding: 10px 20px;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-outline:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-ip-primary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ip-primary:hover { background: #258fc4; }
+
+    /* ============== NOTICE COMPOSER MODAL ============== */
+    .notice-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 20px;
+    }
+    .notice-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.78rem;
+      flex-shrink: 0;
+    }
+    .notice-user-name { font-weight: 700; font-size: 0.92rem; color: #1a1a1a; }
+    .notice-user-handle { font-size: 0.78rem; color: #888; }
+    .notice-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .notice-field { display: flex; flex-direction: column; gap: 6px; }
+    .notice-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .notice-field select,
+    .notice-field input[type="text"],
+    .notice-field textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #333;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .notice-field select:focus,
+    .notice-field input[type="text"]:focus,
+    .notice-field textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+    }
+    .notice-field textarea { resize: vertical; min-height: 90px; }
+    .notice-field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .notice-chips-label { font-size: 0.78rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
+    .notice-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .notice-chip {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      user-select: none;
+    }
+    .notice-chip:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .notice-chip.active {
+      background: var(--kup-blue);
+      color: white;
+      border-color: var(--kup-blue);
+    }
+    .notice-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 8px;
+    }
+    .notice-preview-text {
+      font-size: 0.75rem;
+      color: #aaa;
+      max-width: 55%;
+    }
+    .btn-send-notice {
+      padding: 12px 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-send-notice:hover { background: #258fc4; }
+
+    /* ============== AI ASSIST ============== */
+    .ai-assist-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.06) 0%, rgba(112,123,187,0.06) 100%);
+      border: 1px solid rgba(46,165,221,0.15);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ai-assist-toggle:hover { border-color: var(--kup-blue); background: linear-gradient(135deg, rgba(46,165,221,0.1) 0%, rgba(112,123,187,0.1) 100%); }
+    .ai-assist-toggle.active { border-color: var(--kup-blue); background: linear-gradient(135deg, rgba(46,165,221,0.12) 0%, rgba(112,123,187,0.12) 100%); }
+    .ai-assist-toggle .ai-icon { font-size: 1.1rem; }
+    .ai-assist-toggle .ai-label { font-size: 0.82rem; font-weight: 600; color: var(--kup-blue); }
+    .ai-assist-toggle .ai-hint { font-size: 0.72rem; color: #888; margin-left: auto; }
+    .ai-assist-panel {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(46,165,221,0.04) 0%, rgba(112,123,187,0.04) 100%);
+      border: 1px dashed rgba(46,165,221,0.25);
+      border-radius: var(--radius-md);
+    }
+    .ai-assist-panel.show { display: flex; }
+    .ai-assist-panel textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #333;
+      min-height: 80px;
+      resize: vertical;
+      background: white;
+    }
+    .ai-assist-panel textarea:focus { outline: none; border-color: var(--kup-blue); }
+    .ai-assist-panel textarea::placeholder { color: #aaa; }
+    .btn-generate-brief {
+      align-self: flex-end;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      color: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-generate-brief:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-generate-brief.generating {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .ai-generating-dots::after {
+      content: '';
+      animation: aiDots 1.2s infinite;
+    }
+    @keyframes aiDots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ============== ADD INFLUENCER MODAL (Upgraded) ============== */
+    .add-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .add-modal-brand-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .add-modal-header-text h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 2px;
+    }
+    .add-modal-header-text p {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0;
+    }
+
+    /* Email tags input */
+    .email-tags-wrap {
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      min-height: 48px;
+      cursor: text;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+      background: white;
+    }
+    .email-tags-wrap:focus-within {
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+    .email-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(46,165,221,0.08);
+      border: 1px solid rgba(46,165,221,0.2);
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--kup-blue);
+    }
+    .email-tag-remove {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(46,165,221,0.15);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--kup-blue);
+      line-height: 1;
+      padding: 0;
+    }
+    .email-tag-remove:hover { background: rgba(46,165,221,0.3); }
+    .email-tags-input {
+      border: none;
+      outline: none;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 180px;
+      padding: 4px 0;
+      background: transparent;
+    }
+    .email-tags-input::placeholder { color: #bbb; }
+
+    /* Auto-generated message */
+    .auto-msg-section { margin-bottom: 20px; }
+    .auto-msg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .auto-msg-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #444;
+    }
+    .auto-msg-customize {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--kup-font);
+    }
+    .auto-msg-customize:hover { text-decoration: underline; }
+    .auto-msg-preview {
+      background: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.6;
+    }
+    .auto-msg-preview .brand-placeholder {
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .auto-msg-edit {
+      display: none;
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.6;
+      resize: vertical;
+    }
+    .auto-msg-edit:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+
+    /* QR Code */
+    .qr-code-section {
+      text-align: center;
+      margin: 16px 0 20px;
+    }
+    .qr-code-placeholder {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+      background: white;
+      border: 2px solid #eee;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #bbb;
+      position: relative;
+    }
+    .qr-code-placeholder svg { opacity: 0.5; }
+
+    /* Send button */
+    .btn-send-request {
+      width: 100%;
+      padding: 14px;
+      background: var(--kup-orange);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 15px rgba(237,132,68,0.25);
+    }
+    .btn-send-request:hover {
+      background: #d9743a;
+      box-shadow: 0 6px 20px rgba(237,132,68,0.35);
+    }
+    .btn-send-request:disabled {
+      background: #e0e0e0;
+      color: #999;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Invite link section */
+    .invite-link-section {
+      border-top: 1px solid #f0f0f0;
+      padding-top: 20px;
+    }
+    .invite-link-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 4px;
+    }
+    .invite-link-desc {
+      font-size: 0.78rem;
+      color: #888;
+      margin: 0 0 12px;
+      line-height: 1.4;
+    }
+    .invite-link-row {
+      display: flex;
+      gap: 8px;
+    }
+    .invite-link-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.8rem;
+      color: #888;
+      background: #f8f9fa;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-copy-link {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-copy-link:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .btn-copy-link.copied { border-color: #16a34a; color: #16a34a; background: rgba(22,163,74,0.04); }
+
+    /* ============== TOAST NOTIFICATIONS ============== */
+    .kup-toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .kup-toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-width: 280px;
+      max-width: 400px;
+      transform: translateX(120%);
+      animation: kupToastIn 0.3s ease forwards;
+      border-left: 4px solid var(--kup-blue);
+    }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    .kup-toast-icon { flex-shrink: 0; width: 20px; height: 20px; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ============== DISCOVERY TAB ============== */
+    .discovery-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .discovery-header-left h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+      color: #1a1a1a;
+    }
+    .discovery-header-left p {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0;
+    }
+    .discovery-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--kup-font);
+    }
+    .discovery-plan-badge.growth {
+      background: rgba(46,165,221,0.08);
+      color: var(--kup-blue);
+      border: 1px solid rgba(46,165,221,0.2);
+    }
+
+    /* Discovery Search + Filters */
+    .discovery-search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .discovery-search-input {
+      flex: 1;
+      min-width: 240px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--kup-white);
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      transition: border-color 0.2s;
+    }
+    .discovery-search-input:focus-within { border-color: var(--kup-blue); }
+    .discovery-search-input svg { width: 18px; height: 18px; color: #999; flex-shrink: 0; stroke: currentColor; }
+    .discovery-search-input input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      background: transparent;
+    }
+    .discovery-search-input input::placeholder { color: #bbb; }
+
+    /* Filter Chips */
+    .discovery-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .disc-filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      background: var(--kup-white);
+      border: 1px solid #ddd;
+      border-radius: 50px;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .disc-filter-chip:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+    .disc-filter-chip.active { background: rgba(46,165,221,0.08); border-color: var(--kup-blue); color: var(--kup-blue); }
+    .disc-filter-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Influencer Discovery Cards Grid */
+    .discovery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .disc-card {
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .disc-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-color: #ddd;
+    }
+
+    .disc-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .disc-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .disc-card-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      margin: 0 0 2px;
+    }
+    .disc-card-handle {
+      font-size: 0.78rem;
+      color: #888;
+      margin: 0;
+    }
+
+    /* Tier Badge */
+    .disc-tier-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .disc-tier-badge.micro { background: rgba(112,123,187,0.1); color: var(--kup-purple); }
+    .disc-tier-badge.rising { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .disc-tier-badge.established { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .disc-tier-badge.premium { background: rgba(22,163,74,0.1); color: #16a34a; }
+
+    /* Card Stats */
+    .disc-card-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .disc-stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .disc-stat-value {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .disc-stat-label {
+      font-size: 0.7rem;
+      color: #999;
+      font-weight: 500;
+    }
+
+    /* Niche Tags */
+    .disc-niche-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .disc-niche-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #f5f6fa;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #666;
+    }
+
+    /* Card Location */
+    .disc-card-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 14px;
+    }
+    .disc-card-location svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* Invite Button */
+    .btn-disc-invite {
+      width: 100%;
+      padding: 9px 16px;
+      background: transparent;
+      border: 1.5px solid var(--kup-blue);
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--kup-blue);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-disc-invite:hover {
+      background: var(--kup-blue);
+      color: white;
+    }
+    .btn-disc-invite.invited {
+      background: #f0f0f0;
+      border-color: #ddd;
+      color: #999;
+      cursor: default;
+      pointer-events: none;
+    }
+    .btn-disc-invite svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* Discovery Results Count */
+    .discovery-results-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .discovery-results-count {
+      font-size: 0.82rem;
+      color: #888;
+    }
+    .discovery-results-count strong { color: #1a1a1a; }
+    .discovery-sort-select {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      color: #555;
+      background: var(--kup-white);
+      cursor: pointer;
+    }
+
+    /* Load More */
+    .discovery-load-more {
+      text-align: center;
+    }
+    .btn-load-more {
+      padding: 10px 32px;
+      background: transparent;
+      border: 1.5px solid #ddd;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-load-more:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+
+    /* ============== DISCOVERY UPGRADE BANNER ============== */
+    .discovery-upgrade-banner {
+      background: linear-gradient(135deg, rgba(46,165,221,0.06) 0%, rgba(112,123,187,0.06) 100%);
+      border: 1px solid rgba(46,165,221,0.15);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .discovery-upgrade-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(237,132,68,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .discovery-upgrade-icon svg { width: 20px; height: 20px; color: var(--kup-orange); }
+    .discovery-upgrade-text {
+      flex: 1;
+    }
+    .discovery-upgrade-text p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #555;
+      line-height: 1.5;
+    }
+    .discovery-upgrade-text strong {
+      color: #1a1a1a;
+    }
+    .btn-discovery-upgrade {
+      padding: 8px 20px;
+      background: var(--kup-orange);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-discovery-upgrade:hover {
+      background: #d97530;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(237,132,68,0.3);
+    }
+
+    /* ============== RESPONSIVE ============== */
+    @media (max-width: 991px) {
+      .influencer-stats-row { grid-template-columns: repeat(2, 1fr); }
+      .request-card { flex-wrap: wrap; }
+      .request-stats { width: 100%; justify-content: flex-start; gap: 20px; }
+      .request-actions { width: 100%; }
+      .discovery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .page-content { padding: 20px 16px; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .influencer-toolbar { flex-direction: column; gap: 12px; align-items: stretch; }
+      .toolbar-left, .toolbar-right { flex-wrap: wrap; }
+      .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
+      .ip-actions { flex-wrap: wrap; }
+      .inf-tab { padding: 10px 16px; font-size: 0.82rem; }
+      .slot-counter { display: none; }
+      .discovery-grid { grid-template-columns: 1fr; }
+      .discovery-header { flex-direction: column; align-items: flex-start; }
+      .discovery-upgrade-banner { flex-direction: column; text-align: center; }
+      .btn-discovery-upgrade { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .influencer-stats-row { grid-template-columns: 1fr; }
+      .request-actions { flex-direction: column; }
+      .request-actions button { width: 100%; }
+    }
+    @media (max-width: 767px) {
+      /* Influencer cell becomes the card header — no label prefix */
+      .data-table tbody td:first-child::before {
+        display: none;
+      }
+      .data-table tbody td:first-child {
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 12px;
+        margin-bottom: 4px;
+        text-align: left;
+      }
+      .influencer-cell {
+        width: 100%;
+      }
+      .influencer-cell .name {
+        white-space: normal;
+        word-break: break-word;
+      }
+      /* Discovery grid */
+      .discovery-grid {
+        grid-template-columns: 1fr;
+      }
+      /* Request cards in Pending tab */
+      .request-card {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .request-stats {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .request-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+      .request-actions button {
+        width: 100%;
+        min-height: 44px;
+      }
+      /* Tab buttons spacing */
+      .tab-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tab-btn {
+        flex: 1 1 auto;
+        min-height: 44px;
+        text-align: center;
+      }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" class="active" role="tab" aria-selected="true">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <!-- Notification Bell + Popover -->
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
+                  <div class="notif-time">2 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item unread">
+                <div class="notif-icon approval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
+                  <div class="notif-time">15 minutes ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon payment">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon joined">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </li>
+              <li class="notif-item">
+                <div class="notif-icon submission">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
+                  <div class="notif-time">5 hours ago</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- Profile Dropdown -->
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu" aria-expanded="false">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info">
+              <div class="name">Santana T.</div>
+              <div class="brand">KeepUsPostd</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== INFLUENCERS PAGE ============== -->
+  <main class="page-content">
+    <div class="page-header">
+      <h1>Influencers</h1>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="influencer-stats-row">
+      <div class="stat-card">
+        <div class="stat-card-icon total">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div class="stat-card-value">247</div>
+          <div class="stat-card-label">Total Influencers</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon active">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div>
+          <div class="stat-card-value">38</div>
+          <div class="stat-card-label">Active This Week</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon engagement">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div>
+          <div class="stat-card-value">3.4%</div>
+          <div class="stat-card-label">Avg Engagement</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon pending">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <div class="stat-card-value">8</div>
+          <div class="stat-card-label">Pending Requests</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="influencer-tabs">
+      <button class="inf-tab active" data-inf-tab="tab-my-influencers">My Influencers <span class="inf-tab-badge">247</span></button>
+      <button class="inf-tab" data-inf-tab="tab-requests">Requests <span class="inf-tab-badge alert">8</span></button>
+      <button class="inf-tab" data-inf-tab="tab-invited">Invited <span class="inf-tab-badge">3</span></button>
+      <button class="inf-tab" data-inf-tab="tab-discovery">Discovery <span class="inf-tab-badge" style="background:rgba(22,163,74,0.1); color:#16a34a;">NEW</span></button>
+    </div>
+
+    <!-- ============== TAB 1: MY INFLUENCERS ============== -->
+    <div class="inf-tab-panel active" id="tab-my-influencers">
+      <!-- Search -->
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" placeholder="Search your influencer partners..." aria-label="Search influencers" id="myInfluencerSearch">
+      </div>
+
+      <!-- Toolbar -->
+      <div class="influencer-toolbar">
+        <div class="toolbar-left">
+          <span class="influencer-count"><strong>247</strong> Brand Influencers</span>
+          <span class="slot-counter">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            247 / 300 slots used
+          </span>
+        </div>
+        <div class="toolbar-right">
+          <!-- Filter -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="filterBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filter
+            </button>
+            <div class="kup-filter-panel" id="filterPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Influencer Tier</div>
+                <label class="filter-option"><input type="checkbox"> Nano (1K-10K)</label>
+                <label class="filter-option"><input type="checkbox"> Micro (10K-100K)</label>
+                <label class="filter-option"><input type="checkbox"> Macro (100K-1M)</label>
+                <label class="filter-option"><input type="checkbox"> Mega (1M+)</label>
+              </div>
+              <div class="filter-group">
+                <div class="filter-group-label">Status</div>
+                <label class="filter-option"><input type="checkbox"> Active</label>
+                <label class="filter-option"><input type="checkbox"> Inactive</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-clear" id="filterClear">Clear</button>
+                <button class="btn-filter-apply" id="filterApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- Sort -->
+          <div class="filter-wrap">
+            <button class="btn-filter" id="sortBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              Sort by
+            </button>
+            <div class="kup-filter-panel" id="sortPanel">
+              <div class="filter-group">
+                <div class="filter-group-label">Sort Order</div>
+                <label class="filter-option"><input type="radio" name="sort" checked> Most Submissions</label>
+                <label class="filter-option"><input type="radio" name="sort"> Newest First</label>
+                <label class="filter-option"><input type="radio" name="sort"> Alphabetical (A-Z)</label>
+                <label class="filter-option"><input type="radio" name="sort"> Last Active</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-filter-apply" id="sortApply">Apply</button>
+              </div>
+            </div>
+          </div>
+          <!-- Add Influencer -->
+          <button class="btn-add-influencer" id="addInfluencerBtn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2V14M2 8H14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Add Influencers
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Influencer</th>
+              <th>Rating</th>
+              <th>Status</th>
+              <th style="text-align: center;">Total Submissions</th>
+              <th>Last Submission</th>
+              <th>Last Postd Submission</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="jessicadavis">JD</div>
+                  <div>
+                    <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
+                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <div class="kup-rating-display">
+                  <div class="kup-rating-stars">
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span class="kup-rating-score">4.8</span>
+                  <span class="kup-rating-count">(12)</span>
+                </div>
+              </td>
+              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
+              <td class="stat-cell" data-label="Total Submissions">34</td>
+              <td class="time-cell" data-label="Last Submission">2 hours ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">1 day ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="jessicadavis" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="jessicadavis" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@jessicadavis"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
+                  <div>
+                    <div class="name" data-influencer="marcusking">@marcusking</div>
+                    <div class="tier"><span class="tier-badge macro">Macro Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <div class="kup-rating-display">
+                  <div class="kup-rating-stars">
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span class="kup-rating-score">4.3</span>
+                  <span class="kup-rating-count">(8)</span>
+                </div>
+              </td>
+              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
+              <td class="stat-cell" data-label="Total Submissions">28</td>
+              <td class="time-cell" data-label="Last Submission">5 hours ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">3 days ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="marcusking" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="marcusking" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@marcusking"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="amylee_creates">AL</div>
+                  <div>
+                    <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
+                    <div class="tier"><span class="tier-badge nano">Nano Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <span class="kup-rating-new">New</span>
+              </td>
+              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
+              <td class="stat-cell" data-label="Total Submissions">22</td>
+              <td class="time-cell" data-label="Last Submission">1 day ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">4 days ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="amylee_creates" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="amylee_creates" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@amylee_creates"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="tyreese_r">TR</div>
+                  <div>
+                    <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
+                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <div class="kup-rating-display">
+                  <div class="kup-rating-stars">
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span class="kup-rating-score">3.5</span>
+                  <span class="kup-rating-count">(5)</span>
+                </div>
+              </td>
+              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
+              <td class="stat-cell" data-label="Total Submissions">19</td>
+              <td class="time-cell" data-label="Last Submission">2 days ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">1 week ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="tyreese_r" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="tyreese_r" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@tyreese_r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
+                  <div>
+                    <div class="name" data-influencer="nina_k">@nina_k</div>
+                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <div class="kup-rating-display">
+                  <div class="kup-rating-stars">
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span class="kup-rating-score">4.6</span>
+                  <span class="kup-rating-count">(7)</span>
+                </div>
+              </td>
+              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
+              <td class="stat-cell" data-label="Total Submissions">18</td>
+              <td class="time-cell" data-label="Last Submission">3 days ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">5 days ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="nina_k" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="nina_k" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@nina_k"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Influencer">
+                <div class="influencer-cell">
+                  <div class="avatar" data-influencer="chelseap_fit" style="background: linear-gradient(135deg, #16a34a, #15803d);">CP</div>
+                  <div>
+                    <div class="name" data-influencer="chelseap_fit">@chelseap_fit</div>
+                    <div class="tier"><span class="tier-badge mega">Mega Influencer</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="rating-cell" data-label="Rating">
+                <div class="kup-rating-display">
+                  <div class="kup-rating-stars">
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span class="kup-rating-score">4.9</span>
+                  <span class="kup-rating-count">(24)</span>
+                </div>
+              </td>
+              <td data-label="Status"><span class="status-badge inactive-status">Inactive</span></td>
+              <td class="stat-cell" data-label="Total Submissions">45</td>
+              <td class="time-cell" data-label="Last Submission">6 hours ago</td>
+              <td class="time-cell" data-label="Last Postd Submission">2 days ago</td>
+              <td data-label="">
+                <div class="row-actions-wrap">
+                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
+                  <div class="row-actions-menu">
+                    <button class="row-action-item" data-influencer="chelseap_fit" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
+                    <button class="row-action-item" data-msg="chelseap_fit" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
+                    <button class="row-action-item danger" data-action="remove" data-name="@chelseap_fit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          <span class="showing">Showing 1-6 of 247 influencers</span>
+          <div class="pagination-btns">
+            <button class="page-btn">&larr;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">&hellip;</button>
+            <button class="page-btn">42</button>
+            <button class="page-btn">&rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TAB 2: REQUESTS ============== -->
+    <div class="inf-tab-panel" id="tab-requests">
+      <div class="influencer-toolbar" style="margin-bottom: 20px;">
+        <div class="toolbar-left">
+          <span class="influencer-count"><strong>8</strong> Partnership Requests</span>
+          <span class="slot-counter">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            53 slots remaining
+          </span>
+        </div>
+      </div>
+
+      <div class="request-cards" id="requestCards">
+        <!-- Request 1 -->
+        <div class="request-card">
+          <div class="request-avatar">DW</div>
+          <div class="request-info">
+            <p class="request-name">@darlene_writes</p>
+            <div class="request-meta">
+              <span class="tier-badge nano">Nano</span>
+              <span>Requested 2 hours ago</span>
+            </div>
+          </div>
+          <div class="request-stats">
+            <div class="request-stat"><div class="request-stat-value">9.2K</div><div class="request-stat-label">Followers</div></div>
+            <div class="request-stat"><div class="request-stat-value">5.8%</div><div class="request-stat-label">Engagement</div></div>
+          </div>
+          <div class="request-actions">
+            <button class="btn-approve" data-name="@darlene_writes">Approve</button>
+            <button class="btn-decline" data-name="@darlene_writes">Decline</button>
+          </div>
+        </div>
+        <!-- Request 2 -->
+        <div class="request-card">
+          <div class="request-avatar" style="background: linear-gradient(135deg, #ED8444, #e06030);">KJ</div>
+          <div class="request-info">
+            <p class="request-name">@kevinj_photo</p>
+            <div class="request-meta">
+              <span class="tier-badge micro">Micro</span>
+              <span>Requested 5 hours ago</span>
+            </div>
+          </div>
+          <div class="request-stats">
+            <div class="request-stat"><div class="request-stat-value">28.3K</div><div class="request-stat-label">Followers</div></div>
+            <div class="request-stat"><div class="request-stat-value">3.1%</div><div class="request-stat-label">Engagement</div></div>
+          </div>
+          <div class="request-actions">
+            <button class="btn-approve" data-name="@kevinj_photo">Approve</button>
+            <button class="btn-decline" data-name="@kevinj_photo">Decline</button>
+          </div>
+        </div>
+        <!-- Request 3 -->
+        <div class="request-card">
+          <div class="request-avatar" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">RM</div>
+          <div class="request-info">
+            <p class="request-name">@rachelmoon_</p>
+            <div class="request-meta">
+              <span class="tier-badge micro">Micro</span>
+              <span>Requested 1 day ago</span>
+            </div>
+          </div>
+          <div class="request-stats">
+            <div class="request-stat"><div class="request-stat-value">41.7K</div><div class="request-stat-label">Followers</div></div>
+            <div class="request-stat"><div class="request-stat-value">2.9%</div><div class="request-stat-label">Engagement</div></div>
+          </div>
+          <div class="request-actions">
+            <button class="btn-approve" data-name="@rachelmoon_">Approve</button>
+            <button class="btn-decline" data-name="@rachelmoon_">Decline</button>
+          </div>
+        </div>
+        <!-- Request 4 -->
+        <div class="request-card">
+          <div class="request-avatar" style="background: linear-gradient(135deg, #16a34a, #15803d);">TS</div>
+          <div class="request-info">
+            <p class="request-name">@tonysstyle</p>
+            <div class="request-meta">
+              <span class="tier-badge macro">Macro</span>
+              <span>Requested 2 days ago</span>
+            </div>
+          </div>
+          <div class="request-stats">
+            <div class="request-stat"><div class="request-stat-value">189K</div><div class="request-stat-label">Followers</div></div>
+            <div class="request-stat"><div class="request-stat-value">2.4%</div><div class="request-stat-label">Engagement</div></div>
+          </div>
+          <div class="request-actions">
+            <button class="btn-approve" data-name="@tonysstyle">Approve</button>
+            <button class="btn-decline" data-name="@tonysstyle">Decline</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TAB 3: INVITED ============== -->
+    <div class="inf-tab-panel" id="tab-invited">
+      <div class="influencer-toolbar" style="margin-bottom: 20px;">
+        <div class="toolbar-left">
+          <span class="influencer-count"><strong>3</strong> Invitations Sent</span>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn-add-influencer" id="addInfluencerBtn2">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2V14M2 8H14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Add Influencers
+          </button>
+        </div>
+      </div>
+
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Date Sent</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">sarah.martinez@gmail.com</td>
+              <td data-label="Date Sent" class="time-cell">Mar 3, 2026</td>
+              <td data-label="Status"><span class="invited-status sent">Sent</span></td>
+              <td data-label="Action"><button class="btn-resend">Resend</button></td>
+            </tr>
+            <tr>
+              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">mike.chen@outlook.com</td>
+              <td data-label="Date Sent" class="time-cell">Feb 28, 2026</td>
+              <td data-label="Status"><span class="invited-status accepted">Accepted</span></td>
+              <td data-label="Action"><span style="font-size: 0.78rem; color: #888;">—</span></td>
+            </tr>
+            <tr>
+              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">lisa.johnson@yahoo.com</td>
+              <td data-label="Date Sent" class="time-cell">Feb 15, 2026</td>
+              <td data-label="Status"><span class="invited-status expired">Expired</span></td>
+              <td data-label="Action"><button class="btn-resend">Resend</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============== TAB 4: DISCOVERY ============== -->
+    <div class="inf-tab-panel" id="tab-discovery">
+      <!-- Header -->
+      <div class="discovery-header">
+        <div class="discovery-header-left">
+          <h3>Discover Influencers</h3>
+          <p>Browse influencers on the KUP marketplace and invite them to partner with your brand.</p>
+        </div>
+        <span class="discovery-plan-badge growth">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Growth Plan — Browse Profiles
+        </span>
+      </div>
+
+      <!-- Upgrade Upsell Banner -->
+      <div class="discovery-upgrade-banner">
+        <div class="discovery-upgrade-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="discovery-upgrade-text">
+          <p><strong>Unlock Advanced Discovery</strong> — Upgrade to Pro for engagement analytics, niche filters, and AI-powered influencer matching. Agency plans include bulk assignment across brands.</p>
+        </div>
+        <a href="pricing-upgrade.html" class="btn-discovery-upgrade">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Upgrade Plan
+        </a>
+      </div>
+
+      <!-- Search -->
+      <div class="discovery-search-bar">
+        <div class="discovery-search-input">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+          <input type="text" placeholder="Search by name, handle, niche, or location..." id="discoverySearchInput">
+        </div>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="discovery-filters">
+        <button class="disc-filter-chip active" data-filter="all">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+          All
+        </button>
+        <button class="disc-filter-chip" data-filter="food">
+          Food &amp; Dining
+        </button>
+        <button class="disc-filter-chip" data-filter="lifestyle">
+          Lifestyle
+        </button>
+        <button class="disc-filter-chip" data-filter="fitness">
+          Fitness
+        </button>
+        <button class="disc-filter-chip" data-filter="beauty">
+          Beauty
+        </button>
+        <button class="disc-filter-chip" data-filter="tech">
+          Tech
+        </button>
+        <button class="disc-filter-chip" data-filter="travel">
+          Travel
+        </button>
+        <button class="disc-filter-chip" data-filter="fashion">
+          Fashion
+        </button>
+      </div>
+
+      <!-- Results Info -->
+      <div class="discovery-results-info">
+        <span class="discovery-results-count">Showing <strong>12</strong> of <strong>1,847</strong> influencers</span>
+        <select class="discovery-sort-select" id="discoverySortSelect">
+          <option value="relevance">Sort: Relevance</option>
+          <option value="followers">Most Followers</option>
+          <option value="engagement">Highest Engagement</option>
+          <option value="newest">Newest Members</option>
+        </select>
+      </div>
+
+      <!-- Discovery Cards Grid -->
+      <div class="discovery-grid" id="discoveryGrid">
+
+        <!-- Card 1 -->
+        <div class="disc-card" data-niche="food">
+          <span class="disc-tier-badge established">Established</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #f97316, #ea580c);">AT</div>
+            <div>
+              <p class="disc-card-name">Aisha Thompson</p>
+              <p class="disc-card-handle">@aisha.eats</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">42.3K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">5.2%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Food & Dining</span>
+            <span class="disc-niche-tag">Reviews</span>
+          </div>
+          <div class="kup-rating-display" style="margin: 8px 0 4px;">
+            <div class="kup-rating-stars">
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="kup-rating-score">4.7</span>
+            <span class="kup-rating-count">(15)</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Houston, TX
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="disc-card" data-niche="fitness">
+          <span class="disc-tier-badge premium">Premium</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #16a34a, #15803d);">DJ</div>
+            <div>
+              <p class="disc-card-name">Derek Johnson</p>
+              <p class="disc-card-handle">@derek.fit</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">128K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">4.8%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Fitness</span>
+            <span class="disc-niche-tag">Wellness</span>
+          </div>
+          <div class="kup-rating-display" style="margin: 8px 0 4px;">
+            <div class="kup-rating-stars">
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="kup-rating-score">4.2</span>
+            <span class="kup-rating-count">(31)</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Atlanta, GA
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="disc-card" data-niche="lifestyle">
+          <span class="disc-tier-badge rising">Rising</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #2EA5DD, #707BBB);">MR</div>
+            <div>
+              <p class="disc-card-name">Maya Rodriguez</p>
+              <p class="disc-card-handle">@mayalifestyle</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">18.7K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">6.1%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Lifestyle</span>
+            <span class="disc-niche-tag">Home & Living</span>
+          </div>
+          <div style="margin: 8px 0 4px;">
+            <span class="kup-rating-new">New</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Los Angeles, CA
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="disc-card" data-niche="beauty">
+          <span class="disc-tier-badge micro">Micro</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #ec4899, #db2777);">KL</div>
+            <div>
+              <p class="disc-card-name">Keisha Lewis</p>
+              <p class="disc-card-handle">@keishabeauty</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">8.2K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">7.8%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Beauty</span>
+            <span class="disc-niche-tag">Skincare</span>
+          </div>
+          <div class="kup-rating-display" style="margin: 8px 0 4px;">
+            <div class="kup-rating-stars">
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="kup-rating-score">4.9</span>
+            <span class="kup-rating-count">(6)</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            New Orleans, LA
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="disc-card" data-niche="tech">
+          <span class="disc-tier-badge established">Established</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">TP</div>
+            <div>
+              <p class="disc-card-name">Tyler Patel</p>
+              <p class="disc-card-handle">@tylertech</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">56.1K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">3.9%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Tech</span>
+            <span class="disc-niche-tag">Gadgets</span>
+          </div>
+          <div class="kup-rating-display" style="margin: 8px 0 4px;">
+            <div class="kup-rating-stars">
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="kup-rating-score">3.8</span>
+            <span class="kup-rating-count">(19)</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Austin, TX
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="disc-card" data-niche="food">
+          <span class="disc-tier-badge rising">Rising</span>
+          <div class="disc-card-header">
+            <div class="disc-avatar" style="background: linear-gradient(135deg, #ED8444, #d97706);">RW</div>
+            <div>
+              <p class="disc-card-name">Rachel Williams</p>
+              <p class="disc-card-handle">@rachelfoodie</p>
+            </div>
+          </div>
+          <div class="disc-card-stats">
+            <div class="disc-stat">
+              <span class="disc-stat-value">22.4K</span>
+              <span class="disc-stat-label">Followers</span>
+            </div>
+            <div class="disc-stat">
+              <span class="disc-stat-value">5.5%</span>
+              <span class="disc-stat-label">Engagement</span>
+            </div>
+          </div>
+          <div class="disc-niche-tags">
+            <span class="disc-niche-tag">Food & Dining</span>
+            <span class="disc-niche-tag">Local Eats</span>
+          </div>
+          <div class="kup-rating-display" style="margin: 8px 0 4px;">
+            <div class="kup-rating-stars">
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="kup-rating-score">4.5</span>
+            <span class="kup-rating-count">(9)</span>
+          </div>
+          <div class="disc-card-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Baton Rouge, LA
+          </div>
+          <button class="btn-disc-invite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Invite to Partner
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Load More -->
+      <div class="discovery-load-more">
+        <button class="btn-load-more" id="loadMoreBtn">Load More Influencers</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============== ADD INFLUENCER MODAL (Upgraded — matches live site) ============== -->
+  <div class="kup-modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="addModalClose" aria-label="Close">&times;</button>
+
+      <!-- Modal Header with Brand Avatar -->
+      <div class="add-modal-header">
+        <div class="add-modal-brand-avatar">ST</div>
+        <div class="add-modal-header-text">
+          <h3 id="addModalTitle">Share your brand profile with others</h3>
+          <p>Invite influencers to partner with KeepUsPostd</p>
+        </div>
+      </div>
+
+      <!-- Email Tags Input -->
+      <div class="email-tags-wrap" id="emailTagsWrap">
+        <input type="text" class="email-tags-input" id="emailTagsInput" placeholder="Type one or more emails" aria-label="Type one or more emails">
+      </div>
+
+      <!-- Auto-Generated Message -->
+      <div class="auto-msg-section">
+        <div class="auto-msg-header">
+          <span class="auto-msg-label">Auto-generated message</span>
+          <button class="auto-msg-customize" id="customizeMsgBtn">Customize</button>
+        </div>
+        <div class="auto-msg-preview" id="autoMsgPreview">
+          Thank you for your support of <span class="brand-placeholder">{brand name}</span>.<br>
+          We appreciate your feedback and encourage you to leave brand reviews through the KeepUsPostd App. Partner with us as an influencer and win big! Scan the QR code below to download the KeepUsPostd app, and start earning based on your level of influence.
+        </div>
+        <textarea class="auto-msg-edit" id="autoMsgEdit">Thank you for your support of {brand name}. We appreciate your feedback and encourage you to leave brand reviews through the KeepUsPostd App. Partner with us as an influencer and win big! Scan the QR code below to download the KeepUsPostd app, and start earning based on your level of influence.</textarea>
+      </div>
+
+      <!-- QR Code -->
+      <div class="qr-code-section">
+        <div class="qr-code-placeholder">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <!-- Simplified QR code pattern -->
+            <rect x="4" y="4" width="20" height="20" rx="2" fill="#1a1a1a"/>
+            <rect x="8" y="8" width="12" height="12" rx="1" fill="white"/>
+            <rect x="11" y="11" width="6" height="6" fill="#1a1a1a"/>
+            <rect x="56" y="4" width="20" height="20" rx="2" fill="#1a1a1a"/>
+            <rect x="60" y="8" width="12" height="12" rx="1" fill="white"/>
+            <rect x="63" y="11" width="6" height="6" fill="#1a1a1a"/>
+            <rect x="4" y="56" width="20" height="20" rx="2" fill="#1a1a1a"/>
+            <rect x="8" y="60" width="12" height="12" rx="1" fill="white"/>
+            <rect x="11" y="63" width="6" height="6" fill="#1a1a1a"/>
+            <rect x="28" y="4" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="36" y="4" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="44" y="4" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="28" y="12" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="40" y="12" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="48" y="12" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="28" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="36" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="44" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="4" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="12" y="36" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="4" y="44" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="28" y="36" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="36" y="36" width="8" height="8" fill="#1a1a1a"/>
+            <rect x="48" y="36" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="56" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="64" y="36" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="72" y="28" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="56" y="48" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="64" y="56" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="72" y="48" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="56" y="64" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="72" y="64" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="64" y="72" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="48" y="56" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="28" y="48" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="36" y="56" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="28" y="64" width="4" height="4" fill="#1a1a1a"/>
+            <rect x="36" y="72" width="4" height="4" fill="#1a1a1a"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Send Button -->
+      <button class="btn-send-request" id="sendRequestBtn" disabled>Send influencer request</button>
+
+      <!-- Invite Link Section -->
+      <div class="invite-link-section">
+        <p class="invite-link-label">Add influencer link</p>
+        <p class="invite-link-desc">Anyone with the link can become an instant influencer to your brand when they download the KeepUsPostd Marketplace app.</p>
+        <div class="invite-link-row">
+          <input type="text" class="invite-link-input" id="inviteLinkInput" value="https://www.keepuspostd.com/keepuspostd/xk9r2m4t" readonly>
+          <button class="btn-copy-link" id="copyLinkBtn">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== INFLUENCER PROFILE MODAL ============== -->
+  <div class="kup-modal-overlay" id="influencerProfileModal" role="dialog" aria-modal="true" aria-labelledby="ipModalHandle">
+    <div class="kup-modal" style="max-width: 520px; position:relative;">
+      <div class="ip-brand-badge" id="ipBrandBadge" style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#F8F9FB;border-radius:20px;border:1px solid #E5E7EB;z-index:1;">
+        <div id="ipBrandLogo" style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;background:#2EA5DD;">KP</div>
+        <span id="ipBrandName" style="font-size:.78rem;font-weight:600;color:#1A1A2E;">KeepUsPostd</span>
+      </div>
+      <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
+      <div class="ip-header">
+        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
+        <p class="ip-name" id="ipName">Jessica Davis</p>
+        <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
+      </div>
+      <div class="ip-stats">
+        <div class="ip-stat"><strong id="ipFollowers">12.4K</strong><span>Followers</span></div>
+        <div class="ip-stat"><strong id="ipEngagement">3.2%</strong><span>Engagement</span></div>
+        <div class="ip-stat"><strong id="ipPosts">34</strong><span>Posts</span></div>
+      </div>
+      <div class="ip-socials">
+        <div class="ip-social-icon" title="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <div class="ip-social-icon" title="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></div>
+        <div class="ip-social-icon" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></div>
+      </div>
+      <p class="ip-bio" id="ipBio">Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.</p>
+      <div class="ip-submissions-label">Recent Submissions</div>
+      <div class="ip-submissions">
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+        <div class="ip-thumb">IMG</div>
+        <div class="ip-thumb">VID</div>
+      </div>
+      <div class="ip-actions">
+        <button class="btn-ip-outline" id="ipNoticeBtn">Send Notice</button>
+        <button class="btn-ip-primary">Send Reward</button>
+        <button class="btn-ip-outline">View Content</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== NOTICE COMPOSER MODAL ============== -->
+  <div class="kup-modal-overlay" id="noticeComposerModal" role="dialog" aria-modal="true" aria-labelledby="noticeModalName">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="noticeModalClose" aria-label="Close">&times;</button>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
+      <div class="notice-header">
+        <div class="notice-avatar" id="noticeAvatar">JD</div>
+        <div>
+          <div class="notice-user-name" id="noticeModalName">Jessica Davis</div>
+          <div class="notice-user-handle" id="noticeHandle">@jessicadavis</div>
+        </div>
+      </div>
+      <!-- AI Assist -->
+      <div class="ai-assist-toggle" id="aiAssistToggle">
+        <span class="ai-icon">✨</span>
+        <span class="ai-label">AI Assist</span>
+        <span class="ai-hint">Describe your needs, AI writes the brief</span>
+      </div>
+      <div class="ai-assist-panel" id="aiAssistPanel">
+        <textarea id="aiAssistInput" placeholder="Describe what you need in plain language... &#10;&#10;Example: &quot;Tell them we need a 30-second Reel featuring the new summer line, shoot outdoors, use #KeepUsPostd hashtag, due by Friday&quot;"></textarea>
+        <button class="btn-generate-brief" id="btnGenerateBrief">
+          <span class="ai-icon">✨</span> Generate Brief
+        </button>
+      </div>
+      <div class="notice-form">
+        <div class="notice-field">
+          <label for="noticeType">Notice Type</label>
+          <select id="noticeType">
+            <option value="" disabled selected>Select a notice type...</option>
+            <option value="content-request">Content Request</option>
+            <option value="guideline-update">Guideline Update</option>
+            <option value="performance-note">Performance Note</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="notice-field">
+          <label for="noticeSubject">Subject</label>
+          <input type="text" id="noticeSubject" placeholder="Enter a clear subject line...">
+        </div>
+        <div class="notice-field">
+          <label for="noticeBody">Details</label>
+          <textarea id="noticeBody" rows="4" placeholder="Provide specific instructions or information..."></textarea>
+        </div>
+        <div class="notice-field">
+          <label for="noticeCampaign">Link to Campaign (optional)</label>
+          <select id="noticeCampaign">
+            <option value="">— None —</option>
+            <option value="summer-2026">Summer Collection 2026</option>
+            <option value="product-launch-q2">Product Launch Q2</option>
+            <option value="holiday-promo">Holiday Promo 2026</option>
+            <option value="brand-awareness">Brand Awareness Sprint</option>
+          </select>
+        </div>
+        <div>
+          <div class="notice-chips-label">Response Options</div>
+          <div class="notice-chips">
+            <span class="notice-chip active" data-response="acknowledged">&#10003; Acknowledged</span>
+            <span class="notice-chip active" data-response="question">? Question</span>
+            <span class="notice-chip" data-response="cant-complete">&#10005; Can't Complete</span>
+          </div>
+        </div>
+      </div>
+      <div class="notice-footer">
+        <span class="notice-preview-text">Influencer will receive this as a notification with response options</span>
+        <button class="btn-send-notice" id="btnSendNotice">Send Notice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="kupToastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <script>
+    /* ============== TOAST NOTIFICATION SYSTEM ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2EA5DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      };
+      var container = document.getElementById('kupToastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML = '<span class="kup-toast-icon">' + (icons[type] || icons.info) + '</span>' + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add('dismissing');
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    /* ============== MODAL HELPERS ============== */
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      modal.classList.add('show');
+      var closeBtn = modal.querySelector('.kup-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    // Global: Close any modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.kup-modal-overlay.show').forEach(function(m) {
+          m.classList.remove('show');
+        });
+        // Also close popovers
+        document.getElementById('notifPopover').classList.remove('show');
+        document.querySelectorAll('.kup-filter-panel.show').forEach(function(p) {
+          p.classList.remove('show');
+        });
+      }
+    });
+
+    // Global: Close modals on backdrop click
+    document.querySelectorAll('.kup-modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    document.getElementById('profileTrigger').addEventListener('click', function() {
+      var dd = document.getElementById('profileDropdown');
+      dd.classList.toggle('show');
+      this.setAttribute('aria-expanded', dd.classList.contains('show'));
+    });
+
+    /* ============== NOTIFICATION CENTER ============== */
+    document.getElementById('notifBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var pop = document.getElementById('notifPopover');
+      pop.classList.toggle('show');
+      this.setAttribute('aria-expanded', pop.classList.contains('show'));
+      // Close profile dropdown if open
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+    // Notification tabs
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var filter = this.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = 'flex';
+          }
+        });
+      });
+    });
+    // Mark all read
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(item) {
+        item.classList.remove('unread');
+      });
+      document.querySelector('.notif-dot').style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+
+    /* ============== FILTER/SORT PANELS ============== */
+    document.getElementById('filterBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('filterPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('filterPanel').classList.contains('show'));
+    });
+    document.getElementById('sortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('sortPanel').classList.toggle('show');
+      this.classList.toggle('active', document.getElementById('sortPanel').classList.contains('show'));
+    });
+    document.getElementById('filterApply').addEventListener('click', function() {
+      document.getElementById('filterPanel').classList.remove('show');
+      document.getElementById('filterBtn').classList.remove('active');
+      kupToast('Filters applied', 'info');
+    });
+    document.getElementById('filterClear').addEventListener('click', function() {
+      document.querySelectorAll('#filterPanel input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+    });
+    document.getElementById('sortApply').addEventListener('click', function() {
+      document.getElementById('sortPanel').classList.remove('show');
+      document.getElementById('sortBtn').classList.remove('active');
+      kupToast('Sort order updated', 'info');
+    });
+
+    /* ============== INFLUENCER DATA ============== */
+    var influencerData = {
+      jessicadavis:  { initials: 'JD', handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
+      marcusking:    { initials: 'MK', handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
+      amylee_creates:{ initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
+      tyreese_r:     { initials: 'TR', handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
+      nina_k:        { initials: 'NK', handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' },
+      chelseap_fit:  { initials: 'CP', handle: '@chelseap_fit', name: 'Chelsea Patterson', tier: 'Mega Influencer', tierClass: 'mega', followers: '1.2M', engagement: '1.8%', posts: '45', bio: 'Celebrity fitness trainer and brand ambassador. Partnered with 50+ fitness and nutrition brands worldwide.' }
+    };
+
+    /* ============== INFLUENCER TABS ============== */
+    document.querySelectorAll('.inf-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.inf-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.inf-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        var panelId = this.getAttribute('data-inf-tab');
+        document.getElementById(panelId).classList.add('active');
+      });
+    });
+
+    /* ============== ROW ACTIONS MENU (⋯) ============== */
+    document.querySelectorAll('.btn-row-actions').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        // Close all other menus first
+        document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
+        var menu = this.nextElementSibling;
+        menu.classList.toggle('show');
+      });
+    });
+
+    // Row action handlers
+    document.querySelectorAll('.row-action-item').forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var action = this.getAttribute('data-action');
+        // Close menu
+        this.closest('.row-actions-menu').classList.remove('show');
+
+        if (action === 'profile') {
+          var key = this.getAttribute('data-influencer');
+          var data = influencerData[key];
+          if (data) {
+            document.getElementById('ipAvatar').textContent = data.initials;
+            document.getElementById('ipModalHandle').textContent = data.handle;
+            document.getElementById('ipName').textContent = data.name;
+            var tierEl = document.getElementById('ipTier');
+            tierEl.textContent = data.tier;
+            tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+            document.getElementById('ipFollowers').textContent = data.followers;
+            document.getElementById('ipEngagement').textContent = data.engagement;
+            document.getElementById('ipPosts').textContent = data.posts;
+            document.getElementById('ipBio').textContent = data.bio;
+            if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+              var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+              document.getElementById('ipBrandLogo').textContent = ab.abbreviation || 'KP';
+              document.getElementById('ipBrandLogo').style.background = ab.color || '#2EA5DD';
+              document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+            }
+            openModal('influencerProfileModal');
+          }
+        } else if (action === 'notice') {
+          var key = this.getAttribute('data-msg');
+          var data = influencerData[key];
+          if (data) {
+            document.getElementById('noticeAvatar').textContent = data.initials;
+            document.getElementById('noticeModalName').textContent = data.name;
+            document.getElementById('noticeHandle').textContent = data.handle;
+            resetNoticeForm();
+            openModal('noticeComposerModal');
+          }
+        } else if (action === 'remove') {
+          var name = this.getAttribute('data-name');
+          var row = this.closest('tr');
+          if (row) {
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(20px)';
+            setTimeout(function() { row.remove(); }, 300);
+            kupToast(name + ' has been removed from your brand', 'warning');
+          }
+        }
+      });
+    });
+
+    // Close row menus on outside click
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
+    });
+
+    /* ============== REQUEST APPROVE / DECLINE ============== */
+    document.querySelectorAll('.btn-approve').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var name = this.getAttribute('data-name');
+        var card = this.closest('.request-card');
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
+        setTimeout(function() { card.remove(); }, 300);
+        kupToast(name + ' approved as a brand partner!', 'success');
+      });
+    });
+    document.querySelectorAll('.btn-decline').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var name = this.getAttribute('data-name');
+        var card = this.closest('.request-card');
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-20px)';
+        setTimeout(function() { card.remove(); }, 300);
+        kupToast(name + ' request declined', 'info');
+      });
+    });
+
+    /* ============== RESEND INVITATION ============== */
+    document.querySelectorAll('.btn-resend').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var email = this.closest('tr').querySelector('td').textContent;
+        this.textContent = 'Sent!';
+        this.style.color = '#16a34a';
+        this.style.borderColor = '#16a34a';
+        var b = this;
+        setTimeout(function() { b.textContent = 'Resend'; b.style.color = ''; b.style.borderColor = ''; }, 2000);
+        kupToast('Invitation resent to ' + email, 'success');
+      });
+    });
+
+    /* ============== ADD INFLUENCER MODAL ============== */
+    // Reset modal state to defaults
+    function resetAddModal() {
+      // Reset customize toggle
+      isCustomizing = false;
+      msgPreview.style.display = 'block';
+      msgEdit.style.display = 'none';
+      customizeBtn.textContent = 'Customize';
+      // Clear email tags
+      emailTags = [];
+      emailWrap.querySelectorAll('.email-tag').forEach(function(t) { t.remove(); });
+      emailInput.value = '';
+      updateSendButton();
+    }
+
+    // Open from toolbar buttons (both tabs have one)
+    document.getElementById('addInfluencerBtn').addEventListener('click', function() {
+      resetAddModal();
+      openModal('addModal');
+    });
+    if (document.getElementById('addInfluencerBtn2')) {
+      document.getElementById('addInfluencerBtn2').addEventListener('click', function() {
+        resetAddModal();
+        openModal('addModal');
+      });
+    }
+    document.getElementById('addModalClose').addEventListener('click', function() {
+      closeModal('addModal');
+    });
+
+    // Email tags system
+    var emailTags = [];
+    var emailInput = document.getElementById('emailTagsInput');
+    var emailWrap = document.getElementById('emailTagsWrap');
+    var sendBtn = document.getElementById('sendRequestBtn');
+
+    function updateSendButton() {
+      sendBtn.disabled = emailTags.length === 0;
+    }
+
+    function addEmailTag(email) {
+      email = email.trim();
+      if (!email) return;
+      // Basic email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        kupToast('Please enter a valid email address', 'error');
+        return;
+      }
+      if (emailTags.indexOf(email) !== -1) {
+        kupToast('This email is already added', 'warning');
+        return;
+      }
+      emailTags.push(email);
+
+      var tag = document.createElement('span');
+      tag.className = 'email-tag';
+      tag.innerHTML = email + '<button class="email-tag-remove" data-email="' + email + '">&times;</button>';
+      emailWrap.insertBefore(tag, emailInput);
+
+      tag.querySelector('.email-tag-remove').addEventListener('click', function() {
+        var em = this.getAttribute('data-email');
+        emailTags = emailTags.filter(function(t) { return t !== em; });
+        tag.remove();
+        updateSendButton();
+      });
+
+      emailInput.value = '';
+      updateSendButton();
+    }
+
+    emailInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+        e.preventDefault();
+        addEmailTag(this.value.replace(/,/g, ''));
+      }
+      // Backspace removes last tag if input empty
+      if (e.key === 'Backspace' && this.value === '' && emailTags.length > 0) {
+        var lastTag = emailWrap.querySelectorAll('.email-tag');
+        if (lastTag.length > 0) {
+          var lastEmail = emailTags.pop();
+          lastTag[lastTag.length - 1].remove();
+          updateSendButton();
+        }
+      }
+    });
+    // Also handle paste of multiple emails
+    emailInput.addEventListener('paste', function(e) {
+      var self = this;
+      setTimeout(function() {
+        var val = self.value;
+        var emails = val.split(/[,;\s]+/);
+        if (emails.length > 1) {
+          emails.forEach(function(em) { addEmailTag(em); });
+          self.value = '';
+        }
+      }, 50);
+    });
+    emailWrap.addEventListener('click', function() {
+      emailInput.focus();
+    });
+
+    // Customize message toggle
+    var msgPreview = document.getElementById('autoMsgPreview');
+    var msgEdit = document.getElementById('autoMsgEdit');
+    var customizeBtn = document.getElementById('customizeMsgBtn');
+    var isCustomizing = false;
+
+    customizeBtn.addEventListener('click', function() {
+      isCustomizing = !isCustomizing;
+      if (isCustomizing) {
+        msgPreview.style.display = 'none';
+        msgEdit.style.display = 'block';
+        msgEdit.focus();
+        this.textContent = 'Preview';
+      } else {
+        msgPreview.style.display = 'block';
+        msgEdit.style.display = 'none';
+        // Update preview with edited text
+        var edited = msgEdit.value.replace(/\{brand name\}/g, '<span class="brand-placeholder">{brand name}</span>');
+        msgPreview.innerHTML = edited.replace(/\n/g, '<br>');
+        this.textContent = 'Customize';
+      }
+    });
+
+    // Send influencer request
+    sendBtn.addEventListener('click', function() {
+      if (emailTags.length === 0) return;
+      var count = emailTags.length;
+      closeModal('addModal');
+      kupToast(count + ' influencer request' + (count > 1 ? 's' : '') + ' sent successfully!', 'success');
+      // Clear tags
+      emailTags = [];
+      emailWrap.querySelectorAll('.email-tag').forEach(function(t) { t.remove(); });
+      updateSendButton();
+    });
+
+    // Copy invite link
+    document.getElementById('copyLinkBtn').addEventListener('click', function() {
+      var linkInput = document.getElementById('inviteLinkInput');
+      linkInput.select();
+      document.execCommand('copy');
+      this.textContent = 'Copied!';
+      this.classList.add('copied');
+      kupToast('Invite link copied to clipboard', 'success');
+      var btn = this;
+      setTimeout(function() {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+
+    /* ============== INFLUENCER PROFILE MODAL ============== */
+    // Avatar/name clicks in table still open profile
+    document.querySelectorAll('[data-influencer]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var key = this.getAttribute('data-influencer');
+        var data = influencerData[key];
+        if (!data) return;
+        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipModalHandle').textContent = data.handle;
+        document.getElementById('ipName').textContent = data.name;
+        var tierEl = document.getElementById('ipTier');
+        tierEl.textContent = data.tier;
+        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+        document.getElementById('ipFollowers').textContent = data.followers;
+        document.getElementById('ipEngagement').textContent = data.engagement;
+        document.getElementById('ipPosts').textContent = data.posts;
+        document.getElementById('ipBio').textContent = data.bio;
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          document.getElementById('ipBrandLogo').textContent = ab.abbreviation || 'KP';
+          document.getElementById('ipBrandLogo').style.background = ab.color || '#2EA5DD';
+          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+        }
+        openModal('influencerProfileModal');
+      });
+    });
+    document.getElementById('ipModalClose').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+    });
+    // Profile modal → Notice button opens notice composer
+    document.getElementById('ipNoticeBtn').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+      var handle = document.getElementById('ipModalHandle').textContent;
+      var name = document.getElementById('ipName').textContent;
+      var initials = document.getElementById('ipAvatar').textContent;
+      document.getElementById('noticeAvatar').textContent = initials;
+      document.getElementById('noticeModalName').textContent = name;
+      document.getElementById('noticeHandle').textContent = handle;
+      resetNoticeForm();
+      openModal('noticeComposerModal');
+    });
+
+    /* ============== NOTICE COMPOSER ============== */
+    // Chip toggles
+    document.querySelectorAll('.notice-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('active');
+      });
+    });
+
+    // Close notice modal
+    document.getElementById('noticeModalClose').addEventListener('click', function() {
+      closeModal('noticeComposerModal');
+    });
+
+    // Send notice
+    document.getElementById('btnSendNotice').addEventListener('click', function() {
+      var type = document.getElementById('noticeType').value;
+      var subject = document.getElementById('noticeSubject').value.trim();
+      if (!type) {
+        kupToast('Please select a notice type', 'error');
+        return;
+      }
+      if (!subject) {
+        kupToast('Please enter a subject line', 'error');
+        return;
+      }
+      var name = document.getElementById('noticeModalName').textContent;
+      kupToast('Notice sent to ' + name, 'success');
+      closeModal('noticeComposerModal');
+    });
+
+    // Reset form helper
+    function resetNoticeForm() {
+      document.getElementById('noticeType').selectedIndex = 0;
+      document.getElementById('noticeSubject').value = '';
+      document.getElementById('noticeBody').value = '';
+      document.getElementById('noticeCampaign').selectedIndex = 0;
+      // Reset AI assist
+      var aiP = document.getElementById('aiAssistPanel');
+      var aiT = document.getElementById('aiAssistToggle');
+      var aiI = document.getElementById('aiAssistInput');
+      if (aiP) aiP.classList.remove('show');
+      if (aiT) { aiT.classList.remove('active'); aiT.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief'; }
+      if (aiI) aiI.value = '';
+    }
+
+    // Auto-suggest subject based on notice type
+    document.getElementById('noticeType').addEventListener('change', function() {
+      var subjectInput = document.getElementById('noticeSubject');
+      if (subjectInput.value.trim()) return; // Don't overwrite user input
+      var suggestions = {
+        'content-request': 'New content request for your review',
+        'guideline-update': 'Updated brand guidelines — please review',
+        'performance-note': 'Performance update on your recent content',
+        'custom': ''
+      };
+      if (suggestions[this.value]) {
+        subjectInput.value = suggestions[this.value];
+      }
+    });
+
+    /* ============== AI ASSIST ============== */
+    var aiToggle = document.getElementById('aiAssistToggle');
+    var aiPanel = document.getElementById('aiAssistPanel');
+    var aiInput = document.getElementById('aiAssistInput');
+    var noticeForm = document.querySelector('#noticeComposerModal .notice-form');
+
+    aiToggle.addEventListener('click', function() {
+      var isOpen = aiPanel.classList.contains('show');
+      if (isOpen) {
+        aiPanel.classList.remove('show');
+        aiToggle.classList.remove('active');
+        aiToggle.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief';
+      } else {
+        aiPanel.classList.add('show');
+        aiToggle.classList.add('active');
+        aiToggle.querySelector('.ai-hint').textContent = 'Close AI Assist';
+        aiInput.focus();
+      }
+    });
+
+    document.getElementById('btnGenerateBrief').addEventListener('click', function() {
+      var prompt = aiInput.value.trim();
+      if (!prompt) {
+        kupToast('Describe what you need first', 'error');
+        return;
+      }
+
+      var btn = this;
+      var originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="ai-icon">✨</span> Generating<span class="ai-generating-dots"></span>';
+      btn.classList.add('generating');
+
+      // Simulate AI generation (1.5s delay for demo)
+      setTimeout(function() {
+        // Parse the prompt for keywords and fill in the form intelligently
+        var promptLower = prompt.toLowerCase();
+        var type = 'content-request'; // default
+        if (promptLower.indexOf('guideline') !== -1 || promptLower.indexOf('brand guide') !== -1) type = 'guideline-update';
+        else if (promptLower.indexOf('performance') !== -1 || promptLower.indexOf('stats') !== -1 || promptLower.indexOf('analytics') !== -1) type = 'performance-note';
+
+        document.getElementById('noticeType').value = type;
+
+        // Generate a subject from the first phrase
+        var subject = prompt.split(/[,.!?]/)[0].trim();
+        if (subject.length > 60) subject = subject.substring(0, 57) + '...';
+        // Capitalize first letter
+        subject = subject.charAt(0).toUpperCase() + subject.slice(1);
+        document.getElementById('noticeSubject').value = subject;
+
+        // Format the body with structure
+        var body = 'Hi ' + document.getElementById('noticeModalName').textContent.split(' ')[0] + ',\n\n';
+        body += prompt;
+        body += '\n\nPlease confirm you\'ve received this and let us know if you have any questions.';
+        document.getElementById('noticeBody').value = body;
+
+        // Try to match a campaign
+        if (promptLower.indexOf('summer') !== -1) {
+          document.getElementById('noticeCampaign').value = 'summer-2026';
+        } else if (promptLower.indexOf('launch') !== -1 || promptLower.indexOf('product') !== -1) {
+          document.getElementById('noticeCampaign').value = 'product-launch-q2';
+        } else if (promptLower.indexOf('holiday') !== -1) {
+          document.getElementById('noticeCampaign').value = 'holiday-promo';
+        }
+
+        // Collapse AI panel, show form
+        aiPanel.classList.remove('show');
+        aiToggle.classList.remove('active');
+        aiToggle.querySelector('.ai-hint').textContent = 'Describe your needs, AI writes the brief';
+
+        btn.innerHTML = originalText;
+        btn.classList.remove('generating');
+
+        kupToast('Brief generated — review and send!', 'success');
+      }, 1500);
+    });
+
+    /* ============== CLOSE OUTSIDE CLICKS ============== */
+    /* ============== DISCOVERY TAB ============== */
+    // Filter Chips
+    document.querySelectorAll('.disc-filter-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        // Toggle active state
+        document.querySelectorAll('.disc-filter-chip').forEach(function(c) { c.classList.remove('active'); });
+        this.classList.add('active');
+
+        var filter = this.getAttribute('data-filter');
+        var cards = document.querySelectorAll('.disc-card');
+        var visibleCount = 0;
+
+        cards.forEach(function(card) {
+          if (filter === 'all' || card.getAttribute('data-niche') === filter) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Update results count
+        var resultsCount = document.querySelector('.discovery-results-count');
+        if (resultsCount) {
+          resultsCount.innerHTML = 'Showing <strong>' + visibleCount + '</strong> of <strong>1,847</strong> influencers';
+        }
+      });
+    });
+
+    // My Influencers Search
+    var myInfluencerSearch = document.getElementById('myInfluencerSearch');
+    if (myInfluencerSearch) {
+      myInfluencerSearch.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var rows = document.querySelectorAll('#tab-my-influencers .data-table tbody tr');
+        var visibleCount = 0;
+
+        rows.forEach(function(row) {
+          var nameEl = row.querySelector('.name');
+          var tierEl = row.querySelector('.tier');
+          var name = nameEl ? nameEl.textContent.toLowerCase() : '';
+          var tier = tierEl ? tierEl.textContent.toLowerCase() : '';
+
+          if (!query || name.indexOf(query) !== -1 || tier.indexOf(query) !== -1) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        var showingEl = document.querySelector('#tab-my-influencers .showing');
+        if (showingEl) {
+          showingEl.innerHTML = query ? 'Showing ' + visibleCount + ' of 247 influencers' : 'Showing 1-6 of 247 influencers';
+        }
+      });
+    }
+
+    // Discovery Search
+    var discoverySearchInput = document.getElementById('discoverySearchInput');
+    if (discoverySearchInput) {
+      discoverySearchInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var cards = document.querySelectorAll('.disc-card');
+        var visibleCount = 0;
+
+        cards.forEach(function(card) {
+          var name = card.querySelector('.disc-card-name').textContent.toLowerCase();
+          var handle = card.querySelector('.disc-card-handle').textContent.toLowerCase();
+          var niches = card.querySelector('.disc-niche-tags').textContent.toLowerCase();
+          var location = card.querySelector('.disc-card-location').textContent.toLowerCase();
+
+          if (!query || name.indexOf(query) !== -1 || handle.indexOf(query) !== -1 || niches.indexOf(query) !== -1 || location.indexOf(query) !== -1) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Reset filter chips to "All" when searching
+        document.querySelectorAll('.disc-filter-chip').forEach(function(c) { c.classList.remove('active'); });
+        document.querySelector('.disc-filter-chip[data-filter="all"]').classList.add('active');
+
+        var resultsCount = document.querySelector('.discovery-results-count');
+        if (resultsCount) {
+          resultsCount.innerHTML = 'Showing <strong>' + visibleCount + '</strong> of <strong>1,847</strong> influencers';
+        }
+      });
+    }
+
+    // Invite to Partner buttons
+    document.querySelectorAll('.btn-disc-invite').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var card = this.closest('.disc-card');
+        var name = card.querySelector('.disc-card-name').textContent;
+        this.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Invited';
+        this.classList.add('invited');
+        kupToast('Partnership invitation sent to <strong>' + name + '</strong>', 'success');
+      });
+    });
+
+    // Load More button
+    var loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        this.textContent = 'Loading...';
+        this.style.pointerEvents = 'none';
+        var btn = this;
+        setTimeout(function() {
+          btn.textContent = 'No More Results';
+          btn.style.color = '#999';
+          btn.style.borderColor = '#eee';
+          btn.style.cursor = 'default';
+        }, 1000);
+      });
+    }
+
+    /* ============== CLOSE OUTSIDE CLICKS ============== */
+    document.addEventListener('click', function(e) {
+      // Profile dropdown
+      var profileMenu = document.querySelector('.profile-menu');
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profileDropdown').classList.remove('show');
+      }
+      // Notification popover
+      var notifWrap = document.querySelector('.notif-wrap');
+      if (!notifWrap.contains(e.target)) {
+        document.getElementById('notifPopover').classList.remove('show');
+      }
+      // Filter panels
+      document.querySelectorAll('.filter-wrap').forEach(function(wrap) {
+        if (!wrap.contains(e.target)) {
+          wrap.querySelector('.kup-filter-panel').classList.remove('show');
+          wrap.querySelector('.btn-filter').classList.remove('active');
+        }
+      });
+    });
+  </script>
+  <!--
+    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
+    <script src="/js/brand-context.js"></script>
+    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
+    Key APIs for this page:
+      KUP_PLATFORM.INFLUENCER_TABS, .INFLUENCE_TIERS, .DISCOVERY_TIERS, .INFLUENCER_RULES
+      KUP_PLATFORM.RATING_SYSTEM
+  -->
+  <script src="/js/platform-config.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

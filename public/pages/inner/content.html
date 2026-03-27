@@ -1505,25 +1505,130 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Empty state — shown when no real submissions exist -->
-          <tr id="emptyStateRow">
-            <td colspan="6" style="text-align:center;padding:60px 20px;">
-              <div style="max-width:360px;margin:0 auto;">
-                <div style="width:64px;height:64px;border-radius:50%;background:rgba(46,165,221,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                  <i class="ph ph-image" style="font-size:1.8rem;color:#2EA5DD;"></i>
-                </div>
-                <h4 style="font-size:1rem;font-weight:700;margin:0 0 8px;color:#1a1a1a;">No content submitted yet</h4>
-                <p style="font-size:0.85rem;color:#888;margin:0 0 20px;line-height:1.5;">When influencers submit content for your brand, it will appear here for review.</p>
-                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                  <a href="market-code.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#2EA5DD;color:#fff;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;">
-                    <i class="ph ph-qr-code"></i> Share your QR code
-                  </a>
-                  <a href="campaigns.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:rgba(46,165,221,0.08);color:#2EA5DD;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(46,165,221,0.2);">
-                    <i class="ph ph-megaphone"></i> Create a campaign
-                  </a>
+          <tr data-status="pending" data-campaign="summer-promo" data-days="8" data-sort-date="5" data-influencer="jessicadavis" data-type="video" onclick="window.location='content-manager.html?id=0'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">12.4 MB</span>
                 </div>
               </div>
             </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="jessicadavis">JD</div>
+                <div>
+                  <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 hours ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge low">8 days left</span></td>
+
+          </tr>
+          <tr data-status="approved" data-campaign="general" data-days="" data-sort-date="4" data-influencer="marcusking" data-type="image" onclick="window.location='content-manager.html?id=1'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img image"><i class="ph ph-image"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Image</span>
+                  <span class="thumb-size">3.8 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
+                <div>
+                  <div class="name" data-influencer="marcusking">@marcusking</div>
+                  <div class="tier">Macro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">5 hours ago</td>
+            <td data-label="Pending Status"><span class="status-badge approved"><span class="dot"></span>Approved</span></td>
+
+          </tr>
+          <tr data-status="pending" data-campaign="brand-launch" data-days="5" data-sort-date="3" data-influencer="amylee_creates" data-type="video" onclick="window.location='content-manager.html?id=2'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">8.1 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="brand-launch">Brand Launch</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="amylee_creates">AL</div>
+                <div>
+                  <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
+                  <div class="tier">Nano Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">1 day ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge medium">5 days left</span></td>
+
+          </tr>
+          <tr data-status="rejected" data-campaign="summer-promo" data-days="" data-sort-date="2" data-influencer="tyreese_r" data-type="image" onclick="window.location='content-manager.html?id=3'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img image"><i class="ph ph-image"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Image</span>
+                  <span class="thumb-size">2.1 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="tyreese_r">TR</div>
+                <div>
+                  <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 days ago</td>
+            <td data-label="Pending Status"><span class="status-badge rejected"><span class="dot"></span>Rejected</span></td>
+
+          </tr>
+          <tr data-status="pending" data-campaign="general" data-days="1" data-sort-date="1" data-influencer="nina_k" data-type="video" onclick="window.location='content-manager.html?id=4'">
+            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+            <td data-label="Content">
+              <div class="content-thumb">
+                <div class="thumb-img video"><i class="ph ph-play"></i></div>
+                <div class="thumb-info">
+                  <span class="thumb-type">Video</span>
+                  <span class="thumb-size">15.7 MB</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
+            <td data-label="Submitted By">
+              <div class="influencer-cell">
+                <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
+                <div>
+                  <div class="name" data-influencer="nina_k">@nina_k</div>
+                  <div class="tier">Micro Influencer</div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">3 days ago</td>
+            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge urgent">1 day left</span></td>
+
           </tr>
         </tbody>
       </table>
@@ -2230,233 +2335,6 @@
       KUP_PLATFORM.CONTENT_STATUSES, .CONTENT_TRANSITIONS, .CONTENT_RULES
       KUP_PLATFORM.RATING_SYSTEM
   -->
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
-
-  <script>
-    // Auth gate + load content
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = '/pages/login.html'; return; }
-
-      // Get brand ID — prefer mongoId (real MongoDB ObjectId) from synced brand context
-      let brandId = null;
-      try {
-        const stored = localStorage.getItem('kup_active_brand');
-        if (stored) {
-          const brand = JSON.parse(stored);
-          brandId = brand.mongoId || brand.id;  // Use mongoId if available, fall back to local id
-        }
-      } catch(e) {}
-
-      if (!brandId) { window.location.href = 'manage-brands.html'; return; }
-
-      try {
-        const data = await kupApi.get('/api/content?brandId=' + brandId);
-        updateContentStats(data.stats || {});
-        renderContentRows(data.submissions || []);
-      } catch (err) {
-        console.error('Failed to load content:', err);
-      }
-
-      // Wire logout
-      const logoutLink = document.querySelector('.logout');
-      if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
-      }
-    });
-
-    function updateContentStats(stats) {
-      // Update stat cards if they exist
-      const statValues = document.querySelectorAll('.stat-value, .kup-stat-value');
-      // The page may have different stat card structures — update what we can
-      const pendingBadge = document.querySelector('.pending-count, .badge');
-      if (pendingBadge) pendingBadge.textContent = stats.submitted || 0;
-    }
-
-    function renderContentRows(submissions) {
-      const tbody = document.querySelector('tbody, .content-table-body');
-      if (!tbody || submissions.length === 0) return;
-
-      // Clear existing demo rows
-      tbody.innerHTML = '';
-
-      submissions.forEach(sub => {
-        const row = document.createElement('tr');
-        row.setAttribute('data-status', sub.status);
-        row.setAttribute('data-campaign', sub.campaignId?.title || 'General');
-        row.style.cursor = 'pointer';
-        row.addEventListener('click', function(e) {
-          // Don't navigate if clicking a button or checkbox
-          if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
-          window.location.href = 'content-manager.html?id=' + sub._id;
-        });
-
-        const timeAgo = getTimeAgo(sub.submittedAt);
-        const statusBadge = getStatusBadge(sub.status);
-        const influencer = sub.influencerProfileId || {};
-        // Use the real data we already collected — displayName from registration name,
-        // handle derived from email. Both are required fields now, but gracefully
-        // fall back just in case (e.g., old data before the enforcement).
-        const displayName = influencer.displayName || influencer.handle || 'New Creator';
-        const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
-        const nameParts = displayName.trim().split(/\s+/);
-        const initials = nameParts.length >= 2
-          ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-          : displayName.charAt(0).toUpperCase();
-        const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
-
-        // Build thumbnail — show actual media if available
-        let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
-        if (sub.mediaUrls && sub.mediaUrls.length > 0) {
-          const firstUrl = sub.mediaUrls[0];
-          if (sub.contentType === 'video') {
-            thumbHtml = `<video src="${firstUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted></video>`;
-          } else {
-            thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
-          }
-        }
-
-        // Build action buttons based on status
-        let actionsHtml = '';
-        if (sub.status === 'submitted') {
-          actionsHtml = `
-            <button data-id="${sub._id}" onclick="approveContent('${sub._id}', this)" style="background:#16a34a;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;margin-right:4px">Approve</button>
-            <button data-id="${sub._id}" onclick="rejectContent('${sub._id}', this)" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Reject</button>
-          `;
-        } else if (sub.status === 'approved') {
-          actionsHtml = `
-            <button data-id="${sub._id}" onclick="markPostd('${sub._id}', this)" style="background:#2EA5DD;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Mark Postd</button>
-          `;
-        }
-
-        row.innerHTML = `
-          <td style="width:40px"><input type="checkbox" class="content-check"></td>
-          <td>
-            <div class="content-thumb" style="display:flex;align-items:center;gap:10px">
-              ${thumbHtml}
-              <div class="thumb-info">
-                <span class="thumb-type">${sub.contentType.charAt(0).toUpperCase() + sub.contentType.slice(1)}</span>
-                ${sub.caption ? `<div style="font-size:0.7rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sub.caption}</div>` : ''}
-              </div>
-            </div>
-          </td>
-          <td>${sub.campaignId?.title || 'General'}</td>
-          <td data-label="Submitted By">
-            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${influencer.influenceTier || 'Nano Influencer'}" style="cursor:pointer">
-              <div class="avatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
-              <div>
-                <div class="name" style="font-size:0.82rem;font-weight:600;color:#2EA5DD">@${handle}</div>
-              </div>
-            </div>
-          </td>
-          <td>${timeAgo}</td>
-          <td>${statusBadge}</td>
-          <td>${actionsHtml}</td>
-        `;
-
-        tbody.appendChild(row);
-      });
-
-      // Wire up influencer profile clicks on real data rows
-      document.querySelectorAll('.influencer-cell[data-influencer-id]').forEach(function(cell) {
-        cell.addEventListener('click', function(e) {
-          e.stopPropagation(); // Don't trigger row click (content-manager nav)
-          var name = this.getAttribute('data-influencer-name') || 'Unknown';
-          var handle = this.getAttribute('data-influencer-handle') || '';
-          var tier = this.getAttribute('data-influencer-tier') || 'Creator';
-          var nameParts = name.trim().split(/\s+/);
-          var initials = nameParts.length >= 2
-            ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-            : name.charAt(0).toUpperCase();
-
-          // Populate the existing influencer profile modal
-          document.getElementById('ipAvatar').textContent = initials;
-          document.getElementById('ipModalHandle').textContent = '@' + handle;
-          document.getElementById('ipName').textContent = name;
-          var tierEl = document.getElementById('ipTier');
-          tierEl.textContent = tier;
-          tierEl.className = 'ip-tier tier-badge micro';
-          document.getElementById('ipFollowers').textContent = '—';
-          document.getElementById('ipEngagement').textContent = '—';
-          document.getElementById('ipPosts').textContent = '—';
-          document.getElementById('ipBio').textContent = 'Creator profile — more details coming soon.';
-
-          openModal('influencerProfileModal');
-        });
-      });
-    }
-
-    function getTimeAgo(dateStr) {
-      const diff = Date.now() - new Date(dateStr).getTime();
-      const mins = Math.floor(diff / 60000);
-      if (mins < 60) return mins + ' min ago';
-      const hours = Math.floor(mins / 60);
-      if (hours < 24) return hours + 'h ago';
-      const days = Math.floor(hours / 24);
-      return days + 'd ago';
-    }
-
-    function getStatusBadge(status) {
-      const badges = {
-        submitted: '<span style="background:#fef3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Pending</span>',
-        approved: '<span style="background:#d1e7dd;color:#0f5132;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Approved</span>',
-        rejected: '<span style="background:#f8d7da;color:#842029;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Rejected</span>',
-        postd: '<span style="background:#cfe2ff;color:#1a5e99;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Postd</span>',
-      };
-      return badges[status] || status;
-    }
-
-    async function approveContent(submissionId, btn) {
-      btn.disabled = true;
-      btn.textContent = '...';
-      try {
-        await kupApi.put('/api/content/' + submissionId + '/approve', {});
-        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('approved');
-        btn.closest('td').innerHTML = '';
-        kupToast('Content approved', 'success');
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Approve';
-        kupToast(err.message || 'Failed to approve', 'error');
-      }
-    }
-
-    async function rejectContent(submissionId, btn) {
-      const reason = prompt('Rejection reason (required):');
-      if (!reason) return;
-      btn.disabled = true;
-      btn.textContent = '...';
-      try {
-        await kupApi.put('/api/content/' + submissionId + '/reject', { reason });
-        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('rejected');
-        btn.closest('td').innerHTML = '';
-        kupToast('Content rejected with feedback', 'info');
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Reject';
-        kupToast(err.message || 'Failed to reject', 'error');
-      }
-    }
-
-    async function markPostd(submissionId, btn) {
-      btn.disabled = true;
-      btn.textContent = '...';
-      try {
-        await kupApi.put('/api/content/' + submissionId + '/postd', {});
-        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('postd');
-        btn.closest('td').innerHTML = '';
-        kupToast('Content marked as Postd!', 'success');
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Mark Postd';
-        kupToast(err.message || 'Failed to mark as Postd', 'error');
-      }
-    }
-  </script>
-
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>

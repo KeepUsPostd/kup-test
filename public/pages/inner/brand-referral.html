@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Referral Program &mdash; KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       BRAND VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange:    #ED8444;
+      --kup-blue:      #2EA5DD;
+      --kup-black:     #000;
+      --kup-body-bg:   #F5F6FA;
+      --kup-gradient:  linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:     #FFF;
+      --kup-font:      'Montserrat', sans-serif;
+      --radius-sm:     6px;
+      --radius-md:     12px;
+    }
+
+    /* =============================================
+       RESET & BASE
+       ============================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; transition: all 0.2s ease; }
+    img { max-width: 100%; height: auto; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #E8E8E8;
+      padding: 0;
+    }
+
+    .auth-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+    }
+
+    .auth-logo img {
+      height: 32px;
+    }
+
+    .auth-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .auth-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--kup-white);
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .auth-user-info {
+      line-height: 1.2;
+    }
+
+    .auth-user-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #1a1a1a;
+    }
+
+    .auth-user-brand {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid #EFEFEF;
+    }
+
+    .auth-tab {
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .auth-tab:hover {
+      color: #555;
+    }
+
+    .auth-tab.active {
+      color: var(--kup-blue);
+      border-bottom-color: var(--kup-blue);
+    }
+
+    /* =============================================
+       PAGE HEADER
+       ============================================= */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 8px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(46, 165, 221, 0.08);
+      color: var(--kup-blue);
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    /* =============================================
+       HERO / REFERRAL INVITE CARD
+       ============================================= */
+    .referral-hero {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      padding: 36px 40px;
+      margin-bottom: 24px;
+    }
+
+    .referral-hero-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .referral-hero-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .referral-hero-icon svg {
+      width: 28px;
+      height: 28px;
+      color: #fff;
+    }
+
+    .referral-hero-text h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .referral-hero-text p {
+      font-size: 0.88rem;
+      color: #666;
+      margin: 0;
+      line-height: 1.6;
+      max-width: 560px;
+    }
+
+    /* Referral Link Box */
+    .referral-link-box {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+
+    .referral-link-input {
+      flex: 1;
+      padding: 14px 18px;
+      font-family: var(--kup-font);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #1a1a1a;
+      background: #f8f9fa;
+      border: 2px solid #E8E8E8;
+      border-right: none;
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+      outline: none;
+      letter-spacing: 0.01em;
+    }
+
+    .referral-link-input:focus {
+      border-color: var(--kup-blue);
+    }
+
+    .btn-copy-link {
+      padding: 14px 24px;
+      background: var(--kup-blue);
+      color: var(--kup-white);
+      border: 2px solid var(--kup-blue);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy-link:hover {
+      background: #1a8cc0;
+      border-color: #1a8cc0;
+    }
+
+    .btn-copy-link.copied {
+      background: #22c55e;
+      border-color: #22c55e;
+    }
+
+    /* Share Buttons */
+    .share-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .share-row-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-share {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid #E8E8E8;
+      background: var(--kup-white);
+      color: #444;
+    }
+
+    .btn-share:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+
+    .btn-share svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* =============================================
+       REWARD TIERS CARD
+       ============================================= */
+    .reward-tiers-card {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .reward-tiers-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .reward-tiers-card .subtitle {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0 0 20px;
+    }
+
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .tier-box {
+      border: 2px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 18px;
+      text-align: center;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .tier-box.current {
+      border-color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.03);
+    }
+
+    .tier-box.current::before {
+      content: 'Your Plan';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--kup-blue);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tier-plan-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+
+    .tier-reward-amount {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--kup-orange);
+      margin-bottom: 4px;
+    }
+
+    .tier-reward-label {
+      font-size: 0.72rem;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .tier-referred-reward {
+      font-size: 0.72rem;
+      color: var(--kup-blue);
+      font-weight: 600;
+      background: rgba(46, 165, 221, 0.08);
+      padding: 4px 10px;
+      border-radius: 50px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .tier-cap {
+      font-size: 0.68rem;
+      color: #999;
+    }
+
+    /* =============================================
+       STATS ROW
+       ============================================= */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      padding: 20px 24px;
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+    }
+
+    .stat-icon.sent { background: rgba(46, 165, 221, 0.1); }
+    .stat-icon.sent svg { color: var(--kup-blue); }
+    .stat-icon.signed { background: rgba(245, 158, 11, 0.1); }
+    .stat-icon.signed svg { color: #f59e0b; }
+    .stat-icon.qualified { background: rgba(34, 197, 94, 0.1); }
+    .stat-icon.qualified svg { color: #22c55e; }
+    .stat-icon.earned { background: rgba(237, 132, 68, 0.1); }
+    .stat-icon.earned svg { color: var(--kup-orange); }
+
+    .stat-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .stat-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    /* =============================================
+       REFERRAL TRACKING TABLE
+       ============================================= */
+    .tracking-card {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .tracking-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tracking-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .tracking-count {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .tracking-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .tracking-table thead th {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      border-bottom: 2px solid #f0f0f0;
+      text-align: left;
+    }
+
+    .tracking-table tbody tr {
+      transition: background 0.15s;
+    }
+
+    .tracking-table tbody tr:hover {
+      background: #fafbfc;
+    }
+
+    .tracking-table tbody td {
+      padding: 14px;
+      font-size: 0.85rem;
+      color: #444;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+
+    .referred-brand-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .referred-brand-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.7rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .referred-brand-name {
+      font-weight: 600;
+      color: #1a1a1a;
+      font-size: 0.85rem;
+    }
+
+    .referred-brand-email {
+      font-size: 0.72rem;
+      color: #999;
+    }
+
+    .referral-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .referral-status.signed-up {
+      background: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+    }
+
+    .referral-status.activated {
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+    }
+
+    .referral-status.qualified {
+      background: rgba(34, 197, 94, 0.08);
+      color: #16a34a;
+    }
+
+    .referral-status.rewarded {
+      background: rgba(34, 197, 94, 0.12);
+      color: #16a34a;
+    }
+
+    .referral-status.expired {
+      background: #f5f5f5;
+      color: #999;
+    }
+
+    .reward-amount-cell {
+      font-weight: 700;
+      color: var(--kup-orange);
+    }
+
+    .reward-amount-cell.pending {
+      color: #ccc;
+      font-weight: 500;
+    }
+
+    /* Pagination */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+    }
+
+    .table-footer-text {
+      font-size: 0.78rem;
+      color: #999;
+    }
+
+    .pagination-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .pagination-btns button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #E8E8E8;
+      background: var(--kup-white);
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pagination-btns button:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+    }
+
+    .pagination-btns button.active {
+      background: var(--kup-blue);
+      border-color: var(--kup-blue);
+      color: #fff;
+    }
+
+    /* =============================================
+       HOW IT WORKS SECTION
+       ============================================= */
+    .how-it-works {
+      background: var(--kup-white);
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .how-it-works h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+    }
+
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .step-item {
+      text-align: center;
+      position: relative;
+    }
+
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 24px;
+      right: -14px;
+      width: 28px;
+      height: 2px;
+      background: #e0e0e0;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin: 0 auto 12px;
+    }
+
+    .step-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 0.75rem;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 0;
+      font-size: 0.78rem;
+      color: #999;
+      margin-top: 20px;
+    }
+
+    .auth-footer a {
+      color: var(--kup-blue);
+      font-weight: 500;
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.2s; position: relative; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; color: #555; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid #fff; }
+    .kup-notif-popover { position: absolute; top: calc(100% + 8px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.12); z-index: 300; display: none; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 8px; }
+    .notif-header h4 { margin: 0; font-size: 0.95rem; font-weight: 700; }
+    .notif-mark-read { background: none; border: none; font-size: 0.75rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid #eee; }
+    .notif-tab { background: none; border: none; padding: 10px 16px; font-size: 0.8rem; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; font-family: var(--kup-font); }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s; cursor: pointer; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(34,197,94,0.1); color: #22c55e; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-text { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.5; }
+    .notif-time { font-size: 0.7rem; color: #bbb; margin-top: 4px; }
+
+    /* ============== PROFILE DROPDOWN ============== */
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; transition: background 0.2s; font-family: var(--kup-font); }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== TOAST ============== */
+    .kup-toast { position: fixed; top: 20px; right: 20px; padding: 14px 24px; border-radius: var(--radius-sm); color: #fff; font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; z-index: 9999; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease; pointer-events: none; }
+    .kup-toast.show { opacity: 1; transform: translateY(0); }
+    .kup-toast.success { background: #22c55e; }
+    .kup-toast.info { background: var(--kup-blue); }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+    @media (max-width: 992px) {
+      .tier-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .steps-row { grid-template-columns: repeat(2, 1fr); }
+      .step-item::after { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .referral-hero { padding: 24px 20px; }
+      .referral-hero-top { flex-direction: column; gap: 16px; }
+      .referral-link-box { flex-direction: column; }
+      .referral-link-input { border-right: 2px solid #E8E8E8; border-radius: var(--radius-sm); }
+      .btn-copy-link { border-radius: var(--radius-sm); justify-content: center; }
+      .tier-grid { grid-template-columns: 1fr 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .steps-row { grid-template-columns: 1fr; }
+      .tracking-card { padding: 20px 16px; overflow-x: auto; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- ============================================
+       AUTHENTICATED HEADER
+       ============================================ -->
+  <header class="auth-header">
+    <div class="container">
+      <div class="auth-header-top">
+        <a href="activity.html" class="auth-logo">
+          <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+        </a>
+        <div class="auth-right">
+          <div class="notif-wrap">
+            <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+            <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+              <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+              <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+              <ul class="notif-list" id="notifList">
+                <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+                <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+                <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+                <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="profile-menu">
+            <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+              <div class="profile-avatar">ST</div>
+              <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="manage-brands.html">Manage Brands</a>
+              <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html" style="color: var(--kup-blue); font-weight: 600;">Brand Referral</a>
+              <a href="pricing-upgrade.html">Pricing</a>
+              <a href="owner-account.html">Owners Account</a>
+              <div class="divider"></div>
+              <a href="help-center.html">Help Center</a>
+              <div class="divider"></div>
+              <a href="/pages/login.html" class="logout">Log Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-tabs">
+        <a class="auth-tab" href="activity.html">Activity</a>
+        <a class="auth-tab" href="campaigns.html">Campaigns</a>
+        <a class="auth-tab" href="content.html">Content</a>
+        <a class="auth-tab" href="influencers.html">Influencers</a>
+        <a class="auth-tab" href="cash-rewards.html">Cash &amp; Rewards</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       PAGE HEADER
+       ============================================ -->
+  <div class="container">
+    <div class="page-header">
+      <h1>Brand Referral Program</h1>
+      <span class="plan-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        Growth Plan &mdash; Earn $50/referral
+      </span>
+    </div>
+  </div>
+
+  <!-- ============================================
+       REFERRAL HERO / INVITE SECTION
+       ============================================ -->
+  <div class="container" style="margin-top: 16px;">
+    <div class="referral-hero">
+      <div class="referral-hero-top">
+        <div class="referral-hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        </div>
+        <div class="referral-hero-text">
+          <h2>Refer a Brand, Earn Credit</h2>
+          <p>Share your unique referral link with other brands. When they sign up and activate a paid plan, you earn <strong>$50 in account credit</strong> and they get <strong>10% off their first 3 months</strong>. Grow the KeepUsPostd network together.</p>
+        </div>
+      </div>
+
+      <!-- Referral Link -->
+      <div class="referral-link-box">
+        <input type="text" class="referral-link-input" id="referralLinkInput" value="https://keepuspostd.com/signup?ref=KP-SANTANA-7X2M" readonly>
+        <button class="btn-copy-link" id="copyLinkBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Link
+        </button>
+      </div>
+
+      <!-- Share Buttons -->
+      <div class="share-row">
+        <span class="share-row-label">Share via:</span>
+        <button class="btn-share" id="shareEmail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email
+        </button>
+        <button class="btn-share" id="shareLinkedin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </button>
+        <button class="btn-share" id="shareTwitter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+          Twitter/X
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       HOW IT WORKS
+       ============================================ -->
+  <div class="container">
+    <div class="how-it-works">
+      <h3>How It Works</h3>
+      <div class="steps-row">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-title">Share Your Link</div>
+          <div class="step-desc">Send your unique referral link to brands you think would benefit from KeepUsPostd.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-title">They Sign Up</div>
+          <div class="step-desc">The referred brand creates a KeepUsPostd account using your link.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-title">They Go Paid</div>
+          <div class="step-desc">Once they activate any paid plan, a 30-day qualification hold begins.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-number">4</div>
+          <div class="step-title">You Earn Credit</div>
+          <div class="step-desc">After 30 days, your account credit is automatically applied. They save too.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       STATS ROW
+       ============================================ -->
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon sent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </div>
+        <div class="stat-number">12</div>
+        <div class="stat-label">Links Shared</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon signed">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-number">5</div>
+        <div class="stat-label">Signed Up</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon qualified">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-number">3</div>
+        <div class="stat-label">Qualified</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon earned">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="stat-number">$150</div>
+        <div class="stat-label">Total Earned</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       REWARD TIERS
+       ============================================ -->
+  <div class="container">
+    <div class="reward-tiers-card">
+      <h3>Referral Rewards by Plan</h3>
+      <p class="subtitle">Upgrade your plan to unlock higher referral rewards and caps.</p>
+      <div class="tier-grid">
+        <!-- Starter -->
+        <div class="tier-box">
+          <div class="tier-plan-name">Starter</div>
+          <div class="tier-reward-amount">$25</div>
+          <div class="tier-reward-label">per qualified referral</div>
+          <div class="tier-cap">Max 3/month</div>
+        </div>
+        <!-- Growth (Current) -->
+        <div class="tier-box current">
+          <div class="tier-plan-name">Growth</div>
+          <div class="tier-reward-amount">$50</div>
+          <div class="tier-reward-label">per qualified referral</div>
+          <div class="tier-referred-reward">Referred gets 10% off 3 mo</div>
+          <div class="tier-cap">Max 5/month</div>
+        </div>
+        <!-- Pro -->
+        <div class="tier-box">
+          <div class="tier-plan-name">Pro</div>
+          <div class="tier-reward-amount">$75</div>
+          <div class="tier-reward-label">per qualified referral</div>
+          <div class="tier-referred-reward">Referred gets 10% off 3 mo</div>
+          <div class="tier-cap">Max 10/month</div>
+        </div>
+        <!-- Agency -->
+        <div class="tier-box">
+          <div class="tier-plan-name">Agency</div>
+          <div class="tier-reward-amount">$100</div>
+          <div class="tier-reward-label">per qualified referral</div>
+          <div class="tier-referred-reward">Referred gets 15% off 3 mo</div>
+          <div class="tier-cap">Max 25/month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       REFERRAL TRACKING TABLE
+       ============================================ -->
+  <div class="container">
+    <div class="tracking-card">
+      <div class="tracking-header">
+        <h3>Your Referrals</h3>
+        <span class="tracking-count">Showing 5 of 5 referrals</span>
+      </div>
+
+      <table class="tracking-table">
+        <thead>
+          <tr>
+            <th>Referred Brand</th>
+            <th>Date Referred</th>
+            <th>Plan Activated</th>
+            <th>Status</th>
+            <th>Reward</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="referred-brand-cell">
+                <div class="referred-brand-avatar" style="background: linear-gradient(135deg, #f59e0b, #ea580c);">BL</div>
+                <div>
+                  <div class="referred-brand-name">Bloom & Leaf</div>
+                  <div class="referred-brand-email">hello@bloomleaf.co</div>
+                </div>
+              </div>
+            </td>
+            <td>Jan 12, 2026</td>
+            <td>Growth</td>
+            <td><span class="referral-status rewarded">Rewarded</span></td>
+            <td class="reward-amount-cell">+$50.00</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="referred-brand-cell">
+                <div class="referred-brand-avatar" style="background: linear-gradient(135deg, #22c55e, #0ea5e9);">FC</div>
+                <div>
+                  <div class="referred-brand-name">FreshCraft Eats</div>
+                  <div class="referred-brand-email">team@freshcrafteats.com</div>
+                </div>
+              </div>
+            </td>
+            <td>Jan 28, 2026</td>
+            <td>Starter</td>
+            <td><span class="referral-status rewarded">Rewarded</span></td>
+            <td class="reward-amount-cell">+$50.00</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="referred-brand-cell">
+                <div class="referred-brand-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">VF</div>
+                <div>
+                  <div class="referred-brand-name">Vibe Fitness</div>
+                  <div class="referred-brand-email">info@vibefitness.io</div>
+                </div>
+              </div>
+            </td>
+            <td>Feb 10, 2026</td>
+            <td>Pro</td>
+            <td><span class="referral-status rewarded">Rewarded</span></td>
+            <td class="reward-amount-cell">+$50.00</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="referred-brand-cell">
+                <div class="referred-brand-avatar" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">NB</div>
+                <div>
+                  <div class="referred-brand-name">Noire Beauty</div>
+                  <div class="referred-brand-email">brand@noirebeauty.co</div>
+                </div>
+              </div>
+            </td>
+            <td>Feb 25, 2026</td>
+            <td>Growth</td>
+            <td><span class="referral-status activated">Plan Activated</span></td>
+            <td class="reward-amount-cell pending">&mdash;</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="referred-brand-cell">
+                <div class="referred-brand-avatar" style="background: linear-gradient(135deg, #64748b, #475569);">UC</div>
+                <div>
+                  <div class="referred-brand-name">UrbanCycle Co</div>
+                  <div class="referred-brand-email">hello@urbancycle.co</div>
+                </div>
+              </div>
+            </td>
+            <td>Mar 1, 2026</td>
+            <td>&mdash;</td>
+            <td><span class="referral-status signed-up">Signed Up</span></td>
+            <td class="reward-amount-cell pending">&mdash;</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-footer">
+        <span class="table-footer-text">Page 1 of 1</span>
+        <div class="pagination-btns">
+          <button>&larr;</button>
+          <button class="active">1</button>
+          <button>&rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="auth-footer">
+    <div class="container">
+      Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+    </div>
+  </footer>
+
+  <!-- ============================================
+       TOAST
+       ============================================ -->
+  <div class="kup-toast" id="kupToast"></div>
+
+  <!-- ============================================
+       JAVASCRIPT
+       ============================================ -->
+  <!-- Platform Config: KUP_PLATFORM.BRAND_REFERRAL -->
+  <script>
+
+    // ========== Toast ==========
+    function kupToast(msg, type) {
+      var t = document.getElementById('kupToast');
+      t.textContent = msg;
+      t.className = 'kup-toast ' + (type || 'info') + ' show';
+      setTimeout(function() { t.classList.remove('show'); }, 3000);
+    }
+
+    // ========== Copy Referral Link ==========
+    document.getElementById('copyLinkBtn').addEventListener('click', function() {
+      var input = document.getElementById('referralLinkInput');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(function() {
+        var btn = document.getElementById('copyLinkBtn');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        btn.classList.add('copied');
+        kupToast('Referral link copied to clipboard', 'success');
+        setTimeout(function() {
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link';
+          btn.classList.remove('copied');
+        }, 2500);
+      });
+    });
+
+    // ========== Share Buttons ==========
+    var referralLink = document.getElementById('referralLinkInput').value;
+
+    document.getElementById('shareEmail').addEventListener('click', function() {
+      var subject = encodeURIComponent('Join me on KeepUsPostd!');
+      var body = encodeURIComponent('Hey! I\'ve been using KeepUsPostd to manage influencer partnerships and it\'s been great. Sign up with my referral link and get a discount on your first 3 months:\n\n' + referralLink + '\n\nLet me know if you have questions!');
+      window.open('mailto:?subject=' + subject + '&body=' + body);
+      kupToast('Opening email client...', 'info');
+    });
+
+    document.getElementById('shareLinkedin').addEventListener('click', function() {
+      window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(referralLink), '_blank', 'width=600,height=400');
+      kupToast('Opening LinkedIn...', 'info');
+    });
+
+    document.getElementById('shareTwitter').addEventListener('click', function() {
+      var text = encodeURIComponent('I\'ve been using @Keepuspostd to manage influencer partnerships. If you\'re a brand, check it out: ' + referralLink);
+      window.open('https://twitter.com/intent/tweet?text=' + text, '_blank', 'width=600,height=400');
+      kupToast('Opening Twitter/X...', 'info');
+    });
+
+    // ========== Notification Popover ==========
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    notifBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      notifPopover.classList.toggle('show');
+      document.getElementById('profileDropdown').classList.remove('show');
+    });
+
+    document.getElementById('markAllRead').addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(i) { i.classList.remove('unread'); });
+      var dot = document.querySelector('.notif-dot');
+      if (dot) dot.style.display = 'none';
+    });
+
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+      });
+    });
+
+    // ========== Profile Dropdown ==========
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    profileTrigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('show');
+      notifPopover.classList.remove('show');
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function() {
+      notifPopover.classList.remove('show');
+      profileDropdown.classList.remove('show');
+    });
+
+  </script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

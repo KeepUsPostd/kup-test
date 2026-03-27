@@ -329,7 +329,7 @@
             } else {
               // Show brand initials as logo fallback
               var words = bName.trim().split(/\s+/);
-              var initials = words.length === 1 ? words[0].substring(0, 2).toUpperCase() : words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
+              var initials = words.length === 1 ? words[0].charAt(0).toUpperCase() : words.map(function(w) { return w.charAt(0); }).join('').toUpperCase().substring(0, 3);
               document.getElementById('brandInitialsCircle').textContent = initials;
             }
             document.getElementById('brandBadge').style.display = 'flex';

@@ -1032,7 +1032,7 @@
     if (brandName.length > 25) brandName = brandName.substring(0, 25);
     var initials = brandName.split(/\s+/).length >= 2
       ? (brandName.split(/\s+/)[0][0] + brandName.split(/\s+/)[1][0]).toUpperCase()
-      : brandName.substring(0, 2).toUpperCase();
+      : brandName.charAt(0).toUpperCase();
 
     // Detect industry from keywords
     var industry = 'Retail & E-commerce';
@@ -1114,7 +1114,7 @@
     // Logo initials
     if (name) {
       var words = name.split(/\s+/);
-      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.charAt(0).toUpperCase();
       document.getElementById('previewLogo').textContent = initials;
       var lpc = document.getElementById('logoPreviewCircle');
       if (lpc) lpc.textContent = initials;
@@ -1186,7 +1186,7 @@
     // Logo
     if (name) {
       var words = name.split(/\s+/);
-      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+      var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.charAt(0).toUpperCase();
       document.getElementById('reviewLogo').textContent = initials;
     }
 

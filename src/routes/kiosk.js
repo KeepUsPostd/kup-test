@@ -53,7 +53,7 @@ router.get('/:brandCode', async (req, res) => {
       kiosk: {
         brandId: brand._id,
         brandName: brand.name,
-        brandInitials: brand.initials || brand.name.substring(0, 2).toUpperCase(),
+        brandInitials: brand.initials || (brand.name.trim().split(/\s+/).length === 1 ? brand.name.charAt(0).toUpperCase() : brand.name.trim().split(/\s+/).map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3)),
         brandLogo: brand.kioskBrandingLogo || brand.logoUrl,
         brandColor: brand.kioskBrandingColor || '#FF6B35',
         offerTitle: brand.kioskOfferTitle || 'Leave a review, get a reward!',

@@ -382,7 +382,7 @@ router.post('/render-with-overlays', requireAuth, async (req, res) => {
             if (brand.name && !logoOverlay.brandInitials) {
               const words = brand.name.trim().split(/\s+/);
               logoOverlay.brandInitials = words.length === 1
-                ? words[0].substring(0, 2).toUpperCase()
+                ? words[0].charAt(0).toUpperCase()
                 : words.map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3);
             }
           }

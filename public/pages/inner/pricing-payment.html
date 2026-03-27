@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Payment — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+
+    /* =============================================
+       INNER PAGE — SHARED VARIABLES
+       ============================================= */
+    :root {
+      --kup-orange:       #ED8444;
+      --kup-blue:         #2EA5DD;
+      --kup-black:        #000000;
+      --kup-body-bg:      #F5F6FA;
+      --kup-purple:       #707BBB;
+      --kup-gradient:     linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white:        #FFFFFF;
+      --kup-light-gray:   #E8E8E8;
+      --kup-font:         'Montserrat', sans-serif;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* =============================================
+       AUTHENTICATED HEADER
+       ============================================= */
+    .auth-header {
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0;
+    }
+    .auth-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .auth-logo img { height: 32px; }
+    .auth-nav {
+      display: flex;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      height: 64px;
+    }
+    .auth-nav li a {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 64px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .auth-nav li a:hover {
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.04);
+    }
+    .auth-nav li a.active {
+      color: var(--kup-blue);
+      font-weight: 700;
+      border-bottom-color: var(--kup-blue);
+    }
+    .auth-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .notif-btn {
+      position: relative;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; fill: #666; }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 8px; height: 8px;
+      background: #e74c3c;
+      border-radius: 50%;
+      border: 2px solid var(--kup-white);
+    }
+    .profile-menu { position: relative; }
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: none;
+      transition: background 0.2s;
+    }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .profile-info { text-align: left; }
+    .profile-info .name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .profile-info .brand {
+      font-size: 0.72rem;
+      color: #888;
+      line-height: 1.2;
+    }
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      min-width: 220px;
+      display: none;
+      z-index: 200;
+      overflow: hidden;
+    }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a {
+      display: block;
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      color: #444;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .profile-dropdown a:hover {
+      background: #f8f9fa;
+      color: var(--kup-blue);
+    }
+
+    /* =============================================
+       PRICING PAGE
+       ============================================= */
+    .payment-section{max-width:1400px;margin:0 auto;padding:40px 32px 80px}
+    .payment-head{text-align:center;margin-bottom:40px}
+    .payment-head .accent{font-size:.85rem;font-weight:600;color:var(--kup-blue);text-transform:lowercase;margin-bottom:8px}
+    .payment-head h2{font-size:1.8rem;font-weight:800;color:var(--kup-black);margin-bottom:8px}
+    .psc{background:var(--kup-white);border-radius:var(--radius-md);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .psc-top{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+    .psc-top h5{font-size:1.1rem;font-weight:700;margin:0;color:var(--kup-blue)}
+    .bt{display:inline-flex;background:#f0f0f0;border-radius:var(--radius-sm);overflow:hidden}
+    .bt button{padding:8px 20px;border:none;background:transparent;font-family:var(--kup-font);font-size:.82rem;font-weight:600;color:#888;cursor:pointer;transition:all .2s}
+    .bt button.active{background:var(--kup-blue);color:var(--kup-white);border-radius:var(--radius-sm)}
+    .psc-body{padding:24px}
+    .psc-body .pn{font-size:.9rem;font-weight:600;color:var(--kup-black);margin-bottom:8px}
+    .psc-body .pp{font-size:2.2rem;font-weight:800;color:var(--kup-black);margin-bottom:8px;line-height:1.1}
+    .psc-body .pd{font-size:.82rem;color:#888;margin-bottom:24px}
+    .psc-body hr{border:none;border-top:1px solid #eee;margin:20px 0}
+    .psc-body .ptx{font-size:.82rem;color:#888;line-height:1.6}
+    .pps{margin-bottom:32px}
+    .pps p{font-size:.95rem;color:#444;margin-bottom:16px}
+    .pps .rq{color:#e74c3c}
+    .pps .un{font-size:.85rem;color:#999;font-weight:600}
+    .ppb{display:flex;gap:12px;margin-top:16px}
+    .bpp{flex:1;padding:14px 24px;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+    .bpc{background:var(--kup-blue);color:var(--kup-white)}
+    .bpc:hover{background:#2793c5}
+    .bpd{background:#e8e8e8;color:#999;cursor:not-allowed}
+    .dcs{margin-bottom:32px}
+    .dcs h4{font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--kup-black)}
+    .dcc{background:var(--kup-white);border-radius:var(--radius-md);padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .dcr{display:flex;gap:12px}
+    .dcr input[type=text]{flex:1;padding:12px 16px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.9rem;outline:none;transition:border .2s}
+    .dcr input[type=text]:focus{border-color:var(--kup-blue)}
+    .dcr .ba{padding:12px 24px;background:var(--kup-white);border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.9rem;font-weight:600;color:#444;cursor:pointer;transition:all .2s}
+    .dcr .ba:hover{border-color:var(--kup-blue);color:var(--kup-blue)}
+    .oss{margin-top:32px}
+    .osr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .osr h4{font-size:1rem;font-weight:600;margin:0;color:var(--kup-black)}
+    .osd{border:none;border-top:2px dashed #bcc0c4;margin:16px 0}
+    .ost{display:flex;align-items:center;justify-content:space-between;margin:24px 0}
+    .ost .tl{font-size:1.6rem;font-weight:600;color:#888}
+    .ost .ta{font-size:2.4rem;font-weight:800;color:var(--kup-black)}
+    .btn-blue{display:block;width:100%;background:var(--kup-blue);color:var(--kup-white);border:none;border-radius:var(--radius-sm);padding:16px 24px;font-size:1rem;font-weight:700;font-family:var(--kup-font);cursor:pointer;text-align:center;transition:all .2s}
+    .btn-blue:hover{background:#2793c5;color:var(--kup-white)}
+    .cn{text-align:center;margin-top:20px;font-size:.85rem;color:#bcbcbc;font-weight:600;padding:0 40px}
+    .cn a{color:var(--kup-blue);font-weight:700}
+    .auth-footer{text-align:center;padding:24px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}
+    .auth-footer a{color:var(--kup-blue);font-weight:500}
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: #2EA5DD; font-weight: 600; cursor: pointer; }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .notif-tab.active { color: #2EA5DD; border-bottom-color: #2EA5DD; }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: #2EA5DD; }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: #ED8444; }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid #2EA5DD; }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: #2EA5DD; }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    @media(max-width:768px){
+      .auth-header-inner{padding:0 16px;flex-wrap:wrap;height:auto;min-height:64px}
+      .auth-nav{order:3;width:100%;overflow-x:auto;border-top:1px solid #f0f0f0;-webkit-overflow-scrolling:touch}
+      .auth-nav li a{padding:0 16px;font-size:.82rem;white-space:nowrap}
+      .profile-info{display:none}
+      .payment-section{padding:24px 16px 60px}
+      .payment-head h2{font-size:1.4rem}
+      .ppb{flex-direction:column}
+      .ost .tl{font-size:1.2rem}
+      .ost .ta{font-size:1.8rem}
+      .psc-top{flex-direction:column;gap:12px;align-items:flex-start}
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info">
+              <div class="name">Santana T.</div>
+              <div class="brand">KeepUsPostd</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="payment-section">
+    <div class="payment-head">
+      <p class="accent">the last step</p>
+      <h2>Complete payment</h2>
+    </div>
+    <div class="row" style="margin-bottom:80px;">
+      <div class="col-md-6 mb-4">
+        <div class="psc">
+          <div class="psc-top">
+            <h5 id="planTitle">Growth Plan</h5>
+            <div class="bt">
+              <button class="active" id="toggleMonthly" onclick="setBilling('monthly')">Monthly</button>
+              <button id="toggleYearly" onclick="setBilling('yearly')">Yearly</button>
+            </div>
+          </div>
+          <div class="psc-body">
+            <p class="pn" id="planName">Growth Plan</p>
+            <p class="pp" id="paymentPrice"></p>
+            <p class="pd" id="paymentDue">Due monthly for your marketing tools</p>
+            <hr>
+            <p class="ptx" id="planDesc">Pay influencers cash, manage up to 5 campaigns, and access content management tools.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="pps">
+          <p>Connect with PayPal to process your subscription.<span class="rq">*</span> <span class="un">Unsubscribe at any time.</span></p>
+          <div class="ppb">
+            <button class="bpp bpc" onclick="connectPaypal()">Connect to PayPal</button>
+            <button class="bpp bpd" id="btnDis" disabled>Disconnect</button>
+          </div>
+        </div>
+        <div class="dcs">
+          <h4>Discount Code</h4>
+          <div class="dcc">
+            <div class="dcr">
+              <input type="text" id="dcIn" placeholder="KEEPUSPOSTD020">
+              <button class="ba" onclick="applyDiscount()">Apply</button>
+            </div>
+            <p id="dcMsg" style="margin-top:8px;font-size:.82rem;font-weight:700;display:none;"></p>
+          </div>
+        </div>
+        <div class="oss">
+          <div class="osr"><h4 id="orderPlanName">Growth Plan</h4><h4 id="oPrice"></h4></div>
+          <div class="osr"><h4>Discount</h4><h4 id="oDis">-$0.00</h4></div>
+          <hr class="osd">
+          <div class="ost"><span class="tl">Total</span><span class="ta" id="oTotal"></span></div>
+          <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;cursor:pointer;font-size:.75rem;color:#888;line-height:1.5;"><input type="checkbox" id="agreePayTerms" style="width:16px;height:16px;margin-top:1px;flex-shrink:0;accent-color:#2EA5DD;cursor:pointer;"><span>I agree to the <a href="/pages/terms.html" target="_blank" style="color:#2EA5DD;font-weight:600;">Terms of Service</a> and authorize recurring billing.</span></label>
+          <a href="payment-success.html" class="btn-blue" id="payBtn" style="pointer-events:none;opacity:.5;">Complete Payment</a>
+          <p class="cn">Keep your minimum influencer marketing budget available for your partners. Set it to auto-reload or reload it manually via the <a href="cash-account.html">Cash Account Page</a>.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+  <script>
+/* ── 5-Tier Plan Lookup ───────────────────────── */
+var planData = {
+  starter:    { name:'Starter Plan',    monthly:0,   yearly:0,    savings:'',            desc:'Start free with 1 brand, 1 campaign, 10 influencers, and non-cash rewards only.' },
+  growth:     { name:'Growth Plan',     monthly:29,  yearly:290,  savings:'(Save $58)',   desc:'Up to 3 brands, 5 campaigns, and 100 influencers. Cash Per Approval + Point-Based rewards. 3 admin seats.' },
+  pro:        { name:'Pro Plan',        monthly:79,  yearly:790,  savings:'(Save $158)',  desc:'Up to 10 brands, 20 campaigns, and 500 influencers. Bonus Cash + Postd Pay. 10 admin seats. Advanced analytics.' },
+  agency:     { name:'Agency Plan',     monthly:149, yearly:1490, savings:'(Save $298)',  desc:'Up to 25 brands, 50 campaigns/brand, 2,000 influencers. White-label, client portal, cross-brand reporting.' },
+  enterprise: { name:'Enterprise Plan', monthly:0,   yearly:0,    savings:'',            desc:'Unlimited everything. Dedicated account manager, API access, SSO/SAML, custom integrations, and SLA guarantee.' }
+};
+
+/* ── Read plan from URL (?plan=growth) ────────── */
+var urlParams = new URLSearchParams(window.location.search);
+var selectedPlanKey = urlParams.get('plan') || 'growth';
+if (!planData[selectedPlanKey]) selectedPlanKey = 'growth';
+var activePlan = planData[selectedPlanKey];
+
+var cB = "monthly";
+var mP = activePlan.monthly;
+var yP = activePlan.yearly;
+var dA = 0;
+
+/* ── Populate plan name & description ─────────── */
+document.getElementById('planTitle').textContent = activePlan.name;
+document.getElementById('planName').textContent = activePlan.name;
+document.getElementById('orderPlanName').textContent = activePlan.name;
+document.getElementById('planDesc').textContent = activePlan.desc;
+
+/* ── Billing toggle ───────────────────────────── */
+function setBilling(t) {
+  cB = t;
+  var m = document.getElementById("toggleMonthly");
+  var y = document.getElementById("toggleYearly");
+  if (t === "monthly") {
+    m.classList.add("active"); y.classList.remove("active");
+    document.getElementById("paymentPrice").textContent = mP === 0 ? "Free" : "$" + mP;
+    document.getElementById("paymentDue").textContent = "Due monthly for your marketing tools";
+    document.getElementById("oPrice").textContent = mP === 0 ? "Free" : "$" + mP;
+  } else {
+    y.classList.add("active"); m.classList.remove("active");
+    document.getElementById("paymentPrice").textContent = yP === 0 ? "Free" : "$" + yP;
+    document.getElementById("paymentDue").textContent = yP === 0 ? "Due yearly for your marketing tools" : "Due yearly for your marketing tools " + activePlan.savings;
+    document.getElementById("oPrice").textContent = yP === 0 ? "Free" : "$" + yP;
+  }
+  uT();
+}
+
+function uT() {
+  var p = cB === "monthly" ? mP : yP;
+  document.getElementById("oTotal").textContent = p === 0 ? "Free" : "$" + Math.max(0, p - dA);
+}
+
+function connectPaypal() {
+  var b = document.querySelector(".bpc");
+  b.textContent = "Connected"; b.style.background = "#6c757d";
+  b.style.cursor = "not-allowed"; b.disabled = true;
+  var dd = document.getElementById("btnDis");
+  dd.disabled = false; dd.style.cursor = "pointer";
+  dd.style.background = "#dc3545"; dd.style.color = "#fff";
+  kupToast('PayPal connected successfully', 'success');
+}
+
+function applyDiscount() {
+  var c = document.getElementById("dcIn").value.trim();
+  var mg = document.getElementById("dcMsg");
+  mg.style.display = "block";
+  if (c.length > 0) {
+    dA = 10; mg.textContent = "Success! Discount code has been applied.";
+    mg.style.color = "#198754"; document.getElementById("oDis").textContent = "-$" + dA;
+    kupToast('Discount code applied!', 'success');
+  } else {
+    dA = 0; mg.textContent = "Please enter a discount code.";
+    mg.style.color = "#dc3545"; document.getElementById("oDis").textContent = "$0";
+    kupToast('Please enter a discount code', 'warning');
+  }
+  uT();
+}
+
+/* ── Initialize on load ───────────────────────── */
+setBilling('monthly');
+</script>
+  <div class="kup-toast-container" id="toastContainer"></div>
+  <script>
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = notifPopover.classList.contains('show'); closeAllPopovers(); if (!isOpen) notifPopover.classList.add('show'); });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; } else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var isOpen = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!isOpen) profileDropdown.classList.add('show'); });
+    }
+    function closeAllPopovers() { if (notifPopover) notifPopover.classList.remove('show'); if (profileDropdown) profileDropdown.classList.remove('show'); }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <script>
+  /* Payment terms checkbox → enable/disable button */
+  var payCheck = document.getElementById('agreePayTerms');
+  var payBtn = document.getElementById('payBtn');
+  if (payCheck && payBtn) {
+    payCheck.addEventListener('change', function() {
+      payBtn.style.pointerEvents = this.checked ? 'auto' : 'none';
+      payBtn.style.opacity = this.checked ? '1' : '.5';
+    });
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

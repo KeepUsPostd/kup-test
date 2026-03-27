@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Reward Settings — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" rel="stylesheet">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/Phosphor.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/Phosphor-Fill.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* AUTH HEADER */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46, 165, 221, 0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    /* Notification Center */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; transition: background 0.2s; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       BRAND REWARD SETTINGS — Two Column Layout
+       Matches brand-home.html sidebar pattern
+       Left: Brand sidebar nav with logo
+       Right: Reward settings content
+       ============================================= */
+    .brand-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* Brand Sidebar */
+    .brand-sidebar {
+      background: var(--kup-white);
+      border-right: 1px solid #eee;
+      padding: 32px 28px;
+      position: sticky;
+      top: 64px;
+      height: fit-content;
+      max-height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+    .brand-sidebar h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 20px; }
+    .brand-identity {
+      display: flex; align-items: center; gap: 12px; padding: 16px;
+      background: #f8f9fa; border-radius: var(--radius-md); margin-bottom: 28px;
+    }
+    .brand-identity .logo {
+      width: 48px; height: 48px; border-radius: var(--radius-sm);
+      background: var(--kup-gradient); display: flex; align-items: center;
+      justify-content: center; color: white; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .brand-identity .brand-name { font-weight: 700; font-size: 0.95rem; }
+
+    /* Sidebar Nav */
+    .brand-nav { list-style: none; padding: 0; margin: 0 0 24px; }
+    .brand-nav-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #999; padding: 0 12px; margin-bottom: 8px;
+    }
+    .brand-nav li a {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 500;
+      color: #444; transition: all 0.15s;
+    }
+    .brand-nav li a:hover { background: rgba(46, 165, 221, 0.06); color: var(--kup-blue); }
+    .brand-nav li a.active { background: rgba(46, 165, 221, 0.1); color: var(--kup-blue); font-weight: 700; }
+    .brand-nav li a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .nav-divider { border-top: 1px solid #eee; margin: 16px 0; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; color: #888; margin-top: 20px; padding: 8px 0;
+    }
+    .back-link:hover { color: var(--kup-blue); }
+
+    /* =============================================
+       RIGHT CONTENT: Reward Settings
+       ============================================= */
+    .reward-settings {
+      padding: 32px 40px;
+      max-width: 960px;
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .settings-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .settings-header h3 span {
+      font-weight: 400;
+      color: #888;
+    }
+    .btn-create-reward {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--kup-blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-create-reward:hover { background: #258fc4; }
+
+    /* Reward Summary Stats */
+    .reward-stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .reward-stat-card {
+      flex: 1;
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+    .reward-stat-card .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--kup-blue);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .reward-stat-card .stat-label {
+      font-size: 0.78rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    /* Section Labels */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+    }
+    .section-label.non-cash { background: rgba(22,163,74,0.06); color: #16a34a; }
+    .section-label.cash { background: rgba(237,132,68,0.08); color: var(--kup-orange); }
+    .section-label .label-icon { font-size: 1rem; }
+
+    /* ============== REWARD SETTING CARDS ============== */
+    .reward-settings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .reward-setting-card {
+      background: var(--kup-white);
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      overflow: visible;
+      transition: all 0.2s;
+    }
+    .reward-setting-card:hover {
+      border-color: rgba(46,165,221,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .reward-card-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .reward-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .reward-card-icon.points { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+    .reward-card-icon.free-product { background: linear-gradient(135deg, #34d399 0%, #16a34a 100%); }
+    .reward-card-icon.discount { background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); }
+    .reward-card-icon.cash-approval { background: linear-gradient(135deg, #ED8444 0%, #e06b20 100%); }
+    .reward-card-icon.bonus-cash { background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); }
+
+    .reward-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .reward-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .reward-card-title .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-pill.active { background: rgba(22,163,74,0.08); color: #16a34a; }
+    .status-pill.draft { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .status-pill.paused { background: rgba(136,136,136,0.1); color: #888; }
+    .status-pill .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .status-pill.active .status-dot { background: #16a34a; }
+    .status-pill.draft .status-dot { background: #f59e0b; }
+    .status-pill.paused .status-dot { background: #888; }
+
+    .reward-card-subtitle {
+      font-size: 0.82rem;
+      color: #888;
+      margin: 0;
+    }
+
+    .reward-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    /* Point category tags */
+    .point-cat-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .point-cat-tag.content-pts { background: rgba(22,163,74,0.08); color: #16a34a; }
+    .point-cat-tag.purchase-pts { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .point-cat-tag.gratitude-pts { background: rgba(112,123,187,0.1); color: #707BBB; }
+
+    /* Earning / unlock badges */
+    .unlock-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(237,132,68,0.1);
+      color: var(--kup-orange);
+    }
+    .per-approval-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(46,165,221,0.1);
+      color: var(--kup-blue);
+    }
+    .cash-amount-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(237,132,68,0.1);
+      color: var(--kup-orange);
+    }
+
+    /* Right side: actions + metrics */
+    .reward-card-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .reward-card-metrics {
+      display: flex;
+      gap: 16px;
+      text-align: center;
+    }
+    .reward-metric {
+      line-height: 1.2;
+    }
+    .reward-metric strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .reward-metric span {
+      font-size: 0.7rem;
+      color: #999;
+    }
+
+    .reward-card-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-reward-action {
+      padding: 8px 12px;
+      border: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      background: var(--kup-white);
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-reward-action:hover {
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+      background: rgba(46,165,221,0.04);
+    }
+    .btn-reward-action.edit {
+      color: var(--kup-blue);
+      border-color: rgba(46,165,221,0.3);
+    }
+
+    /* Expandable detail panel */
+    .reward-card-details {
+      display: none;
+      padding: 0 20px 20px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .reward-setting-card.expanded .reward-card-details {
+      display: block;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding-top: 16px;
+    }
+    .detail-group {
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .detail-group h6 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin: 0 0 10px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: #666; font-weight: 500; }
+    .detail-row .value { font-weight: 700; color: #1a1a1a; }
+
+    .detail-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* ============== INLINE EDIT MODE ============== */
+    .reward-setting-card.editing {
+      border-color: var(--kup-blue);
+      box-shadow: 0 4px 20px rgba(46,165,221,0.12);
+    }
+    .reward-setting-card.editing .btn-reward-action.edit {
+      background: rgba(46,165,221,0.08);
+      border-color: var(--kup-blue);
+      color: var(--kup-blue);
+    }
+
+    /* Editable inputs inside detail rows */
+    .detail-row .edit-input {
+      width: 80px;
+      padding: 6px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      text-align: center;
+      background: var(--kup-white);
+      transition: all 0.15s;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .reward-setting-card.editing .detail-row .edit-input {
+      pointer-events: auto;
+      opacity: 1;
+      border-color: #ccc;
+    }
+    .reward-setting-card.editing .detail-row .edit-input:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+    .edit-input.wide { width: 140px; text-align: left; }
+    .edit-input.full { width: 100%; text-align: left; }
+    .edit-suffix { font-size: 0.75rem; font-weight: 600; color: #888; margin-left: 4px; }
+
+    /* Editable select */
+    .detail-row .edit-select {
+      padding: 6px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      background: var(--kup-white);
+      pointer-events: none;
+      opacity: 0.7;
+      transition: all 0.15s;
+      cursor: default;
+    }
+    .reward-setting-card.editing .detail-row .edit-select {
+      pointer-events: auto;
+      opacity: 1;
+      border-color: #ccc;
+      cursor: pointer;
+    }
+    .reward-setting-card.editing .detail-row .edit-select:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+
+    /* Editable textarea */
+    .detail-row .edit-textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      background: var(--kup-white);
+      resize: vertical;
+      min-height: 48px;
+      pointer-events: none;
+      opacity: 0.7;
+      transition: all 0.15s;
+    }
+    .reward-setting-card.editing .detail-row .edit-textarea {
+      pointer-events: auto;
+      opacity: 1;
+      border-color: #ccc;
+    }
+    .reward-setting-card.editing .detail-row .edit-textarea:focus {
+      outline: none;
+      border-color: var(--kup-blue);
+      box-shadow: 0 0 0 3px rgba(46,165,221,0.1);
+    }
+
+    /* Editable checkbox row */
+    .detail-row .edit-check {
+      accent-color: var(--kup-blue);
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .reward-setting-card.editing .detail-row .edit-check {
+      pointer-events: auto;
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    /* Editable toggle (iOS-style, inline) */
+    .edit-toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .edit-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .edit-toggle-slider {
+      position: absolute;
+      cursor: default;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #ccc;
+      border-radius: 22px;
+      transition: all 0.25s;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .edit-toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: all 0.25s;
+    }
+    .edit-toggle input:checked + .edit-toggle-slider { background: var(--kup-blue); }
+    .edit-toggle input:checked + .edit-toggle-slider::before { transform: translateX(18px); }
+    .reward-setting-card.editing .edit-toggle-slider {
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 1;
+    }
+
+    /* Save / Cancel action bar */
+    .edit-actions {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 0 0;
+      margin-top: 16px;
+      border-top: 1px solid #eee;
+    }
+    .reward-setting-card.editing .edit-actions {
+      display: flex;
+    }
+    .btn-edit-save {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      background: var(--kup-blue);
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .btn-edit-save:hover { background: #258fc4; }
+    .btn-edit-cancel {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      background: var(--kup-white);
+      color: #666;
+      transition: all 0.2s;
+    }
+    .btn-edit-cancel:hover { border-color: #bbb; color: #444; }
+
+    /* Stacked detail row for textarea */
+    .detail-row.stacked {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* Read-only stats label */
+    .detail-group .stat-only-label {
+      font-size: 0.68rem;
+      color: #bbb;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ============== EMPTY STATE ============== */
+    .reward-empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      background: var(--kup-white);
+      border: 2px dashed #ddd;
+      border-radius: var(--radius-md);
+    }
+    .reward-empty-state .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+    .reward-empty-state h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .reward-empty-state p {
+      font-size: 0.85rem;
+      color: #888;
+      margin: 0 0 20px;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Footer */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 32px;
+      font-size: 0.78rem;
+      color: #999;
+      border-top: 1px solid #eee;
+      background: var(--kup-white);
+    }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .brand-layout { grid-template-columns: 280px 1fr; }
+      .reward-settings { padding: 28px; }
+      .reward-card-metrics { display: none; }
+    }
+    @media (max-width: 768px) {
+      .brand-layout { grid-template-columns: 1fr; }
+      .brand-sidebar { border-right: none; border-bottom: 1px solid #eee; padding: 20px 16px; }
+      .reward-settings { padding: 20px 16px; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .reward-stat-card { padding: 14px; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_BLK_new_logo.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
+              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar">ST</div>
+            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       BRAND REWARD SETTINGS — Sidebar + Settings Content
+       Nielsen #2: Match between system and real world
+       — Shows existing reward configs, not blank wizard
+       Nielsen #6: Recognition over recall
+       — Same sidebar nav pattern as brand-home.html
+       ============================================ -->
+  <div class="brand-layout">
+    <!-- SIDEBAR (matches brand-home.html exactly) -->
+    <aside class="brand-sidebar">
+      <h3>Manage Brand</h3>
+
+      <div class="brand-identity">
+        <div class="logo">KP</div>
+        <div class="brand-name">KeepUsPostd</div>
+      </div>
+
+      <p class="brand-nav-label">Brand Settings</p>
+      <ul class="brand-nav">
+        <li>
+          <a href="brand-home.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Brand Profile
+          </a>
+        </li>
+        <li>
+          <a href="brand-reward-settings.html" class="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="7"></circle>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+            </svg>
+            Brand Reward
+          </a>
+        </li>
+        <li>
+          <a href="purchase-points-setup.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            Purchase Points
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-divider"></div>
+
+      <p class="brand-nav-label">Tools</p>
+      <ul class="brand-nav">
+        <li>
+          <a href="market-code.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            Market Code
+          </a>
+        </li>
+      </ul>
+
+      <a href="manage-brands.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 12L6 8L10 4"/>
+        </svg>
+        Back to All Brands
+      </a>
+    </aside>
+
+    <!-- RIGHT CONTENT: Reward Settings -->
+    <main class="reward-settings">
+
+      <!-- Header -->
+      <div class="settings-header">
+        <h3>Reward Settings <span>| KeepUsPostd</span></h3>
+        <button class="btn-create-reward" onclick="window.location='brand-reward.html'">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="3" x2="8" y2="13"></line>
+            <line x1="3" y1="8" x2="13" y2="8"></line>
+          </svg>
+          Create New Reward
+        </button>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="reward-stats-row">
+        <div class="reward-stat-card">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Active Rewards</div>
+        </div>
+        <div class="reward-stat-card">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Draft</div>
+        </div>
+        <div class="reward-stat-card">
+          <div class="stat-value">187</div>
+          <div class="stat-label">Total Redeemed</div>
+        </div>
+        <div class="reward-stat-card">
+          <div class="stat-value">$2,340</div>
+          <div class="stat-label">Cash Paid Out</div>
+        </div>
+      </div>
+
+      <!-- ============== NON-CASH REWARDS ============== -->
+      <div class="section-label non-cash">
+        <span class="label-icon"><i class="ph ph-gift"></i></span> Non-Cash Rewards
+      </div>
+
+      <div class="reward-settings-list">
+
+        <!-- Reward 1: 500 Loyalty Points (Point-Based) -->
+        <div class="reward-setting-card" id="rewardPoints">
+          <div class="reward-card-main">
+            <div class="reward-card-icon points"><i class="ph ph-star"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                500 Loyalty Points
+                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+              </div>
+              <p class="reward-card-subtitle">Points / Store Credit &mdash; Redeem in our online store (100 pts = $1)</p>
+              <div class="reward-card-tags">
+                <span class="point-cat-tag content-pts">Content Pts</span>
+                <span class="point-cat-tag gratitude-pts">Gratitude</span>
+                <span class="unlock-badge"><i class="ph ph-lock"></i> 500 pts to unlock</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-metrics">
+                <div class="reward-metric"><strong>94</strong><span>redeemed</span></div>
+                <div class="reward-metric"><strong>32</strong><span>in progress</span></div>
+              </div>
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('rewardPoints')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <div class="detail-group">
+                <h6><i class="ph ph-microphone"></i> Content Points</h6>
+                <div class="detail-row"><span class="label">Submitted to brand</span><span class="value"><input type="number" class="edit-input" value="10"><span class="edit-suffix">pts</span></span></div>
+                <div class="detail-row"><span class="label">Approved by brand</span><span class="value"><input type="number" class="edit-input" value="25"><span class="edit-suffix">pts</span></span></div>
+                <div class="detail-row"><span class="label">Published by brand</span><span class="value"><input type="number" class="edit-input" value="40"><span class="edit-suffix">pts</span></span></div>
+                <div class="detail-row"><span class="label">Bonus (own community)</span><span class="value"><input type="number" class="edit-input" value="15"><span class="edit-suffix">pts</span></span></div>
+              </div>
+              <div class="detail-group">
+                <h6><i class="ph ph-confetti"></i> Gratitude Points</h6>
+                <div class="detail-row"><span class="label">Joins as influencer</span><span class="value"><input type="number" class="edit-input" value="50"><span class="edit-suffix">pts</span></span></div>
+                <div class="detail-row"><span class="label">Birthday</span><span class="value"><input type="number" class="edit-input" value="25"><span class="edit-suffix">pts</span></span></div>
+                <div class="detail-row"><span class="label">Partnership anniversary</span><span class="value"><input type="number" class="edit-input" value="100"><span class="edit-suffix">pts</span></span></div>
+              </div>
+              <div class="detail-group full-width">
+                <h6><i class="ph ph-lock"></i> Unlock Threshold</h6>
+                <div class="detail-row"><span class="label">Total points to unlock</span><span class="value"><input type="number" class="edit-input" value="500" style="font-size:1rem;width:100px;color:var(--kup-orange)"><span class="edit-suffix">pts</span></span></div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('rewardPoints')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('rewardPoints')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reward 2: Free Gift Box (Per Approval) -->
+        <div class="reward-setting-card" id="rewardGiftBox">
+          <div class="reward-card-main">
+            <div class="reward-card-icon free-product"><i class="ph ph-gift"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                Free Gift Box
+                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+              </div>
+              <p class="reward-card-subtitle">Free Product &mdash; A curated box of our best products shipped free</p>
+              <div class="reward-card-tags">
+                <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-metrics">
+                <div class="reward-metric"><strong>28</strong><span>sent</span></div>
+                <div class="reward-metric"><strong>5</strong><span>pending</span></div>
+              </div>
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('rewardGiftBox')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <div class="detail-group">
+                <h6>Reward Details</h6>
+                <div class="detail-row"><span class="label">Earning Method</span><span class="value" style="color:var(--kup-blue);font-weight:700;">Per Approval</span></div>
+                <div class="detail-row"><span class="label">Estimated Value</span><span class="value"><input type="text" class="edit-input wide" value="$45"></span></div>
+                <div class="detail-row"><span class="label">Shipping</span><span class="value"><select class="edit-select"><option selected>Via address</option><option>Via email</option><option>In-store pickup</option></select></span></div>
+                <div class="detail-row stacked"><span class="label">Reward Description</span><textarea class="edit-textarea">A curated box of our best products shipped free</textarea></div>
+              </div>
+              <div class="detail-group">
+                <p class="stat-only-label"><i class="ph ph-chart-bar"></i> Performance (read-only)</p>
+                <div class="detail-row"><span class="label">Total sent</span><span class="value">28</span></div>
+                <div class="detail-row"><span class="label">Pending shipment</span><span class="value">5</span></div>
+                <div class="detail-row"><span class="label">This month</span><span class="value">7</span></div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('rewardGiftBox')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('rewardGiftBox')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reward 3: 20% Off First Order (Point-Based, Draft) -->
+        <div class="reward-setting-card" id="rewardDiscount">
+          <div class="reward-card-main">
+            <div class="reward-card-icon discount"><i class="ph ph-tag"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                20% Off First Order
+                <span class="status-pill draft"><span class="status-dot"></span>Draft</span>
+              </div>
+              <p class="reward-card-subtitle">Discount / Coupon &mdash; 20% off first order, 30-day expiration</p>
+              <div class="reward-card-tags">
+                <span class="point-cat-tag content-pts">Content Pts</span>
+                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+                <span class="point-cat-tag gratitude-pts">Gratitude</span>
+                <span class="unlock-badge"><i class="ph ph-lock"></i> 300 pts to unlock</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-metrics">
+                <div class="reward-metric"><strong>&mdash;</strong><span>redeemed</span></div>
+                <div class="reward-metric"><strong>&mdash;</strong><span>in progress</span></div>
+              </div>
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('rewardDiscount')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <div class="detail-group">
+                <h6>Discount Details</h6>
+                <div class="detail-row"><span class="label">Discount type</span><span class="value"><select class="edit-select"><option selected>Percentage off</option><option>Dollar amount off</option><option>Free shipping</option></select></span></div>
+                <div class="detail-row"><span class="label">Discount value</span><span class="value"><input type="text" class="edit-input wide" value="20%"></span></div>
+                <div class="detail-row"><span class="label">Coupon code</span><span class="value"><input type="text" class="edit-input wide" value="WELCOME20" style="text-transform:uppercase"></span></div>
+                <div class="detail-row"><span class="label">Expiration</span><span class="value"><select class="edit-select"><option selected>30 days</option><option>60 days</option><option>No expiration</option></select></span></div>
+              </div>
+              <div class="detail-group">
+                <h6>Point Categories</h6>
+                <div class="detail-row"><span class="label">Content Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">Purchase Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">Gratitude Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">Unlock threshold</span><span class="value"><input type="number" class="edit-input" value="300" style="color:var(--kup-orange)"><span class="edit-suffix">pts</span></span></div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('rewardDiscount')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('rewardDiscount')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== CASH REWARDS ============== -->
+      <div class="section-label cash">
+        <span class="label-icon"><i class="ph ph-money"></i></span> Cash Offers
+      </div>
+
+      <div class="reward-settings-list">
+
+        <!-- Cash Reward 1: Cash Per Approval -->
+        <div class="reward-setting-card" id="rewardCashApproval">
+          <div class="reward-card-main">
+            <div class="reward-card-icon cash-approval"><i class="ph ph-coins"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                Cash Per Approval
+                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+              </div>
+              <p class="reward-card-subtitle">Pays influencers per approved submission based on influence tier</p>
+              <div class="reward-card-tags">
+                <span class="cash-amount-badge"><i class="ph ph-coins"></i> Tier-based payout</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-metrics">
+                <div class="reward-metric"><strong>47</strong><span>payments</span></div>
+                <div class="reward-metric"><strong>$1,680</strong><span>total paid</span></div>
+              </div>
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('rewardCashApproval')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <div class="detail-group">
+                <h6>Payment Info</h6>
+                <div class="detail-row"><span class="label">Payment method</span><span class="value">PayPal Business</span></div>
+                <div class="detail-row"><span class="label">Rate structure</span><span class="value">Influence tier-based</span></div>
+                <div class="detail-row stacked"><span class="label">Payment memo</span><textarea class="edit-textarea">Thank you for your approved submission for our brand!</textarea></div>
+              </div>
+              <div class="detail-group">
+                <p class="stat-only-label"><i class="ph ph-chart-bar"></i> This Month (read-only)</p>
+                <div class="detail-row"><span class="label">Payments sent</span><span class="value">12</span></div>
+                <div class="detail-row"><span class="label">Amount paid</span><span class="value" style="color: var(--kup-orange);">$420</span></div>
+                <div class="detail-row"><span class="label">Avg per payment</span><span class="value">$35</span></div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('rewardCashApproval')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('rewardCashApproval')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cash Reward 2: Bonus Cash -->
+        <div class="reward-setting-card" id="rewardBonusCash">
+          <div class="reward-card-main">
+            <div class="reward-card-icon bonus-cash"><i class="ph ph-target"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                Bonus Cash
+                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+              </div>
+              <p class="reward-card-subtitle">Automatic bonus when influencer posts to their own community</p>
+              <div class="reward-card-tags">
+                <span class="cash-amount-badge"><i class="ph ph-target"></i> Auto-send on post</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-metrics">
+                <div class="reward-metric"><strong>18</strong><span>bonuses</span></div>
+                <div class="reward-metric"><strong>$660</strong><span>total paid</span></div>
+              </div>
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('rewardBonusCash')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <div class="detail-group">
+                <h6>Configuration</h6>
+                <div class="detail-row"><span class="label">Auto-send on verified post</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">Rate structure</span><span class="value">Influence tier-based</span></div>
+                <div class="detail-row"><span class="label">Budget cap</span><span class="value"><input type="text" class="edit-input wide" value="No limit" placeholder="e.g., $500"></span></div>
+              </div>
+              <div class="detail-group">
+                <h6>Qualifying Content</h6>
+                <div class="detail-row"><span class="label">Instagram Reel</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">TikTok Video</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">YouTube Short</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span></div>
+                <div class="detail-row"><span class="label">Blog Post</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span></div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('rewardBonusCash')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('rewardBonusCash')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============== TOAST NOTIFICATIONS ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'\u2713', error:'\u2715', info:'\u2139', warning:'\u26A0' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = notifPopover.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) notifPopover.classList.add('show');
+      });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot');
+        if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; }
+          else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = profileDropdown.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) profileDropdown.classList.add('show');
+      });
+    }
+
+    function closeAllPopovers() {
+      if (notifPopover) notifPopover.classList.remove('show');
+      if (profileDropdown) profileDropdown.classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+
+    /* ============== INLINE EDIT SYSTEM ============== */
+
+    // Store original values for cancel/revert
+    var originalValues = {};
+
+    function toggleDetails(cardId) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+
+      // If already editing this card, do nothing (use Cancel/Save)
+      if (card.classList.contains('editing')) return;
+
+      var wasExpanded = card.classList.contains('expanded');
+
+      // Collapse all others first
+      document.querySelectorAll('.reward-setting-card.expanded').forEach(function(c) {
+        if (c.id !== cardId) {
+          c.classList.remove('expanded');
+          c.classList.remove('editing');
+        }
+      });
+
+      // Toggle expand + enter edit mode
+      if (!wasExpanded) {
+        // Snapshot current values before editing
+        snapshotValues(cardId);
+        card.classList.add('expanded');
+        card.classList.add('editing');
+
+        // Update Edit button text
+        var editBtn = card.querySelector('.btn-reward-action.edit');
+        if (editBtn) {
+          editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Editing';
+        }
+      } else {
+        // Collapse if already expanded
+        cancelEdit(cardId);
+      }
+    }
+
+    // Snapshot all input values for revert
+    function snapshotValues(cardId) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+      var snapshot = [];
+      card.querySelectorAll('.edit-input, .edit-textarea, .edit-select').forEach(function(el) {
+        snapshot.push({ el: el, val: el.value });
+      });
+      card.querySelectorAll('.edit-check').forEach(function(el) {
+        snapshot.push({ el: el, val: el.checked });
+      });
+      originalValues[cardId] = snapshot;
+    }
+
+    // Cancel: revert values and collapse
+    function cancelEdit(cardId) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+
+      // Revert values
+      if (originalValues[cardId]) {
+        originalValues[cardId].forEach(function(item) {
+          if (typeof item.val === 'boolean') {
+            item.el.checked = item.val;
+          } else {
+            item.el.value = item.val;
+          }
+        });
+      }
+
+      card.classList.remove('editing');
+      card.classList.remove('expanded');
+
+      // Reset Edit button text
+      var editBtn = card.querySelector('.btn-reward-action.edit');
+      if (editBtn) {
+        editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit';
+      }
+    }
+
+    // Save: keep values and collapse
+    function saveEdit(cardId) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+
+      card.classList.remove('editing');
+      card.classList.remove('expanded');
+
+      // Reset Edit button text
+      var editBtn = card.querySelector('.btn-reward-action.edit');
+      if (editBtn) {
+        editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit';
+      }
+
+      // Clear snapshot (values are now "saved")
+      delete originalValues[cardId];
+
+      // Get reward name from card title
+      var titleEl = card.querySelector('.reward-card-title');
+      var rewardName = titleEl ? titleEl.textContent.trim().split('\n')[0].trim() : 'Reward';
+
+      kupToast(rewardName + ' settings saved', 'success');
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js"></script>
+    <script src="/js/resume-banner.js"></script>
+    <script src="/js/onboarding.js"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>

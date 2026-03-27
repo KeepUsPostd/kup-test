@@ -44,7 +44,7 @@ const brandSchema = new mongoose.Schema({
 
   // Visual system
   logoUrl: { type: String, default: null },
-  initials: { type: String, maxlength: 2 },
+  initials: { type: String, maxlength: 4 },
   generatedColor: { type: String, default: null },
   categoryIcon: { type: String, default: null },
   heroImageUrl: { type: String, default: null },
