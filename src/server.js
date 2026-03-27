@@ -80,9 +80,16 @@ app.use(express.urlencoded({ extended: true })); // Parse form data
 // Override MIME types: .MOV/.mov → video/mp4 so browsers can play them
 // (video/quicktime is not supported in most browsers)
 app.use(express.static(path.join(__dirname, '..', 'public'), {
+  etag: false,
   setHeaders: (res, filePath) => {
     if (/\.mov$/i.test(filePath)) {
       res.setHeader('Content-Type', 'video/mp4');
+    }
+    // Prevent browser caching of HTML and JS files during development
+    if (/\.(html|js)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
     }
   }
 }));

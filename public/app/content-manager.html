@@ -3932,20 +3932,80 @@
     })();
 
     // ========== Init ==========
-    // Wait for Firebase auth, then load content
-    if (isMongoId) {
-      // Real submission ID from content.html — wait for Firebase auth then load from API
-      auth.onAuthStateChanged(function(user) {
-        if (user) {
-          loadRealSubmission(paramId);
-        } else {
-          // Not logged in — redirect to login
-          window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.href);
+    // Always try to load real data first — fall back to demo only if no brand/auth
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.href);
+        return;
+      }
+      if (isMongoId) {
+        // Real submission ID from content.html — load directly from API
+        loadRealSubmission(paramId);
+      } else {
+        // No specific ID — try loading the brand's first submission from API
+        loadFirstBrandSubmission();
+      }
+    });
+
+    async function loadFirstBrandSubmission() {
+      try {
+        var stored = localStorage.getItem('kup_active_brand');
+        if (!stored) { loadDemoData(); return; }
+        var brand = JSON.parse(stored);
+        var brandId = brand.mongoId || brand.id;
+        if (!brandId) { loadDemoData(); return; }
+        var data = await kupApi.get('/api/content?brandId=' + brandId);
+        if (!data || !data.submissions || data.submissions.length === 0) {
+          loadDemoData();
+          return;
         }
-      });
-    } else {
-      // No valid ID or numeric index — load demo data
-      loadDemoData();
+        // Load the first submission, then loadAllBrandSubmissions will fill the rest
+        var firstSub = data.submissions[0];
+        realSubmissionId = firstSub._id;
+        isRealData = true;
+        allSubmissions = data.submissions;
+        contentItems = allSubmissions.map(function(sub, idx) {
+          var influencer = sub.influencerProfileId || {};
+          var displayName = influencer.displayName || influencer.handle || 'New Creator';
+          var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
+          var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+          var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
+          var daysRemaining = null;
+          if (sub.status === 'submitted') {
+            var submitted = new Date(sub.submittedAt || sub.createdAt);
+            var daysPassed = Math.floor((new Date() - submitted) / (1000 * 60 * 60 * 24));
+            daysRemaining = Math.max(0, AUTO_APPROVE_DAYS - daysPassed);
+          }
+          return {
+            id: idx,
+            mongoId: sub._id,
+            type: contentType,
+            icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
+            influencer: handle,
+            name: displayName,
+            initials: getInitials(displayName),
+            tier: influencer.influenceTier || 'Creator',
+            campaign: sub.campaignId ? sub.campaignId.title : 'General',
+            date: timeAgo(sub.submittedAt || sub.createdAt),
+            duration: null,
+            fileSize: '--',
+            status: uiStatus,
+            daysRemaining: daysRemaining,
+            avatarStyle: '',
+            mediaUrls: sub.mediaUrls || [],
+            originalMediaUrls: sub.originalMediaUrls || null,
+            caption: sub.caption || '',
+            rejectionReason: sub.rejectionReason || '',
+            savedTextOverlays: sub.textOverlays && sub.textOverlays.length > 0 ? sub.textOverlays : null,
+            savedLogoOverlay: sub.logoOverlay || null,
+          };
+        });
+        currentIndex = 0;
+        loadContent(0);
+      } catch (err) {
+        console.warn('Could not load brand submissions, falling back to demo:', err);
+        loadDemoData();
+      }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

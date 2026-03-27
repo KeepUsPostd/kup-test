@@ -472,14 +472,44 @@ var KUP_BRAND_CONTEXT = (function() {
       if (handleEl) handleEl.textContent = '@' + name.toLowerCase().replace(/\s+/g, '');
     }
 
-    // --- App profile preview card (brand-home, brand-profile) ---
+    // --- Phone mockup preview (brand-home, brand-profile) ---
+    var phoneLogo = document.querySelector('.app-preview-logo');
+    renderBrandLogo(phoneLogo, abbr, color, logoUrl);
+    // Also handle legacy flat preview if still present
     var appLogo = document.querySelector('.app-profile-logo');
     renderBrandLogo(appLogo, abbr, color, logoUrl);
     var appNameH4 = document.querySelector('.app-profile-name h4');
     if (appNameH4) appNameH4.textContent = name;
-    // brand-profile has an id="previewName" variant
+    // Preview name (phone mockup or brand-profile)
     var previewName = document.getElementById('previewName');
     if (previewName) previewName.textContent = name;
+    // Preview category, description, banner
+    var previewCategory = document.getElementById('previewCategory');
+    if (previewCategory && ab.category) previewCategory.textContent = ab.category;
+    var previewDesc = document.getElementById('previewDesc');
+    if (previewDesc && ab.description) previewDesc.textContent = ab.description;
+
+    // --- Page title: replace KeepUsPostd with active brand name ---
+    if (name !== 'KeepUsPostd') {
+      var title = document.querySelector('title');
+      if (title && title.textContent.indexOf('KeepUsPostd') !== -1) {
+        title.textContent = title.textContent.replace('KeepUsPostd', name);
+      }
+    }
+
+    // --- Campaign page header text ---
+    var campaignHeader = document.querySelector('.content-header p strong, .campaign-header p strong');
+    if (campaignHeader && campaignHeader.textContent === 'KeepUsPostd') {
+      campaignHeader.textContent = name;
+    }
+
+    // --- Market code page brand elements ---
+    var qrBrandName = document.querySelector('.qr-center-badge span');
+    if (qrBrandName && qrBrandName.textContent === 'KeepUsPostd') qrBrandName.textContent = name;
+    var scanText = document.querySelector('.scan-text');
+    if (scanText && scanText.textContent.indexOf('KeepUsPostd') !== -1) {
+      scanText.textContent = scanText.textContent.replace('KeepUsPostd', name);
+    }
 
     // --- Google Business preview card ---
     var gbpLogo = document.querySelector('.google-preview-logo');

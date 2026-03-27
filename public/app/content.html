@@ -2008,7 +2008,9 @@
       var searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
       document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
-        var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === activeStatus);
+        // Map tab filter names to API status values (e.g. "pending" tab → "submitted" status)
+        var filterStatus = activeStatus === 'pending' ? 'submitted' : activeStatus;
+        var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === filterStatus);
         var campaignMatch = (activeCampaign === 'all') || (row.getAttribute('data-campaign') === activeCampaign);
         var searchMatch = true;
         if (searchQuery) {
@@ -2089,7 +2091,7 @@
       rows.forEach(function(row) {
         var days = row.getAttribute('data-days');
         var status = row.getAttribute('data-status');
-        if (status === 'pending' && days && parseInt(days) <= 3) expiringCount++;
+        if ((status === 'pending' || status === 'submitted') && days && parseInt(days) <= 3) expiringCount++;
       });
       var alertEl = document.getElementById('expiringAlert');
       if (expiringCount > 0) {
@@ -2104,7 +2106,7 @@
       for (var i = 0; i < rows.length; i++) {
         var days = rows[i].getAttribute('data-days');
         var status = rows[i].getAttribute('data-status');
-        if (status === 'pending' && days && parseInt(days) <= 3) {
+        if ((status === 'pending' || status === 'submitted') && days && parseInt(days) <= 3) {
           window.location = 'content-manager.html?id=' + i;
           return;
         }
@@ -2269,11 +2271,15 @@
     });
 
     function updateContentStats(stats) {
-      // Update stat cards if they exist
-      const statValues = document.querySelectorAll('.stat-value, .kup-stat-value');
-      // The page may have different stat card structures — update what we can
-      const pendingBadge = document.querySelector('.pending-count, .badge');
-      if (pendingBadge) pendingBadge.textContent = stats.submitted || 0;
+      // Update stat cards using their actual IDs
+      const pending = document.getElementById('statPending');
+      const approved = document.getElementById('statApproved');
+      const rejected = document.getElementById('statRejected');
+      const expiring = document.getElementById('statExpiring');
+      if (pending) pending.textContent = stats.submitted || 0;
+      if (approved) approved.textContent = stats.approved || 0;
+      if (rejected) rejected.textContent = stats.rejected || 0;
+      if (expiring) expiring.textContent = stats.expiring || 0;
     }
 
     function renderContentRows(submissions) {
@@ -2283,32 +2289,52 @@
       // Clear existing demo rows
       tbody.innerHTML = '';
 
+      // Update tab counts from real data
+      const counts = { pending: 0, approved: 0, rejected: 0, all: submissions.length };
+      submissions.forEach(s => {
+        if (s.status === 'submitted') counts.pending++;
+        else if (s.status === 'approved') counts.approved++;
+        else if (s.status === 'rejected') counts.rejected++;
+      });
+      document.querySelectorAll('.inbox-filter-tab').forEach(tab => {
+        const filter = tab.getAttribute('data-filter');
+        const countEl = tab.querySelector('.inbox-filter-count');
+        if (countEl && counts[filter] !== undefined) countEl.textContent = counts[filter];
+      });
+
       submissions.forEach(sub => {
         const row = document.createElement('tr');
+        // Map "submitted" to "pending" for filter compatibility
+        const filterStatus = sub.status === 'submitted' ? 'pending' : sub.status;
+        const campaignTitle = sub.campaignId?.title || 'General';
+        const campaignSlug = campaignTitle.toLowerCase().replace(/\s+/g, '-');
         row.setAttribute('data-status', sub.status);
-        row.setAttribute('data-campaign', sub.campaignId?.title || 'General');
+        row.setAttribute('data-campaign', campaignSlug);
+        row.setAttribute('data-type', sub.contentType || 'video');
+        // Days until auto-approve (for expiring alert)
+        if (sub.status === 'submitted') {
+          const daysLeft = getDaysUntilAutoApprove(sub.submittedAt);
+          row.setAttribute('data-days', daysLeft);
+        }
         row.style.cursor = 'pointer';
         row.addEventListener('click', function(e) {
-          // Don't navigate if clicking a button or checkbox
           if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
           window.location.href = 'content-manager.html?id=' + sub._id;
         });
 
         const timeAgo = getTimeAgo(sub.submittedAt);
-        const statusBadge = getStatusBadge(sub.status);
         const influencer = sub.influencerProfileId || {};
-        // Use the real data we already collected — displayName from registration name,
-        // handle derived from email. Both are required fields now, but gracefully
-        // fall back just in case (e.g., old data before the enforcement).
         const displayName = influencer.displayName || influencer.handle || 'New Creator';
         const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
         const nameParts = displayName.trim().split(/\s+/);
         const initials = nameParts.length >= 2
           ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
           : displayName.charAt(0).toUpperCase();
+        const tier = influencer.influenceTier || 'Nano Influencer';
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
+        const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
 
-        // Build thumbnail — show actual media if available
+        // Build thumbnail — show actual media if available, fall back to icon
         let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
         if (sub.mediaUrls && sub.mediaUrls.length > 0) {
           const firstUrl = sub.mediaUrls[0];
@@ -2319,46 +2345,57 @@
           }
         }
 
-        // Build action buttons based on status
-        let actionsHtml = '';
+        // Build status badge + auto-approve countdown for pending items
+        let statusHtml = '';
         if (sub.status === 'submitted') {
-          actionsHtml = `
-            <button data-id="${sub._id}" onclick="approveContent('${sub._id}', this)" style="background:#16a34a;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;margin-right:4px">Approve</button>
-            <button data-id="${sub._id}" onclick="rejectContent('${sub._id}', this)" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Reject</button>
-          `;
+          const daysLeft = getDaysUntilAutoApprove(sub.submittedAt);
+          const urgency = daysLeft <= 2 ? 'urgent' : daysLeft <= 5 ? 'medium' : 'low';
+          statusHtml = `<span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge ${urgency}">${daysLeft} day${daysLeft !== 1 ? 's' : ''} left</span>`;
         } else if (sub.status === 'approved') {
-          actionsHtml = `
-            <button data-id="${sub._id}" onclick="markPostd('${sub._id}', this)" style="background:#2EA5DD;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer">Mark Postd</button>
-          `;
+          statusHtml = `<span class="status-badge approved"><span class="dot"></span>Approved</span>`;
+        } else if (sub.status === 'rejected') {
+          statusHtml = `<span class="status-badge rejected"><span class="dot"></span>Rejected</span>`;
+        } else if (sub.status === 'postd') {
+          statusHtml = `<span class="status-badge postd"><span class="dot"></span>Postd</span>`;
         }
 
+        // Campaign tag class — "general" gets a muted style
+        const campClass = campaignSlug === 'general' ? 'campaign-tag general' : 'campaign-tag';
+
         row.innerHTML = `
-          <td style="width:40px"><input type="checkbox" class="content-check"></td>
-          <td>
-            <div class="content-thumb" style="display:flex;align-items:center;gap:10px">
+          <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+          <td data-label="Content">
+            <div class="content-thumb">
               ${thumbHtml}
               <div class="thumb-info">
-                <span class="thumb-type">${sub.contentType.charAt(0).toUpperCase() + sub.contentType.slice(1)}</span>
-                ${sub.caption ? `<div style="font-size:0.7rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sub.caption}</div>` : ''}
+                <span class="thumb-type">${typeName}</span>
+                ${sub.caption ? `<span class="thumb-size">${sub.caption.substring(0, 20)}${sub.caption.length > 20 ? '...' : ''}</span>` : ''}
               </div>
             </div>
           </td>
-          <td>${sub.campaignId?.title || 'General'}</td>
+          <td data-label="Campaign"><span class="${campClass}" data-campaign="${campaignSlug}">${campaignTitle}</span></td>
           <td data-label="Submitted By">
-            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${influencer.influenceTier || 'Nano Influencer'}" style="cursor:pointer">
-              <div class="avatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700">${initials}</div>
+            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}">
+              <div class="avatar">${initials}</div>
               <div>
-                <div class="name" style="font-size:0.82rem;font-weight:600;color:#2EA5DD">@${handle}</div>
+                <div class="name">@${handle}</div>
+                <div class="tier">${tier}</div>
               </div>
             </div>
           </td>
-          <td>${timeAgo}</td>
-          <td>${statusBadge}</td>
-          <td>${actionsHtml}</td>
+          <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">${timeAgo}</td>
+          <td data-label="Pending Status">${statusHtml}</td>
         `;
 
         tbody.appendChild(row);
       });
+
+      // Update pagination text
+      const showingEl = document.querySelector('.showing');
+      if (showingEl) showingEl.textContent = 'Showing 1-' + submissions.length + ' of ' + submissions.length + ' items';
+
+      // Check for expiring items and show alert
+      if (typeof checkExpiringItems === 'function') checkExpiringItems();
 
       // Wire up influencer profile clicks on real data rows
       document.querySelectorAll('.influencer-cell[data-influencer-id]').forEach(function(cell) {
@@ -2399,12 +2436,20 @@
       return days + 'd ago';
     }
 
+    function getDaysUntilAutoApprove(submittedAt) {
+      // Auto-approve after 10 days — calculate remaining days
+      const submitted = new Date(submittedAt).getTime();
+      const autoApproveMs = 10 * 24 * 60 * 60 * 1000; // 10 days
+      const remaining = (submitted + autoApproveMs) - Date.now();
+      return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+    }
+
     function getStatusBadge(status) {
       const badges = {
-        submitted: '<span style="background:#fef3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Pending</span>',
-        approved: '<span style="background:#d1e7dd;color:#0f5132;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Approved</span>',
-        rejected: '<span style="background:#f8d7da;color:#842029;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Rejected</span>',
-        postd: '<span style="background:#cfe2ff;color:#1a5e99;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600">Postd</span>',
+        submitted: '<span class="status-badge pending"><span class="dot"></span>Pending</span>',
+        approved: '<span class="status-badge approved"><span class="dot"></span>Approved</span>',
+        rejected: '<span class="status-badge rejected"><span class="dot"></span>Rejected</span>',
+        postd: '<span class="status-badge postd"><span class="dot"></span>Postd</span>',
       };
       return badges[status] || status;
     }
