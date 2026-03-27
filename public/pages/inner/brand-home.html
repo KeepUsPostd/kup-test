@@ -224,136 +224,60 @@
       color: #888;
     }
 
-    /* App Display Card */
-    .app-display {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      max-width: 800px;
-    }
-
-    .app-banner {
-      height: 200px;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255,255,255,0.3);
-      font-size: 0.85rem;
-      font-weight: 500;
-      position: relative;
-    }
-
-    .app-banner .upload-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.4);
-      opacity: 0;
-      transition: opacity 0.2s;
-      cursor: pointer;
-    }
-    .app-banner:hover .upload-overlay { opacity: 1; }
-    .upload-overlay span {
-      color: white;
-      font-weight: 600;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .app-profile {
-      padding: 24px 28px;
-    }
-
-    .app-profile-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-    }
-
-    .app-profile-left {
-      display: flex;
-      gap: 16px;
-    }
-
-    .app-profile-logo {
-      width: 72px; height: 72px;
-      border-radius: var(--radius-md);
-      background: var(--kup-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-      font-size: 1.2rem;
-      margin-top: -40px;
-      border: 4px solid white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .app-profile-name h4 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin: 0 0 4px;
-    }
-    .app-profile-name p {
-      font-size: 0.82rem;
-      color: #888;
-      margin: 0;
-    }
-
-    .app-profile-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn-app {
-      padding: 8px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 600;
-      font-family: var(--kup-font);
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid #ddd;
-      background: white;
-      color: #444;
-    }
-    .btn-app:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
-
-    .btn-app.primary {
-      background: #f0f0f0;
-      border-color: #f0f0f0;
-      color: #666;
-    }
-
-    .app-stats {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 16px;
-    }
-    .app-stats .stat {
-      font-size: 0.85rem;
-    }
-    .app-stats .stat strong {
-      color: var(--kup-blue);
-      font-weight: 700;
-    }
-
-    .app-description {
-      font-size: 0.85rem;
-      color: #555;
-      line-height: 1.6;
-      max-width: 600px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
+    /* Preview Area — tips left, phone right */
+    .preview-area{display:flex;gap:32px;align-items:flex-start;justify-content:center;width:100%}
+    /* Tips Column */
+    .tips-column{width:300px;flex-shrink:0;padding-top:40px}
+    .tips-column .section-label{font-size:.82rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+    /* Phone Column */
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+    .phone-status-bar{display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px;font-size:.7rem;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:45;height:44px;pointer-events:none}
+    .phone-status-bar .status-time{font-size:.78rem;font-weight:700;padding-bottom:4px}
+    .phone-status-bar .status-icons{display:flex;gap:4px;align-items:center;font-size:.6rem;padding-bottom:5px}
+    .phone-status-bar .status-icons span{display:inline-block}
+    .phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .phone-screen::-webkit-scrollbar{display:none}
+    .app-preview-banner{height:150px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative}
+    .app-preview-banner .back-btn-mock,.app-preview-banner .more-btn-mock{position:absolute;top:50px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    .app-preview-banner .back-btn-mock{left:12px}
+    .app-preview-banner .more-btn-mock{right:12px}
+    .app-preview-avatar-wrap{display:flex;justify-content:center;margin-top:-32px;position:relative;z-index:10}
+    .app-preview-logo{width:64px;height:64px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+    .app-preview-info{text-align:center;padding:8px 16px 0}
+    .app-preview-name{font-size:1.05rem;font-weight:800;margin:0 0 2px;color:#1a1a1a;min-height:22px;word-break:break-word;display:flex;align-items:center;justify-content:center;gap:4px}
+    .app-preview-category{font-size:.72rem;color:var(--kup-blue);font-weight:600;margin-bottom:1px;min-height:16px}
+    .app-preview-location{font-size:.68rem;color:#888;margin-bottom:6px;min-height:14px}
+    .app-preview-badge-row{display:flex;justify-content:center;margin-top:4px;margin-bottom:4px}
+    .app-preview-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:rgba(22,163,74,.08);color:#16a34a}
+    .app-preview-stats{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-stat-box{flex:1;background:#f8f9fa;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center}
+    .app-preview-stat-box .stat-num{font-size:.9rem;font-weight:800;color:#1a1a1a;line-height:1.2}
+    .app-preview-stat-box .stat-label{font-size:.55rem;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px}
+    .app-preview-actions{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-actions .btn-mock{flex:1;padding:8px 0;border-radius:8px;font-family:var(--kup-font);font-size:.72rem;font-weight:700;text-align:center;border:none;cursor:default}
+    .app-preview-actions .btn-mock-primary{background:var(--kup-blue);color:#fff}
+    .app-preview-actions .btn-mock-secondary{background:#f0f0f0;color:#aaa;border:1px solid #e0e0e0}
+    .app-preview-tabs{display:flex;padding:12px 14px 0;border-bottom:1px solid #eee;gap:0}
+    .app-preview-tab{flex:1;text-align:center;padding:8px 0;font-size:.65rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;cursor:default}
+    .app-preview-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
+    .app-preview-body{padding:12px 16px 70px}
+    .app-preview-desc{font-size:.72rem;color:#888;line-height:1.6;min-height:36px;word-break:break-word}
+    .app-preview-nav{position:absolute;bottom:14px;left:0;right:0;height:50px;background:#fff;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:30}
+    .app-preview-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.52rem;color:#ccc;font-weight:600}
+    .app-preview-nav-item.active{color:var(--kup-blue)}
+    .app-preview-nav-item .nav-icon-mock{font-size:.9rem}
+    .app-preview-nav-fab{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;box-shadow:0 3px 10px rgba(46,165,221,.3);margin-top:-10px}
+    .preview-hint{font-size:.78rem;color:#bbb;text-align:center;margin-top:12px;font-style:italic;width:310px}
+    .preview-label{font-size:.85rem;font-weight:700;color:#444;margin-bottom:12px;text-align:center}
+    .phone-home-bar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#ccc;border-radius:4px;z-index:60}
+    /* Dashboard Tips */
+    .dashboard-tips{}
+    .step-tip{display:flex;gap:10px;padding:14px 16px;background:#fff;border-radius:var(--radius-md);margin-bottom:12px;font-size:.82rem;color:#555;line-height:1.5;border:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .step-tip .tip-icon{font-size:1.1rem;flex-shrink:0}
+    .step-tip a{color:var(--kup-blue);font-weight:600}
+    .step-tip strong{display:block;margin-bottom:2px;color:#1a1a1a}
 
     /* ============== CAMPAIGN SECTION (nested under brand) ============== */
     .app-campaigns {
@@ -507,28 +431,31 @@
     .auth-footer a { color: var(--kup-blue); font-weight: 500; }
 
     /* Responsive */
+    @media (max-width: 1200px) {
+      .preview-area { gap: 20px; }
+      .tips-column { width: 260px; }
+    }
     @media (max-width: 1024px) {
       .brand-layout { grid-template-columns: 280px 1fr; }
       .brand-preview { padding: 28px; }
+      .preview-area { flex-direction: column-reverse; align-items: center; }
+      .tips-column { width: 310px; padding-top: 0; }
     }
     @media (max-width: 768px) {
       .brand-layout { grid-template-columns: 1fr; }
       .brand-sidebar { border-right: none; border-bottom: 1px solid #eee; padding: 20px 16px; }
-      .brand-preview { padding: 20px 16px; }
+      .brand-preview { padding: 20px 16px; display:flex; justify-content:center; }
       .auth-header-inner { padding: 0 16px; }
       .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
       .profile-info { display: none; }
-      .app-profile-top { flex-direction: column; gap: 16px; }
-      .app-profile-actions { width: 100%; }
-      .app-profile-actions .btn-app { flex: 1; text-align: center; min-height: 44px; }
-      .app-stats { flex-wrap: wrap; gap: 16px; }
-      .app-profile { padding: 20px 16px; }
-      .app-profile-logo { width: 56px; height: 56px; font-size: 1rem; margin-top: -30px; }
+      .phone-frame { width: 280px; height: 580px; }
+      .preview-hint { width: 280px; }
+      .tips-column { width: 280px; }
     }
     @media (max-width: 480px) {
-      .app-profile-left { flex-direction: column; align-items: flex-start; }
-      .app-profile-logo { margin-top: 0; }
-      .campaign-card-mini { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .phone-frame { width: 260px; height: 540px; }
+      .preview-hint { width: 260px; }
+      .tips-column { width: 260px; }
     }
   
     /* Sticky Footer */
@@ -686,133 +613,70 @@
 
     <!-- RIGHT CONTENT -->
     <main class="brand-preview">
-      <div class="preview-header">
-        <h3>Marketplace App Display <span>| Brand Profile</span></h3>
+      <div class="preview-area">
+      <!-- Tips Column (left of phone) -->
+      <div class="tips-column">
+        <div class="dashboard-tips">
+          <div class="step-tip"><span class="tip-icon">🚀</span><span><strong>You're Live!</strong>Your brand is live in the marketplace. Influencers can discover and partner with you right now.</span></div>
+          <div class="step-tip"><span class="tip-icon">📷</span><span><strong>Update Your Look</strong>Need to change your logo or banner? Head to <a href="brand-profile.html#assets">Brand Profile → Assets</a>.</span></div>
+          <div class="step-tip"><span class="tip-icon">🏆</span><span><strong>Launch a Campaign</strong>Create your first campaign to start attracting influencer content submissions.</span></div>
+        </div>
       </div>
 
-      <!-- App Display Card -->
-      <div class="app-display">
-        <!-- Banner -->
-        <div class="app-banner">
-          <span>Brand Banner Image</span>
-          <div class="upload-overlay">
-            <span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              Upload Banner
-            </span>
+      <!-- Phone Column (right of tips) -->
+      <div class="phone-column">
+        <p class="preview-label">APP DISPLAY PREVIEW</p>
+        <div class="phone-frame">
+          <div class="phone-status-bar">
+            <span class="status-time">9:41</span>
+            <span class="status-icons"><span>&#9679;&#9679;&#9679;&#9679;</span> <span>&#128246;</span> <span>&#128267;</span></span>
           </div>
+          <div class="phone-screen">
+            <div class="app-preview-banner" id="previewBanner">
+              <span class="back-btn-mock">&#8592;</span>
+              <span class="more-btn-mock">&#8943;</span>
+            </div>
+            <div class="app-preview-avatar-wrap">
+              <div class="app-preview-logo" id="previewLogo">KP</div>
+            </div>
+            <div class="app-preview-info">
+              <h3 class="app-preview-name" id="previewName">Your Brand</h3>
+              <p class="app-preview-category" id="previewCategory">Industry</p>
+              <p class="app-preview-location" id="previewLocation"></p>
+              <div class="app-preview-badge-row">
+                <span class="app-preview-badge">&#10003; Verified Brand</span>
+              </div>
+            </div>
+            <div class="app-preview-stats">
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatReviews">0</div><div class="stat-label">Reviews</div></div>
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatRating">0</div><div class="stat-label">Rating</div></div>
+              <div class="app-preview-stat-box"><div class="stat-num" id="previewStatInfluencers">0</div><div class="stat-label">Influencers</div></div>
+            </div>
+            <div class="app-preview-actions">
+              <div class="btn-mock btn-mock-primary">Partner</div>
+              <div class="btn-mock btn-mock-secondary">+ Add Review</div>
+            </div>
+            <div class="app-preview-tabs">
+              <div class="app-preview-tab active">About</div>
+              <div class="app-preview-tab">Content</div>
+              <div class="app-preview-tab">Rewards</div>
+              <div class="app-preview-tab">Campaigns</div>
+            </div>
+            <div class="app-preview-body">
+              <p class="app-preview-desc" id="previewDesc">Your brand description will appear here...</p>
+            </div>
+          </div>
+          <div class="app-preview-nav">
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#127968;</span>Home</div>
+            <div class="app-preview-nav-item active"><span class="nav-icon-mock">&#128269;</span>Discover</div>
+            <div class="app-preview-nav-fab">+</div>
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128176;</span>Rewards</div>
+            <div class="app-preview-nav-item"><span class="nav-icon-mock">&#128100;</span>Profile</div>
+          </div>
+          <div class="phone-home-bar"></div>
         </div>
-
-        <!-- Profile Info -->
-        <div class="app-profile">
-          <div class="app-profile-top">
-            <div class="app-profile-left">
-              <div class="app-profile-logo">KP</div>
-              <div class="app-profile-name">
-                <h4>KeepUsPostd</h4>
-                <p>123 Innovation Blvd, Austin, TX 78701</p>
-              </div>
-            </div>
-            <div class="app-profile-actions">
-              <button class="btn-app primary">
-                Be an influencer
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;">
-                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                  <line x1="4" y1="22" x2="4" y2="15"></line>
-                </svg>
-              </button>
-              <button class="btn-app">Add Review</button>
-            </div>
-          </div>
-
-          <div class="app-stats">
-            <div class="stat"><strong>247</strong> influencers</div>
-            <div class="stat"><strong>89</strong> videos</div>
-            <div class="stat"><strong>531</strong> images</div>
-          </div>
-
-          <p class="app-description">
-            KeepUsPostd connects brands with authentic influencers to create genuine content partnerships. Our platform makes it easy to discover, manage, and reward influencer collaborations at scale.
-          </p>
-
-          <!-- ========== CAMPAIGNS SECTION (nested under brand) ========== -->
-          <div class="app-campaigns">
-            <div class="app-campaigns-header">
-              <h5>
-                Active Campaigns
-                <span class="campaign-count-badge">3</span>
-              </h5>
-              <span class="app-campaigns-see-all">See all →</span>
-            </div>
-
-            <div class="campaign-card-stack">
-              <!-- Campaign 1: Summer Promo -->
-              <div class="campaign-card-mini">
-                <div class="campaign-card-icon promo">☀️</div>
-                <div class="campaign-card-body">
-                  <h6>
-                    Summer Promo 2026
-                    <span class="campaign-status-dot active" title="Active"></span>
-                  </h6>
-                  <p>Share your summer experience with our brand</p>
-                  <span class="campaign-reward-tag">🎁 20% Off — 500 pts to unlock</span>
-                </div>
-                <div class="campaign-card-meta">
-                  <div class="campaign-card-stat">
-                    <strong>42</strong>
-                    posts
-                  </div>
-                  <svg class="campaign-card-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
-                </div>
-              </div>
-
-              <!-- Campaign 2: Brand Launch -->
-              <div class="campaign-card-mini">
-                <div class="campaign-card-icon launch">🚀</div>
-                <div class="campaign-card-body">
-                  <h6>
-                    Brand Launch
-                    <span class="campaign-status-dot active" title="Active"></span>
-                  </h6>
-                  <p>Help us introduce KeepUsPostd to the world</p>
-                  <span class="campaign-reward-tag">⚡ Free Gift Box — Per Approval</span>
-                </div>
-                <div class="campaign-card-meta">
-                  <div class="campaign-card-stat">
-                    <strong>18</strong>
-                    posts
-                  </div>
-                  <svg class="campaign-card-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
-                </div>
-              </div>
-
-              <!-- Campaign 3: Holiday Special -->
-              <div class="campaign-card-mini">
-                <div class="campaign-card-icon holiday">🎄</div>
-                <div class="campaign-card-body">
-                  <h6>
-                    Holiday Special
-                    <span class="campaign-status-dot draft" title="Draft"></span>
-                  </h6>
-                  <p>Seasonal content for the holiday season</p>
-                  <span class="campaign-reward-tag">💵 $25/approval</span>
-                </div>
-                <div class="campaign-card-meta">
-                  <div class="campaign-card-stat">
-                    <strong>—</strong>
-                    draft
-                  </div>
-                  <svg class="campaign-card-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- ========== END CAMPAIGNS SECTION ========== -->
-        </div>
+        <p class="preview-hint"><em>This is how your brand will appear in the KeepUsPostd Marketplace.</em></p>
+      </div>
       </div>
     </main>
   </div>
@@ -892,10 +756,124 @@
     });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
   </script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js?v=1774619962"></script>
+  <script src="/js/api.js?v=1774619962"></script>
+
+  <script>
+    // Auth gate + load brand data
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+
+      // Get brandId from URL or localStorage
+      const params = new URLSearchParams(window.location.search);
+      let brandId = params.get('brandId');
+      if (!brandId) {
+        try {
+          const stored = localStorage.getItem('kup_active_brand');
+          if (stored) brandId = JSON.parse(stored).id;
+        } catch(e) {}
+      }
+
+      if (!brandId) {
+        // No brand selected — go to manage brands
+        window.location.href = 'manage-brands.html';
+        return;
+      }
+
+      try {
+        const data = await kupApi.get('/api/brands/' + brandId);
+        const brand = data.brand;
+        if (brand) {
+          populateBrandData(brand);
+          // Save as active brand
+          localStorage.setItem('kup_active_brand', JSON.stringify({ id: brand._id, name: brand.name }));
+        }
+      } catch (err) {
+        console.error('Failed to load brand:', err);
+      }
+
+      // Wire logout
+      const logoutLink = document.querySelector('.logout');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          kupSignOut();
+        });
+      }
+    });
+
+    function populateBrandData(brand) {
+      const words = brand.name.trim().split(/\s+/);
+      const initials = brand.initials || (words.length === 1 ? words[0].charAt(0).toUpperCase() : words.map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3));
+      const bgColor = brand.generatedColor || '#2EA5DD';
+
+      // Sidebar brand identity
+      const sidebarLogo = document.querySelector('.brand-identity .logo');
+      const sidebarName = document.querySelector('.brand-identity .brand-name');
+      if (sidebarLogo) { sidebarLogo.textContent = initials; sidebarLogo.style.background = bgColor; }
+      if (sidebarName) sidebarName.textContent = brand.name;
+
+      // Phone mockup — avatar logo
+      const previewLogo = document.getElementById('previewLogo');
+      if (previewLogo) {
+        if (brand.logoUrl) {
+          previewLogo.innerHTML = '<img src="' + brand.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+          previewLogo.style.background = 'transparent';
+        } else {
+          previewLogo.textContent = initials;
+          previewLogo.style.background = bgColor;
+        }
+      }
+
+      // Phone mockup — banner
+      const previewBanner = document.getElementById('previewBanner');
+      if (previewBanner && brand.heroImageUrl) {
+        previewBanner.style.backgroundImage = 'url(' + brand.heroImageUrl + ')';
+        previewBanner.style.backgroundSize = 'cover';
+        previewBanner.style.backgroundPosition = 'center';
+      }
+
+      // Phone mockup — brand info
+      const previewName = document.getElementById('previewName');
+      if (previewName) previewName.textContent = brand.name;
+
+      const previewCategory = document.getElementById('previewCategory');
+      if (previewCategory && brand.category) previewCategory.textContent = brand.category;
+
+      const previewLocation = document.getElementById('previewLocation');
+      if (previewLocation) {
+        var addrParts = [brand.city, brand.state, brand.zip].filter(Boolean);
+        if (addrParts.length) previewLocation.textContent = addrParts.join(', ');
+        else if (brand.websiteUrl) previewLocation.textContent = brand.websiteUrl;
+      }
+
+      // Phone mockup — stats
+      const sr = document.getElementById('previewStatReviews');
+      const sra = document.getElementById('previewStatRating');
+      const si = document.getElementById('previewStatInfluencers');
+      if (sr) sr.textContent = brand.stats?.totalContent || 0;
+      if (sra) sra.textContent = brand.stats?.averageRating || '0';
+      if (si) si.textContent = brand.stats?.totalInfluencers || 0;
+
+      // Phone mockup — description
+      const previewDesc = document.getElementById('previewDesc');
+      if (previewDesc && brand.description) previewDesc.textContent = brand.description;
+
+      // Page title
+      document.title = brand.name + ' — KeepUsPostd';
+    }
+  </script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
+    <script src="/js/resume-banner.js?v=1774619962"></script>
+    <script src="/js/onboarding.js?v=1774619962"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

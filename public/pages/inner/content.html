@@ -1505,130 +1505,25 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-status="pending" data-campaign="summer-promo" data-days="8" data-sort-date="5" data-influencer="jessicadavis" data-type="video" onclick="window.location='content-manager.html?id=0'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">12.4 MB</span>
+          <!-- Empty state — shown when no real submissions exist -->
+          <tr id="emptyStateRow">
+            <td colspan="6" style="text-align:center;padding:60px 20px;">
+              <div style="max-width:360px;margin:0 auto;">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(46,165,221,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                  <i class="ph ph-image" style="font-size:1.8rem;color:#2EA5DD;"></i>
+                </div>
+                <h4 style="font-size:1rem;font-weight:700;margin:0 0 8px;color:#1a1a1a;">No content submitted yet</h4>
+                <p style="font-size:0.85rem;color:#888;margin:0 0 20px;line-height:1.5;">When influencers submit content for your brand, it will appear here for review.</p>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                  <a href="market-code.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#2EA5DD;color:#fff;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;">
+                    <i class="ph ph-qr-code"></i> Share your QR code
+                  </a>
+                  <a href="campaigns.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:rgba(46,165,221,0.08);color:#2EA5DD;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(46,165,221,0.2);">
+                    <i class="ph ph-megaphone"></i> Create a campaign
+                  </a>
                 </div>
               </div>
             </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="jessicadavis">JD</div>
-                <div>
-                  <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 hours ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge low">8 days left</span></td>
-
-          </tr>
-          <tr data-status="approved" data-campaign="general" data-days="" data-sort-date="4" data-influencer="marcusking" data-type="image" onclick="window.location='content-manager.html?id=1'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img image"><i class="ph ph-image"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Image</span>
-                  <span class="thumb-size">3.8 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
-                <div>
-                  <div class="name" data-influencer="marcusking">@marcusking</div>
-                  <div class="tier">Macro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">5 hours ago</td>
-            <td data-label="Pending Status"><span class="status-badge approved"><span class="dot"></span>Approved</span></td>
-
-          </tr>
-          <tr data-status="pending" data-campaign="brand-launch" data-days="5" data-sort-date="3" data-influencer="amylee_creates" data-type="video" onclick="window.location='content-manager.html?id=2'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">8.1 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="brand-launch">Brand Launch</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="amylee_creates">AL</div>
-                <div>
-                  <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
-                  <div class="tier">Nano Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">1 day ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge medium">5 days left</span></td>
-
-          </tr>
-          <tr data-status="rejected" data-campaign="summer-promo" data-days="" data-sort-date="2" data-influencer="tyreese_r" data-type="image" onclick="window.location='content-manager.html?id=3'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img image"><i class="ph ph-image"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Image</span>
-                  <span class="thumb-size">2.1 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="tyreese_r">TR</div>
-                <div>
-                  <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 days ago</td>
-            <td data-label="Pending Status"><span class="status-badge rejected"><span class="dot"></span>Rejected</span></td>
-
-          </tr>
-          <tr data-status="pending" data-campaign="general" data-days="1" data-sort-date="1" data-influencer="nina_k" data-type="video" onclick="window.location='content-manager.html?id=4'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">15.7 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
-                <div>
-                  <div class="name" data-influencer="nina_k">@nina_k</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">3 days ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge urgent">1 day left</span></td>
-
           </tr>
         </tbody>
       </table>
@@ -2113,7 +2008,9 @@
       var searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
       document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
-        var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === activeStatus);
+        // Map tab filter names to API status values (e.g. "pending" tab → "submitted" status)
+        var filterStatus = activeStatus === 'pending' ? 'submitted' : activeStatus;
+        var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === filterStatus);
         var campaignMatch = (activeCampaign === 'all') || (row.getAttribute('data-campaign') === activeCampaign);
         var searchMatch = true;
         if (searchQuery) {
@@ -2194,7 +2091,7 @@
       rows.forEach(function(row) {
         var days = row.getAttribute('data-days');
         var status = row.getAttribute('data-status');
-        if (status === 'pending' && days && parseInt(days) <= 3) expiringCount++;
+        if ((status === 'pending' || status === 'submitted') && days && parseInt(days) <= 3) expiringCount++;
       });
       var alertEl = document.getElementById('expiringAlert');
       if (expiringCount > 0) {
@@ -2209,7 +2106,7 @@
       for (var i = 0; i < rows.length; i++) {
         var days = rows[i].getAttribute('data-days');
         var status = rows[i].getAttribute('data-status');
-        if (status === 'pending' && days && parseInt(days) <= 3) {
+        if ((status === 'pending' || status === 'submitted') && days && parseInt(days) <= 3) {
           window.location = 'content-manager.html?id=' + i;
           return;
         }
@@ -2329,16 +2226,286 @@
   </script>
   <!--
     KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
-    <script src="/js/brand-context.js"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
     Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
     Key APIs for this page:
       KUP_PLATFORM.CONTENT_STATUSES, .CONTENT_TRANSITIONS, .CONTENT_RULES
       KUP_PLATFORM.RATING_SYSTEM
   -->
-  <script src="/js/platform-config.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js?v=1774619962"></script>
+  <script src="/js/api.js?v=1774619962"></script>
+
+  <script>
+    // Auth gate + load content
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+
+      // Get brand ID — prefer mongoId (real MongoDB ObjectId) from synced brand context
+      let brandId = null;
+      try {
+        const stored = localStorage.getItem('kup_active_brand');
+        if (stored) {
+          const brand = JSON.parse(stored);
+          brandId = brand.mongoId || brand.id;  // Use mongoId if available, fall back to local id
+        }
+      } catch(e) {}
+
+      if (!brandId) { window.location.href = 'manage-brands.html'; return; }
+
+      try {
+        const data = await kupApi.get('/api/content?brandId=' + brandId);
+        updateContentStats(data.stats || {});
+        renderContentRows(data.submissions || []);
+      } catch (err) {
+        console.error('Failed to load content:', err);
+      }
+
+      // Wire logout
+      const logoutLink = document.querySelector('.logout');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
+      }
+    });
+
+    function updateContentStats(stats) {
+      // Update stat cards using their actual IDs
+      const pending = document.getElementById('statPending');
+      const approved = document.getElementById('statApproved');
+      const rejected = document.getElementById('statRejected');
+      const expiring = document.getElementById('statExpiring');
+      if (pending) pending.textContent = stats.submitted || 0;
+      if (approved) approved.textContent = stats.approved || 0;
+      if (rejected) rejected.textContent = stats.rejected || 0;
+      if (expiring) expiring.textContent = stats.expiring || 0;
+    }
+
+    function renderContentRows(submissions) {
+      const tbody = document.querySelector('tbody, .content-table-body');
+      if (!tbody || submissions.length === 0) return;
+
+      // Clear existing demo rows
+      tbody.innerHTML = '';
+
+      // Update tab counts from real data
+      const counts = { pending: 0, approved: 0, rejected: 0, all: submissions.length };
+      submissions.forEach(s => {
+        if (s.status === 'submitted') counts.pending++;
+        else if (s.status === 'approved') counts.approved++;
+        else if (s.status === 'rejected') counts.rejected++;
+      });
+      document.querySelectorAll('.inbox-filter-tab').forEach(tab => {
+        const filter = tab.getAttribute('data-filter');
+        const countEl = tab.querySelector('.inbox-filter-count');
+        if (countEl && counts[filter] !== undefined) countEl.textContent = counts[filter];
+      });
+
+      submissions.forEach(sub => {
+        const row = document.createElement('tr');
+        // Map "submitted" to "pending" for filter compatibility
+        const filterStatus = sub.status === 'submitted' ? 'pending' : sub.status;
+        const campaignTitle = sub.campaignId?.title || 'General';
+        const campaignSlug = campaignTitle.toLowerCase().replace(/\s+/g, '-');
+        row.setAttribute('data-status', sub.status);
+        row.setAttribute('data-campaign', campaignSlug);
+        row.setAttribute('data-type', sub.contentType || 'video');
+        // Days until auto-approve (for expiring alert)
+        if (sub.status === 'submitted') {
+          const daysLeft = getDaysUntilAutoApprove(sub.submittedAt);
+          row.setAttribute('data-days', daysLeft);
+        }
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function(e) {
+          if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+          window.location.href = 'content-manager.html?id=' + sub._id;
+        });
+
+        const timeAgo = getTimeAgo(sub.submittedAt);
+        const influencer = sub.influencerProfileId || {};
+        const displayName = influencer.displayName || influencer.handle || 'New Creator';
+        const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
+        const nameParts = displayName.trim().split(/\s+/);
+        const initials = nameParts.length >= 2
+          ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+          : displayName.charAt(0).toUpperCase();
+        const tier = influencer.influenceTier || 'Nano Influencer';
+        const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
+        const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
+
+        // Build thumbnail — show actual media if available, fall back to icon
+        let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
+        if (sub.mediaUrls && sub.mediaUrls.length > 0) {
+          const firstUrl = sub.mediaUrls[0];
+          if (sub.contentType === 'video') {
+            thumbHtml = `<video src="${firstUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted></video>`;
+          } else {
+            thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
+          }
+        }
+
+        // Build status badge + auto-approve countdown for pending items
+        let statusHtml = '';
+        if (sub.status === 'submitted') {
+          const daysLeft = getDaysUntilAutoApprove(sub.submittedAt);
+          const urgency = daysLeft <= 2 ? 'urgent' : daysLeft <= 5 ? 'medium' : 'low';
+          statusHtml = `<span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge ${urgency}">${daysLeft} day${daysLeft !== 1 ? 's' : ''} left</span>`;
+        } else if (sub.status === 'approved') {
+          statusHtml = `<span class="status-badge approved"><span class="dot"></span>Approved</span>`;
+        } else if (sub.status === 'rejected') {
+          statusHtml = `<span class="status-badge rejected"><span class="dot"></span>Rejected</span>`;
+        } else if (sub.status === 'postd') {
+          statusHtml = `<span class="status-badge postd"><span class="dot"></span>Postd</span>`;
+        }
+
+        // Campaign tag class — "general" gets a muted style
+        const campClass = campaignSlug === 'general' ? 'campaign-tag general' : 'campaign-tag';
+
+        row.innerHTML = `
+          <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
+          <td data-label="Content">
+            <div class="content-thumb">
+              ${thumbHtml}
+              <div class="thumb-info">
+                <span class="thumb-type">${typeName}</span>
+                ${sub.caption ? `<span class="thumb-size">${sub.caption.substring(0, 20)}${sub.caption.length > 20 ? '...' : ''}</span>` : ''}
+              </div>
+            </div>
+          </td>
+          <td data-label="Campaign"><span class="${campClass}" data-campaign="${campaignSlug}">${campaignTitle}</span></td>
+          <td data-label="Submitted By">
+            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}">
+              <div class="avatar">${initials}</div>
+              <div>
+                <div class="name">@${handle}</div>
+                <div class="tier">${tier}</div>
+              </div>
+            </div>
+          </td>
+          <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">${timeAgo}</td>
+          <td data-label="Pending Status">${statusHtml}</td>
+        `;
+
+        tbody.appendChild(row);
+      });
+
+      // Update pagination text
+      const showingEl = document.querySelector('.showing');
+      if (showingEl) showingEl.textContent = 'Showing 1-' + submissions.length + ' of ' + submissions.length + ' items';
+
+      // Check for expiring items and show alert
+      if (typeof checkExpiringItems === 'function') checkExpiringItems();
+
+      // Wire up influencer profile clicks on real data rows
+      document.querySelectorAll('.influencer-cell[data-influencer-id]').forEach(function(cell) {
+        cell.addEventListener('click', function(e) {
+          e.stopPropagation(); // Don't trigger row click (content-manager nav)
+          var name = this.getAttribute('data-influencer-name') || 'Unknown';
+          var handle = this.getAttribute('data-influencer-handle') || '';
+          var tier = this.getAttribute('data-influencer-tier') || 'Creator';
+          var nameParts = name.trim().split(/\s+/);
+          var initials = nameParts.length >= 2
+            ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+            : name.charAt(0).toUpperCase();
+
+          // Populate the existing influencer profile modal
+          document.getElementById('ipAvatar').textContent = initials;
+          document.getElementById('ipModalHandle').textContent = '@' + handle;
+          document.getElementById('ipName').textContent = name;
+          var tierEl = document.getElementById('ipTier');
+          tierEl.textContent = tier;
+          tierEl.className = 'ip-tier tier-badge micro';
+          document.getElementById('ipFollowers').textContent = '—';
+          document.getElementById('ipEngagement').textContent = '—';
+          document.getElementById('ipPosts').textContent = '—';
+          document.getElementById('ipBio').textContent = 'Creator profile — more details coming soon.';
+
+          openModal('influencerProfileModal');
+        });
+      });
+    }
+
+    function getTimeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return mins + ' min ago';
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      const days = Math.floor(hours / 24);
+      return days + 'd ago';
+    }
+
+    function getDaysUntilAutoApprove(submittedAt) {
+      // Auto-approve after 10 days — calculate remaining days
+      const submitted = new Date(submittedAt).getTime();
+      const autoApproveMs = 10 * 24 * 60 * 60 * 1000; // 10 days
+      const remaining = (submitted + autoApproveMs) - Date.now();
+      return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+    }
+
+    function getStatusBadge(status) {
+      const badges = {
+        submitted: '<span class="status-badge pending"><span class="dot"></span>Pending</span>',
+        approved: '<span class="status-badge approved"><span class="dot"></span>Approved</span>',
+        rejected: '<span class="status-badge rejected"><span class="dot"></span>Rejected</span>',
+        postd: '<span class="status-badge postd"><span class="dot"></span>Postd</span>',
+      };
+      return badges[status] || status;
+    }
+
+    async function approveContent(submissionId, btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/approve', {});
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('approved');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content approved', 'success');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Approve';
+        kupToast(err.message || 'Failed to approve', 'error');
+      }
+    }
+
+    async function rejectContent(submissionId, btn) {
+      const reason = prompt('Rejection reason (required):');
+      if (!reason) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/reject', { reason });
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('rejected');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content rejected with feedback', 'info');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Reject';
+        kupToast(err.message || 'Failed to reject', 'error');
+      }
+    }
+
+    async function markPostd(submissionId, btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        await kupApi.put('/api/content/' + submissionId + '/postd', {});
+        btn.closest('tr').querySelector('td:nth-child(6)').innerHTML = getStatusBadge('postd');
+        btn.closest('td').innerHTML = '';
+        kupToast('Content marked as Postd!', 'success');
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Mark Postd';
+        kupToast(err.message || 'Failed to mark as Postd', 'error');
+      }
+    }
+  </script>
+
+  <script src="/js/platform-config.js?v=1774619962"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
+    <script src="/js/resume-banner.js?v=1774619962"></script>
+    <script src="/js/onboarding.js?v=1774619962"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
