@@ -8,8 +8,11 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const { execFile: execFileCb } = require('child_process');
+const { promisify } = require('util');
+const execFile = promisify(execFileCb);
 const { requireAuth } = require('../middleware/auth');
+const { ContentSubmission } = require('../models');
 
 // Configure where files go and how they're named
 const storage = multer.diskStorage({
@@ -62,12 +65,13 @@ router.post('/', requireAuth, upload.array('media', 5), (req, res) => {
 });
 
 // POST /api/upload/trim — Trim a video using FFmpeg
-// Takes: { videoUrl: '/uploads/filename.mp4', startTime: '0:05', endTime: '0:12' }
+// Takes: { videoUrl, startTime, endTime, submissionId (optional) }
+// If submissionId provided: saves original, updates submission with trimmed version
 // Returns: { url: '/uploads/trimmed-filename.mp4', duration: '0:07' }
 // FFmpeg cuts the video without re-encoding (instant, no quality loss)
 router.post('/trim', requireAuth, async (req, res) => {
   try {
-    const { videoUrl, startTime, endTime } = req.body;
+    const { videoUrl, startTime, endTime, submissionId } = req.body;
 
     if (!videoUrl || !startTime || !endTime) {
       return res.status(400).json({ error: 'videoUrl, startTime, and endTime are required' });
@@ -124,30 +128,58 @@ router.post('/trim', requireAuth, async (req, res) => {
 
     console.log(`✂️ Trimming video: ${sourceFilename} (${startTime} to ${endTime}, ${durationSec}s)`);
 
-    execFile('ffmpeg', args, { timeout: 30000 }, (error, stdout, stderr) => {
-      if (error) {
-        console.error('FFmpeg trim error:', error.message);
-        console.error('FFmpeg stderr:', stderr);
-        return res.status(500).json({ error: 'Failed to trim video' });
+    try {
+      await execFile('ffmpeg', args, { timeout: 30000 });
+    } catch (ffmpegErr) {
+      console.error('FFmpeg trim error:', ffmpegErr.message);
+      return res.status(500).json({ error: 'Failed to trim video' });
+    }
+
+    // Verify output file was created
+    if (!fs.existsSync(outputPath)) {
+      return res.status(500).json({ error: 'Trimmed file was not created' });
+    }
+
+    const outputUrl = `/uploads/${trimmedFilename}`;
+    const durationFormatted = Math.floor(durationSec / 60) + ':' + String(durationSec % 60).padStart(2, '0');
+
+    console.log(`✅ Trim complete: ${trimmedFilename} (${durationFormatted})`);
+
+    // If submissionId provided, save to database
+    // - originalMediaUrls: preserve the influencer's original (only set once, never overwritten)
+    // - editedMediaUrls: the brand's latest edited version
+    // - mediaUrls: always points to the latest/active version (edited if exists)
+    if (submissionId) {
+      try {
+        const submission = await ContentSubmission.findById(submissionId);
+        if (submission) {
+          // Save original only on first edit (never overwrite)
+          if (!submission.originalMediaUrls || submission.originalMediaUrls.length === 0) {
+            submission.originalMediaUrls = [...submission.mediaUrls];
+          }
+
+          // Replace the trimmed video URL in both edited and active arrays
+          const newMediaUrls = submission.mediaUrls.map(url =>
+            url === videoUrl ? outputUrl : url
+          );
+          submission.editedMediaUrls = newMediaUrls;
+          submission.mediaUrls = newMediaUrls;
+          await submission.save();
+
+          console.log(`💾 Submission ${submissionId} updated with trimmed video`);
+        }
+      } catch (dbErr) {
+        console.error('DB update after trim failed:', dbErr.message);
+        // Don't fail the request — the trim itself succeeded
       }
+    }
 
-      // Verify output file was created
-      if (!fs.existsSync(outputPath)) {
-        return res.status(500).json({ error: 'Trimmed file was not created' });
-      }
-
-      const outputUrl = `/uploads/${trimmedFilename}`;
-      const durationFormatted = Math.floor(durationSec / 60) + ':' + String(durationSec % 60).padStart(2, '0');
-
-      console.log(`✅ Trim complete: ${trimmedFilename} (${durationFormatted})`);
-
-      res.json({
-        message: 'Video trimmed successfully',
-        url: outputUrl,
-        originalUrl: videoUrl,
-        duration: durationFormatted,
-        durationSeconds: durationSec,
-      });
+    res.json({
+      message: 'Video trimmed successfully',
+      url: outputUrl,
+      originalUrl: videoUrl,
+      duration: durationFormatted,
+      durationSeconds: durationSec,
     });
   } catch (error) {
     console.error('Trim error:', error.message);

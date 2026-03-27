@@ -33,7 +33,9 @@ const contentSubmissionSchema = new mongoose.Schema({
     required: true,
   },
   caption: { type: String, maxlength: 500, default: null },
-  mediaUrls: [{ type: String }],
+  mediaUrls: [{ type: String }],              // Current/active version (starts as original, updated on edit)
+  originalMediaUrls: [{ type: String }],       // Influencer's original submission (never changes after first edit)
+  editedMediaUrls: [{ type: String }],         // Brand-edited versions (trimmed, cropped, etc.)
   platform: {
     type: String,
     enum: ['instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'kiosk'],

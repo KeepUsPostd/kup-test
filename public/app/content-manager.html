@@ -852,6 +852,18 @@
           <span class="status-badge pending" id="cmStatusBadge"><span class="dot"></span><span id="cmStatusText">Pending Review</span></span>
         </div>
 
+        <!-- Original/Edited toggle (shown after brand edits) -->
+        <div id="cmEditedBadge" style="display:none;margin-top:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:.72rem;color:#4ade80;font-weight:600;background:rgba(74,222,128,0.1);padding:3px 10px;border-radius:50px;">✂️ Edited</span>
+            <span id="cmEditedInfo" style="font-size:.72rem;color:#888;"></span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button id="cmViewOriginalBtn" onclick="toggleOriginalView()" style="padding:6px 14px;border:1px solid rgba(255,255,255,0.15);background:none;border-radius:6px;color:#888;font-family:var(--kup-font);font-size:.75rem;font-weight:600;cursor:pointer;">View Original</button>
+            <button id="cmViewEditedBtn" onclick="toggleEditedView()" style="padding:6px 14px;border:1px solid var(--kup-blue);background:rgba(46,165,221,0.1);border-radius:6px;color:var(--kup-blue);font-family:var(--kup-font);font-size:.75rem;font-weight:600;cursor:pointer;display:none;">View Edited</button>
+          </div>
+        </div>
+
         <!-- Countdown Bar (pending only) -->
         <div class="cm-countdown" id="cmCountdown">
           <div class="countdown-bar"><div class="countdown-fill safe" id="cmCountdownFill" style="width:80%"></div></div>
@@ -1164,6 +1176,7 @@
           daysRemaining: daysRemaining,
           avatarStyle: '',
           mediaUrls: sub.mediaUrls || [],
+          originalMediaUrls: sub.originalMediaUrls || null,
           caption: sub.caption || '',
           rejectionReason: sub.rejectionReason || ''
         };
@@ -1218,6 +1231,7 @@
             daysRemaining: daysRemaining,
             avatarStyle: '',
             mediaUrls: sub.mediaUrls || [],
+            originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
             rejectionReason: sub.rejectionReason || ''
           };
@@ -1362,6 +1376,17 @@
       // Duration row
       var durationRow = document.getElementById('cmDurationRow');
       if (item.duration) { durationRow.style.display = ''; document.getElementById('cmDuration').textContent = item.duration; } else { durationRow.style.display = 'none'; }
+
+      // Edited badge — show when content has been edited by brand
+      var editedBadge = document.getElementById('cmEditedBadge');
+      if (item.originalMediaUrls && item.originalMediaUrls.length > 0) {
+        editedBadge.style.display = '';
+        document.getElementById('cmEditedInfo').textContent = 'Brand has edited this content';
+        document.getElementById('cmViewOriginalBtn').style.display = '';
+        document.getElementById('cmViewEditedBtn').style.display = 'none';
+      } else {
+        editedBadge.style.display = 'none';
+      }
 
       // Status badge
       var badge = document.getElementById('cmStatusBadge');
@@ -1917,11 +1942,16 @@
       applyBtn.disabled = true;
 
       try {
+        // Get submission ID so the server can save the edit to the database
+        var item = contentItems[currentIndex];
+        var submissionId = item ? (item.mongoId || item.id) : null;
+
         // Call the server to actually cut the video with FFmpeg
         var result = await kupApi.post('/api/upload/trim', {
           videoUrl: videoUrl,
           startTime: startText,
           endTime: endText,
+          submissionId: submissionId,
         });
 
         // Swap the video source to the trimmed version
@@ -1929,8 +1959,8 @@
         video.load();
 
         // Update the content item's data so it persists in the UI
-        var item = contentItems[currentIndex];
         if (item) {
+          if (!item.originalMediaUrls) item.originalMediaUrls = [].concat(item.mediaUrls);
           item.mediaUrls = [result.url];
           item.duration = result.duration;
         }
@@ -1949,6 +1979,33 @@
 
     function clearTrim() {
       trimState.active = false;
+    }
+
+    // ---- ORIGINAL / EDITED TOGGLE ----
+    function toggleOriginalView() {
+      var item = contentItems[currentIndex];
+      if (!item || !item.originalMediaUrls) return;
+      var media = document.querySelector('.content-frame video') || document.querySelector('.content-frame img');
+      if (media) {
+        media.src = item.originalMediaUrls[0];
+        if (media.tagName === 'VIDEO') media.load();
+      }
+      document.getElementById('cmViewOriginalBtn').style.display = 'none';
+      document.getElementById('cmViewEditedBtn').style.display = '';
+      kupToast('Showing original version', 'info');
+    }
+
+    function toggleEditedView() {
+      var item = contentItems[currentIndex];
+      if (!item) return;
+      var media = document.querySelector('.content-frame video') || document.querySelector('.content-frame img');
+      if (media) {
+        media.src = item.mediaUrls[0];
+        if (media.tagName === 'VIDEO') media.load();
+      }
+      document.getElementById('cmViewOriginalBtn').style.display = '';
+      document.getElementById('cmViewEditedBtn').style.display = 'none';
+      kupToast('Showing edited version', 'info');
     }
 
     function formatTime(sec) {
