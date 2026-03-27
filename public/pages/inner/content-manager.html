@@ -1399,8 +1399,7 @@
           else if (existingLogo.classList.contains('pos-top-right')) logoPos = 'top-right';
           else if (existingLogo.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
           var compOpacity = parseFloat(window.getComputedStyle(existingLogo).opacity) || 0.7;
-          var lMark = existingLogo.querySelector('.logo-mark');
-          var lSize = lMark ? parseFloat(window.getComputedStyle(lMark).fontSize) : 12;
+          var lSize = parseInt(existingLogo.getAttribute('data-logo-size')) || 60;
           prevItem.savedLogoOverlay = { position: logoPos, opacity: compOpacity, size: lSize };
         }
       }
@@ -1603,10 +1602,11 @@
         var logoDiv = document.createElement('div');
         logoDiv.className = 'logo-overlay-item pos-' + lo.position;
         logoDiv.style.opacity = lo.opacity;
+        logoDiv.setAttribute('data-logo-size', lo.size);
         if (brandLogoUrl) {
           logoDiv.innerHTML = '<div class="logo-mark" style="padding:6px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (lo.size / 60 * 4) + 'rem;max-width:10rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
         } else {
-          logoDiv.innerHTML = '<div class="logo-mark" style="font-size:' + lo.size + 'px;">' + brandInitials + '</div>';
+          logoDiv.innerHTML = '<div class="logo-mark" style="font-size:' + (lo.size / 60 * 0.7) + 'rem">' + brandInitials + '</div>';
         }
         restoreFrame2.appendChild(logoDiv);
       }
@@ -2625,8 +2625,9 @@
     // Uses <canvas> to composite: image + zoom/crop + text overlays + logo overlay
     async function saveImageEdit() {
       var frame = document.querySelector('.content-frame');
-      var img = frame.querySelector('img');
-      var videoEl = frame.querySelector('video');
+      // IMPORTANT: Only select the CONTENT image, not logo overlay images inside the frame
+      var img = frame.querySelector(':scope > img');
+      var videoEl = frame.querySelector(':scope > video');
       var mediaEl = img || videoEl;
 
       if (!mediaEl) {
@@ -2664,9 +2665,8 @@
             else if (logoEl.classList.contains('pos-top-right')) logoPos = 'top-right';
             else if (logoEl.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
             var computedOpacity = parseFloat(window.getComputedStyle(logoEl).opacity) || 0.7;
-            var logoMark = logoEl.querySelector('.logo-mark');
-            var fontSize = logoMark ? parseFloat(window.getComputedStyle(logoMark).fontSize) : 12;
-            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: fontSize };
+            var savedLogoSize = parseInt(logoEl.getAttribute('data-logo-size')) || 60;
+            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: savedLogoSize };
           } else {
             item.savedLogoOverlay = null;
           }
@@ -2900,10 +2900,8 @@
             else if (logoEl.classList.contains('pos-top-right')) logoPos = 'top-right';
             else if (logoEl.classList.contains('pos-bottom-left')) logoPos = 'bottom-left';
             var computedOpacity = parseFloat(window.getComputedStyle(logoEl).opacity) || 0.7;
-            var logoMark = logoEl.querySelector('.logo-mark');
-            var logoImg = logoMark ? logoMark.querySelector('img') : null;
-            var fontSize = logoMark ? parseFloat(window.getComputedStyle(logoMark).fontSize) : 12;
-            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: fontSize };
+            var savedLogoSize = parseInt(logoEl.getAttribute('data-logo-size')) || 60;
+            item.savedLogoOverlay = { position: logoPos, opacity: computedOpacity, size: savedLogoSize };
           } else {
             item.savedLogoOverlay = null;
           }
@@ -2911,17 +2909,17 @@
           var textEls = frame.querySelectorAll('.text-overlay-item');
           var savedTexts = [];
           textEls.forEach(function(te) {
-            var tPos = 'bottom-center';
-            if (te.classList.contains('pos-top-center')) tPos = 'top-center';
-            else if (te.classList.contains('pos-center')) tPos = 'center';
+            var tPos = 'center';
+            if (te.classList.contains('pos-top')) tPos = 'top';
+            else if (te.classList.contains('pos-bottom')) tPos = 'bottom';
             var span = te.querySelector('span');
             if (span) savedTexts.push({ text: span.textContent, position: tPos });
           });
           item.savedTextOverlays = savedTexts.length > 0 ? savedTexts : [];
 
           // Save overlay metadata to database (same as video path)
-          var isRealData = item.mongoId || (item.id && item.id.length > 10);
-          if (isRealData && (item.mongoId || item.id)) {
+          var isRealImg = item.mongoId || (item.id && item.id.length > 10);
+          if (isRealImg && (item.mongoId || item.id)) {
             kupApi.put('/api/content/' + (item.mongoId || item.id) + '/overlays', {
               textOverlays: item.savedTextOverlays || [],
               logoOverlay: item.savedLogoOverlay || null,
@@ -3125,6 +3123,7 @@
         var overlay = document.createElement('div');
         overlay.className = 'logo-overlay-item pos-' + logoState.position;
         overlay.style.opacity = logoState.opacity / 100;
+        overlay.setAttribute('data-logo-size', logoState.size);
         if (brandLogoUrl) {
           // Real brand logo — show as image
           overlay.innerHTML = '<div class="logo-mark" style="padding:6px;background:transparent"><img src="' + brandLogoUrl + '" style="height:' + (logoState.size / 60 * 4) + 'rem;max-width:10rem;object-fit:contain;display:block" alt="Brand Logo"></div>';
@@ -3152,6 +3151,7 @@
       if (existing) {
         existing.style.opacity = logoState.opacity / 100;
         existing.className = 'logo-overlay-item pos-' + logoState.position;
+        existing.setAttribute('data-logo-size', logoState.size);
         var mark = existing.querySelector('.logo-mark');
         if (mark) {
           var img = mark.querySelector('img');
@@ -3713,7 +3713,7 @@
         // Images: canvas renders overlays + steganographic Content Signature
         try {
           var frame = document.querySelector('.content-frame');
-          var imgEl = frame.querySelector('img');
+          var imgEl = frame.querySelector(':scope > img');
           if (!imgEl || !imgEl.complete || imgEl.naturalWidth === 0) {
             triggerFileDownload(mediaUrl, kupId + '.jpg');
             closeDownloadModal();

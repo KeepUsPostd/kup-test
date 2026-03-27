@@ -444,8 +444,8 @@ var KUP_BRAND_CONTEXT = (function() {
   function renderBrandLogo(el, abbr, color, logoUrl) {
     if (!el) return;
     if (logoUrl) {
-      el.innerHTML = '<img src="' + logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Brand Logo">';
-      el.style.background = 'transparent';
+      el.innerHTML = '<img src="' + logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Brand Logo">';
+      el.style.background = '#fff';
     } else {
       el.textContent = abbr;
       el.style.background = color;
@@ -539,7 +539,7 @@ var KUP_BRAND_CONTEXT = (function() {
     // --- Influencer profile modal brand badge (already has ids) ---
     // These are updated per-open in each page's JS, but also set defaults here
     var ipBrandLogo = document.getElementById('ipBrandLogo');
-    if (ipBrandLogo) { ipBrandLogo.textContent = abbr; ipBrandLogo.style.background = color; }
+    renderBrandLogo(ipBrandLogo, abbr, color, logoUrl);
     var ipBrandName = document.getElementById('ipBrandName');
     if (ipBrandName) ipBrandName.textContent = name;
   }

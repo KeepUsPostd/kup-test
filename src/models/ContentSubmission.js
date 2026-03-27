@@ -43,11 +43,7 @@ const contentSubmissionSchema = new mongoose.Schema({
     position: { type: String, enum: ['top', 'center', 'bottom'], default: 'center' },
   }],
   logoOverlay: {
-    type: {
-      position: { type: String, default: 'bottom-right' },
-      opacity: { type: Number, default: 0.7 },
-      size: { type: Number, default: 12 },
-    },
+    type: mongoose.Schema.Types.Mixed,
     default: null,
   },
 
