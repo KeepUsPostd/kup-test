@@ -1891,48 +1891,64 @@
 
     var trimState = { active: false, startSec: 0, endSec: 0 };
 
-    function applyTrim() {
+    async function applyTrim() {
       var startText = document.getElementById('trimStart').textContent;
       var endText = document.getElementById('trimEnd').textContent;
+      var applyBtn = document.querySelector('.trim-action-btn.apply');
 
-      // Parse times to seconds
-      function parseTime(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
-      trimState.startSec = parseTime(startText);
-      trimState.endSec = parseTime(endText);
-      trimState.active = true;
-
-      // Apply to video element
+      // Get the current video's source URL
       var video = document.querySelector('.content-frame video');
-      if (video) {
-        video.currentTime = trimState.startSec;
-
-        // Remove old listener if any
-        if (video._trimHandler) video.removeEventListener('timeupdate', video._trimHandler);
-
-        // Constrain playback to trim range
-        video._trimHandler = function() {
-          if (video.currentTime < trimState.startSec) {
-            video.currentTime = trimState.startSec;
-          }
-          if (video.currentTime >= trimState.endSec) {
-            video.pause();
-            video.currentTime = trimState.startSec;
-          }
-        };
-        video.addEventListener('timeupdate', video._trimHandler);
+      if (!video || !video.src) {
+        kupToast('No video to trim', 'error');
+        return;
       }
 
-      kupToast('Trimmed to ' + startText + ' – ' + endText, 'success');
-      toggleTool('trim');
+      // Extract the /uploads/... path from the full URL
+      var videoUrl;
+      try {
+        var urlObj = new URL(video.src);
+        videoUrl = urlObj.pathname; // e.g. "/uploads/1711234567890-abc123.mp4"
+      } catch(e) {
+        videoUrl = video.getAttribute('src');
+      }
+
+      // Show loading state
+      applyBtn.textContent = 'Trimming...';
+      applyBtn.disabled = true;
+
+      try {
+        // Call the server to actually cut the video with FFmpeg
+        var result = await kupApi.post('/api/upload/trim', {
+          videoUrl: videoUrl,
+          startTime: startText,
+          endTime: endText,
+        });
+
+        // Swap the video source to the trimmed version
+        video.src = result.url;
+        video.load();
+
+        // Update the content item's data so it persists in the UI
+        var item = contentItems[currentIndex];
+        if (item) {
+          item.mediaUrls = [result.url];
+          item.duration = result.duration;
+        }
+
+        kupToast('Video trimmed to ' + startText + ' – ' + endText + ' (' + result.duration + ')', 'success');
+        toggleTool('trim');
+
+      } catch (err) {
+        console.error('Trim failed:', err);
+        kupToast('Trim failed: ' + (err.message || 'Server error'), 'error');
+      } finally {
+        applyBtn.textContent = 'Apply Trim';
+        applyBtn.disabled = false;
+      }
     }
 
     function clearTrim() {
       trimState.active = false;
-      var video = document.querySelector('.content-frame video');
-      if (video && video._trimHandler) {
-        video.removeEventListener('timeupdate', video._trimHandler);
-        video._trimHandler = null;
-      }
     }
 
     function formatTime(sec) {
