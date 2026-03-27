@@ -786,7 +786,9 @@
           <option value="center">Center</option>
           <option value="bottom" selected>Bottom</option>
         </select>
-        <button class="text-apply-btn" id="textApplyBtn" onclick="applyTextOverlay()">Apply</button>
+        <button class="text-apply-btn" id="textApplyBtn" onclick="applyTextOverlay()">Add</button>
+        <button class="text-apply-btn" style="background:rgba(255,255,255,0.08);color:#888;" onclick="doneTextOverlay()">Done</button>
+        <button class="text-apply-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:#888;" onclick="clearTextOverlays();kupToast('Text removed','info')">Clear</button>
       </div>
 
       <!-- Logo Watermark Panel -->
@@ -1942,6 +1944,14 @@
     function clearTextOverlays() {
       document.querySelectorAll('.text-overlay-item').forEach(function(el) { el.remove(); });
       textOverlayCount = 0;
+    }
+
+    function doneTextOverlay() {
+      var count = document.querySelectorAll('.text-overlay-item').length;
+      if (count > 0) {
+        kupToast(count + ' text overlay' + (count > 1 ? 's' : '') + ' applied', 'success');
+      }
+      toggleTool('text');
     }
 
     // Enter key applies text
