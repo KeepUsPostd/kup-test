@@ -1505,130 +1505,25 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-status="pending" data-campaign="summer-promo" data-days="8" data-sort-date="5" data-influencer="jessicadavis" data-type="video" onclick="window.location='content-manager.html?id=0'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">12.4 MB</span>
+          <!-- Empty state — shown when no real submissions exist -->
+          <tr id="emptyStateRow">
+            <td colspan="6" style="text-align:center;padding:60px 20px;">
+              <div style="max-width:360px;margin:0 auto;">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(46,165,221,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                  <i class="ph ph-image" style="font-size:1.8rem;color:#2EA5DD;"></i>
+                </div>
+                <h4 style="font-size:1rem;font-weight:700;margin:0 0 8px;color:#1a1a1a;">No content submitted yet</h4>
+                <p style="font-size:0.85rem;color:#888;margin:0 0 20px;line-height:1.5;">When influencers submit content for your brand, it will appear here for review.</p>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                  <a href="market-code.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#2EA5DD;color:#fff;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;">
+                    <i class="ph ph-qr-code"></i> Share your QR code
+                  </a>
+                  <a href="campaigns.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:rgba(46,165,221,0.08);color:#2EA5DD;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(46,165,221,0.2);">
+                    <i class="ph ph-megaphone"></i> Create a campaign
+                  </a>
                 </div>
               </div>
             </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="jessicadavis">JD</div>
-                <div>
-                  <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 hours ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge low">8 days left</span></td>
-
-          </tr>
-          <tr data-status="approved" data-campaign="general" data-days="" data-sort-date="4" data-influencer="marcusking" data-type="image" onclick="window.location='content-manager.html?id=1'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img image"><i class="ph ph-image"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Image</span>
-                  <span class="thumb-size">3.8 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
-                <div>
-                  <div class="name" data-influencer="marcusking">@marcusking</div>
-                  <div class="tier">Macro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">5 hours ago</td>
-            <td data-label="Pending Status"><span class="status-badge approved"><span class="dot"></span>Approved</span></td>
-
-          </tr>
-          <tr data-status="pending" data-campaign="brand-launch" data-days="5" data-sort-date="3" data-influencer="amylee_creates" data-type="video" onclick="window.location='content-manager.html?id=2'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">8.1 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="brand-launch">Brand Launch</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="amylee_creates">AL</div>
-                <div>
-                  <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
-                  <div class="tier">Nano Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">1 day ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge medium">5 days left</span></td>
-
-          </tr>
-          <tr data-status="rejected" data-campaign="summer-promo" data-days="" data-sort-date="2" data-influencer="tyreese_r" data-type="image" onclick="window.location='content-manager.html?id=3'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img image"><i class="ph ph-image"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Image</span>
-                  <span class="thumb-size">2.1 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag" data-campaign="summer-promo">Summer Promo</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="tyreese_r">TR</div>
-                <div>
-                  <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">2 days ago</td>
-            <td data-label="Pending Status"><span class="status-badge rejected"><span class="dot"></span>Rejected</span></td>
-
-          </tr>
-          <tr data-status="pending" data-campaign="general" data-days="1" data-sort-date="1" data-influencer="nina_k" data-type="video" onclick="window.location='content-manager.html?id=4'">
-            <td class="col-check" data-label=""><input type="checkbox" class="row-checkbox" onclick="event.stopPropagation(); updateBulkBar();" aria-label="Select row"></td>
-            <td data-label="Content">
-              <div class="content-thumb">
-                <div class="thumb-img video"><i class="ph ph-play"></i></div>
-                <div class="thumb-info">
-                  <span class="thumb-type">Video</span>
-                  <span class="thumb-size">15.7 MB</span>
-                </div>
-              </div>
-            </td>
-            <td data-label="Campaign"><span class="campaign-tag general" data-campaign="general">General</span></td>
-            <td data-label="Submitted By">
-              <div class="influencer-cell">
-                <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
-                <div>
-                  <div class="name" data-influencer="nina_k">@nina_k</div>
-                  <div class="tier">Micro Influencer</div>
-                </div>
-              </div>
-            </td>
-            <td data-label="Time Submitted" style="color: #666; font-size: 0.82rem;">3 days ago</td>
-            <td data-label="Pending Status"><span class="status-badge pending"><span class="dot"></span>Pending</span><span class="auto-approve-badge urgent">1 day left</span></td>
-
           </tr>
         </tbody>
       </table>
