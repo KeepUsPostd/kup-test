@@ -133,8 +133,8 @@
 
     /* Logo Overlay on Content Frame */
     .logo-overlay-item { position: absolute; z-index: 5; pointer-events: auto; cursor: move; }
-    .logo-overlay-item.pos-top-left { top: 56px; left: 12px; }
-    .logo-overlay-item.pos-top-right { top: 56px; right: 12px; }
+    .logo-overlay-item.pos-top-left { top: 12px; left: 12px; }
+    .logo-overlay-item.pos-top-right { top: 12px; right: 12px; }
     .logo-overlay-item.pos-bottom-left { bottom: 12px; left: 12px; }
     .logo-overlay-item.pos-bottom-right { bottom: 12px; right: 12px; }
     .logo-overlay-item .logo-mark { background: rgba(255,255,255,0.9); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--kup-font); color: #1a1a2e; padding: 4px 8px; }
@@ -1279,8 +1279,9 @@
       if (index < 0 || index >= contentItems.length) return;
       var item = contentItems[index];
 
-      // Reset zoom when switching content
+      // Reset zoom and trim when switching content
       if (typeof resetZoom === 'function') resetZoom();
+      if (typeof clearTrim === 'function') clearTrim();
 
       // === MEDIA PREVIEW (the main content area) ===
       var frame = document.querySelector('.content-frame');
@@ -1298,6 +1299,11 @@
           video.controls = true;
           video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           video.setAttribute('playsinline', '');
+          // Block download from native three-dot menu unless approved
+          video.setAttribute('controlsList', 'nodownload');
+          if (item.status !== 'approved' && item.status !== 'postd') {
+            video.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+          }
           frame.insertBefore(video, frame.firstChild);
         } else {
           var img = document.createElement('img');
@@ -1883,11 +1889,50 @@
       document.addEventListener('touchend', function() { dragging = null; timeline = null; });
     })();
 
+    var trimState = { active: false, startSec: 0, endSec: 0 };
+
     function applyTrim() {
       var startText = document.getElementById('trimStart').textContent;
       var endText = document.getElementById('trimEnd').textContent;
+
+      // Parse times to seconds
+      function parseTime(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
+      trimState.startSec = parseTime(startText);
+      trimState.endSec = parseTime(endText);
+      trimState.active = true;
+
+      // Apply to video element
+      var video = document.querySelector('.content-frame video');
+      if (video) {
+        video.currentTime = trimState.startSec;
+
+        // Remove old listener if any
+        if (video._trimHandler) video.removeEventListener('timeupdate', video._trimHandler);
+
+        // Constrain playback to trim range
+        video._trimHandler = function() {
+          if (video.currentTime < trimState.startSec) {
+            video.currentTime = trimState.startSec;
+          }
+          if (video.currentTime >= trimState.endSec) {
+            video.pause();
+            video.currentTime = trimState.startSec;
+          }
+        };
+        video.addEventListener('timeupdate', video._trimHandler);
+      }
+
       kupToast('Trimmed to ' + startText + ' – ' + endText, 'success');
       toggleTool('trim');
+    }
+
+    function clearTrim() {
+      trimState.active = false;
+      var video = document.querySelector('.content-frame video');
+      if (video && video._trimHandler) {
+        video.removeEventListener('timeupdate', video._trimHandler);
+        video._trimHandler = null;
+      }
     }
 
     function formatTime(sec) {
