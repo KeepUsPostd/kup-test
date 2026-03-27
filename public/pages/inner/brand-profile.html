@@ -372,22 +372,22 @@
         <p class="step-label">Brand Profile | Brand Info | Page 2 of 3</p>
 
         <h6>Brand Information</h6>
-        <div class="form-group"><label>Website</label><input type="url" placeholder="https://keepuspostd.com" value="https://keepuspostd.com"></div>
-        <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="Phone Number" maxlength="10"></div>
-        <div class="form-group"><label>Email</label><input type="email" placeholder="Email" value="hello@keepuspostd.com"></div>
+        <div class="form-group"><label>Website</label><input type="url" id="brandWebsite" placeholder="https://yourbrand.com"></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="brandPhone" placeholder="(555) 123-4567" maxlength="15"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="brandEmail" placeholder="hello@yourbrand.com"></div>
 
         <h6>Location</h6>
-        <div class="form-group"><label>Address</label><input type="text" placeholder="Address" value="123 Innovation Blvd"></div>
-        <div class="form-group"><label>City</label><input type="text" placeholder="City" value="Austin"></div>
-        <div class="form-group"><label>State</label><input type="text" placeholder="State" value="TX"></div>
-        <div class="form-group"><label>Zip</label><input type="text" placeholder="Zip" maxlength="6" value="78701"></div>
+        <div class="form-group"><label>Address</label><input type="text" id="brandAddress" placeholder="Street address"></div>
+        <div class="form-group"><label>City</label><input type="text" id="brandCity" placeholder="City"></div>
+        <div class="form-group"><label>State</label><input type="text" id="brandState" placeholder="State"></div>
+        <div class="form-group"><label>Zip</label><input type="text" id="brandZip" placeholder="Zip" maxlength="6"></div>
 
         <h6>Social Channels</h6>
-        <div class="form-group"><div class="social-input"><span class="social-icon">f</span><input type="text" placeholder="Facebook URL"></div></div>
-        <div class="form-group"><div class="social-input"><span class="social-icon">ig</span><input type="text" placeholder="Instagram handle" value="@keepuspostd"></div></div>
-        <div class="form-group"><div class="social-input"><span class="social-icon">X</span><input type="text" placeholder="X handle" value="@Keepuspostd"></div></div>
-        <div class="form-group"><div class="social-input"><span class="social-icon">tt</span><input type="text" placeholder="TikTok handle" value="@keepuspostd"></div></div>
-        <div class="form-group"><div class="social-input"><span class="social-icon">in</span><input type="text" placeholder="LinkedIn URL"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">f</span><input type="text" id="socialFacebook" placeholder="Facebook URL"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">ig</span><input type="text" id="socialInstagram" placeholder="@yourhandle"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">X</span><input type="text" id="socialTwitter" placeholder="@yourhandle"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">tt</span><input type="text" id="socialTiktok" placeholder="@yourhandle"></div></div>
+        <div class="form-group"><div class="social-input"><span class="social-icon">in</span><input type="text" id="socialLinkedin" placeholder="LinkedIn URL"></div></div>
 
         <div class="wizard-actions">
           <button class="btn-wizard secondary" onclick="showStep(1)">← Back</button>
@@ -852,7 +852,8 @@
           // If brand has a logo, show it in preview
           if (b.logoUrl) {
             if (previewLogo) {
-              previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+              previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Logo">';
+              previewLogo.style.background = '#fff';
             }
             // Also show in the upload preview
             var logoPreviewImg = document.getElementById('logoPreviewImg');
@@ -895,6 +896,35 @@
           // Update category in preview
           var previewCategory = document.getElementById('previewCategory');
           if (previewCategory && b.category) previewCategory.textContent = b.category;
+
+          // ── Fill Step 2 fields from API data ──
+          var webEl = document.getElementById('brandWebsite');
+          if (webEl && b.websiteUrl) webEl.value = b.websiteUrl;
+          var phoneEl = document.getElementById('brandPhone');
+          if (phoneEl && b.phone) phoneEl.value = b.phone;
+          var emailEl = document.getElementById('brandEmail');
+          if (emailEl && b.email) emailEl.value = b.email;
+          var addrEl = document.getElementById('brandAddress');
+          if (addrEl && b.address) addrEl.value = b.address;
+          var cityEl = document.getElementById('brandCity');
+          if (cityEl && b.city) cityEl.value = b.city;
+          var stateEl = document.getElementById('brandState');
+          if (stateEl && b.state) stateEl.value = b.state;
+          var zipEl = document.getElementById('brandZip');
+          if (zipEl && b.zip) zipEl.value = b.zip;
+          // Social links
+          if (b.socialLinks) {
+            var fbEl = document.getElementById('socialFacebook');
+            if (fbEl && b.socialLinks.facebook) fbEl.value = b.socialLinks.facebook;
+            var igEl = document.getElementById('socialInstagram');
+            if (igEl && b.socialLinks.instagram) igEl.value = b.socialLinks.instagram;
+            var twEl = document.getElementById('socialTwitter');
+            if (twEl && b.socialLinks.twitter) twEl.value = b.socialLinks.twitter;
+            var ttEl = document.getElementById('socialTiktok');
+            if (ttEl && b.socialLinks.tiktok) ttEl.value = b.socialLinks.tiktok;
+            var liEl = document.getElementById('socialLinkedin');
+            if (liEl && b.socialLinks.linkedin) liEl.value = b.socialLinks.linkedin;
+          }
 
           // Update stats
           var sr = document.getElementById('previewStatReviews');
@@ -974,7 +1004,7 @@
         // Update live preview
         var previewLogo = document.getElementById('previewLogo');
         if (previewLogo) {
-          previewLogo.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
+          previewLogo.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Logo">';
         }
       }
     });
@@ -1004,9 +1034,13 @@
       }
     });
 
-    // Prevent upload box click from double-firing
+    // Make Choose File buttons trigger their parent upload box's file input
     document.querySelectorAll('.upload-box .btn-upload').forEach(function(btn) {
-      btn.addEventListener('click', function(e) { e.stopPropagation(); });
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent double-fire from parent onclick
+        var fileInput = btn.closest('.upload-box').querySelector('input[type="file"]');
+        if (fileInput) fileInput.click();
+      });
     });
 
     // Save brand profile — collects all form data + uploaded images and saves via API
@@ -1014,7 +1048,7 @@
       var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.getActiveBrand) ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
       var brandId = brand ? (brand.mongoId || brand.id) : null;
 
-      // Collect form data
+      // Collect form data — Step 1
       var updates = {};
       var nameEl = document.getElementById('brandName');
       var catEl = document.getElementById('category');
@@ -1023,7 +1057,37 @@
       if (catEl && catEl.value) updates.category = catEl.value;
       if (descEl && descEl.value.trim()) updates.description = descEl.value.trim();
 
-      // Add uploaded image URLs
+      // Collect form data — Step 2
+      var webEl = document.getElementById('brandWebsite');
+      if (webEl && webEl.value.trim()) updates.websiteUrl = webEl.value.trim();
+      var phoneEl = document.getElementById('brandPhone');
+      if (phoneEl && phoneEl.value.trim()) updates.phone = phoneEl.value.trim();
+      var emailEl = document.getElementById('brandEmail');
+      if (emailEl && emailEl.value.trim()) updates.email = emailEl.value.trim();
+      var addrEl = document.getElementById('brandAddress');
+      if (addrEl && addrEl.value.trim()) updates.address = addrEl.value.trim();
+      var cityEl = document.getElementById('brandCity');
+      if (cityEl && cityEl.value.trim()) updates.city = cityEl.value.trim();
+      var stateEl = document.getElementById('brandState');
+      if (stateEl && stateEl.value.trim()) updates.state = stateEl.value.trim();
+      var zipEl = document.getElementById('brandZip');
+      if (zipEl && zipEl.value.trim()) updates.zip = zipEl.value.trim();
+
+      // Social links
+      var socialLinks = {};
+      var fbEl = document.getElementById('socialFacebook');
+      if (fbEl && fbEl.value.trim()) socialLinks.facebook = fbEl.value.trim();
+      var igEl = document.getElementById('socialInstagram');
+      if (igEl && igEl.value.trim()) socialLinks.instagram = igEl.value.trim();
+      var twEl = document.getElementById('socialTwitter');
+      if (twEl && twEl.value.trim()) socialLinks.twitter = twEl.value.trim();
+      var ttEl = document.getElementById('socialTiktok');
+      if (ttEl && ttEl.value.trim()) socialLinks.tiktok = ttEl.value.trim();
+      var liEl = document.getElementById('socialLinkedin');
+      if (liEl && liEl.value.trim()) socialLinks.linkedin = liEl.value.trim();
+      if (Object.keys(socialLinks).length > 0) updates.socialLinks = socialLinks;
+
+      // Add uploaded image URLs — Step 3
       if (uploadedLogoUrl) updates.logoUrl = uploadedLogoUrl;
       if (uploadedBannerUrl) updates.heroImageUrl = uploadedBannerUrl;
 
@@ -1037,16 +1101,34 @@
         return;
       }
 
+      // Disable button while saving
+      var btn = document.getElementById('updateBrandBtn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
       try {
         var result = await kupApi.put('/api/brands/' + brandId, updates);
         if (result && !result.error) {
           kupToast('Brand profile updated!', 'success');
+          // Also update localStorage brand name if changed
+          if (updates.name) {
+            try {
+              var stored = JSON.parse(localStorage.getItem('kup_active_brand') || '{}');
+              stored.name = updates.name;
+              localStorage.setItem('kup_active_brand', JSON.stringify(stored));
+            } catch(e) {}
+          }
+          // Redirect to brand home after short delay so user sees the toast
+          setTimeout(function() {
+            window.location.href = 'brand-home.html';
+          }, 1200);
         } else {
           kupToast('Failed to save: ' + (result.error || 'Unknown error'), 'error');
+          if (btn) { btn.disabled = false; btn.textContent = 'Update Brand'; }
         }
       } catch (err) {
         console.error('Save brand error:', err);
         kupToast('Could not save brand profile', 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Update Brand'; }
       }
     }
   </script>

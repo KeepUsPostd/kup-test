@@ -40,6 +40,19 @@ const brandSchema = new mongoose.Schema({
   description: { type: String, maxlength: 500, default: null },
   location: { type: String, default: null },
   websiteUrl: { type: String, default: null },
+  email: { type: String, default: null },
+  phone: { type: String, default: null },
+  address: { type: String, default: null },
+  city: { type: String, default: null },
+  state: { type: String, default: null },
+  zip: { type: String, default: null },
+  socialLinks: {
+    facebook: { type: String, default: null },
+    instagram: { type: String, default: null },
+    twitter: { type: String, default: null },
+    tiktok: { type: String, default: null },
+    linkedin: { type: String, default: null },
+  },
   tags: [{ type: String }],
 
   // Visual system

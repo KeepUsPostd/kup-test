@@ -816,15 +816,23 @@
       // Sidebar brand identity
       const sidebarLogo = document.querySelector('.brand-identity .logo');
       const sidebarName = document.querySelector('.brand-identity .brand-name');
-      if (sidebarLogo) { sidebarLogo.textContent = initials; sidebarLogo.style.background = bgColor; }
+      if (sidebarLogo) {
+        if (brand.logoUrl) {
+          sidebarLogo.innerHTML = '<img src="' + brand.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Logo">';
+          sidebarLogo.style.background = '#fff';
+        } else {
+          sidebarLogo.textContent = initials;
+          sidebarLogo.style.background = bgColor;
+        }
+      }
       if (sidebarName) sidebarName.textContent = brand.name;
 
       // Phone mockup — avatar logo
       const previewLogo = document.getElementById('previewLogo');
       if (previewLogo) {
         if (brand.logoUrl) {
-          previewLogo.innerHTML = '<img src="' + brand.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="Logo">';
-          previewLogo.style.background = 'transparent';
+          previewLogo.innerHTML = '<img src="' + brand.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Logo">';
+          previewLogo.style.background = '#fff';
         } else {
           previewLogo.textContent = initials;
           previewLogo.style.background = bgColor;
