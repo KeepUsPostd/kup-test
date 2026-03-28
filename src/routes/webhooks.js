@@ -3,8 +3,9 @@
 // PayPal sends POST requests here when things happen on their side.
 const express = require('express');
 const router = express.Router();
-const { Subscription, BrandProfile, Transaction, Payout, Withdrawal } = require('../models');
+const { Subscription, BrandProfile, Transaction, Payout, Withdrawal, InfluencerProfile, Brand } = require('../models');
 const paypal = require('../config/paypal');
+const notify = require('../services/notifications');
 
 // POST /api/webhooks/paypal — PayPal event receiver
 // No auth middleware — PayPal can't send our Firebase token.
@@ -47,6 +48,7 @@ router.post('/paypal', express.json(), async (req, res) => {
         if (sub) {
           sub.status = 'canceled';
           sub.cancelAtPeriodEnd = false; // Already canceled
+          const oldTier = sub.planTier;
           await sub.save();
 
           // Downgrade brand to starter
@@ -55,6 +57,12 @@ router.post('/paypal', express.json(), async (req, res) => {
             bp.planTier = 'starter';
             bp.billingCycle = null;
             await bp.save();
+
+            // 📧 Notify brand: subscription canceled
+            const brand = await Brand.findOne({ brandProfileId: bp._id });
+            if (brand) {
+              notify.subscriptionCanceled({ brand, planTier: oldTier }).catch(() => {});
+            }
           }
           console.log(`❌ Subscription canceled: ${subId}`);
         }
@@ -68,6 +76,18 @@ router.post('/paypal', express.json(), async (req, res) => {
         if (sub) {
           sub.status = 'past_due';
           await sub.save();
+
+          // 📧 Notify brand: payment failed
+          try {
+            const bp = await BrandProfile.findById(sub.brandProfileId);
+            if (bp) {
+              const brand = await Brand.findOne({ brandProfileId: bp._id });
+              if (brand) {
+                notify.subscriptionPaymentFailed({ brand, planTier: sub.planTier }).catch(() => {});
+              }
+            }
+          } catch (e) { /* non-blocking */ }
+
           console.log(`⚠️ Subscription suspended (past_due): ${subId}`);
         }
         break;
@@ -207,6 +227,19 @@ router.post('/paypal', express.json(), async (req, res) => {
             withdrawal.completedAt = new Date();
             withdrawal.paypalPayoutItemId = payoutItemId || withdrawal.paypalPayoutItemId;
             await withdrawal.save();
+
+            // 📧 Notify influencer: cashout completed
+            try {
+              const influencer = await InfluencerProfile.findById(withdrawal.influencerProfileId);
+              if (influencer) {
+                notify.cashoutCompleted({
+                  influencer: { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId },
+                  amount: withdrawal.amount,
+                  paypalEmail: withdrawal.paypalEmail,
+                }).catch(() => {});
+              }
+            } catch (e) { /* non-blocking */ }
+
             console.log(`✅ Cashout completed: $${withdrawal.amount} → ${withdrawal.paypalEmail} (item: ${payoutItemId})`);
           }
         }
@@ -233,6 +266,19 @@ router.post('/paypal', express.json(), async (req, res) => {
               { _id: { $in: withdrawal.transactionIds } },
               { $set: { withdrawalId: null } }
             );
+
+            // 📧 Notify influencer: cashout failed
+            try {
+              const influencer = await InfluencerProfile.findById(withdrawal.influencerProfileId);
+              if (influencer) {
+                notify.cashoutFailed({
+                  influencer: { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId },
+                  amount: withdrawal.amount,
+                  reason,
+                }).catch(() => {});
+              }
+            } catch (e) { /* non-blocking */ }
+
             console.log(`❌ Cashout ${withdrawal.status}: ${batchId} — ${reason}`);
           }
         }

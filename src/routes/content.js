@@ -5,7 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward } = require('../models');
+const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand } = require('../models');
+const notify = require('../services/notifications');
 
 // ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
 // Rule G7: Brands cannot override — rates come from influencer tier.
@@ -130,6 +131,18 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     console.log(`📸 Content submitted for brand ${brandId} (${contentType})`);
+
+    // 📧 Notify brand (new submission) + influencer (confirmation)
+    try {
+      const brand = await Brand.findById(brandId);
+      const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+      if (brand && influencer) {
+        notify.contentSubmitted({ brand, influencer, submission }).catch(() => {});
+        notify.contentSubmissionConfirmed({ influencer: { ...influencer.toObject(), email: req.user.email, userId: req.user._id }, brand, submission }).catch(() => {});
+      }
+    } catch (notifyErr) {
+      console.error('Notification error (non-blocking):', notifyErr.message);
+    }
 
     res.status(201).json({
       message: 'Content submitted for review',
@@ -297,6 +310,21 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       // Don't fail the approval — rewards are a bonus, not a requirement
     }
 
+    // 📧 Notify influencer: content approved + reward earned
+    try {
+      const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+      const brand = await Brand.findById(submission.brandId);
+      if (influencer && brand) {
+        const inf = { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId };
+        notify.contentApproved({ influencer: inf, brand, submission, reward: rewardTriggered }).catch(() => {});
+        if (rewardTriggered) {
+          notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval' }).catch(() => {});
+        }
+      }
+    } catch (notifyErr) {
+      console.error('Notification error (non-blocking):', notifyErr.message);
+    }
+
     res.json({ message: 'Content approved', submission, rewardTriggered });
   } catch (error) {
     console.error('Approve content error:', error.message);
@@ -336,6 +364,18 @@ router.put('/:submissionId/reject', requireAuth, async (req, res) => {
     await submission.save();
 
     console.log(`❌ Content rejected: ${submission._id} — "${reason}"`);
+
+    // 📧 Notify influencer: content rejected
+    try {
+      const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+      const brand = await Brand.findById(submission.brandId);
+      if (influencer && brand) {
+        const inf = { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId };
+        notify.contentRejected({ influencer: inf, brand, submission, reason: reason.trim() }).catch(() => {});
+      }
+    } catch (notifyErr) {
+      console.error('Notification error (non-blocking):', notifyErr.message);
+    }
 
     res.json({ message: 'Content rejected with feedback', submission });
   } catch (error) {
@@ -429,6 +469,21 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
       }
     } catch (rewardErr) {
       console.error('Bonus Cash trigger error (non-blocking):', rewardErr.message);
+    }
+
+    // 📧 Notify influencer: content posted + bonus earned
+    try {
+      const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
+      const brand = await Brand.findById(submission.brandId);
+      if (influencer && brand) {
+        const inf = { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId };
+        notify.contentPostd({ influencer: inf, brand, submission, bonusAmount: rewardTriggered?.amount }).catch(() => {});
+        if (rewardTriggered) {
+          notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'bonus_cash' }).catch(() => {});
+        }
+      }
+    } catch (notifyErr) {
+      console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
     res.json({ message: 'Content marked as Postd (published)', submission, rewardTriggered });

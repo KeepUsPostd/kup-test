@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { User, InfluencerProfile, BrandProfile } = require('../models');
+const notify = require('../services/notifications');
 
 // POST /api/auth/register
 // Called after Firebase client-side auth succeeds
@@ -257,6 +258,13 @@ router.put('/paypal-connect', requireAuth, async (req, res) => {
     await influencer.save();
 
     console.log(`🔗 PayPal connected for ${influencer.displayName}: ${paypalEmail}`);
+
+    // 📧 Notify influencer: PayPal connected
+    const maskedEmail = paypalEmail.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
+    notify.paypalConnected({
+      influencer: { ...influencer.toObject(), email: req.user.email, userId: req.user._id },
+      maskedEmail,
+    }).catch(() => {});
 
     res.json({
       message: 'PayPal account connected successfully',

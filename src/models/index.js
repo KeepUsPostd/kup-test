@@ -17,4 +17,5 @@ module.exports = {
   Transaction: require('./Transaction'),
   Payout: require('./Payout'),
   Withdrawal: require('./Withdrawal'),
+  Notification: require('./Notification'),
 };

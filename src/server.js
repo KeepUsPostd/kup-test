@@ -139,6 +139,9 @@ app.use('/api/payouts', require('./routes/payouts'));
 // Wallet routes (Phase 6 — influencer balance + cashout)
 app.use('/api/wallet', require('./routes/wallet'));
 
+// Notification routes (in-app notification center)
+app.use('/api/notifications', require('./routes/notifications'));
+
 // Webhook routes (PayPal event notifications — no auth, signature-verified)
 app.use('/api/webhooks', require('./routes/webhooks'));
 
@@ -163,7 +166,7 @@ const startServer = async () => {
     console.log(`\n🚀 KUP Test Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}`);
-    console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk, /api/billing, /api/payouts, /api/wallet, /api/webhooks\n`);
+    console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk, /api/billing, /api/payouts, /api/wallet, /api/notifications, /api/webhooks\n`);
   });
 };
 
