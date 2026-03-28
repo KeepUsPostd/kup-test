@@ -1,6 +1,11 @@
 // KUP Notification Service — Central Hub
-// Maps platform events to email sends + in-app notifications.
+// Maps platform events to email sends + in-app notifications + push (FCM).
 // All routes call this service instead of sending emails directly.
+//
+// Three channels per notification:
+//   📧 Email (SendGrid) — Transactional emails to inbox
+//   🔔 In-App (MongoDB) — Bell icon / notification drawer
+//   📱 Push (FCM) — Native iOS/Android lock screen banners
 //
 // Usage:
 //   const notify = require('../services/notifications');
@@ -9,6 +14,7 @@
 // Ref: NOTIFICATION_MAP.md → 15 Critical (Phase 1) notifications
 
 const { sendEmail } = require('../config/email');
+const { sendPushToUser } = require('../config/push');
 const Notification = require('../models/Notification');
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3001';
@@ -26,6 +32,18 @@ async function createInApp({ userId, title, message, type, link = null, metadata
     });
   } catch (err) {
     console.error('Failed to create in-app notification:', err.message);
+  }
+}
+
+// ── Helper: Send push notification (non-blocking) ───────
+// Wraps FCM call. Silently fails — push is best-effort.
+async function push(userId, { title, body, data = {}, link = null }) {
+  if (!userId) return;
+  try {
+    await sendPushToUser(userId, { title, body, data, link });
+  } catch (err) {
+    // Push failures are silent — user still gets email + in-app
+    console.error('Push notification failed (non-blocking):', err.message);
   }
 }
 
@@ -164,7 +182,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
     variant: 'brand',
   });
 
-  // In-app notification for brand owner
+  // In-app + push notification for brand owner
   if (brand.ownerId) {
     await createInApp({
       userId: brand.ownerId,
@@ -173,6 +191,11 @@ async function contentSubmitted({ brand, influencer, submission }) {
       type: 'content',
       link: '/pages/inner/content.html',
       metadata: { contentSubmissionId: submission._id?.toString() },
+    });
+    push(brand.ownerId, {
+      title: 'New Content Submitted',
+      body: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
+      link: '/pages/inner/content.html',
     });
   }
 }
@@ -220,15 +243,21 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     variant: 'influencer',
   });
 
-  // In-app notification
+  // In-app + push notification
   if (influencer.userId) {
+    const msg = `${brand.name} approved your ${submission.contentType || 'content'}.${reward ? ` You earned ${$(reward.amount)}!` : ''}`;
     await createInApp({
       userId: influencer.userId,
       title: 'Content Approved!',
-      message: `${brand.name} approved your ${submission.contentType || 'content'}.${reward ? ` You earned ${$(reward.amount)}!` : ''}`,
+      message: msg,
       type: 'content',
       link: '/app/submissions.html',
       metadata: { contentSubmissionId: submission._id?.toString() },
+    });
+    push(influencer.userId, {
+      title: '✅ Content Approved!',
+      body: msg,
+      link: '/app/submissions.html',
     });
   }
 }
@@ -256,15 +285,21 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
     variant: 'influencer',
   });
 
-  // In-app notification
+  // In-app + push notification
   if (influencer.userId) {
+    const msg = `${brand.name} did not approve your ${submission.contentType || 'content'}.${reason ? ` Reason: ${reason}` : ''}`;
     await createInApp({
       userId: influencer.userId,
       title: 'Content Not Approved',
-      message: `${brand.name} did not approve your ${submission.contentType || 'content'}.${reason ? ` Reason: ${reason}` : ''}`,
+      message: msg,
       type: 'content',
       link: '/app/submissions.html',
       metadata: { contentSubmissionId: submission._id?.toString() },
+    });
+    push(influencer.userId, {
+      title: 'Content Update',
+      body: msg,
+      link: '/app/submissions.html',
     });
   }
 }
@@ -426,13 +461,19 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
     variant: 'influencer',
   });
 
-  // In-app notification
+  // In-app + push notification
   if (influencer.userId) {
+    const msg = `${typeLabel} from ${brand?.name || 'KeepUsPostd'}`;
     await createInApp({
       userId: influencer.userId,
       title: `You earned ${$(amount)}!`,
-      message: `${typeLabel} from ${brand?.name || 'KeepUsPostd'}`,
+      message: msg,
       type: 'payment',
+      link: '/app/wallet.html',
+    });
+    push(influencer.userId, {
+      title: `💰 You earned ${$(amount)}!`,
+      body: msg,
       link: '/app/wallet.html',
     });
   }

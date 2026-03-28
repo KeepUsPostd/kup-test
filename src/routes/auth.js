@@ -328,4 +328,143 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
   }
 });
 
+// ── Push Notification Token Management ──────────────────
+
+// POST /api/auth/push-token — Register a device for push notifications
+// Called by the native app on startup after requesting notification permission.
+router.post('/push-token', requireAuth, async (req, res) => {
+  try {
+    const { token, device, platform } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'token is required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Remove existing entry for this token (in case of re-register)
+    user.fcmTokens = (user.fcmTokens || []).filter(t => t.token !== token);
+
+    // Add new token
+    user.fcmTokens.push({
+      token,
+      device: device || null,
+      platform: platform || null,
+      registeredAt: new Date(),
+    });
+
+    // Cap at 10 devices per user (remove oldest if exceeded)
+    if (user.fcmTokens.length > 10) {
+      user.fcmTokens = user.fcmTokens.slice(-10);
+    }
+
+    await user.save();
+
+    console.log(`📱 Push token registered for ${user.email} (${platform || 'unknown'} — ${device || 'unknown device'})`);
+
+    res.json({
+      message: 'Push token registered',
+      deviceCount: user.fcmTokens.length,
+    });
+  } catch (error) {
+    console.error('Push token register error:', error.message);
+    res.status(500).json({ error: 'Could not register push token' });
+  }
+});
+
+// DELETE /api/auth/push-token — Unregister a device (e.g., on logout)
+router.delete('/push-token', requireAuth, async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'token is required' });
+    }
+
+    await User.updateOne(
+      { _id: req.user._id },
+      { $pull: { fcmTokens: { token } } }
+    );
+
+    console.log(`📱 Push token removed for ${req.user.email}`);
+    res.json({ message: 'Push token removed' });
+  } catch (error) {
+    console.error('Push token remove error:', error.message);
+    res.status(500).json({ error: 'Could not remove push token' });
+  }
+});
+
+// ── Notification Preferences ────────────────────────────
+
+// GET /api/auth/notification-prefs — Get current preferences
+router.get('/notification-prefs', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id, { notificationPrefs: 1 });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ prefs: user.notificationPrefs || {} });
+  } catch (error) {
+    console.error('Get notification prefs error:', error.message);
+    res.status(500).json({ error: 'Could not fetch preferences' });
+  }
+});
+
+// PUT /api/auth/notification-prefs — Update preferences
+// Body: { email: { content: true, campaigns: false }, push: { rewards: true } }
+// Security & payments email can never be disabled (enforced server-side)
+router.put('/notification-prefs', requireAuth, async (req, res) => {
+  try {
+    const { email, push } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!user.notificationPrefs) {
+      user.notificationPrefs = { email: {}, push: {} };
+    }
+
+    // Merge email prefs (enforce security + payments always on)
+    if (email && typeof email === 'object') {
+      const allowed = ['content', 'campaigns', 'rewards', 'referrals', 'platformUpdates'];
+      for (const key of allowed) {
+        if (key in email) {
+          user.notificationPrefs.email[key] = Boolean(email[key]);
+        }
+      }
+      // Force these always on
+      user.notificationPrefs.email.security = true;
+      user.notificationPrefs.email.payments = true;
+    }
+
+    // Merge push prefs (enforce security always on)
+    if (push && typeof push === 'object') {
+      const allowed = ['content', 'campaigns', 'rewards', 'payments', 'referrals', 'platformUpdates'];
+      for (const key of allowed) {
+        if (key in push) {
+          user.notificationPrefs.push[key] = Boolean(push[key]);
+        }
+      }
+      // Force security always on
+      user.notificationPrefs.push.security = true;
+    }
+
+    user.markModified('notificationPrefs');
+    await user.save();
+
+    res.json({
+      message: 'Notification preferences updated',
+      prefs: user.notificationPrefs,
+    });
+  } catch (error) {
+    console.error('Update notification prefs error:', error.message);
+    res.status(500).json({ error: 'Could not update preferences' });
+  }
+});
+
 module.exports = router;

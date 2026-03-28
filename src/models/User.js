@@ -44,6 +44,36 @@ const userSchema = new mongoose.Schema({
     country: { type: String, default: 'US' },
   },
 
+  // Push notification tokens (one per device)
+  fcmTokens: [{
+    token: { type: String, required: true },
+    device: { type: String, default: null },    // e.g., 'iPhone 15', 'Pixel 8'
+    platform: { type: String, enum: ['ios', 'android', 'web'], default: null },
+    registeredAt: { type: Date, default: Date.now },
+  }],
+
+  // Notification preferences (category-level toggles)
+  notificationPrefs: {
+    email: {
+      content: { type: Boolean, default: true },
+      campaigns: { type: Boolean, default: true },
+      rewards: { type: Boolean, default: true },
+      payments: { type: Boolean, default: true },    // Always on — can't disable
+      security: { type: Boolean, default: true },    // Always on — can't disable
+      referrals: { type: Boolean, default: true },
+      platformUpdates: { type: Boolean, default: true },
+    },
+    push: {
+      content: { type: Boolean, default: true },
+      campaigns: { type: Boolean, default: true },
+      rewards: { type: Boolean, default: true },
+      payments: { type: Boolean, default: true },
+      security: { type: Boolean, default: true },    // Always on — can't disable
+      referrals: { type: Boolean, default: true },
+      platformUpdates: { type: Boolean, default: false },
+    },
+  },
+
   // System
   status: {
     type: String,
