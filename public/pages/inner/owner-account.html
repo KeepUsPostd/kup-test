@@ -191,6 +191,26 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* ============== NOTIFICATION PREFERENCES ============== */
+    .notif-pref-table { width: 100%; border-collapse: collapse; }
+    .notif-pref-table thead th { text-align: left; font-size: 0.78rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px 12px; border-bottom: 2px solid #eee; }
+    .notif-pref-table thead th:nth-child(2), .notif-pref-table thead th:nth-child(3) { text-align: center; width: 80px; }
+    .notif-pref-table tbody td { padding: 16px 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    .notif-pref-table tbody td:nth-child(2), .notif-pref-table tbody td:nth-child(3) { text-align: center; }
+    .notif-pref-table tbody tr:last-child td { border-bottom: none; }
+    .notif-cat-label { font-size: 0.9rem; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; }
+    .notif-cat-desc { font-size: 0.78rem; color: #999; }
+    .always-on-badge { display: inline-block; font-size: 0.65rem; color: #16a34a; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+
+    /* Toggle Switch */
+    .kup-toggle { position: relative; display: inline-block; width: 44px; height: 24px; vertical-align: middle; }
+    .kup-toggle input { opacity: 0; width: 0; height: 0; }
+    .kup-toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ddd; transition: 0.2s; border-radius: 24px; }
+    .kup-toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; transition: 0.2s; border-radius: 50%; }
+    .kup-toggle input:checked + .kup-toggle-slider { background: var(--kup-blue); }
+    .kup-toggle input:checked + .kup-toggle-slider:before { transform: translateX(20px); }
+    .kup-toggle input:disabled + .kup-toggle-slider { opacity: 0.6; cursor: not-allowed; }
+
     /* =============================================
        TAB 1: OWNER ACCOUNT
        ============================================= */
@@ -933,6 +953,7 @@
       <button class="owner-tab active" data-tab="tab-account">Owner Account</button>
       <button class="owner-tab" data-tab="tab-billing">Owner Billing</button>
       <button class="owner-tab" data-tab="tab-admin-roles">Admin Roles</button>
+      <button class="owner-tab" data-tab="tab-notifications">Notifications</button>
     </div>
 
     <!-- =============================================
@@ -1222,6 +1243,96 @@
       </div>
 
     </div><!-- /tab-admin-roles -->
+
+    <!-- =============================================
+         TAB 4: NOTIFICATIONS
+         ============================================= -->
+    <div id="tab-notifications" class="tab-panel">
+
+      <div class="owner-form-card" style="max-width: 800px;">
+        <div class="section-title">Notification Preferences</div>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 24px;">
+          Choose which notifications you receive by email and push. Security and payment notifications are always on to protect your account.
+        </p>
+
+        <!-- Preference Table -->
+        <table class="notif-pref-table" id="notifPrefTable">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Email</th>
+              <th>Push</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Content & Submissions</div>
+                <div class="notif-cat-desc">New submissions, approvals, rejections, and reviews</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="content" checked><span class="kup-toggle-slider"></span></label></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="content" checked><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Campaigns</div>
+                <div class="notif-cat-desc">Campaign invitations, applications, milestones, and expirations</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="campaigns" checked><span class="kup-toggle-slider"></span></label></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="campaigns" checked><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Rewards & Points</div>
+                <div class="notif-cat-desc">Points awarded, rewards unlocked, and redemptions</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="rewards" checked><span class="kup-toggle-slider"></span></label></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="rewards" checked><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Payments & Billing</div>
+                <div class="notif-cat-desc">Subscription charges, cashouts, and payment confirmations</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="payments" checked disabled><span class="kup-toggle-slider"></span></label><span class="always-on-badge">Always on</span></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="payments" checked><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Security & Account</div>
+                <div class="notif-cat-desc">Login alerts, password changes, and account updates</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="security" checked disabled><span class="kup-toggle-slider"></span></label><span class="always-on-badge">Always on</span></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="security" checked disabled><span class="kup-toggle-slider"></span></label><span class="always-on-badge">Always on</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Referrals</div>
+                <div class="notif-cat-desc">Referral signups, completions, and rewards</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="referrals" checked><span class="kup-toggle-slider"></span></label></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="referrals" checked><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="notif-cat-label">Platform Updates</div>
+                <div class="notif-cat-desc">New features, maintenance, and announcements</div>
+              </td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="email" data-category="platformUpdates" checked><span class="kup-toggle-slider"></span></label></td>
+              <td><label class="kup-toggle"><input type="checkbox" data-channel="push" data-category="platformUpdates"><span class="kup-toggle-slider"></span></label></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+          <button class="btn-save" id="btnSaveNotifPrefs">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2 2h11l5 5v11z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Preferences
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /tab-notifications -->
 
   </main>
 
@@ -1664,11 +1775,65 @@
         });
       }
 
+      /* ============== NOTIFICATION PREFERENCES ============== */
+      async function loadNotifPrefs() {
+        try {
+          var result = await kupApi.get('/api/auth/notification-prefs');
+          var prefs = result.prefs || {};
+
+          // Set toggles from saved prefs
+          var toggles = document.querySelectorAll('#notifPrefTable input[type="checkbox"]');
+          toggles.forEach(function(toggle) {
+            if (toggle.disabled) return; // Skip always-on toggles
+            var channel = toggle.getAttribute('data-channel');
+            var category = toggle.getAttribute('data-category');
+            if (prefs[channel] && category in prefs[channel]) {
+              toggle.checked = prefs[channel][category];
+            }
+          });
+        } catch (err) {
+          console.error('Load notification prefs error:', err);
+        }
+      }
+
+      var saveNotifBtn = document.getElementById('btnSaveNotifPrefs');
+      if (saveNotifBtn) {
+        saveNotifBtn.addEventListener('click', async function() {
+          var origText = saveNotifBtn.innerHTML;
+          saveNotifBtn.disabled = true;
+          saveNotifBtn.textContent = 'Saving...';
+
+          var emailPrefs = {};
+          var pushPrefs = {};
+
+          var toggles = document.querySelectorAll('#notifPrefTable input[type="checkbox"]');
+          toggles.forEach(function(toggle) {
+            if (toggle.disabled) return;
+            var channel = toggle.getAttribute('data-channel');
+            var category = toggle.getAttribute('data-category');
+            if (channel === 'email') emailPrefs[category] = toggle.checked;
+            if (channel === 'push') pushPrefs[category] = toggle.checked;
+          });
+
+          try {
+            await kupApi.put('/api/auth/notification-prefs', { email: emailPrefs, push: pushPrefs });
+            kupToast('Notification preferences saved', 'success');
+          } catch (err) {
+            console.error('Save notification prefs error:', err);
+            kupToast('Failed to save preferences', 'error');
+          } finally {
+            saveNotifBtn.disabled = false;
+            saveNotifBtn.innerHTML = origText;
+          }
+        });
+      }
+
       /* ============== WAIT FOR FIREBASE AUTH, THEN LOAD ============== */
       if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
           if (user) {
             loadOwnerAccount();
+            loadNotifPrefs();
           } else {
             // Not logged in — redirect to login
             window.location.href = '/pages/login.html';

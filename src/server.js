@@ -10,6 +10,22 @@ const helmet = require('helmet');
 const path = require('path');
 const connectDB = require('./config/database');
 
+// Security middleware (rate limiting, sanitization, CORS lockdown)
+const {
+  generalLimiter,
+  authLimiter,
+  passwordResetLimiter,
+  uploadLimiter,
+  cashoutLimiter,
+  mongoSanitizeMiddleware,
+  hppMiddleware,
+  additionalSecurityHeaders,
+  requestLogger,
+  getCorsOptions,
+  jsonLimit,
+  urlencodedLimit,
+} = require('./middleware/security');
+
 // Initialize Firebase Admin SDK (must happen before routes that use it)
 require('./config/firebase');
 
@@ -17,7 +33,9 @@ require('./config/firebase');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// --- Middleware (things that run on every request) ---
+// --- Global Middleware (runs on every request) ---
+
+// Security headers (CSP configured for KUP frontend)
 app.use(helmet({
   hsts: false,  // DISABLE for local dev — no HTTPS on localhost/LAN
   contentSecurityPolicy: {
@@ -71,10 +89,18 @@ app.use(helmet({
       upgradeInsecureRequests: null,  // DISABLE — breaks local dev on phone (no HTTPS)
     },
   },
-}));  // Security headers (CSP configured for KUP frontend)
-app.use(cors());             // Allow cross-origin requests
-app.use(express.json());     // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse form data
+}));
+
+app.use(cors(getCorsOptions()));                   // CORS — open in dev, locked in production
+app.use(express.json(jsonLimit));                   // Parse JSON (10mb limit)
+app.use(express.urlencoded(urlencodedLimit));       // Parse form data (10mb limit)
+app.use(mongoSanitizeMiddleware);                   // Strip MongoDB operators from input
+app.use(hppMiddleware);                             // Prevent HTTP parameter pollution
+app.use(additionalSecurityHeaders);                 // Extra security headers on API routes
+app.use(requestLogger);                             // Log failed requests in production
+
+// General rate limit on all API routes
+app.use('/api/', generalLimiter);
 
 // --- Serve static files (HTML, CSS, JS, images) ---
 // Override MIME types: .MOV/.mov → video/mp4 so browsers can play them
@@ -96,7 +122,7 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
 
 // --- API Routes ---
 
-// Health check (no auth required)
+// Health check (no auth required, no rate limit)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -106,8 +132,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Auth routes (register, login, profile)
-app.use('/api/auth', require('./routes/auth'));
+// Auth routes — stricter rate limit (20/15min in production)
+app.use('/api/auth', authLimiter, require('./routes/auth'));
 
 // Brand routes (CRUD, team members)
 app.use('/api/brands', require('./routes/brands'));
@@ -121,8 +147,8 @@ app.use('/api/rewards', require('./routes/rewards'));
 // Content routes (stub — Phase 4)
 app.use('/api/content', require('./routes/content'));
 
-// Upload routes (media file uploads for content submissions)
-app.use('/api/upload', require('./routes/upload'));
+// Upload routes — rate limited (30/hour in production)
+app.use('/api/upload', uploadLimiter, require('./routes/upload'));
 
 // Partnership routes (stub — Phase 4)
 app.use('/api/partnerships', require('./routes/partnerships'));
@@ -136,13 +162,17 @@ app.use('/api/billing', require('./routes/billing'));
 // Payout routes (Phase 6 — transactions + payout batches)
 app.use('/api/payouts', require('./routes/payouts'));
 
-// Wallet routes (Phase 6 — influencer balance + cashout)
-app.use('/api/wallet', require('./routes/wallet'));
+// Wallet routes — cashout has stricter rate limit (5/hour in production)
+app.use('/api/wallet', cashoutLimiter, require('./routes/wallet'));
 
 // Notification routes (in-app notification center)
 app.use('/api/notifications', require('./routes/notifications'));
 
+// Admin routes (re-engagement campaigns, platform management)
+app.use('/api/admin', require('./routes/admin'));
+
 // Webhook routes (PayPal event notifications — no auth, signature-verified)
+// NO rate limit — PayPal needs unrestricted access
 app.use('/api/webhooks', require('./routes/webhooks'));
 
 // --- Error Handling Middleware ---
@@ -166,6 +196,7 @@ const startServer = async () => {
     console.log(`\n🚀 KUP Test Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}`);
+    console.log(`🔒 Security: Rate limiting, mongo sanitize, HPP, CORS ${process.env.NODE_ENV === 'production' ? '(locked)' : '(open — dev mode)'}`);
     console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk, /api/billing, /api/payouts, /api/wallet, /api/notifications, /api/webhooks\n`);
   });
 };

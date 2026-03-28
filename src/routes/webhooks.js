@@ -7,23 +7,45 @@ const { Subscription, BrandProfile, Transaction, Payout, Withdrawal, InfluencerP
 const paypal = require('../config/paypal');
 const notify = require('../services/notifications');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 // POST /api/webhooks/paypal — PayPal event receiver
 // No auth middleware — PayPal can't send our Firebase token.
-// Security: we verify the webhook signature instead.
-router.post('/paypal', express.json(), async (req, res) => {
+// Security: we verify the webhook signature instead (production only).
+//
+// How signature verification works (plain English):
+// PayPal signs every webhook with a secret key. When we receive it,
+// we send the signature back to PayPal and ask "did you actually send this?"
+// If PayPal says yes → we process it. If no → we reject it.
+// This prevents anyone from faking PayPal events to mess with your data.
+router.post('/paypal', express.json({ verify: (req, res, buf) => { req.rawBody = buf.toString(); } }), async (req, res) => {
   try {
     const event = req.body;
     const eventType = event.event_type;
 
     console.log(`📬 PayPal webhook received: ${eventType}`);
 
-    // In production, verify webhook signature:
-    // const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    // const verification = await paypal.verifyWebhook(req.headers, req.body, webhookId);
-    // if (verification.verification_status !== 'SUCCESS') {
-    //   console.error('❌ Webhook signature verification failed');
-    //   return res.status(401).json({ error: 'Invalid webhook signature' });
-    // }
+    // Verify webhook signature in production
+    // In sandbox/dev, we skip this because sandbox signatures are unreliable
+    if (isProduction) {
+      const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+      if (!webhookId) {
+        console.error('❌ PAYPAL_WEBHOOK_ID not set — cannot verify webhook');
+        return res.status(500).json({ error: 'Webhook configuration error' });
+      }
+
+      try {
+        const verification = await paypal.verifyWebhook(req.headers, req.rawBody || req.body, webhookId);
+        if (verification.verification_status !== 'SUCCESS') {
+          console.error(`❌ Webhook signature verification FAILED for event: ${eventType}`);
+          return res.status(401).json({ error: 'Invalid webhook signature' });
+        }
+        console.log(`🔒 Webhook signature verified: ${eventType}`);
+      } catch (verifyError) {
+        console.error('❌ Webhook verification error:', verifyError.message);
+        return res.status(401).json({ error: 'Webhook verification failed' });
+      }
+    }
 
     // Route to handler based on event type
     switch (eventType) {
