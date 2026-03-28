@@ -7,16 +7,33 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward } = require('../models');
 
-// Tier-based cash rates (mirrored from payouts.js for server-side reward triggering)
-// Rule G7: Brands cannot override — comes from influencer tier
-const TIER_RATES = {
-  unverified: { cash_per_approval: 2, bonus_cash: 5 },
-  nano: { cash_per_approval: 5, bonus_cash: 10 },
-  micro: { cash_per_approval: 10, bonus_cash: 25 },
-  rising: { cash_per_approval: 25, bonus_cash: 50 },
-  established: { cash_per_approval: 50, bonus_cash: 100 },
-  premium: { cash_per_approval: 100, bonus_cash: 250 },
+// ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
+// Rule G7: Brands cannot override — rates come from influencer tier.
+const FEES = {
+  paypal: { percent: 0.0299, flat: 0.49 },
+  kup:    { flat: 0.50 },
 };
+
+const BONUS_CASH_PERCENT = 0.30;
+
+const TIER_RATES = {
+  unverified:  { video: { influencerGets: 4,  brandPays: 5.14  }, image: { influencerGets: 2,  brandPays: 3.08  } },
+  nano:        { video: { influencerGets: 8,  brandPays: 9.27  }, image: { influencerGets: 4,  brandPays: 5.14  } },
+  micro:       { video: { influencerGets: 11, brandPays: 12.36 }, image: { influencerGets: 6,  brandPays: 7.21  } },
+  rising:      { video: { influencerGets: 18, brandPays: 19.58 }, image: { influencerGets: 9,  brandPays: 10.30 } },
+  established: { video: { influencerGets: 25, brandPays: 26.79 }, image: { influencerGets: 12, brandPays: 13.39 } },
+  premium:     { video: { influencerGets: 33, brandPays: 35.04 }, image: { influencerGets: 15, brandPays: 16.48 } },
+  celebrity:   { video: { influencerGets: 45, brandPays: 47.41 }, image: { influencerGets: 23, brandPays: 24.73 } },
+};
+
+function resolveRate(tier, contentType) {
+  const rates = TIER_RATES[tier] || TIER_RATES.nano;
+  return contentType === 'video' ? rates.video : rates.image;
+}
+
+function calcBonusCash(baseAmount) {
+  return Math.round(baseAmount * BONUS_CASH_PERCENT * 100) / 100;
+}
 
 // Viral bonus thresholds — when metrics cross these, trigger bonus transactions
 const VIRAL_THRESHOLDS = [
@@ -223,15 +240,18 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       });
 
       if (cpaReward) {
-        // Resolve rate from influencer tier
+        // Resolve rate from influencer tier + content type (video vs photo)
         const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
         const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
-        const rates = TIER_RATES[tier] || TIER_RATES.nano;
-        const amount = rates.cash_per_approval;
+        const rate = resolveRate(tier, submission.contentType);
+        const amount = rate.influencerGets;
+        const brandPaysAmount = rate.brandPays;
+        const kupFee = FEES.kup.flat;
+        const paypalFee = Math.round((brandPaysAmount * FEES.paypal.percent + FEES.paypal.flat) * 100) / 100;
 
-        // Check budget cap
+        // Check budget cap (against brandPays — what the brand is actually charged)
         const withinBudget = !cpaReward.cashConfig.budgetCap ||
-          (cpaReward.cashConfig.budgetSpent + amount) <= cpaReward.cashConfig.budgetCap;
+          (cpaReward.cashConfig.budgetSpent + brandPaysAmount) <= cpaReward.cashConfig.budgetCap;
 
         if (withinBudget) {
           const transaction = await Transaction.create({
@@ -240,6 +260,9 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             payeeInfluencerId: submission.influencerProfileId,
             type: 'cash_per_approval',
             amount,
+            brandPaysAmount,
+            kupFee,
+            paypalFee,
             currency: 'USD',
             contentSubmissionId: submission._id,
             campaignId: submission.campaignId || null,
@@ -247,8 +270,8 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             status: 'pending',
           });
 
-          // Update budget spent + influencer stats
-          cpaReward.cashConfig.budgetSpent += amount;
+          // Update budget spent (track gross brand cost) + influencer stats (track net received)
+          cpaReward.cashConfig.budgetSpent += brandPaysAmount;
           await cpaReward.save();
 
           if (influencer) {
@@ -263,8 +286,8 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             });
           }
 
-          rewardTriggered = { type: 'cash_per_approval', amount, tier, transactionId: transaction._id };
-          console.log(`💰 CPA reward: $${amount} (${tier} tier) → influencer ${submission.influencerProfileId}`);
+          rewardTriggered = { type: 'cash_per_approval', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id };
+          console.log(`💰 CPA reward: $${amount} to influencer (brand charged $${brandPaysAmount}) — ${tier} tier, ${submission.contentType} → ${submission.influencerProfileId}`);
         } else {
           console.log(`⚠️ CPA reward skipped: budget cap reached ($${cpaReward.cashConfig.budgetSpent}/$${cpaReward.cashConfig.budgetCap})`);
         }
@@ -360,11 +383,14 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
       if (bonusReward) {
         const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
         const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
-        const rates = TIER_RATES[tier] || TIER_RATES.nano;
-        const amount = rates.bonus_cash;
+        const baseRate = resolveRate(tier, submission.contentType);
+        const amount = calcBonusCash(baseRate.influencerGets);  // 30% of base CPA
+        const brandPaysAmount = Math.round(((amount + FEES.kup.flat + FEES.paypal.flat) / (1 - FEES.paypal.percent)) * 100) / 100;
+        const kupFee = FEES.kup.flat;
+        const paypalFee = Math.round((brandPaysAmount * FEES.paypal.percent + FEES.paypal.flat) * 100) / 100;
 
         const withinBudget = !bonusReward.cashConfig.budgetCap ||
-          (bonusReward.cashConfig.budgetSpent + amount) <= bonusReward.cashConfig.budgetCap;
+          (bonusReward.cashConfig.budgetSpent + brandPaysAmount) <= bonusReward.cashConfig.budgetCap;
 
         if (withinBudget) {
           const transaction = await Transaction.create({
@@ -373,6 +399,9 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
             payeeInfluencerId: submission.influencerProfileId,
             type: 'bonus_cash',
             amount,
+            brandPaysAmount,
+            kupFee,
+            paypalFee,
             currency: 'USD',
             contentSubmissionId: submission._id,
             campaignId: submission.campaignId || null,
@@ -380,7 +409,7 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
             status: 'pending',
           });
 
-          bonusReward.cashConfig.budgetSpent += amount;
+          bonusReward.cashConfig.budgetSpent += brandPaysAmount;
           await bonusReward.save();
 
           if (influencer) {
@@ -394,8 +423,8 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
             });
           }
 
-          rewardTriggered = { type: 'bonus_cash', amount, tier, transactionId: transaction._id };
-          console.log(`💰 Bonus Cash: $${amount} (${tier} tier) → influencer ${submission.influencerProfileId}`);
+          rewardTriggered = { type: 'bonus_cash', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id };
+          console.log(`💰 Bonus Cash: $${amount} to influencer (brand charged $${brandPaysAmount}) — ${tier} tier, ${submission.contentType} → ${submission.influencerProfileId}`);
         }
       }
     } catch (rewardErr) {

@@ -574,6 +574,7 @@
       border-radius: var(--radius-md);
       padding: 28px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      min-width: 0;
     }
 
     .campaign-preview-wrap h4 {
@@ -654,6 +655,8 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .preview-card-footer {
@@ -835,9 +838,7 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs-row"><button class="notif-tab-btn active" data-tab="all">All</button><button class="notif-tab-btn" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -887,7 +888,7 @@
            ========================================== -->
       <aside class="kup-sidebar" role="complementary" aria-label="Campaign sidebar">
         <div class="sidebar-header">
-          <h5>Manage Brand</h5>
+          <h5>Manage Brand Campaigns</h5>
           <a href="campaigns.html" class="sidebar-back" aria-label="Back to campaigns">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Back to Campaigns
@@ -897,51 +898,13 @@
           </div>
         </div>
 
-        <!-- Campaign Items -->
+        <!-- Campaign Items (loaded from API) -->
         <ul class="campaign-list" role="list" aria-label="Campaign list">
-          <li class="active" role="listitem" aria-current="true" tabindex="0">
-            <span class="campaign-number" aria-hidden="true">1</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Summer Promo 2026</div>
-              <div class="campaign-list-status status-active">
-                <span class="status-dot" aria-hidden="true"></span>Active
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0">
-            <span class="campaign-number" aria-hidden="true">2</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Brand Launch</div>
-              <div class="campaign-list-status status-active">
-                <span class="status-dot" aria-hidden="true"></span>Active
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0">
-            <span class="campaign-number" aria-hidden="true">3</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Holiday Special</div>
-              <div class="campaign-list-status status-draft">
-                <span class="status-dot" aria-hidden="true"></span>Draft
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0">
-            <span class="campaign-number" aria-hidden="true">4</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Spring Flash Sale</div>
-              <div class="campaign-list-status status-paused">
-                <span class="status-dot" aria-hidden="true"></span>Paused
-              </div>
-            </div>
+          <li class="campaign-empty-state" style="padding:20px 16px;text-align:center;color:#94a3b8;font-size:13px;">
+            Loading campaigns...
           </li>
         </ul>
 
-        <!-- Add New Campaign -->
-        <button class="sidebar-add-btn" type="button" aria-label="Add new campaign" id="addCampaignBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add New Campaign
-        </button>
       </aside>
 
       <!-- ==========================================
@@ -1055,8 +1018,8 @@
 
               <div class="preview-card-footer">
                 <div class="preview-brand-info">
-                  <div class="preview-brand-avatar" aria-hidden="true">ST</div>
-                  <span class="preview-brand-name">KeepUsPostd</span>
+                  <div class="preview-brand-avatar" id="previewBrandAvatar" aria-hidden="true">N</div>
+                  <span class="preview-brand-name" id="previewBrandName">Nike</span>
                 </div>
                 <span class="preview-status-badge badge-active">
                   <span class="badge-dot" aria-hidden="true"></span>
@@ -1176,9 +1139,9 @@
     });
 
     // ===========================================
-    // Form submission (prototype — no backend)
+    // Form submission — POST /api/campaigns
     // ===========================================
-    document.getElementById('campaignForm').addEventListener('submit', function(e) {
+    document.getElementById('campaignForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const title = titleInput.value.trim();
       const desc = descInput.value.trim();
@@ -1189,8 +1152,106 @@
         return;
       }
 
-      // Simulate success
-      kupToast('Campaign "' + title + '" submitted successfully!', 'success');
+      // Determine active brand ID from brand-context
+      var brandId = '';
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+        var active = KUP_BRAND_CONTEXT.getActiveBrand();
+        if (active) brandId = active.mongoId || '';
+      }
+
+      // If mongoId isn't synced yet, fetch directly from API
+      if (!brandId) {
+        try {
+          console.log('⏳ mongoId not ready — fetching brands from API...');
+          var brandData = await kupApi.get('/api/brands');
+          if (brandData && brandData.brands && brandData.brands.length > 0) {
+            brandId = brandData.brands[0]._id;
+            // Also save it so we don't have to do this again
+            if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+              var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+              if (ab) { ab.mongoId = brandId; KUP_BRAND_CONTEXT.setActiveBrand(ab); }
+            }
+          }
+        } catch (fetchErr) {
+          console.error('Could not fetch brands:', fetchErr);
+        }
+      }
+
+      console.log('🚀 Creating campaign — brandId:', brandId);
+
+      if (!brandId) {
+        kupToast('Could not determine your brand. Please refresh and try again.', 'error');
+        return;
+      }
+
+      const submitBtn = this.querySelector('.btn-kup-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try {
+        // Upload campaign image if one was selected
+        var coverImageUrl = null;
+        var imgFile = fileInput.files[0];
+        if (imgFile) {
+          try {
+            var uploadResult = await kupApi.upload('/api/upload', [imgFile], 'media');
+            if (uploadResult && uploadResult.urls && uploadResult.urls.length > 0) {
+              coverImageUrl = uploadResult.urls[0];
+            }
+          } catch (uploadErr) {
+            console.warn('Image upload failed, creating campaign without image:', uploadErr);
+          }
+        }
+
+        var payload = {
+          title: title,
+          description: desc,
+          category: cat,
+          brandId: brandId
+        };
+        if (coverImageUrl) payload.coverImageUrl = coverImageUrl;
+
+        const result = await kupApi.post('/api/campaigns', payload);
+
+        console.log('📋 Campaign create result:', result);
+
+        if (result && result.error) {
+          kupToast(result.error || 'Failed to create campaign.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Campaign';
+          return;
+        }
+
+        kupToast('Campaign "' + title + '" created successfully! Redirecting...', 'success');
+
+        // Redirect to the new campaign's detail page
+        var newId = result.campaign ? result.campaign._id : (result._id || '');
+        if (newId) {
+          setTimeout(function() { window.location.href = 'campaign-detail.html?id=' + newId; }, 1200);
+          return;
+        }
+
+        // Fallback: reload sidebar if no ID returned
+        if (typeof loadCampaignsFromApi === 'function') {
+          await loadCampaignsFromApi();
+        }
+
+        // Reset form
+        this.reset();
+        titleCount.textContent = '0 / 15';
+        previewTitle.textContent = 'Your Campaign Title';
+        previewDesc.textContent = 'Campaign description will appear here as you type. This shows influencers what your campaign is about.';
+        previewCategory.textContent = 'Category';
+        previewCardImage.innerHTML = '<span class="placeholder-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>';
+        uploadPreview.style.display = 'none';
+        uploadBox.style.display = 'block';
+      } catch (err) {
+        console.error('Campaign submit error:', err);
+        kupToast('Something went wrong. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Campaign';
+      }
     });
 
     // ===========================================
@@ -1282,6 +1343,147 @@
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+  // Update preview card brand info from brand-context
+  if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+    var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+    if (ab) {
+      var pbn = document.getElementById('previewBrandName');
+      if (pbn && ab.name) pbn.textContent = ab.name;
+      var pba = document.getElementById('previewBrandAvatar');
+      if (pba) {
+        if (ab.logoUrl) {
+          pba.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
+          pba.style.background = '#fff';
+        } else {
+          pba.textContent = ab.abbreviation || ab.name.charAt(0).toUpperCase();
+        }
+      }
+    }
+  }
+
+  /* ============== AUTH GATE + LOAD CAMPAIGNS FROM API ============== */
+  async function loadCampaignsFromApi() {
+    // Determine active brand ID from brand-context
+    var brandId = '';
+    if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+      var active = KUP_BRAND_CONTEXT.getActiveBrand();
+      if (active) brandId = active.mongoId || '';
+    }
+
+    // If mongoId isn't synced yet, fetch directly from API
+    if (!brandId) {
+      try {
+        var brandData = await kupApi.get('/api/brands');
+        if (brandData && brandData.brands && brandData.brands.length > 0) {
+          brandId = brandData.brands[0]._id;
+          if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+            var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+            if (ab) { ab.mongoId = brandId; KUP_BRAND_CONTEXT.setActiveBrand(ab); }
+          }
+        }
+      } catch (e) { console.warn('Brand fetch fallback failed:', e); }
+    }
+
+    var list = document.querySelector('.campaign-list');
+    if (!list) return;
+
+    if (!brandId) {
+      list.innerHTML = '<li class="campaign-empty-state" style="padding:20px 16px;text-align:center;color:#94a3b8;font-size:13px;">No brand selected</li>';
+      return;
+    }
+
+    try {
+      var data = await kupApi.get('/api/campaigns?brandId=' + encodeURIComponent(brandId));
+      console.log('📋 Campaigns API response:', data);
+      var campaigns = Array.isArray(data) ? data : (data && data.campaigns ? data.campaigns : []);
+
+      list.innerHTML = '';
+
+      if (campaigns.length === 0) {
+        list.innerHTML = '<li class="campaign-empty-state" style="padding:20px 16px;text-align:center;color:#94a3b8;font-size:13px;">No campaigns yet — create your first one!</li>';
+        return;
+      }
+
+      campaigns.forEach(function(c, i) {
+        var statusClass = 'status-active';
+        var statusLabel = 'Active';
+        if (c.status === 'draft') { statusClass = 'status-draft'; statusLabel = 'Draft'; }
+        else if (c.status === 'paused') { statusClass = 'status-paused'; statusLabel = 'Paused'; }
+        else if (c.status === 'ended') { statusClass = 'status-ended'; statusLabel = 'Ended'; }
+
+        var li = document.createElement('li');
+        li.setAttribute('role', 'listitem');
+        li.setAttribute('tabindex', '0');
+        li.setAttribute('data-campaign-id', c._id);
+        if (i === 0) { li.classList.add('active'); li.setAttribute('aria-current', 'true'); }
+        li.innerHTML =
+          '<span class="campaign-number" aria-hidden="true">' + (i + 1) + '</span>' +
+          '<div class="campaign-list-info">' +
+            '<div class="campaign-list-title">' + (c.title || c.name || 'Untitled') + '</div>' +
+            '<div class="campaign-list-status ' + statusClass + '">' +
+              '<span class="status-dot" aria-hidden="true"></span>' + statusLabel +
+            '</div>' +
+          '</div>' +
+          (c.status === 'draft' ? '<button class="campaign-delete-btn" data-id="' + c._id + '" title="Delete draft" style="background:none;border:none;cursor:pointer;padding:4px;margin-left:auto;color:#ccc;transition:color 0.2s;" onmouseover="this.style.color=\'#dc2626\'" onmouseout="this.style.color=\'#ccc\'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' : '');
+
+        li.style.display = 'flex';
+        li.style.alignItems = 'center';
+
+        li.addEventListener('click', function(e) {
+          if (e.target.closest('.campaign-delete-btn')) return; // don't select when deleting
+          list.querySelectorAll('li').forEach(function(el) { el.classList.remove('active'); el.removeAttribute('aria-current'); });
+          li.classList.add('active');
+          li.setAttribute('aria-current', 'true');
+        });
+        li.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); li.click(); } });
+
+        // Delete handler for draft campaigns
+        var delBtn = li.querySelector('.campaign-delete-btn');
+        if (delBtn) {
+          delBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            var campId = this.getAttribute('data-id');
+            if (!confirm('Delete this draft campaign? This cannot be undone.')) return;
+            try {
+              var result = await kupApi.delete('/api/campaigns/' + campId);
+              if (result && result.error) {
+                kupToast(result.error, 'error');
+                return;
+              }
+              kupToast('Campaign deleted', 'success');
+              await loadCampaignsFromApi();
+            } catch (err) {
+              console.error('Delete failed:', err);
+              kupToast('Failed to delete campaign', 'error');
+            }
+          });
+        }
+
+        list.appendChild(li);
+      });
+    } catch (err) {
+      console.error('❌ Could not load campaigns:', err);
+      list.innerHTML = '<li class="campaign-empty-state" style="padding:20px 16px;text-align:center;color:#94a3b8;font-size:13px;">Could not load campaigns</li>';
+    }
+  }
+
+  if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        loadCampaignsFromApi();
+      } else {
+        window.location.href = '/pages/login.html';
+      }
+    });
+  }
+  </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

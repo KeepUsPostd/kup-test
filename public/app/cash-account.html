@@ -956,11 +956,8 @@
               <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
               <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
               <ul class="notif-list" id="notifList">
-                <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-                <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-                <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-                <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
-              </ul>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
+            </ul>
             </div>
           </div>
           <div class="profile-menu">
@@ -1027,8 +1024,8 @@
               </div>
               <div class="info-card-content">
                 <div class="info-card-label">Current Plan</div>
-                <div class="info-card-title">Growth Plan</div>
-                <div class="info-card-price"><strong>$29</strong>/monthly</div>
+                <div class="info-card-title" id="cashPlanName">Growth Plan</div>
+                <div class="info-card-price" id="cashPlanPrice"><strong>$29</strong>/monthly</div>
                 <a href="pricing-upgrade.html" class="btn-card-action upgrade" style="text-decoration:none;">Upgrade Plan</a>
               </div>
             </div>
@@ -1067,7 +1064,7 @@
     <div class="card-kup table-card">
       <div class="table-card-header">
         <h3>Transaction History</h3>
-        <span class="tx-count">Showing 5 of 23 transactions</span>
+        <span class="tx-count" id="cashTxCount">Showing 5 of 23 transactions</span>
       </div>
 
       <div class="table-wrap data-table">
@@ -1081,62 +1078,20 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td data-label="Date" class="tx-date-cell">Mar 2, 2026</td>
-              <td data-label="Description" class="tx-desc-cell">Instagram Reel - Spring Collection</td>
-              <td data-label="Influencer" class="tx-influencer-cell">@jessicadavis</td>
-              <td data-label="Amount" class="tx-amount-cell negative">-$45.00</td>
-              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-            </tr>
-            <tr>
-              <td data-label="Date" class="tx-date-cell">Mar 1, 2026</td>
-              <td data-label="Description" class="tx-desc-cell">TikTok Review - Product Launch</td>
-              <td data-label="Influencer" class="tx-influencer-cell">@mikejohnson</td>
-              <td data-label="Amount" class="tx-amount-cell negative">-$30.00</td>
-              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-            </tr>
-            <tr>
-              <td data-label="Date" class="tx-date-cell">Feb 28, 2026</td>
-              <td data-label="Description" class="tx-desc-cell">Account Balance Top-Up</td>
-              <td data-label="Influencer" class="tx-influencer-cell">--</td>
-              <td data-label="Amount" class="tx-amount-cell positive">+$200.00</td>
-              <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-            </tr>
-            <tr>
-              <td data-label="Date" class="tx-date-cell">Feb 25, 2026</td>
-              <td data-label="Description" class="tx-desc-cell">YouTube Short - Brand Story</td>
-              <td data-label="Influencer" class="tx-influencer-cell">@alexchen</td>
-              <td data-label="Amount" class="tx-amount-cell negative">-$55.00</td>
-              <td data-label="Status"><span class="status-badge pending">Pending</span></td>
-            </tr>
-            <tr>
-              <td data-label="Date" class="tx-date-cell">Feb 20, 2026</td>
-              <td data-label="Description" class="tx-desc-cell">Instagram Story - Campaign XYZ</td>
-              <td data-label="Influencer" class="tx-influencer-cell">@sarahlee</td>
-              <td data-label="Amount" class="tx-amount-cell negative">-$25.00</td>
-              <td data-label="Status"><span class="status-badge failed">Failed</span></td>
+          <tbody id="cashTxBody">
+            <tr class="cash-loading-row">
+              <td colspan="5" style="text-align:center;padding:40px 20px;color:#888;font-size:0.9rem;">
+                Loading transactions...
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Pagination -->
-      <div class="pagination-wrap">
-        <div class="pagination-info">Page 1 of 5</div>
-        <div class="pagination-btns">
-          <button class="pg-btn disabled" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="pg-btn active">1</button>
-          <button class="pg-btn">2</button>
-          <button class="pg-btn">3</button>
-          <button class="pg-btn">4</button>
-          <button class="pg-btn">5</button>
-          <button class="pg-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
+      <div class="pagination-wrap" id="cashPaginationWrap">
+        <div class="pagination-info" id="cashPaginationInfo">Page 1 of 1</div>
+        <div class="pagination-btns" id="cashPaginationBtns"></div>
       </div>
     </div>
   </div>
@@ -1161,14 +1116,14 @@
             <p class="rc-tier-range">(0-5k) Social Followers</p>
             <div class="rc-prices">
               <div class="rc-price-block">
-                <span class="rc-amount">$4.13</span><span class="rc-currency">USD</span>
+                <span class="rc-amount">$5.14</span><span class="rc-currency">USD</span>
                 <div class="rc-label">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   per video approval
                 </div>
               </div>
               <div class="rc-price-block">
-                <span class="rc-amount">$2.06</span><span class="rc-currency">USD</span>
+                <span class="rc-amount">$3.08</span><span class="rc-currency">USD</span>
                 <div class="rc-label">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   per image approval
@@ -1190,14 +1145,14 @@
           <p class="rc-tier-range">(5k-10k) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$7.76</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$9.27</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$3.88</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$5.14</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1214,14 +1169,14 @@
           <p class="rc-tier-range">(10k-50k) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$11.39</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$12.36</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$5.69</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$7.21</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1238,14 +1193,14 @@
           <p class="rc-tier-range">(50k-500k) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$18.12</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$19.58</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$9.31</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$10.30</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1262,14 +1217,14 @@
           <p class="rc-tier-range">(500k-1m) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$26.67</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$26.79</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$13.46</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$13.39</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1286,14 +1241,14 @@
           <p class="rc-tier-range">(1m-5m) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$34.70</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$35.04</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$16.57</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$16.48</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1310,14 +1265,14 @@
           <p class="rc-tier-range">(5m+) Social Followers</p>
           <div class="rc-prices">
             <div class="rc-price-block">
-              <span class="rc-amount">$47.65</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$47.41</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 per video approval
               </div>
             </div>
             <div class="rc-price-block">
-              <span class="rc-amount">$24.34</span><span class="rc-currency">USD</span>
+              <span class="rc-amount">$24.73</span><span class="rc-currency">USD</span>
               <div class="rc-label">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 per image approval
@@ -1423,9 +1378,175 @@
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
+
+  <script>
+  /* ============== CASH ACCOUNT — LIVE API WIRING ============== */
+  (function() {
+    var brand = null;
+    try {
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') brand = KUP_BRAND_CONTEXT.getActiveBrand();
+    } catch(e) {}
+    if (!brand || !brand.mongoId) return;
+
+    /* ---- Plan card ---- */
+    var planNameEl  = document.getElementById('cashPlanName');
+    var planPriceEl = document.getElementById('cashPlanPrice');
+    if (brand.plan && planNameEl) {
+      var planPrices = { starter: 0, growth: 29, pro: 79, agency: 199, enterprise: 499 };
+      var planKey = brand.plan.toLowerCase();
+      var price = planPrices[planKey] !== undefined ? planPrices[planKey] : '--';
+      planNameEl.textContent = brand.plan.charAt(0).toUpperCase() + brand.plan.slice(1) + ' Plan';
+      planPriceEl.innerHTML = '<strong>$' + price + '</strong>/monthly';
+    }
+
+    /* ---- State ---- */
+    var PAGE_SIZE = 10;
+    var currentPage = 1;
+    var allTransactions = [];
+
+    /* ---- DOM refs ---- */
+    var txBody     = document.getElementById('cashTxBody');
+    var txCountEl  = document.getElementById('cashTxCount');
+    var pagInfo    = document.getElementById('cashPaginationInfo');
+    var pagBtns    = document.getElementById('cashPaginationBtns');
+
+    /* ---- Helpers ---- */
+    function fmtDate(dateStr) {
+      if (!dateStr) return '--';
+      var d = new Date(dateStr);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
+
+    function fmtAmount(cents) {
+      if (cents == null) return '$0.00';
+      var dollars = Math.abs(cents / 100).toFixed(2);
+      return (cents < 0 ? '-' : '+') + '$' + dollars;
+    }
+
+    function statusClass(status) {
+      if (!status) return 'pending';
+      var s = status.toLowerCase();
+      if (s === 'completed' || s === 'success' || s === 'paid') return 'completed';
+      if (s === 'failed' || s === 'error' || s === 'rejected') return 'failed';
+      return 'pending';
+    }
+
+    function statusLabel(status) {
+      if (!status) return 'Pending';
+      return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    }
+
+    /* ---- Render table rows for current page ---- */
+    function renderPage() {
+      var start = (currentPage - 1) * PAGE_SIZE;
+      var end = Math.min(start + PAGE_SIZE, allTransactions.length);
+      var pageItems = allTransactions.slice(start, end);
+      var totalPages = Math.max(1, Math.ceil(allTransactions.length / PAGE_SIZE));
+
+      txCountEl.textContent = 'Showing ' + pageItems.length + ' of ' + allTransactions.length + ' transactions';
+      pagInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+
+      if (pageItems.length === 0) {
+        txBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px 20px;color:#888;font-size:0.9rem;">No transactions found.</td></tr>';
+        pagBtns.innerHTML = '';
+        return;
+      }
+
+      var html = '';
+      pageItems.forEach(function(tx) {
+        var amt = tx.amountCents != null ? tx.amountCents : (tx.amount != null ? Math.round(tx.amount * 100) : 0);
+        var amtClass = amt < 0 ? 'negative' : 'positive';
+        var sc = statusClass(tx.status);
+        var influencer = tx.payeeName || tx.influencerHandle || tx.influencer || '--';
+        if (influencer !== '--' && influencer.charAt(0) !== '@') influencer = '@' + influencer;
+
+        html += '<tr>'
+          + '<td data-label="Date" class="tx-date-cell">' + fmtDate(tx.createdAt || tx.date) + '</td>'
+          + '<td data-label="Description" class="tx-desc-cell">' + (tx.description || tx.memo || '--') + '</td>'
+          + '<td data-label="Influencer" class="tx-influencer-cell">' + influencer + '</td>'
+          + '<td data-label="Amount" class="tx-amount-cell ' + amtClass + '">' + fmtAmount(amt) + '</td>'
+          + '<td data-label="Status"><span class="status-badge ' + sc + '">' + statusLabel(tx.status) + '</span></td>'
+          + '</tr>';
+      });
+      txBody.innerHTML = html;
+
+      /* ---- Pagination buttons ---- */
+      var prevSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+      var nextSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+      var btnsHtml = '<button class="pg-btn' + (currentPage === 1 ? ' disabled' : '') + '" data-page="prev"' + (currentPage === 1 ? ' disabled' : '') + '>' + prevSvg + '</button>';
+      for (var p = 1; p <= totalPages; p++) {
+        btnsHtml += '<button class="pg-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+      }
+      btnsHtml += '<button class="pg-btn' + (currentPage === totalPages ? ' disabled' : '') + '" data-page="next"' + (currentPage === totalPages ? ' disabled' : '') + '>' + nextSvg + '</button>';
+      pagBtns.innerHTML = btnsHtml;
+
+      pagBtns.querySelectorAll('.pg-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var val = btn.getAttribute('data-page');
+          if (val === 'prev' && currentPage > 1) currentPage--;
+          else if (val === 'next' && currentPage < totalPages) currentPage++;
+          else if (val !== 'prev' && val !== 'next') currentPage = parseInt(val, 10);
+          renderPage();
+        });
+      });
+    }
+
+    /* ---- Date filter ---- */
+    var filterBtn = document.querySelector('.btn-filter');
+    if (filterBtn) {
+      filterBtn.addEventListener('click', function() {
+        var inputs = document.querySelectorAll('.date-filter input[type="date"]');
+        var from = inputs[0] ? inputs[0].value : '';
+        var to   = inputs[1] ? inputs[1].value : '';
+        currentPage = 1;
+        loadCashAccount(from, to);
+      });
+    }
+
+    /* ---- Main data loader ---- */
+    function loadCashAccount(fromDate, toDate) {
+      var brandId = brand.mongoId;
+      var txUrl = '/api/payouts/transactions?brandId=' + brandId;
+      if (fromDate) txUrl += '&from=' + fromDate;
+      if (toDate)   txUrl += '&to=' + toDate;
+
+      txBody.innerHTML = '<tr class="cash-loading-row"><td colspan="5" style="text-align:center;padding:40px 20px;color:#888;font-size:0.9rem;">Loading transactions...</td></tr>';
+
+      kupApi.get(txUrl).then(function(data) {
+        allTransactions = data.transactions || data.items || data || [];
+        if (!Array.isArray(allTransactions)) allTransactions = [];
+        renderPage();
+      }).catch(function(err) {
+        console.error('[cash-account] Failed to load transactions:', err);
+        txBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px 20px;color:#e74c3c;font-size:0.9rem;">Failed to load transactions. Please try again.</td></tr>';
+        txCountEl.textContent = '0 transactions';
+        pagBtns.innerHTML = '';
+      });
+    }
+
+    /* ---- Wait for Firebase auth, then load ---- */
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (user) { loadCashAccount(); }
+        else {
+          txBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px 20px;color:#888;font-size:0.9rem;">Please log in to view transactions.</td></tr>';
+        }
+      });
+    } else {
+      loadCashAccount();
+    }
+  })();
+  </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

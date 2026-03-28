@@ -443,16 +443,6 @@
             <label for="brandIndustry">Industry *</label>
             <select id="brandIndustry">
               <option value="" disabled selected>Select an industry</option>
-              <option value="Fashion & Beauty">Fashion &amp; Beauty</option>
-              <option value="Food & Beverage">Food &amp; Beverage</option>
-              <option value="Technology & SaaS">Technology &amp; SaaS</option>
-              <option value="Health & Fitness">Health &amp; Fitness</option>
-              <option value="Travel & Lifestyle">Travel &amp; Lifestyle</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Education">Education</option>
-              <option value="Finance">Finance</option>
-              <option value="Retail & E-commerce">Retail &amp; E-commerce</option>
-              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -772,6 +762,22 @@
 
   <!-- ========== FOOTER ========== -->
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- ========== PLATFORM CONFIG ========== -->
+  <script src="/js/platform-config.js"></script>
+  <script>
+  (function() {
+    var sel = document.getElementById('brandIndustry');
+    if (sel && typeof KUP_PLATFORM !== 'undefined' && KUP_PLATFORM.BRAND_CATEGORIES) {
+      KUP_PLATFORM.BRAND_CATEGORIES.forEach(function(cat) {
+        var opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+    }
+  })();
+  </script>
 
   <!-- ========== WIZARD LOGIC ========== -->
   <script>

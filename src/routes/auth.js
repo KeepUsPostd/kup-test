@@ -186,6 +186,7 @@ router.get('/me', requireAuth, async (req, res) => {
         firstName: user.legalFirstName,
         lastName: user.legalLastName,
         activeProfile: user.activeProfile,
+        avatarUrl: user.avatarUrl,
         hasInfluencerProfile: user.hasInfluencerProfile,
         hasBrandProfile: user.hasBrandProfile,
         status: user.status,
@@ -198,6 +199,124 @@ router.get('/me', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Get profile error:', error.message);
     res.status(500).json({ error: 'Could not fetch profile' });
+  }
+});
+
+// PUT /api/auth/profile — Update user profile
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+
+    const { firstName, lastName, avatarUrl } = req.body;
+    if (firstName !== undefined) user.legalFirstName = firstName;
+    if (lastName !== undefined) user.legalLastName = lastName;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.legalFirstName,
+        lastName: user.legalLastName,
+        avatarUrl: user.avatarUrl,
+      },
+    });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// ── PayPal Onboarding Routes ──────────────────────────────
+
+// PUT /api/auth/paypal-connect — Connect influencer's PayPal email
+router.put('/paypal-connect', requireAuth, async (req, res) => {
+  try {
+    const { paypalEmail } = req.body;
+
+    if (!paypalEmail) {
+      return res.status(400).json({ error: 'paypalEmail is required' });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(paypalEmail)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    influencer.paypalEmail = paypalEmail;
+    influencer.paypalConnectedAt = new Date();
+    await influencer.save();
+
+    console.log(`🔗 PayPal connected for ${influencer.displayName}: ${paypalEmail}`);
+
+    res.json({
+      message: 'PayPal account connected successfully',
+      paypalEmail: influencer.paypalEmail,
+      connectedAt: influencer.paypalConnectedAt,
+    });
+  } catch (error) {
+    console.error('PayPal connect error:', error.message);
+    res.status(500).json({ error: 'Could not connect PayPal account' });
+  }
+});
+
+// DELETE /api/auth/paypal-disconnect — Remove PayPal email
+router.delete('/paypal-disconnect', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    influencer.paypalEmail = null;
+    influencer.paypalConnectedAt = null;
+    await influencer.save();
+
+    console.log(`🔗 PayPal disconnected for ${influencer.displayName}`);
+
+    res.json({ message: 'PayPal account disconnected' });
+  } catch (error) {
+    console.error('PayPal disconnect error:', error.message);
+    res.status(500).json({ error: 'Could not disconnect PayPal account' });
+  }
+});
+
+// GET /api/auth/paypal-status — Check if PayPal is connected
+router.get('/paypal-status', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    const connected = !!influencer.paypalEmail;
+    let maskedEmail = null;
+
+    if (influencer.paypalEmail) {
+      const parts = influencer.paypalEmail.split('@');
+      const name = parts[0];
+      const domain = parts[1];
+      const visible = name.length <= 2 ? name : name.substring(0, 2);
+      maskedEmail = `${visible}${'*'.repeat(Math.max(name.length - 2, 0))}@${domain}`;
+    }
+
+    res.json({
+      connected,
+      email: maskedEmail,
+      connectedAt: connected ? influencer.paypalConnectedAt : null,
+    });
+  } catch (error) {
+    console.error('PayPal status error:', error.message);
+    res.status(500).json({ error: 'Could not check PayPal status' });
   }
 });
 

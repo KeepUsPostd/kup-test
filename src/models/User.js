@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
   // Legal / compliance
   legalFirstName: { type: String, default: null },
   legalLastName: { type: String, default: null },
+  avatarUrl: { type: String, default: null },
   dateOfBirth: { type: Date, default: null },
   address: {
     street: { type: String, default: null },

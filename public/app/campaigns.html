@@ -542,6 +542,9 @@
       }
     }
   
+    /* Loading skeleton pulse */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
     /* Sticky Footer */
     body{display:flex;flex-direction:column;min-height:100vh}
     main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
@@ -572,10 +575,7 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -610,7 +610,7 @@
     <div class="page-header">
       <div class="page-header-left">
         <h1>Campaigns</h1>
-        <p>Manage your brand campaigns for <strong>KeepUsPostd</strong></p>
+        <p>Manage your brand campaigns for <strong id="campaignBrandName">—</strong></p>
       </div>
       <button class="btn-new-campaign" onclick="window.location='brand-campaign.html'">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -621,19 +621,19 @@
     <!-- Summary Stats -->
     <div class="stats-bar">
       <div class="stat-card">
-        <div class="stat-value">4</div>
+        <div class="stat-value" id="statTotal">—</div>
         <div class="stat-label">Total Campaigns</div>
       </div>
       <div class="stat-card active-stat">
-        <div class="stat-value">2</div>
+        <div class="stat-value" id="statActive">—</div>
         <div class="stat-label">Active</div>
       </div>
       <div class="stat-card draft-stat">
-        <div class="stat-value">1</div>
+        <div class="stat-value" id="statDraft">—</div>
         <div class="stat-label">Draft</div>
       </div>
       <div class="stat-card paused-stat">
-        <div class="stat-value">1</div>
+        <div class="stat-value" id="statPaused">—</div>
         <div class="stat-label">Paused</div>
       </div>
     </div>
@@ -651,142 +651,41 @@
       <input type="text" class="search-input" placeholder="Search campaigns..." id="campaignSearch" oninput="searchCampaigns(this.value)">
     </div>
 
-    <!-- Campaign Cards Grid -->
+    <!-- Campaign Cards Grid (populated by JS) -->
     <div class="campaigns-grid" id="campaignsGrid">
-
-      <!-- Campaign 1: Summer Promo 2026 -->
-      <div class="campaign-card" data-status="active" data-name="Summer Promo 2026" onclick="window.location='campaign-detail.html'">
-        <div class="campaign-card-image" style="background:linear-gradient(135deg,#1a1a3e 0%,#2d3a6e 100%)">
-          <span class="placeholder-icon"><i class="ph ph-sun"></i></span>
-          <span class="card-status-badge active"><span class="dot"></span> Active</span>
-        </div>
-        <div class="campaign-card-body">
-          <div class="card-category">Fashion &amp; Beauty</div>
-          <h3 class="card-title">Summer Promo 2026</h3>
-          <p class="card-desc">Promote our Summer 2026 collection across Instagram and TikTok. Looking for fashion and lifestyle influencers.</p>
-          <div class="card-stats">
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
-              <span class="val">12</span> Influencers
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="val">34</span> Content
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="val">8.2K</span> Reach
-            </span>
-          </div>
-        </div>
-        <div class="campaign-card-footer">
-          <span class="card-date">Feb 15 &mdash; Jun 30, 2026</span>
-          <button class="card-view-btn">View Details &rarr;</button>
-        </div>
+      <!-- Loading skeleton -->
+      <div class="campaign-card skeleton-card" id="loadingSkeleton1">
+        <div class="campaign-card-image" style="background:#e8e8e8;animation:pulse 1.5s infinite"></div>
+        <div class="campaign-card-body"><div style="height:14px;width:60%;background:#e8e8e8;border-radius:4px;margin-bottom:8px;animation:pulse 1.5s infinite"></div><div style="height:18px;width:80%;background:#e8e8e8;border-radius:4px;animation:pulse 1.5s infinite"></div></div>
       </div>
-
-      <!-- Campaign 2: Brand Launch -->
-      <div class="campaign-card" data-status="active" data-name="Brand Launch" onclick="window.location='campaign-detail.html'">
-        <div class="campaign-card-image" style="background:linear-gradient(135deg,#0f3443 0%,#34e89e 100%)">
-          <span class="placeholder-icon"><i class="ph ph-rocket-launch"></i></span>
-          <span class="card-status-badge active"><span class="dot"></span> Active</span>
-        </div>
-        <div class="campaign-card-body">
-          <div class="card-category">Tech &amp; Gadgets</div>
-          <h3 class="card-title">Brand Launch</h3>
-          <p class="card-desc">Introduce KeepUsPostd to the market with launch-day content from top tech creators.</p>
-          <div class="card-stats">
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
-              <span class="val">8</span> Influencers
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="val">19</span> Content
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="val">5.4K</span> Reach
-            </span>
-          </div>
-        </div>
-        <div class="campaign-card-footer">
-          <span class="card-date">Jan 10 &mdash; Mar 31, 2026</span>
-          <button class="card-view-btn">View Details &rarr;</button>
-        </div>
+      <div class="campaign-card skeleton-card" id="loadingSkeleton2">
+        <div class="campaign-card-image" style="background:#e8e8e8;animation:pulse 1.5s infinite"></div>
+        <div class="campaign-card-body"><div style="height:14px;width:60%;background:#e8e8e8;border-radius:4px;margin-bottom:8px;animation:pulse 1.5s infinite"></div><div style="height:18px;width:80%;background:#e8e8e8;border-radius:4px;animation:pulse 1.5s infinite"></div></div>
       </div>
-
-      <!-- Campaign 3: Holiday Special -->
-      <div class="campaign-card" data-status="draft" data-name="Holiday Special" onclick="window.location='campaign-detail.html'">
-        <div class="campaign-card-image" style="background:linear-gradient(135deg,#2c3e50 0%,#4ca1af 100%)">
-          <span class="placeholder-icon"><i class="ph ph-gift"></i></span>
-          <span class="card-status-badge draft"><span class="dot"></span> Draft</span>
-        </div>
-        <div class="campaign-card-body">
-          <div class="card-category">Travel &amp; Lifestyle</div>
-          <h3 class="card-title">Holiday Special</h3>
-          <p class="card-desc">Holiday-themed content push for Q4. Gift guides, unboxing, and seasonal product placements.</p>
-          <div class="card-stats">
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
-              <span class="val">0</span> Influencers
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="val">0</span> Content
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="val">&mdash;</span> Reach
-            </span>
-          </div>
-        </div>
-        <div class="campaign-card-footer">
-          <span class="card-date">Not yet scheduled</span>
-          <button class="card-view-btn">View Details &rarr;</button>
-        </div>
+      <div class="campaign-card skeleton-card" id="loadingSkeleton3">
+        <div class="campaign-card-image" style="background:#e8e8e8;animation:pulse 1.5s infinite"></div>
+        <div class="campaign-card-body"><div style="height:14px;width:60%;background:#e8e8e8;border-radius:4px;margin-bottom:8px;animation:pulse 1.5s infinite"></div><div style="height:18px;width:80%;background:#e8e8e8;border-radius:4px;animation:pulse 1.5s infinite"></div></div>
       </div>
-
-      <!-- Campaign 4: Spring Flash Sale -->
-      <div class="campaign-card" data-status="paused" data-name="Spring Flash Sale" onclick="window.location='campaign-detail.html'">
-        <div class="campaign-card-image" style="background:linear-gradient(135deg,#654ea3 0%,#eaafc8 100%)">
-          <span class="placeholder-icon"><i class="ph ph-flower-lotus"></i></span>
-          <span class="card-status-badge paused"><span class="dot"></span> Paused</span>
-        </div>
-        <div class="campaign-card-body">
-          <div class="card-category">Food &amp; Beverage</div>
-          <h3 class="card-title">Spring Flash Sale</h3>
-          <p class="card-desc">Limited-time spring promo. Paused while we finalize product inventory for the new season.</p>
-          <div class="card-stats">
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
-              <span class="val">5</span> Influencers
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="val">11</span> Content
-            </span>
-            <span class="card-stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="val">2.1K</span> Reach
-            </span>
-          </div>
-        </div>
-        <div class="campaign-card-footer">
-          <span class="card-date">Mar 1 &mdash; Apr 15, 2026</span>
-          <button class="card-view-btn">View Details &rarr;</button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Upgrade Banner -->
-    <div class="upgrade-banner">
+    <!-- Empty State (hidden by default) -->
+    <div id="emptyState" style="display:none;text-align:center;padding:60px 20px">
+      <div style="font-size:3rem;color:#ddd;margin-bottom:16px"><i class="ph ph-megaphone"></i></div>
+      <h3 style="font-size:1.1rem;font-weight:700;color:#1a1a1a;margin:0 0 8px">No campaigns yet</h3>
+      <p style="font-size:0.85rem;color:#888;margin:0 0 20px">Create your first campaign to start collecting influencer content.</p>
+      <button class="btn-new-campaign" onclick="window.location='brand-campaign.html'" style="display:inline-flex">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Campaign
+      </button>
+    </div>
+
+    <!-- Upgrade Banner (shown based on plan tier) -->
+    <div class="upgrade-banner" id="upgradeBanner" style="display:none">
       <div class="upgrade-banner-left">
         <div class="upgrade-icon"><i class="ph ph-rocket-launch"></i></div>
         <div class="upgrade-text">
-          <h3>Unlock Unlimited Campaigns</h3>
-          <p>Focus on different aspects of your brand &mdash; new products, seasonal promotions, events, and more.</p>
+          <h3 id="upgradeBannerTitle">Unlock More Campaigns</h3>
+          <p id="upgradeBannerDesc">Focus on different aspects of your brand &mdash; new products, seasonal promotions, events, and more.</p>
         </div>
       </div>
       <button class="btn-upgrade" onclick="window.location='pricing-upgrade.html'">View Plans</button>
@@ -800,6 +699,16 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/platform-config.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     /* ============ TOAST ============ */
     function kupToast(msg, type) {
@@ -844,54 +753,255 @@
       document.getElementById('profileDropdown').classList.remove('show');
     });
 
-    /* ============ FILTER BY STATUS ============ */
+    /* ============================================================
+       CAMPAIGNS — REAL API WIRING
+       ============================================================ */
+
+    // Plan limits (mirrors server — for UI display only, server enforces)
+    var PLAN_CAMPAIGN_LIMITS = { starter: 1, growth: 5, pro: 20, agency: 50, enterprise: Infinity };
+
+    // Gradient palette for campaign card headers
+    var CARD_GRADIENTS = [
+      'linear-gradient(135deg,#1a1a3e 0%,#2d3a6e 100%)',
+      'linear-gradient(135deg,#0f3443 0%,#34e89e 100%)',
+      'linear-gradient(135deg,#2c3e50 0%,#4ca1af 100%)',
+      'linear-gradient(135deg,#654ea3 0%,#eaafc8 100%)',
+      'linear-gradient(135deg,#232526 0%,#414345 100%)',
+      'linear-gradient(135deg,#ee9ca7 0%,#ffdde1 100%)',
+      'linear-gradient(135deg,#2193b0 0%,#6dd5ed 100%)',
+      'linear-gradient(135deg,#cc2b5e 0%,#753a88 100%)'
+    ];
+
+    // Category icon map
+    var CATEGORY_ICONS = {
+      'fashion': 'ph-t-shirt', 'beauty': 'ph-paint-brush', 'tech': 'ph-cpu',
+      'food': 'ph-fork-knife', 'travel': 'ph-airplane', 'lifestyle': 'ph-heart',
+      'fitness': 'ph-barbell', 'music': 'ph-music-notes', 'gaming': 'ph-game-controller',
+      'default': 'ph-megaphone'
+    };
+
+    // All campaigns fetched from API (used by filter/search)
+    var allCampaigns = [];
+    var currentFilter = 'all';
+
+    /* ---- Format date for card footer ---- */
+    function fmtDate(d) {
+      if (!d) return '';
+      var dt = new Date(d);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[dt.getMonth()] + ' ' + dt.getDate() + ', ' + dt.getFullYear();
+    }
+
+    /* ---- Pick icon for category ---- */
+    function getCategoryIcon(cat) {
+      if (!cat) return CATEGORY_ICONS['default'];
+      var lower = cat.toLowerCase();
+      for (var key in CATEGORY_ICONS) {
+        if (lower.indexOf(key) >= 0) return CATEGORY_ICONS[key];
+      }
+      return CATEGORY_ICONS['default'];
+    }
+
+    /* ---- Build one campaign card HTML ---- */
+    function buildCampaignCard(c, index) {
+      var gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+      var statusClass = c.status || 'draft';
+      var icon = getCategoryIcon(c.category);
+      var category = c.category || 'General';
+      var desc = c.description || 'No description provided.';
+      var subs = c.submissionCount || 0;
+
+      // Date range
+      var dateStr = 'Not yet scheduled';
+      if (c.activatedAt || c.deadline) {
+        var start = c.activatedAt ? fmtDate(c.activatedAt) : fmtDate(c.createdAt);
+        var end = c.deadline ? fmtDate(c.deadline) : 'Ongoing';
+        dateStr = start + ' — ' + end;
+      }
+
+      // Cover image or gradient placeholder
+      var imageContent = '';
+      if (c.coverImageUrl) {
+        imageContent = '<img src="' + c.coverImageUrl + '" alt="' + c.title + '">';
+      } else {
+        imageContent = '<span class="placeholder-icon"><i class="ph ' + icon + '"></i></span>';
+      }
+
+      return '<div class="campaign-card" data-status="' + statusClass + '" data-name="' + c.title + '" data-id="' + c._id + '" onclick="window.location=\'campaign-detail.html?id=' + c._id + '\'">' +
+        '<div class="campaign-card-image" style="background:' + gradient + '">' +
+          imageContent +
+          '<span class="card-status-badge ' + statusClass + '"><span class="dot"></span> ' + statusClass.charAt(0).toUpperCase() + statusClass.slice(1) + '</span>' +
+        '</div>' +
+        '<div class="campaign-card-body">' +
+          '<div class="card-category">' + category + '</div>' +
+          '<h3 class="card-title">' + c.title + '</h3>' +
+          '<p class="card-desc">' + desc + '</p>' +
+          '<div class="card-stats">' +
+            '<span class="card-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="val">' + subs + '</span> Submissions</span>' +
+            (c.maxSubmissions ? '<span class="card-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="val">' + c.maxSubmissions + '</span> Max</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="campaign-card-footer">' +
+          '<span class="card-date">' + dateStr + '</span>' +
+          '<button class="card-view-btn">View Details &rarr;</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    /* ---- Render campaigns into the grid ---- */
+    function renderCampaigns(campaigns) {
+      var grid = document.getElementById('campaignsGrid');
+      var emptyState = document.getElementById('emptyState');
+
+      if (!campaigns || campaigns.length === 0) {
+        grid.innerHTML = '';
+        emptyState.style.display = '';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      var html = '';
+      for (var i = 0; i < campaigns.length; i++) {
+        html += buildCampaignCard(campaigns[i], i);
+      }
+      grid.innerHTML = html;
+    }
+
+    /* ---- Update stats bar ---- */
+    function updateStats(stats) {
+      document.getElementById('statTotal').textContent = stats.total || 0;
+      document.getElementById('statActive').textContent = stats.active || 0;
+      document.getElementById('statDraft').textContent = stats.draft || 0;
+      document.getElementById('statPaused').textContent = stats.paused || 0;
+    }
+
+    /* ---- Update upgrade banner based on plan ---- */
+    function updateUpgradeBanner(plan, currentCount) {
+      var banner = document.getElementById('upgradeBanner');
+      var limit = PLAN_CAMPAIGN_LIMITS[plan] || 1;
+
+      // Don't show for enterprise or if well under limit
+      if (plan === 'enterprise') {
+        banner.style.display = 'none';
+        return;
+      }
+
+      // Show when at 80%+ of limit or at limit
+      if (currentCount >= limit * 0.8) {
+        banner.style.display = '';
+        if (currentCount >= limit) {
+          document.getElementById('upgradeBannerTitle').textContent = 'Campaign Limit Reached';
+          document.getElementById('upgradeBannerDesc').textContent = 'Your ' + plan + ' plan allows ' + limit + ' active campaign(s). Upgrade to create more.';
+        } else {
+          document.getElementById('upgradeBannerTitle').textContent = 'Running Low on Campaign Slots';
+          document.getElementById('upgradeBannerDesc').textContent = 'You\'re using ' + currentCount + ' of ' + limit + ' campaigns on your ' + plan + ' plan.';
+        }
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    /* ---- FILTER BY STATUS ---- */
     function filterCampaigns(status, btn) {
-      // Update pill active state
       document.querySelectorAll('.status-pill').forEach(function(p) { p.classList.remove('active'); });
       btn.classList.add('active');
-
-      // Filter cards
-      var cards = document.querySelectorAll('.campaign-card');
-      cards.forEach(function(card) {
-        if (status === 'all') {
-          card.style.display = '';
-        } else {
-          card.style.display = card.getAttribute('data-status') === status ? '' : 'none';
-        }
-      });
-
-      // Clear search
+      currentFilter = status;
       document.getElementById('campaignSearch').value = '';
+
+      var filtered = (status === 'all') ? allCampaigns : allCampaigns.filter(function(c) { return c.status === status; });
+      renderCampaigns(filtered);
     }
 
-    /* ============ SEARCH ============ */
+    /* ---- SEARCH ---- */
     function searchCampaigns(query) {
       var q = query.toLowerCase().trim();
-      var cards = document.querySelectorAll('.campaign-card');
-      cards.forEach(function(card) {
-        var name = card.getAttribute('data-name').toLowerCase();
-        var desc = card.querySelector('.card-desc').textContent.toLowerCase();
-        var cat = card.querySelector('.card-category').textContent.toLowerCase();
-        card.style.display = (name.indexOf(q) >= 0 || desc.indexOf(q) >= 0 || cat.indexOf(q) >= 0) ? '' : 'none';
-      });
+      if (!q) {
+        // Re-apply current filter
+        var activeBtn = document.querySelector('.status-pill.active');
+        filterCampaigns(currentFilter, activeBtn || document.querySelector('.status-pill'));
+        return;
+      }
 
-      // Reset pill to "All" when searching
+      // Reset pill to "All"
       document.querySelectorAll('.status-pill').forEach(function(p) { p.classList.remove('active'); });
       document.querySelector('.status-pill').classList.add('active');
+      currentFilter = 'all';
+
+      var filtered = allCampaigns.filter(function(c) {
+        var title = (c.title || '').toLowerCase();
+        var desc = (c.description || '').toLowerCase();
+        var cat = (c.category || '').toLowerCase();
+        return title.indexOf(q) >= 0 || desc.indexOf(q) >= 0 || cat.indexOf(q) >= 0;
+      });
+      renderCampaigns(filtered);
+    }
+
+    /* ---- LOAD CAMPAIGNS FROM API ---- */
+    async function loadCampaigns() {
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || '') : '';
+
+      // If mongoId isn't synced yet, fetch directly from API
+      if (!brandId) {
+        try {
+          var brandData = await kupApi.get('/api/brands');
+          if (brandData && brandData.brands && brandData.brands.length > 0) {
+            brandId = brandData.brands[0]._id;
+            if (brand) { brand.mongoId = brandId; KUP_BRAND_CONTEXT.setActiveBrand(brand); }
+            else { brand = { mongoId: brandId, name: brandData.brands[0].name || 'Your Brand' }; }
+            console.log('✅ Brand ID fetched directly:', brandId);
+          }
+        } catch (e) { console.warn('Brand fetch fallback failed:', e); }
+      }
+
+      if (!brandId) {
+        document.getElementById('campaignsGrid').innerHTML = '';
+        document.getElementById('emptyState').style.display = '';
+        document.getElementById('statTotal').textContent = '0';
+        document.getElementById('statActive').textContent = '0';
+        document.getElementById('statDraft').textContent = '0';
+        document.getElementById('statPaused').textContent = '0';
+        return;
+      }
+
+      // Set brand name in header
+      var nameEl = document.getElementById('campaignBrandName');
+      if (nameEl) nameEl.textContent = (brand && brand.name) || 'your brand';
+
+      try {
+        var data = await kupApi.get('/api/campaigns?brandId=' + brandId);
+        if (!data || data.error) {
+          kupToast(data ? data.error : 'Could not load campaigns', 'error');
+          document.getElementById('campaignsGrid').innerHTML = '';
+          document.getElementById('emptyState').style.display = '';
+          return;
+        }
+
+        allCampaigns = data.campaigns || [];
+        var stats = data.stats || { total: 0, active: 0, draft: 0, paused: 0 };
+
+        updateStats(stats);
+        renderCampaigns(allCampaigns);
+
+        // Upgrade banner logic
+        var plan = brand.plan || 'starter';
+        var nonEndedCount = allCampaigns.filter(function(c) { return c.status !== 'ended'; }).length;
+        updateUpgradeBanner(plan, nonEndedCount);
+
+      } catch (err) {
+        kupToast('Failed to load campaigns', 'error');
+        document.getElementById('campaignsGrid').innerHTML = '';
+        document.getElementById('emptyState').style.display = '';
+      }
+    }
+
+    /* ---- INIT: wait for Firebase auth ---- */
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) { if (user) loadCampaigns(); });
+    } else {
+      loadCampaigns();
     }
   </script>
-  <!--
-    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
-    <script src="/js/brand-context.js"></script>
-    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
-    Key APIs for this page:
-      KUP_PLATFORM.CAMPAIGN_STATUSES, .CAMPAIGN_TRANSITIONS, .CAMPAIGN_RULES
-  -->
-  <script src="/js/platform-config.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

@@ -443,11 +443,11 @@
     .influencer-cell .avatar {
       width: 44px; height: 44px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.75rem;
       flex-shrink: 0;
@@ -789,6 +789,27 @@
       box-shadow: none;
     }
     .btn-distribute:disabled svg { stroke: #aaa; }
+    .btn-scan-instore {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-scan-instore:hover {
+      background: #15803d;
+      box-shadow: 0 4px 16px rgba(22,163,74,0.3);
+    }
+    .btn-scan-instore svg { flex-shrink: 0; }
     .btn-distribute:not(:disabled):hover {
       opacity: 0.9;
       transform: translateY(-1px);
@@ -1058,11 +1079,11 @@
     .ip-avatar {
       width: 80px; height: 80px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 1.5rem;
       margin: 0 auto 12px;
@@ -1300,51 +1321,7 @@
               <button class="notif-tab" data-tab="unread">Unread</button>
             </div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread">
-                <div class="notif-icon payment">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text">Payment of <strong>$250.00</strong> sent to @jessicadavis</p>
-                  <div class="notif-time">5 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item unread">
-                <div class="notif-icon approval">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>3 payments</strong> awaiting your confirmation</p>
-                  <div class="notif-time">20 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon payment">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text">Payment of <strong>$500.00</strong> sent to @marcusking</p>
-                  <div class="notif-time">1 hour ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon joined">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@nina_k</strong> reached Gold Partner reward tier</p>
-                  <div class="notif-time">3 hours ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@amylee_creates</strong> submitted invoice for Brand Launch campaign</p>
-                  <div class="notif-time">5 hours ago</div>
-                </div>
-              </li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -1404,18 +1381,18 @@
       <div class="summary-cards">
         <div class="summary-card">
           <div class="label">Total Paid Out</div>
-          <div class="value green">$12,450</div>
+          <div class="value green" id="cashTotalPaid">—</div>
           <div class="sub">Across all influencers</div>
         </div>
         <div class="summary-card">
           <div class="label">Pending Payments</div>
-          <div class="value">$2,340</div>
-          <div class="sub">3 influencers awaiting payment</div>
+          <div class="value" id="cashPending">—</div>
+          <div class="sub" id="cashPendingSub">Loading...</div>
         </div>
         <div class="summary-card">
           <div class="label">Total Transactions</div>
-          <div class="value">156</div>
-          <div class="sub">Last 30 days</div>
+          <div class="value" id="cashTotalTx">—</div>
+          <div class="sub">All time</div>
         </div>
       </div>
 
@@ -1490,104 +1467,13 @@
               <th style="text-align: center;">Transactions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" aria-label="Select jessicadavis">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="jessicadavis">JD</div>
-                    <div>
-                      <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$250.00</td>
-              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$3,450.00</td>
-              <td data-label="Transactions" class="transaction-count">24</td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" aria-label="Select marcusking">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
-                    <div>
-                      <div class="name" data-influencer="marcusking">@marcusking</div>
-                      <div class="tier">Macro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$500.00</td>
-              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$4,200.00</td>
-              <td data-label="Transactions" class="transaction-count">18</td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" aria-label="Select amylee_creates">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="amylee_creates">AL</div>
-                    <div>
-                      <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
-                      <div class="tier">Nano Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$75.00</td>
-              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$1,125.00</td>
-              <td data-label="Transactions" class="transaction-count">15</td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" aria-label="Select tyreese_r">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="tyreese_r">TR</div>
-                    <div>
-                      <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$150.00</td>
-              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$2,100.00</td>
-              <td data-label="Transactions" class="transaction-count">14</td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" aria-label="Select nina_k">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
-                    <div>
-                      <div class="name" data-influencer="nina_k">@nina_k</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Last Paid" class="amount-cell" style="text-align: center;">$200.00</td>
-              <td data-label="Total Paid" class="amount-cell green" style="text-align: center;">$1,575.00</td>
-              <td data-label="Transactions" class="transaction-count">11</td>
-            </tr>
+          <tbody id="cashTbody">
+            <tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">Loading cash data...</td></tr>
           </tbody>
         </table>
 
-        <div class="table-footer">
-          <span class="showing">Showing 1-5 of 18 influencers</span>
-          <div class="pagination-btns">
-            <button class="page-btn">&larr;</button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <button class="page-btn">&rarr;</button>
-          </div>
+        <div class="table-footer" id="cashTableFooter">
+          <span class="showing" id="cashTableShowing">Showing 0 influencers</span>
         </div>
       </div>
     </div>
@@ -1597,7 +1483,7 @@
 
       <!-- Summary Bar -->
       <div class="rewards-summary-bar">
-        <div class="reward-count"><span>5</span> Active Rewards</div>
+        <div class="reward-count"><span id="rewardActiveCount">0</span> Active Rewards</div>
         <a href="brand-reward.html" class="btn-add-reward">+ Create New Reward</a>
       </div>
 
@@ -1606,21 +1492,7 @@
         <button class="reward-pill active" data-reward="all" onclick="selectRewardPill(this)">
           <span class="pill-icon"><i class="ph ph-chart-bar"></i></span> All Rewards
         </button>
-        <button class="reward-pill" data-reward="welcome-gift" onclick="selectRewardPill(this)">
-          <span class="pill-icon"><i class="ph ph-gift"></i></span> Welcome Gift Box <span class="pill-meta">&middot; 300 pts</span>
-        </button>
-        <button class="reward-pill" data-reward="20-off" onclick="selectRewardPill(this)">
-          <span class="pill-icon"><i class="ph ph-tag"></i></span> 20% Off First Order <span class="pill-meta">&middot; 500 pts</span>
-        </button>
-        <button class="reward-pill" data-reward="conf-swag" onclick="selectRewardPill(this)">
-          <span class="pill-icon"><i class="ph ph-gift"></i></span> Free Conference Swag <span class="pill-meta">&middot; <i class="ph ph-lightning"></i></span>
-        </button>
-        <button class="reward-pill" data-reward="25-review" onclick="selectRewardPill(this)">
-          <span class="pill-icon"><i class="ph ph-coins"></i></span> $25 Per Review <span class="pill-meta">&middot; $25/approval</span>
-        </button>
-        <button class="reward-pill" data-reward="10-bonus" onclick="selectRewardPill(this)">
-          <span class="pill-icon"><i class="ph ph-target"></i></span> $10 Posting Bonus <span class="pill-meta">&middot; $10/post</span>
-        </button>
+        <!-- Dynamic reward pills rendered by JS -->
       </div>
 
       <!-- Rewards Toolbar -->
@@ -1672,10 +1544,15 @@
               </div>
             </div>
           </div>
-          <!-- Distribute Reward Button -->
+          <!-- Distribute Reward Button (requires influencer selection) -->
           <button class="btn-distribute" id="distributeRewardBtn" disabled>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
             Distribute Reward
+          </button>
+          <!-- Scan In-Store (no influencer selection needed) -->
+          <button class="btn-scan-instore" id="scanInstoreBtn" onclick="window.location.href='distribute-reward.html'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg>
+            Scan In-Store
           </button>
         </div>
       </div>
@@ -1692,130 +1569,17 @@
             </tr>
           </thead>
           <tbody id="rewardTableBody">
-            <tr data-influencer-row="jessicadavis">
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select jessicadavis">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="jessicadavis">JD</div>
-                    <div>
-                      <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Reward" style="text-align: center;" class="reward-col">Welcome Gift Box</td>
-              <td data-label="Progress" style="text-align: center;" class="progress-col">
-                <div class="progress-mini">
-                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:70%"></div></div>
-                  <span class="progress-mini-text">210/300</span>
-                </div>
-              </td>
-              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
-            </tr>
-            <tr data-influencer-row="marcusking">
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select marcusking">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
-                    <div>
-                      <div class="name" data-influencer="marcusking">@marcusking</div>
-                      <div class="tier">Macro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Reward" style="text-align: center;" class="reward-col">20% Off First Order</td>
-              <td data-label="Progress" style="text-align: center;" class="progress-col">
-                <div class="progress-mini">
-                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:100%"></div></div>
-                  <span class="progress-mini-text">500/500</span>
-                </div>
-              </td>
-              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge unlocked">Unlocked</span></td>
-            </tr>
-            <tr data-influencer-row="amylee_creates">
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select amylee_creates">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="amylee_creates">AL</div>
-                    <div>
-                      <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
-                      <div class="tier">Nano Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Reward" style="text-align: center;" class="reward-col">Free Conference Swag</td>
-              <td data-label="Progress" style="text-align: center;" class="progress-col">
-                <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
-              </td>
-              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge approved">Approved</span></td>
-            </tr>
-            <tr data-influencer-row="tyreese_r">
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select tyreese_r">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="tyreese_r">TR</div>
-                    <div>
-                      <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Reward" style="text-align: center;" class="reward-col">Welcome Gift Box</td>
-              <td data-label="Progress" style="text-align: center;" class="progress-col">
-                <div class="progress-mini">
-                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:42%"></div></div>
-                  <span class="progress-mini-text">125/300</span>
-                </div>
-              </td>
-              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
-            </tr>
-            <tr data-influencer-row="nina_k">
-              <td data-label="Influencer">
-                <div class="check-influencer">
-                  <input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select nina_k">
-                  <div class="influencer-cell">
-                    <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
-                    <div>
-                      <div class="name" data-influencer="nina_k">@nina_k</div>
-                      <div class="tier">Micro Influencer</div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Reward" style="text-align: center;" class="reward-col">20% Off First Order</td>
-              <td data-label="Progress" style="text-align: center;" class="progress-col">
-                <div class="progress-mini">
-                  <div class="progress-mini-bar"><div class="progress-mini-fill" style="width:65%"></div></div>
-                  <span class="progress-mini-text">325/500</span>
-                </div>
-              </td>
-              <td data-label="Status" style="text-align: center;"><span class="reward-status-badge in-progress">In Progress</span></td>
-            </tr>
+            <tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">Loading rewards...</td></tr>
           </tbody>
         </table>
-        <div class="table-footer">
-          <span class="showing">Showing 1-5 of 18 influencers</span>
-          <div class="pagination-btns">
-            <button class="page-btn">&larr;</button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <button class="page-btn">&rarr;</button>
-          </div>
+        <div class="table-footer" id="rewardTableFooter">
+          <span class="showing" id="rewardTableShowing">Showing 0 influencers</span>
         </div>
       </div>
 
       <!-- Manage Rewards (Collapsible) -->
       <button class="manage-rewards-toggle" id="manageRewardsToggle" onclick="toggleManageRewards()">
-        <span><i class="ph ph-gear"></i></span> Manage Rewards <span style="font-weight:400; color:#bbb; font-size:0.78rem;">(5 active)</span>
+        <span><i class="ph ph-gear"></i></span> Manage Rewards <span style="font-weight:400; color:#bbb; font-size:0.78rem;" id="manageRewardsCount">(0 active)</span>
         <span class="toggle-chevron"><i class="ph ph-caret-down"></i></span>
       </button>
       <div class="manage-rewards-body" id="manageRewardsBody">
@@ -1825,68 +1589,11 @@
           <div class="rewards-section-header non-cash" onclick="toggleRewardSection('nonCash')">
             <span class="section-icon"><i class="ph ph-gift"></i></span>
             <span class="section-title">Non-Cash Rewards</span>
-            <span class="section-count">3</span>
+            <span class="section-count" id="nonCashCount">0</span>
             <span class="section-toggle" id="toggleNonCash"><i class="ph ph-caret-down"></i></span>
           </div>
           <div class="rewards-section-body" id="bodyNonCash">
-
-            <div class="reward-card-enhanced">
-              <div class="rce-top">
-                <div class="rce-icon nc"><i class="ph ph-gift"></i></div>
-                <div class="rce-info">
-                  <h4 class="rce-title">Welcome Gift Box</h4>
-                  <span class="reward-type-badge">Free Product or Service</span>
-                </div>
-              </div>
-              <p class="rce-desc">A curated welcome kit with branded merchandise sent to new influencer partners.</p>
-              <div class="point-cat-tags">
-                <span class="point-cat-tag content-pts">Content Pts</span>
-                <span class="point-cat-tag gratitude-pts">Gratitude</span>
-              </div>
-              <span class="unlock-badge"><i class="ph ph-lock"></i> 300 pts to unlock</span>
-              <div class="reward-card-actions">
-                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=1'">Edit</button>
-                <button class="rca-btn delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="reward-card-enhanced">
-              <div class="rce-top">
-                <div class="rce-icon nc"><i class="ph ph-tag"></i></div>
-                <div class="rce-info">
-                  <h4 class="rce-title">20% Off First Order</h4>
-                  <span class="reward-type-badge">Discount / Coupon</span>
-                </div>
-              </div>
-              <p class="rce-desc">A 20% discount code for influencers after their first approved submission.</p>
-              <div class="point-cat-tags">
-                <span class="point-cat-tag content-pts">Content Pts</span>
-                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="point-cat-tag gratitude-pts">Gratitude</span>
-              </div>
-              <span class="unlock-badge"><i class="ph ph-lock"></i> 500 pts to unlock</span>
-              <div class="reward-card-actions">
-                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=2'">Edit</button>
-                <button class="rca-btn delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="reward-card-enhanced">
-              <div class="rce-top">
-                <div class="rce-icon nc"><i class="ph ph-gift"></i></div>
-                <div class="rce-info">
-                  <h4 class="rce-title">Free Conference Swag</h4>
-                  <span class="reward-type-badge">Free Product or Service</span>
-                </div>
-              </div>
-              <p class="rce-desc">Free branded swag bag for influencers at partner events and conferences.</p>
-              <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
-              <div class="reward-card-actions">
-                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=5'">Edit</button>
-                <button class="rca-btn delete">Delete</button>
-              </div>
-            </div>
-
+            <p style="color:#999; text-align:center; padding:1rem;">Loading non-cash rewards...</p>
           </div>
         </div>
 
@@ -1895,51 +1602,11 @@
           <div class="rewards-section-header cash" onclick="toggleRewardSection('cash')">
             <span class="section-icon"><i class="ph ph-money"></i></span>
             <span class="section-title">Cash Offers</span>
-            <span class="section-count">2</span>
+            <span class="section-count" id="cashOfferCount">0</span>
             <span class="section-toggle" id="toggleCash"><i class="ph ph-caret-down"></i></span>
           </div>
           <div class="rewards-section-body" id="bodyCash">
-
-            <div class="reward-card-enhanced">
-              <div class="rce-top">
-                <div class="rce-icon cash"><i class="ph ph-coins"></i></div>
-                <div class="rce-info">
-                  <h4 class="rce-title">$25 Per Review</h4>
-                  <span class="reward-type-badge">Cash Per Approval</span>
-                </div>
-              </div>
-              <p class="rce-desc">Direct cash payment of $25 for each approved content submission.</p>
-              <span class="cash-amount-badge">$25/approval</span>
-              <div class="reward-card-actions">
-                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=3'">Edit</button>
-                <button class="rca-btn delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="reward-card-enhanced">
-              <div class="rce-top">
-                <div class="rce-icon cash"><i class="ph ph-target"></i></div>
-                <div class="rce-info">
-                  <h4 class="rce-title">$10 Posting Bonus</h4>
-                  <span class="reward-type-badge">Bonus Cash</span>
-                </div>
-              </div>
-              <p class="rce-desc">Automatic $10 bonus sent when an influencer publishes content on social media.</p>
-              <span class="cash-amount-badge">$10/post</span>
-              <div class="reward-card-actions">
-                <button class="rca-btn" onclick="window.location.href='brand-reward.html?edit=4'">Edit</button>
-                <button class="rca-btn delete">Delete</button>
-              </div>
-            </div>
-
-            <!-- PostdPay System Card -->
-            <div class="postdpay-system-card">
-              <span style="font-size:1.5rem"><i class="ph ph-currency-dollar"></i></span>
-              <div class="psc-title">Postd Pay</div>
-              <p class="psc-desc">Send any amount to any influencer, anytime from the Cash tab.</p>
-              <a href="#" class="psc-link" onclick="switchCashTab('cash'); return false;">Go to Cash Tab &rarr;</a>
-            </div>
-
+            <p style="color:#999; text-align:center; padding:1rem;">Loading cash offers...</p>
           </div>
         </div>
 
@@ -1964,7 +1631,7 @@
       </div>
       <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
       <div class="ip-header">
-        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <div class="ip-avatar" id="ipAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
         <p class="ip-name" id="ipName">Jessica Davis</p>
         <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
@@ -2197,7 +1864,20 @@
 
     /* ============== POSTDPAY → NAVIGATE TO POSTD-PAY PAGE ============== */
     document.getElementById('postdPayBtn').addEventListener('click', function() {
-      window.location.href = 'postd-pay.html';
+      // Pass selected influencer ID + name to PostdPay page
+      var checked = document.querySelector('.check-influencer input[type="checkbox"]:checked');
+      var row = checked ? checked.closest('tr') : null;
+      var influencerId = row ? row.getAttribute('data-partner-id') : '';
+      var infCell = row ? row.querySelector('[data-influencer]') : null;
+      var infKey = infCell ? infCell.getAttribute('data-influencer') : '';
+      var infData = _influencerLookup[infKey] || {};
+      var url = 'postd-pay.html';
+      var params = [];
+      if (influencerId) params.push('influencerId=' + encodeURIComponent(influencerId));
+      if (infData.name) params.push('name=' + encodeURIComponent(infData.name));
+      if (infData.handle) params.push('handle=' + encodeURIComponent(infData.handle.replace(/^@/, '')));
+      if (params.length) url += '?' + params.join('&');
+      window.location.href = url;
     });
 
     /* ============== REWARD SECTION TOGGLE ============== */
@@ -2264,102 +1944,19 @@
     });
 
     /* ============== REWARD PILL SELECTION ============== */
-    var rewardProgressData = {
-      'all': {
-        jessicadavis:   { reward: 'Welcome Gift Box',     progress: '210/300', pct: 70,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        marcusking:     { reward: '20% Off First Order',  progress: '500/500', pct: 100, status: 'unlocked',    statusLabel: 'Unlocked',    type: 'points' },
-        amylee_creates: { reward: 'Free Conference Swag', progress: '',        pct: 0,   status: 'approved',    statusLabel: 'Approved',    type: 'per-approval' },
-        tyreese_r:      { reward: 'Welcome Gift Box',     progress: '125/300', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        nina_k:         { reward: '20% Off First Order',  progress: '325/500', pct: 65,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
-      },
-      'welcome-gift': {
-        jessicadavis:   { progress: '210/300', pct: 70,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        marcusking:     { progress: '85/300',  pct: 28,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        amylee_creates: { progress: '40/300',  pct: 13,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        tyreese_r:      { progress: '125/300', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        nina_k:         { progress: '190/300', pct: 63,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
-      },
-      '20-off': {
-        jessicadavis:   { progress: '120/500', pct: 24,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        marcusking:     { progress: '500/500', pct: 100, status: 'unlocked',    statusLabel: 'Unlocked',    type: 'points' },
-        amylee_creates: { progress: '75/500',  pct: 15,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        tyreese_r:      { progress: '210/500', pct: 42,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' },
-        nina_k:         { progress: '325/500', pct: 65,  status: 'in-progress', statusLabel: 'In Progress', type: 'points' }
-      },
-      'conf-swag': {
-        jessicadavis:   { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
-        marcusking:     { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
-        amylee_creates: { progress: '', pct: 0, status: 'approved', statusLabel: 'Approved', type: 'per-approval' },
-        tyreese_r:      { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' },
-        nina_k:         { progress: '', pct: 0, status: 'pending',  statusLabel: 'Pending',  type: 'per-approval' }
-      },
-      '25-review': {
-        jessicadavis:   { progress: '$75', pct: 0, status: 'in-progress', statusLabel: '3 Approved', type: 'cash' },
-        marcusking:     { progress: '$150', pct: 0, status: 'in-progress', statusLabel: '6 Approved', type: 'cash' },
-        amylee_creates: { progress: '$25', pct: 0, status: 'in-progress', statusLabel: '1 Approved', type: 'cash' },
-        tyreese_r:      { progress: '$50', pct: 0, status: 'in-progress', statusLabel: '2 Approved', type: 'cash' },
-        nina_k:         { progress: '$100', pct: 0, status: 'in-progress', statusLabel: '4 Approved', type: 'cash' }
-      },
-      '10-bonus': {
-        jessicadavis:   { progress: '$30', pct: 0, status: 'in-progress', statusLabel: '3 Posts', type: 'cash' },
-        marcusking:     { progress: '$50', pct: 0, status: 'in-progress', statusLabel: '5 Posts', type: 'cash' },
-        amylee_creates: { progress: '$20', pct: 0, status: 'in-progress', statusLabel: '2 Posts', type: 'cash' },
-        tyreese_r:      { progress: '$10', pct: 0, status: 'in-progress', statusLabel: '1 Post',  type: 'cash' },
-        nina_k:         { progress: '$40', pct: 0, status: 'in-progress', statusLabel: '4 Posts', type: 'cash' }
-      }
-    };
-
     var selectedRewardPill = 'all';
 
     function selectRewardPill(btn) {
       document.querySelectorAll('.reward-pill').forEach(function(p) { p.classList.remove('active'); });
       btn.classList.add('active');
       selectedRewardPill = btn.getAttribute('data-reward');
-      updateRewardTable();
+      // Reward table is now rendered from API data — pill filtering handled there
+      if (typeof window.loadCashRewards === 'function') window.loadCashRewards();
     }
 
+    // updateRewardTable is now handled by API-driven renderRewardTable
     function updateRewardTable() {
-      var data = rewardProgressData[selectedRewardPill];
-      if (!data) return;
-      var isAll = selectedRewardPill === 'all';
-
-      document.querySelectorAll('[data-influencer-row]').forEach(function(row) {
-        var key = row.getAttribute('data-influencer-row');
-        var d = data[key];
-        if (!d) return;
-
-        // Update reward column
-        var rewardCol = row.querySelector('.reward-col');
-        if (rewardCol) {
-          if (isAll) {
-            rewardCol.textContent = d.reward;
-          } else {
-            // Show the selected reward name from the pill
-            var pillBtn = document.querySelector('.reward-pill[data-reward="' + selectedRewardPill + '"]');
-            var pillText = pillBtn ? pillBtn.textContent.replace(/·.*/, '').trim() : '';
-            rewardCol.textContent = pillText;
-          }
-        }
-
-        // Update progress column
-        var progressCol = row.querySelector('.progress-col');
-        if (progressCol) {
-          if (d.type === 'points') {
-            progressCol.innerHTML = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + d.pct + '%"></div></div><span class="progress-mini-text">' + d.progress + '</span></div>';
-          } else if (d.type === 'per-approval') {
-            progressCol.innerHTML = '<span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>';
-          } else if (d.type === 'cash') {
-            progressCol.innerHTML = '<span class="cash-amount-badge">' + d.progress + ' earned</span>';
-          }
-        }
-
-        // Update status column
-        var statusCol = row.querySelector('.reward-status-badge');
-        if (statusCol) {
-          statusCol.className = 'reward-status-badge ' + d.status;
-          statusCol.textContent = d.statusLabel;
-        }
-      });
+      // No-op — reward table is rendered from live API data
     }
 
     /* ============== DISTRIBUTE REWARD BUTTON STATE ============== */
@@ -2371,7 +1968,20 @@
 
     /* ============== DISTRIBUTE REWARD → NAVIGATE ============== */
     document.getElementById('distributeRewardBtn').addEventListener('click', function() {
-      window.location.href = 'distribute-reward.html';
+      // Pass selected influencer ID + name to Distribute Reward page
+      var checked = document.querySelector('.reward-checkbox:checked');
+      var row = checked ? checked.closest('tr') : null;
+      var influencerId = row ? row.getAttribute('data-partner-id') : '';
+      var infCell = row ? row.querySelector('[data-influencer]') : null;
+      var infKey = infCell ? infCell.getAttribute('data-influencer') : '';
+      var infData = _influencerLookup[infKey] || {};
+      var url = 'distribute-reward.html';
+      var params = [];
+      if (influencerId) params.push('influencerId=' + encodeURIComponent(influencerId));
+      if (infData.name) params.push('name=' + encodeURIComponent(infData.name));
+      if (infData.handle) params.push('handle=' + encodeURIComponent(infData.handle.replace(/^@/, '')));
+      if (params.length) url += '?' + params.join('&');
+      window.location.href = url;
     });
 
     /* ============== MANAGE REWARDS TOGGLE ============== */
@@ -2383,45 +1993,52 @@
     }
 
     /* ============== INFLUENCER PROFILE MODAL ============== */
-    var influencerData = {
-      jessicadavis:   { initials: 'JD', handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
-      marcusking:     { initials: 'MK', handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
-      amylee_creates: { initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
-      tyreese_r:      { initials: 'TR', handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
-      nina_k:         { initials: 'NK', handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' }
-    };
-
-    document.querySelectorAll('[data-influencer]').forEach(function(el) {
-      el.addEventListener('click', function() {
-        var key = this.getAttribute('data-influencer');
-        var data = influencerData[key];
-        if (!data) return;
-        document.getElementById('ipAvatar').textContent = data.initials;
-        document.getElementById('ipModalHandle').textContent = data.handle;
-        document.getElementById('ipName').textContent = data.name;
-        var tierEl = document.getElementById('ipTier');
-        tierEl.textContent = data.tier;
-        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
-        document.getElementById('ipFollowers').textContent = data.followers;
-        document.getElementById('ipEngagement').textContent = data.engagement;
-        document.getElementById('ipPosts').textContent = data.posts;
-        document.getElementById('ipBio').textContent = data.bio;
-        /* Sync brand badge with active brand context */
-        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
-          var brandLogoEl = document.getElementById('ipBrandLogo');
-          if (ab.logoUrl) {
-            brandLogoEl.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
-            brandLogoEl.style.background = '#fff';
-          } else {
-            brandLogoEl.textContent = ab.abbreviation || 'KP';
-            brandLogoEl.style.background = ab.color || '#2EA5DD';
-          }
-          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
-        }
-        openModal('influencerProfileModal');
+    // Bind click handlers on influencer name elements to open profile modal
+    function _bindInfluencerClicks() {
+      document.querySelectorAll('[data-influencer]').forEach(function(el) {
+        // Avoid double-binding
+        if (el._kupBound) return;
+        el._kupBound = true;
+        el.addEventListener('click', function() {
+          var key = this.getAttribute('data-influencer');
+          var data = _influencerLookup[key];
+          if (!data) return;
+          var PERSON_SVG_MODAL = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+          document.getElementById('ipAvatar').innerHTML = PERSON_SVG_MODAL;
+          document.getElementById('ipModalHandle').textContent = data.handle || '';
+          document.getElementById('ipName').textContent = data.name || '';
+          var tierEl = document.getElementById('ipTier');
+          tierEl.textContent = data.tier || 'Influencer';
+          tierEl.className = 'ip-tier tier-badge ' + (data.tierClass || 'micro');
+          document.getElementById('ipFollowers').textContent = data.followers || '0';
+          document.getElementById('ipEngagement').textContent = data.engagement || '0%';
+          document.getElementById('ipPosts').textContent = data.posts || '0';
+          document.getElementById('ipBio').textContent = data.bio || '';
+          /* Sync brand badge with active brand context */
+          try {
+            if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+              var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+              if (ab) {
+                var brandLogoEl = document.getElementById('ipBrandLogo');
+                if (ab.logoUrl) {
+                  brandLogoEl.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
+                  brandLogoEl.style.background = '#fff';
+                } else {
+                  brandLogoEl.textContent = ab.abbreviation || 'KP';
+                  brandLogoEl.style.background = ab.color || '#2EA5DD';
+                }
+                document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+              }
+            }
+          } catch(e) {}
+          openModal('influencerProfileModal');
+        });
       });
-    });
+    }
+
+    // Global influencer lookup populated by API data
+    var _influencerLookup = {};
+
     document.getElementById('ipModalClose').addEventListener('click', function() {
       closeModal('influencerProfileModal');
     });
@@ -2456,6 +2073,11 @@
     <script src="/js/brand-context.js"></script>
     Architecture doc: /brands/KeepUsPostd/product/REWARD_SYSTEM_ARCHITECTURE.md
   -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
   <script src="/js/platform-config.js"></script>
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
@@ -2487,6 +2109,502 @@
         }
       }
     })();
+  </script>
+  <script>
+  /* ============== CASH & REWARDS — LIVE API WIRING ============== */
+  (function() {
+    var brand = null;
+    try {
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') brand = KUP_BRAND_CONTEXT.getActiveBrand();
+    } catch(e) {}
+
+    // brandId resolved later inside loadCashRewards via direct API fallback
+    var _resolvedBrandId = (brand && (brand.mongoId || brand._id || brand.id)) || null;
+
+    var AVATAR_GRADIENTS = [
+      'linear-gradient(135deg, #667eea, #764ba2)',
+      'linear-gradient(135deg, #ED8444, #e06030)',
+      'linear-gradient(135deg, #43b692, #2d8a6b)',
+      'linear-gradient(135deg, #707BBB, #5a6aaa)',
+      'linear-gradient(135deg, #e84393, #d63384)',
+      'linear-gradient(135deg, #00b894, #00a07a)',
+      'linear-gradient(135deg, #fdcb6e, #e17055)'
+    ];
+
+    var REWARD_TYPE_LABELS = {
+      'points_store_credit': 'Points / Store Credit',
+      'free_product': 'Free Product or Service',
+      'discount': 'Discount / Coupon',
+      'cash_per_approval': 'Cash Per Approval',
+      'bonus_cash': 'Bonus Cash',
+      'postd_pay': 'Postd Pay'
+    };
+
+    var REWARD_ICONS = {
+      'points_store_credit': 'ph-coins',
+      'free_product': 'ph-gift',
+      'discount': 'ph-tag',
+      'cash_per_approval': 'ph-coins',
+      'bonus_cash': 'ph-target',
+      'postd_pay': 'ph-currency-dollar'
+    };
+
+    var TIER_LABELS = {
+      nano: 'Nano Influencer', micro: 'Micro Influencer',
+      mid: 'Mid-Tier Influencer', macro: 'Macro Influencer',
+      mega: 'Mega Influencer', celebrity: 'Celebrity'
+    };
+
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
+    function fmtMoney(n) {
+      return '$' + (Number(n) || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    function _fmtNum(n) {
+      n = Number(n) || 0;
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return String(n);
+    }
+
+    function isCashType(type) {
+      return ['cash_per_approval','bonus_cash','postd_pay'].indexOf(type) !== -1;
+    }
+
+    // ---- CASH TAB: Transaction table ----
+    function buildCashRow(tx, index) {
+      var inf = tx.payeeInfluencerId || {};
+      var handle = inf.handle || inf.displayName || 'Unknown';
+      var tier = TIER_LABELS[inf.influenceTier] || inf.influenceTier || 'Influencer';
+      var bg = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
+      var partnerId = inf._id || tx.payeeInfluencerId || '';
+      var infKey = (handle || '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '_');
+      // Populate lookup for profile modal
+      _influencerLookup[infKey] = {
+        handle: '@' + (handle || '').replace(/^@/, ''),
+        name: inf.displayName || inf.name || handle,
+        tier: tier,
+        tierClass: (inf.influenceTier || 'micro').toLowerCase(),
+        followers: _fmtNum(inf.followerCount || inf.followers || 0),
+        engagement: (inf.engagementRate || inf.engagement || 0) + '%',
+        posts: String(inf.totalSubmissions || inf.posts || 0),
+        bio: inf.bio || ''
+      };
+      return '<tr data-partner-id="' + partnerId + '">' +
+        '<td data-label="Influencer"><div class="check-influencer">' +
+          '<input type="checkbox" aria-label="Select ' + handle + '">' +
+          '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+            '<div class="avatar">' + PERSON_SVG + '</div>' +
+            '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
+          '</div></div></td>' +
+        '<td data-label="Last Paid" class="amount-cell" style="text-align:center;">' + fmtMoney(tx.amount) + '</td>' +
+        '<td data-label="Total Paid" class="amount-cell green" style="text-align:center;">' + fmtMoney(inf.totalCashEarned || tx.amount) + '</td>' +
+        '<td data-label="Transactions" class="transaction-count">' + (inf.totalSubmissions || 1) + '</td>' +
+      '</tr>';
+    }
+
+    // Demo influencer for testing when no partnerships exist yet
+    var DEMO_INFLUENCER = {
+      _id: 'demo_santana',
+      handle: 'santanathrasybule',
+      displayName: 'Santana T.',
+      influenceTier: 'micro',
+      followerCount: 1200,
+      engagementRate: 4.5,
+      totalSubmissions: 3,
+      totalCashEarned: 0,
+      bio: 'Platform test influencer — founder account used for development testing.'
+    };
+
+    function _buildDemoCashRow() {
+      var inf = DEMO_INFLUENCER;
+      var bg = AVATAR_GRADIENTS[0];
+      var infKey = inf.handle;
+      _influencerLookup[infKey] = {
+        handle: '@' + inf.handle, name: inf.displayName, tier: TIER_LABELS[inf.influenceTier] || 'Micro Influencer',
+        tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
+        posts: String(inf.totalSubmissions), bio: inf.bio
+      };
+      return '<tr data-partner-id="' + inf._id + '">' +
+        '<td data-label="Influencer"><div class="check-influencer">' +
+          '<input type="checkbox" aria-label="Select ' + inf.handle + '">' +
+          '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+            '<div class="avatar">' + PERSON_SVG + '</div>' +
+            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
+          '</div></div></td>' +
+        '<td data-label="Last Paid" class="amount-cell" style="text-align:center;">$0.00</td>' +
+        '<td data-label="Total Paid" class="amount-cell green" style="text-align:center;">$0.00</td>' +
+        '<td data-label="Transactions" class="transaction-count">0</td>' +
+      '</tr>';
+    }
+
+    function renderCashTable(transactions) {
+      var tbody = document.getElementById('cashTbody');
+      if (!tbody) return;
+      if (!transactions || transactions.length === 0) {
+        // Show demo influencer row so the page is navigable
+        tbody.innerHTML = _buildDemoCashRow();
+        var footer = document.getElementById('cashTableShowing');
+        if (footer) footer.textContent = 'Showing 1 influencer';
+        // Bind checkbox + profile click
+        document.querySelectorAll('.check-influencer input[type="checkbox"]').forEach(function(cb) {
+          cb.addEventListener('change', updatePostdPay);
+        });
+        _bindInfluencerClicks();
+        return;
+      }
+      var html = '';
+      transactions.forEach(function(tx, i) { html += buildCashRow(tx, i); });
+      tbody.innerHTML = html;
+      var footer = document.getElementById('cashTableShowing');
+      if (footer) footer.textContent = 'Showing ' + transactions.length + ' influencer' + (transactions.length !== 1 ? 's' : '');
+
+      // Re-bind checkbox listeners for PostdPay button state
+      document.querySelectorAll('.check-influencer input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener('change', updatePostdPay);
+      });
+      // Re-bind influencer profile modal click handlers
+      _bindInfluencerClicks();
+    }
+
+    // ---- CASH TAB: Summary cards ----
+    function updateCashStats(transactions) {
+      var totalPaid = 0, pending = 0, pendingCount = 0;
+      (transactions || []).forEach(function(tx) {
+        if (tx.status === 'paid') totalPaid += (tx.amount || 0);
+        if (tx.status === 'pending' || tx.status === 'processing') {
+          pending += (tx.amount || 0);
+          pendingCount++;
+        }
+      });
+      var el;
+      el = document.getElementById('cashTotalPaid'); if (el) el.textContent = fmtMoney(totalPaid);
+      el = document.getElementById('cashPending'); if (el) el.textContent = fmtMoney(pending);
+      el = document.getElementById('cashPendingSub'); if (el) el.textContent = pendingCount + ' pending payout' + (pendingCount !== 1 ? 's' : '');
+      el = document.getElementById('cashTotalTx'); if (el) el.textContent = (transactions || []).length;
+    }
+
+    // ---- REWARDS TAB: Pill strip ----
+    function renderRewardPills(rewards) {
+      var strip = document.getElementById('rewardPillStrip');
+      if (!strip) return;
+      // Keep the "All Rewards" pill, add one per reward
+      var allBtn = strip.querySelector('[data-reward="all"]');
+      strip.innerHTML = '';
+      if (allBtn) strip.appendChild(allBtn);
+      rewards.forEach(function(r) {
+        var slug = (r._id || '').slice(-6);
+        var icon = REWARD_ICONS[r.type] || 'ph-gift';
+        var meta = '';
+        if (r.type === 'cash_per_approval' && r.cashConfig) meta = ' <span class="pill-meta">&middot; ' + fmtMoney(r.cashConfig.amountPerApproval || 0) + '/approval</span>';
+        else if (r.type === 'bonus_cash' && r.cashConfig) meta = ' <span class="pill-meta">&middot; ' + fmtMoney(r.cashConfig.amountPerApproval || 0) + '/post</span>';
+        else if (r.pointConfig && r.pointConfig.pointsToUnlock) meta = ' <span class="pill-meta">&middot; ' + r.pointConfig.pointsToUnlock + ' pts</span>';
+        else if (r.earningMethod === 'per_approval') meta = ' <span class="pill-meta">&middot; <i class="ph ph-lightning"></i></span>';
+
+        var btn = document.createElement('button');
+        btn.className = 'reward-pill';
+        btn.setAttribute('data-reward', slug);
+        btn.setAttribute('onclick', 'selectRewardPill(this)');
+        btn.innerHTML = '<span class="pill-icon"><i class="ph ' + icon + '"></i></span> ' + (r.title || 'Untitled') + meta;
+        strip.appendChild(btn);
+      });
+    }
+
+    // ---- REWARDS TAB: Reward table (influencer × reward progress) ----
+    // This is a placeholder until per-influencer reward progress API exists
+    // For now, show partnerships with their points progress toward each reward
+    function _buildDemoRewardRow(rewards) {
+      var inf = DEMO_INFLUENCER;
+      var bg = AVATAR_GRADIENTS[0];
+      var infKey = inf.handle;
+      _influencerLookup[infKey] = {
+        handle: '@' + inf.handle, name: inf.displayName, tier: TIER_LABELS[inf.influenceTier] || 'Micro Influencer',
+        tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
+        posts: String(inf.totalSubmissions), bio: inf.bio
+      };
+      var rewardTitle = (rewards && rewards.length > 0) ? (rewards[0].title || 'Untitled') : 'No rewards created';
+      var progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:0%"></div></div><span class="progress-mini-text">0/100</span></div>';
+      var statusHtml = '<span class="reward-status-badge in-progress">In Progress</span>';
+      return '<tr data-influencer-row="' + inf.handle + '" data-partner-id="' + inf._id + '">' +
+        '<td data-label="Influencer"><div class="check-influencer">' +
+          '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + inf.handle + '">' +
+          '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+            '<div class="avatar">' + PERSON_SVG + '</div>' +
+            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
+          '</div></div></td>' +
+        '<td data-label="Reward" style="text-align:center;" class="reward-col">' + rewardTitle + '</td>' +
+        '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
+        '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
+      '</tr>';
+    }
+
+    function renderRewardTable(rewards, partnerships) {
+      var tbody = document.getElementById('rewardTableBody');
+      if (!tbody) return;
+      if (!partnerships || partnerships.length === 0) {
+        // Show demo influencer row so user can navigate to distribute-reward
+        tbody.innerHTML = _buildDemoRewardRow(rewards);
+        var footer = document.getElementById('rewardTableShowing');
+        if (footer) footer.textContent = 'Showing 1 influencer';
+        _bindInfluencerClicks();
+        return;
+      }
+
+      var html = '';
+      var count = 0;
+      // Map each partnership to its closest reward for display
+      (partnerships || []).forEach(function(p, idx) {
+        var inf = p.influencerProfileId || {};
+        var handle = inf.handle || inf.displayName || 'Unknown';
+        var tier = TIER_LABELS[inf.influenceTier] || inf.influenceTier || 'Influencer';
+        var bg = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
+        var totalPts = inf.totalPointsEarned || 0;
+
+        // Pick the best-fit reward for this influencer
+        var assignedReward = rewards[idx % rewards.length] || rewards[0];
+        if (!assignedReward) return;
+
+        var rewardTitle = assignedReward.title || 'Untitled';
+        var progressHtml = '';
+        var statusHtml = '';
+
+        if (assignedReward.earningMethod === 'per_approval' || assignedReward.type === 'cash_per_approval' || assignedReward.type === 'bonus_cash') {
+          progressHtml = '<span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>';
+          statusHtml = '<span class="reward-status-badge approved">Active</span>';
+        } else {
+          var target = (assignedReward.pointConfig && assignedReward.pointConfig.pointsToUnlock) || 100;
+          var current = Math.min(totalPts, target);
+          var pct = Math.round((current / target) * 100);
+          var statusClass = pct >= 100 ? 'unlocked' : 'in-progress';
+          var statusLabel = pct >= 100 ? 'Unlocked' : 'In Progress';
+          progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + pct + '%"></div></div><span class="progress-mini-text">' + current + '/' + target + '</span></div>';
+          statusHtml = '<span class="reward-status-badge ' + statusClass + '">' + statusLabel + '</span>';
+        }
+
+        var partnerId = p._id || p.influencerId || '';
+        var infKey = (handle || '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '_');
+        // Populate lookup for profile modal
+        _influencerLookup[infKey] = {
+          handle: '@' + (handle || '').replace(/^@/, ''),
+          name: inf.displayName || inf.name || handle,
+          tier: tier,
+          tierClass: (inf.influenceTier || 'micro').toLowerCase(),
+          followers: _fmtNum(inf.followerCount || inf.followers || 0),
+          engagement: (inf.engagementRate || inf.engagement || 0) + '%',
+          posts: String(inf.totalSubmissions || inf.posts || 0),
+          bio: inf.bio || ''
+        };
+        html += '<tr data-influencer-row="' + handle + '" data-partner-id="' + partnerId + '">' +
+          '<td data-label="Influencer"><div class="check-influencer">' +
+            '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + handle + '">' +
+            '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+              '<div class="avatar">' + PERSON_SVG + '</div>' +
+              '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
+            '</div></div></td>' +
+          '<td data-label="Reward" style="text-align:center;" class="reward-col">' + rewardTitle + '</td>' +
+          '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
+          '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
+        '</tr>';
+        count++;
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">No influencer reward activity yet.</td></tr>';
+      var footerEl = document.getElementById('rewardTableShowing');
+      if (footerEl) footerEl.textContent = 'Showing ' + count + ' influencer' + (count !== 1 ? 's' : '');
+    }
+
+    // ---- MANAGE REWARDS: Non-cash and cash cards ----
+    function buildRewardCard(r, isCash) {
+      var icon = REWARD_ICONS[r.type] || 'ph-gift';
+      var typeLabel = REWARD_TYPE_LABELS[r.type] || r.type;
+      var iconClass = isCash ? 'cash' : 'nc';
+
+      var metaHtml = '';
+      if (isCash) {
+        var amt = (r.cashConfig && r.cashConfig.amountPerApproval) || 0;
+        var suffix = r.type === 'bonus_cash' ? '/post' : '/approval';
+        metaHtml = '<span class="cash-amount-badge">' + fmtMoney(amt) + suffix + '</span>';
+      } else if (r.earningMethod === 'per_approval') {
+        metaHtml = '<span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>';
+      } else {
+        // Point categories
+        var tags = '';
+        if (r.pointConfig) {
+          if (r.pointConfig.contentPoints) tags += '<span class="point-cat-tag content-pts">Content Pts</span>';
+          if (r.pointConfig.purchasePoints) tags += '<span class="point-cat-tag purchase-pts">Purchase Pts</span>';
+          if (r.pointConfig.gratitudePoints) tags += '<span class="point-cat-tag gratitude-pts">Gratitude</span>';
+        }
+        if (tags) metaHtml += '<div class="point-cat-tags">' + tags + '</div>';
+        var pts = (r.pointConfig && r.pointConfig.pointsToUnlock) || 0;
+        if (pts) metaHtml += '<span class="unlock-badge"><i class="ph ph-lock"></i> ' + pts + ' pts to unlock</span>';
+      }
+
+      var statusBadge = '';
+      if (r.status === 'draft') statusBadge = '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700;background:rgba(245,158,11,0.1);color:#f59e0b;margin-left:6px">Draft</span>';
+      else if (r.status === 'paused') statusBadge = '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700;background:rgba(136,136,136,0.1);color:#888;margin-left:6px">Paused</span>';
+
+      return '<div class="reward-card-enhanced">' +
+        '<div class="rce-top">' +
+          '<div class="rce-icon ' + iconClass + '"><i class="ph ' + icon + '"></i></div>' +
+          '<div class="rce-info">' +
+            '<h4 class="rce-title">' + (r.title || 'Untitled') + statusBadge + '</h4>' +
+            '<span class="reward-type-badge">' + typeLabel + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<p class="rce-desc">' + (r.description || '') + '</p>' +
+        metaHtml +
+        '<div class="reward-card-actions">' +
+          '<button class="rca-btn" onclick="window.location.href=\'brand-reward.html?edit=' + r._id + '\'">Edit</button>' +
+          '<button class="rca-btn delete" data-reward-id="' + r._id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function renderManageRewards(rewards) {
+      var nonCash = rewards.filter(function(r) { return !isCashType(r.type); });
+      var cash = rewards.filter(function(r) { return isCashType(r.type); });
+      var activeCount = rewards.filter(function(r) { return r.status === 'active'; }).length;
+
+      // Counts
+      var el;
+      el = document.getElementById('rewardActiveCount'); if (el) el.textContent = activeCount;
+      el = document.getElementById('manageRewardsCount'); if (el) el.textContent = '(' + activeCount + ' active)';
+      el = document.getElementById('nonCashCount'); if (el) el.textContent = nonCash.length;
+      el = document.getElementById('cashOfferCount'); if (el) el.textContent = cash.length;
+
+      // Non-cash section
+      var ncBody = document.getElementById('bodyNonCash');
+      if (ncBody) {
+        if (nonCash.length === 0) {
+          ncBody.innerHTML = '<p style="color:#999; text-align:center; padding:1rem;">No non-cash rewards yet. Create one to get started.</p>';
+        } else {
+          ncBody.innerHTML = nonCash.map(function(r) { return buildRewardCard(r, false); }).join('');
+        }
+      }
+
+      // Cash section
+      var cBody = document.getElementById('bodyCash');
+      if (cBody) {
+        var cashHtml = '';
+        if (cash.length === 0) {
+          cashHtml = '<p style="color:#999; text-align:center; padding:1rem;">No cash offers yet.</p>';
+        } else {
+          cashHtml = cash.map(function(r) { return buildRewardCard(r, true); }).join('');
+        }
+        // Always append PostdPay system card
+        cashHtml += '<div class="postdpay-system-card">' +
+          '<span style="font-size:1.5rem"><i class="ph ph-currency-dollar"></i></span>' +
+          '<div class="psc-title">Postd Pay</div>' +
+          '<p class="psc-desc">Send any amount to any influencer, anytime from the Cash tab.</p>' +
+          '<a href="#" class="psc-link" onclick="switchCashTab(\'cash\'); return false;">Go to Cash Tab &rarr;</a>' +
+        '</div>';
+        cBody.innerHTML = cashHtml;
+      }
+
+      // Bind delete buttons
+      document.querySelectorAll('.rca-btn.delete[data-reward-id]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.getAttribute('data-reward-id');
+          if (confirm('Delete this reward? Only draft rewards can be deleted.')) {
+            kupApi.delete('/api/rewards/' + id).then(function(res) {
+              if (res && res.error) { alert(res.error); return; }
+              loadCashRewards();
+            }).catch(function() { alert('Failed to delete reward.'); });
+          }
+        });
+      });
+    }
+
+    // ---- MAIN LOADER ----
+    function loadCashRewards() {
+      // Resolve brandId — try brand context first, then direct API fallback
+      var brandIdPromise;
+      if (_resolvedBrandId) {
+        brandIdPromise = Promise.resolve(_resolvedBrandId);
+      } else {
+        brandIdPromise = kupApi.get('/api/brands').then(function(data) {
+          var brands = data && data.brands ? data.brands : [];
+          if (brands.length > 0) {
+            _resolvedBrandId = brands[0]._id;
+            // Sync back to brand context
+            try {
+              if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+                var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+                if (ab) { ab.mongoId = _resolvedBrandId; KUP_BRAND_CONTEXT.setActiveBrand(ab); }
+              }
+            } catch(e) {}
+            return _resolvedBrandId;
+          }
+          return null;
+        });
+      }
+
+      brandIdPromise.then(function(brandId) {
+        if (!brandId) {
+          var tbody = document.getElementById('cashTbody');
+          if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">No active brand selected. Please set up a brand first.</td></tr>';
+          return;
+        }
+        _resolvedBrandId = brandId;
+        _loadCashRewardsData(brandId);
+      });
+    }
+
+    function _loadCashRewardsData(brandId) {
+      Promise.all([
+        kupApi.get('/api/payouts/transactions?brandId=' + brandId),
+        kupApi.get('/api/rewards?brandId=' + brandId),
+        kupApi.get('/api/partnerships?brandId=' + brandId)
+      ]).then(function(results) {
+        var txData = results[0] || {};
+        var rewardData = results[1] || {};
+        var partnerData = results[2] || {};
+
+        var transactions = txData.transactions || txData || [];
+        if (!Array.isArray(transactions)) transactions = [];
+
+        var rewards = rewardData.rewards || rewardData || [];
+        if (!Array.isArray(rewards)) rewards = [];
+
+        var partnerships = partnerData.partnerships || partnerData || [];
+        if (!Array.isArray(partnerships)) partnerships = [];
+
+        // Cash tab
+        updateCashStats(transactions);
+        renderCashTable(transactions);
+
+        // Rewards tab
+        renderRewardPills(rewards);
+        renderRewardTable(rewards, partnerships);
+        renderManageRewards(rewards);
+
+        // Bind all influencer profile click handlers on new DOM rows
+        _bindInfluencerClicks();
+      }).catch(function(err) {
+        console.error('Failed to load cash/rewards data:', err);
+        var tbody = document.getElementById('cashTbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#c0392b;">Failed to load data. Please refresh.</td></tr>';
+      });
+    }
+
+    // Expose for refresh after actions
+    window.loadCashRewards = loadCashRewards;
+
+    // Wait for Firebase auth before loading data
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (user) { loadCashRewards(); }
+      });
+    } else {
+      // Fallback if firebase not loaded
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadCashRewards);
+      } else {
+        loadCashRewards();
+      }
+    }
+  })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Mobile Bottom Navigation -->

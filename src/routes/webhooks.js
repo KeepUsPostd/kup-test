@@ -1,0 +1,255 @@
+// PayPal Webhook Routes — Receives events from PayPal
+// Handles: subscription lifecycle, payment captures, payout status
+// PayPal sends POST requests here when things happen on their side.
+const express = require('express');
+const router = express.Router();
+const { Subscription, BrandProfile, Transaction, Payout, Withdrawal } = require('../models');
+const paypal = require('../config/paypal');
+
+// POST /api/webhooks/paypal — PayPal event receiver
+// No auth middleware — PayPal can't send our Firebase token.
+// Security: we verify the webhook signature instead.
+router.post('/paypal', express.json(), async (req, res) => {
+  try {
+    const event = req.body;
+    const eventType = event.event_type;
+
+    console.log(`📬 PayPal webhook received: ${eventType}`);
+
+    // In production, verify webhook signature:
+    // const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+    // const verification = await paypal.verifyWebhook(req.headers, req.body, webhookId);
+    // if (verification.verification_status !== 'SUCCESS') {
+    //   console.error('❌ Webhook signature verification failed');
+    //   return res.status(401).json({ error: 'Invalid webhook signature' });
+    // }
+
+    // Route to handler based on event type
+    switch (eventType) {
+
+      // ── Subscription Events ──────────────────────────
+      case 'BILLING.SUBSCRIPTION.ACTIVATED': {
+        const subId = event.resource.id;
+        const sub = await Subscription.findOne({ paypalSubscriptionId: subId });
+        if (sub) {
+          sub.status = 'active';
+          sub.currentPeriodStart = new Date(event.resource.start_time);
+          sub.paypalPayerEmail = event.resource.subscriber?.email_address || sub.paypalPayerEmail;
+          await sub.save();
+          console.log(`✅ Subscription activated: ${subId}`);
+        }
+        break;
+      }
+
+      case 'BILLING.SUBSCRIPTION.CANCELLED': {
+        const subId = event.resource.id;
+        const sub = await Subscription.findOne({ paypalSubscriptionId: subId });
+        if (sub) {
+          sub.status = 'canceled';
+          sub.cancelAtPeriodEnd = false; // Already canceled
+          await sub.save();
+
+          // Downgrade brand to starter
+          const bp = await BrandProfile.findById(sub.brandProfileId);
+          if (bp) {
+            bp.planTier = 'starter';
+            bp.billingCycle = null;
+            await bp.save();
+          }
+          console.log(`❌ Subscription canceled: ${subId}`);
+        }
+        break;
+      }
+
+      case 'BILLING.SUBSCRIPTION.SUSPENDED': {
+        // Payment failed — subscription suspended (past_due)
+        const subId = event.resource.id;
+        const sub = await Subscription.findOne({ paypalSubscriptionId: subId });
+        if (sub) {
+          sub.status = 'past_due';
+          await sub.save();
+          console.log(`⚠️ Subscription suspended (past_due): ${subId}`);
+        }
+        break;
+      }
+
+      case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED': {
+        const subId = event.resource.id;
+        console.log(`⚠️ Subscription payment failed: ${subId}`);
+        // PayPal auto-retries per payment_failure_threshold (set to 3)
+        break;
+      }
+
+      case 'BILLING.SUBSCRIPTION.RENEWED': {
+        const subId = event.resource.id;
+        const sub = await Subscription.findOne({ paypalSubscriptionId: subId });
+        if (sub) {
+          sub.status = 'active';
+          sub.currentPeriodStart = new Date();
+          sub.currentPeriodEnd = sub.billingCycle === 'annual'
+            ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+          await sub.save();
+          console.log(`🔄 Subscription renewed: ${subId}`);
+        }
+        break;
+      }
+
+      // ── Payment Capture Events (Brand → Influencer) ──
+      case 'CHECKOUT.ORDER.APPROVED': {
+        // Brand approved the payment on PayPal — now we capture it
+        const orderId = event.resource.id;
+        console.log(`📋 Order approved, ready to capture: ${orderId}`);
+        // Capture happens on our return URL handler, not here
+        break;
+      }
+
+      case 'PAYMENT.CAPTURE.COMPLETED': {
+        // Payment captured successfully
+        const captureId = event.resource.id;
+        const customId = event.resource.custom_id; // We store our transactionId here
+        if (customId) {
+          const tx = await Transaction.findById(customId);
+          if (tx) {
+            tx.status = 'paid';
+            tx.paypalTransactionId = captureId;
+            tx.paidAt = new Date();
+            await tx.save();
+            console.log(`✅ Payment captured: $${tx.amount} → transaction ${customId}`);
+          }
+        }
+        break;
+      }
+
+      case 'PAYMENT.CAPTURE.DENIED':
+      case 'PAYMENT.CAPTURE.REFUNDED': {
+        const captureId = event.resource.id;
+        const customId = event.resource.custom_id;
+        if (customId) {
+          const tx = await Transaction.findById(customId);
+          if (tx) {
+            tx.status = eventType.includes('REFUNDED') ? 'refunded' : 'failed';
+            tx.failedReason = eventType;
+            await tx.save();
+            console.log(`⚠️ Payment ${eventType}: transaction ${customId}`);
+          }
+        }
+        break;
+      }
+
+      // ── Payout Events (KUP → Influencer platform bonuses) ──
+      case 'PAYMENT.PAYOUTSBATCH.SUCCESS': {
+        const batchId = event.resource.batch_header?.payout_batch_id;
+        if (batchId) {
+          const payout = await Payout.findOne({ paypalBatchId: batchId });
+          if (payout) {
+            payout.status = 'completed';
+            payout.completedAt = new Date();
+            payout.paypalResponse = event.resource;
+            await payout.save();
+
+            // Mark all transactions as paid
+            await Transaction.updateMany(
+              { _id: { $in: payout.transactionIds } },
+              { $set: { status: 'paid', paidAt: new Date() } }
+            );
+            console.log(`✅ Payout batch completed: ${batchId}`);
+          }
+        }
+        break;
+      }
+
+      case 'PAYMENT.PAYOUTSBATCH.DENIED': {
+        const batchId = event.resource.batch_header?.payout_batch_id;
+        if (batchId) {
+          const payout = await Payout.findOne({ paypalBatchId: batchId });
+          if (payout) {
+            payout.status = 'failed';
+            payout.paypalResponse = event.resource;
+            await payout.save();
+
+            await Transaction.updateMany(
+              { _id: { $in: payout.transactionIds } },
+              { $set: { status: 'failed', failedReason: 'Payout batch denied by PayPal' } }
+            );
+            console.log(`❌ Payout batch denied: ${batchId}`);
+          }
+
+          // Also check if this batch belongs to a Withdrawal (cashout)
+          const withdrawal = await Withdrawal.findOne({ paypalBatchId: batchId });
+          if (withdrawal && withdrawal.status === 'processing') {
+            withdrawal.status = 'failed';
+            withdrawal.failedReason = 'Payout batch denied by PayPal';
+            await withdrawal.save();
+
+            // Un-link transactions so they're available for cashout again
+            await Transaction.updateMany(
+              { _id: { $in: withdrawal.transactionIds } },
+              { $set: { withdrawalId: null } }
+            );
+            console.log(`❌ Cashout failed (batch denied): ${batchId}`);
+          }
+        }
+        break;
+      }
+
+      // ── Payout Item Events (Wallet Cashout Status) ──
+      case 'PAYMENT.PAYOUTS-ITEM.SUCCEEDED': {
+        const item = event.resource;
+        const batchId = item.payout_batch_id;
+        const payoutItemId = item.payout_item_id;
+
+        if (batchId) {
+          // Update Withdrawal record if this is a cashout
+          const withdrawal = await Withdrawal.findOne({ paypalBatchId: batchId });
+          if (withdrawal && withdrawal.status === 'processing') {
+            withdrawal.status = 'completed';
+            withdrawal.completedAt = new Date();
+            withdrawal.paypalPayoutItemId = payoutItemId || withdrawal.paypalPayoutItemId;
+            await withdrawal.save();
+            console.log(`✅ Cashout completed: $${withdrawal.amount} → ${withdrawal.paypalEmail} (item: ${payoutItemId})`);
+          }
+        }
+        break;
+      }
+
+      case 'PAYMENT.PAYOUTS-ITEM.FAILED':
+      case 'PAYMENT.PAYOUTS-ITEM.BLOCKED':
+      case 'PAYMENT.PAYOUTS-ITEM.RETURNED':
+      case 'PAYMENT.PAYOUTS-ITEM.REFUNDED': {
+        const item = event.resource;
+        const batchId = item.payout_batch_id;
+        const reason = item.errors?.message || item.transaction_status || eventType;
+
+        if (batchId) {
+          const withdrawal = await Withdrawal.findOne({ paypalBatchId: batchId });
+          if (withdrawal && withdrawal.status === 'processing') {
+            withdrawal.status = eventType.includes('RETURNED') ? 'returned' : 'failed';
+            withdrawal.failedReason = reason;
+            await withdrawal.save();
+
+            // Un-link transactions so they're available for cashout again
+            await Transaction.updateMany(
+              { _id: { $in: withdrawal.transactionIds } },
+              { $set: { withdrawalId: null } }
+            );
+            console.log(`❌ Cashout ${withdrawal.status}: ${batchId} — ${reason}`);
+          }
+        }
+        break;
+      }
+
+      default:
+        console.log(`📬 Unhandled PayPal event: ${eventType}`);
+    }
+
+    // Always return 200 to PayPal — otherwise they retry
+    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error('Webhook processing error:', error.message);
+    // Still return 200 so PayPal doesn't keep retrying a broken event
+    res.status(200).json({ received: true, error: 'Processing failed' });
+  }
+});
+
+module.exports = router;

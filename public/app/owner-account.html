@@ -878,19 +878,17 @@
               <button class="notif-tab" data-tab="unread">Unread</button>
             </div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Your <strong>Growth Plan</strong> renewal was processed successfully</p><div class="notif-time">2 hours ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">3 hours ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">Yesterday</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
         <!-- Profile Menu -->
         <div class="profile-menu">
           <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
-            <div class="profile-avatar">ST</div>
+            <div class="profile-avatar" id="headerAvatar">ST</div>
             <div class="profile-info">
-              <div class="name">Santana T.</div>
-              <div class="brand">KeepUsPostd</div>
+              <div class="name" id="headerName">Santana T.</div>
+              <div class="brand" id="headerBrand">KeepUsPostd</div>
             </div>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
@@ -927,7 +925,7 @@
     <!-- Current Plan -->
     <div class="current-plan-bar">
       <span class="plan-label">Your Current Plan:</span>
-      <span class="plan-name">Growth Plan</span>
+      <span class="plan-name" id="currentPlanName">Growth Plan</span>
     </div>
 
     <!-- Tabs -->
@@ -945,14 +943,15 @@
         <!-- Left Column: Profile Card -->
         <div class="col-lg-4 col-md-5 mb-4 mb-lg-0">
           <div class="owner-profile-card">
-            <div class="avatar-lg">ST</div>
-            <div class="owner-name">Santana Thrasybule</div>
-            <div class="owner-role">Account Owner</div>
+            <div class="avatar-lg" id="profileAvatar">ST</div>
+            <div class="owner-name" id="profileFullName">Santana Thrasybule</div>
+            <div class="owner-role" id="profileRole">Account Owner</div>
             <div>
               <button class="btn-upload">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload Photo
               </button>
+              <input type="file" id="photoFileInput" accept="image/*" style="display:none">
             </div>
           </div>
         </div>
@@ -997,8 +996,8 @@
         <div class="card-title">Current Plan</div>
         <div class="plan-detail-row">
           <div class="plan-info">
-            <h3>Growth Plan &mdash; $29/month</h3>
-            <p>Next billing date: April 3, 2026</p>
+            <h3 id="billingPlanTitle">Growth Plan &mdash; $29/month</h3>
+            <p id="billingNextDate">Next billing date: April 3, 2026</p>
           </div>
           <a href="pricing-upgrade.html" class="btn-upgrade-sm">Upgrade Plan</a>
         </div>
@@ -1017,7 +1016,7 @@
             </div>
             <div class="payment-info">
               <div class="method-name">PayPal <span class="connected-badge">Connected</span></div>
-              <div class="method-email">santana@keepuspostd.com</div>
+              <div class="method-email" id="paypalEmail">santana@keepuspostd.com</div>
             </div>
           </div>
           <button class="btn-disconnect">Disconnect</button>
@@ -1037,7 +1036,7 @@
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="billingHistoryBody">
               <tr>
                 <td data-label="Date">Mar 3, 2026</td>
                 <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
@@ -1151,7 +1150,7 @@
       <!-- Team Members Table -->
       <div class="team-section">
         <div class="section-label">Team Members</div>
-        <p class="section-sub">4 members on your team</p>
+        <p class="section-sub" id="teamMemberCount">4 members on your team</p>
         <div class="billing-table-wrap data-table">
           <table class="team-table" id="teamTable">
             <thead>
@@ -1247,6 +1246,12 @@
     <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1355,6 +1360,180 @@
       if (e.key === 'Escape') { closeAllPopovers(); }
     });
 
+    /* ============== HELPERS ============== */
+    function getInitials(name) {
+      if (!name) return '??';
+      var parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+
+    function capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    /* ============== LOAD OWNER ACCOUNT (Real API) ============== */
+    async function loadOwnerAccount() {
+      try {
+        var firebaseUser = auth.currentUser;
+
+        // ── Populate from Firebase immediately ──
+        var displayName = (firebaseUser && firebaseUser.displayName) || '';
+        var email = (firebaseUser && firebaseUser.email) || '';
+        var headerAvatar = document.getElementById('headerAvatar');
+        var headerName = document.getElementById('headerName');
+
+        // Profile card — only update if we have a real display name (not email prefix)
+        var profileAvatar = document.getElementById('profileAvatar');
+        var profileFullName = document.getElementById('profileFullName');
+        if (displayName && displayName.trim().indexOf(' ') > 0) {
+          // Real multi-word name from Firebase — use it
+          var initials = getInitials(displayName);
+          if (profileAvatar) profileAvatar.textContent = initials;
+          if (profileFullName) profileFullName.textContent = displayName;
+        }
+        // Otherwise keep HTML defaults (ST / Santana T.)
+
+        // Form fields — pre-fill from Firebase
+        var nameParts = displayName ? displayName.split(/\s+/) : [];
+        document.getElementById('firstName').value = nameParts[0] || '';
+        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = '';
+        document.getElementById('password').placeholder = '••••••••';
+
+        // ── Backend: GET /api/auth/me ──
+        var meData = null;
+        try {
+          meData = await kupApi.get('/api/auth/me');
+        } catch (err) {
+          console.warn('Owner account: /api/auth/me failed, using Firebase data', err);
+        }
+
+        if (meData) {
+          var user = meData.user || meData;
+          if (user.firstName) document.getElementById('firstName').value = user.firstName;
+          if (user.lastName) document.getElementById('lastName').value = user.lastName;
+          if (user.email) document.getElementById('email').value = user.email;
+
+          var fullName = ((user.firstName || '') + ' ' + (user.lastName || '')).trim();
+          if (fullName) {
+            if (profileFullName) profileFullName.textContent = fullName;
+            var ini = getInitials(fullName);
+            if (profileAvatar) profileAvatar.textContent = ini;
+            // Update header with verified API data (first name + last initial format)
+            if (headerAvatar) headerAvatar.textContent = ini;
+            if (headerName) {
+              var parts = fullName.trim().split(/\s+/);
+              headerName.textContent = parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1].charAt(0) + '.' : fullName;
+            }
+          }
+
+          // If user has a profile photo, show it instead of initials
+          if (user.avatarUrl) {
+            if (profileAvatar) profileAvatar.innerHTML = '<img src="' + user.avatarUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+            if (headerAvatar) headerAvatar.innerHTML = '<img src="' + user.avatarUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+          }
+
+          // Role badge
+          var profileRole = document.getElementById('profileRole');
+          if (profileRole && user.role) profileRole.textContent = capitalize(user.role);
+        }
+
+        // ── Backend: GET /api/brands ──
+        var brandsData = null;
+        try {
+          brandsData = await kupApi.get('/api/brands');
+        } catch (err) {
+          console.warn('Owner account: /api/brands failed', err);
+        }
+
+        // Active brand from context
+        var activeBrand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        var brandName = (activeBrand && activeBrand.name) ? activeBrand.name : 'KeepUsPostd';
+        var planTier = (activeBrand && activeBrand.plan) ? activeBrand.plan : 'growth';
+
+        // If brands API returned data, use the active brand's plan info
+        if (brandsData && brandsData.brands && brandsData.brands.length > 0) {
+          var brands = brandsData.brands;
+          // Find the active brand in the list
+          var matchedBrand = null;
+          if (activeBrand && activeBrand.mongoId) {
+            matchedBrand = brands.find(function(b) { return b._id === activeBrand.mongoId || b.id === activeBrand.mongoId; });
+          }
+          if (!matchedBrand) matchedBrand = brands[0];
+
+          brandName = matchedBrand.name || brandName;
+          planTier = matchedBrand.plan || matchedBrand.planTier || planTier;
+        }
+
+        // Header brand name
+        var headerBrand = document.getElementById('headerBrand');
+        if (headerBrand) headerBrand.textContent = brandName;
+
+        // Plan display
+        var planDisplayName = capitalize(planTier) + ' Plan';
+        var planPrices = { free: '$0', starter: '$9', growth: '$29', pro: '$79', enterprise: '$199' };
+        var price = planPrices[planTier.toLowerCase()] || '';
+
+        var currentPlanName = document.getElementById('currentPlanName');
+        if (currentPlanName) currentPlanName.textContent = planDisplayName;
+
+        var billingPlanTitle = document.getElementById('billingPlanTitle');
+        if (billingPlanTitle) billingPlanTitle.textContent = planDisplayName + (price ? ' \u2014 ' + price + '/month' : '');
+
+        // PayPal email
+        var paypalEmail = document.getElementById('paypalEmail');
+        if (paypalEmail) paypalEmail.textContent = email;
+
+      } catch (err) {
+        console.error('loadOwnerAccount error:', err);
+        kupToast('Failed to load account data', 'error');
+      }
+    }
+
+    /* ============== SAVE PROFILE (Real API) ============== */
+    async function saveOwnerProfile() {
+      var saveBtn = document.querySelector('.btn-save');
+      var origText = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      var firstName = document.getElementById('firstName').value.trim();
+      var lastName = document.getElementById('lastName').value.trim();
+      var emailVal = document.getElementById('email').value.trim();
+      var passwordVal = document.getElementById('password').value;
+
+      var body = { firstName: firstName, lastName: lastName, email: emailVal };
+      if (passwordVal) body.password = passwordVal;
+
+      try {
+        await kupApi.put('/api/auth/profile', body);
+
+        // Update displayed names
+        var fullName = (firstName + ' ' + lastName).trim();
+        var ini = getInitials(fullName);
+        var profileAvatar = document.getElementById('profileAvatar');
+        var profileFullName = document.getElementById('profileFullName');
+        var headerAvatar = document.getElementById('headerAvatar');
+        var headerName = document.getElementById('headerName');
+
+        if (profileAvatar) profileAvatar.textContent = ini;
+        if (profileFullName) profileFullName.textContent = fullName;
+        if (headerAvatar) headerAvatar.textContent = ini;
+        if (headerName) headerName.textContent = firstName + (lastName ? ' ' + lastName.charAt(0) + '.' : '');
+
+        kupToast('Profile changes saved successfully', 'success');
+      } catch (err) {
+        console.error('Save profile error:', err);
+        kupToast('Failed to save profile: ' + (err.message || 'Unknown error'), 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origText;
+      }
+    }
+
     /* ============== TAB SWITCHING ============== */
     document.addEventListener('DOMContentLoaded', function () {
       var tabs = document.querySelectorAll('.owner-tab');
@@ -1371,11 +1550,11 @@
         });
       });
 
-      /* Save Profile Form */
+      /* Save Profile Form — wired to real API */
       var saveBtn = document.querySelector('.btn-save');
       if (saveBtn) {
         saveBtn.addEventListener('click', function() {
-          kupToast('Profile changes saved successfully', 'success');
+          saveOwnerProfile();
         });
       }
 
@@ -1389,9 +1568,49 @@
 
       /* Upload Photo */
       var uploadBtn = document.querySelector('.btn-upload');
-      if (uploadBtn) {
+      var photoInput = document.getElementById('photoFileInput');
+      if (uploadBtn && photoInput) {
         uploadBtn.addEventListener('click', function() {
-          kupToast('Photo upload — feature coming soon', 'info');
+          photoInput.click();
+        });
+        photoInput.addEventListener('change', async function() {
+          var file = this.files[0];
+          if (!file) return;
+          if (file.size > 5 * 1024 * 1024) { kupToast('File too large. Max 5 MB', 'error'); return; }
+          if (!file.type.startsWith('image/')) { kupToast('Please select an image file', 'error'); return; }
+
+          try {
+            kupToast('Uploading photo...', 'info');
+            var result = await kupApi.upload('/api/upload', [file], 'media');
+            console.log('Upload result:', result);
+            if (result && result.urls && result.urls.length > 0) {
+              var photoUrl = result.urls[0];
+              // Save to profile
+              try {
+                var saveResult = await kupApi.put('/api/auth/profile', { avatarUrl: photoUrl });
+                console.log('Profile save result:', saveResult);
+              } catch (saveErr) {
+                console.error('Profile save error:', saveErr);
+                kupToast('Photo uploaded but profile save failed: ' + (saveErr.message || 'Unknown error'), 'warning');
+              }
+              // Update avatars on page regardless
+              var profileAvatar = document.getElementById('profileAvatar');
+              var headerAvatar = document.getElementById('headerAvatar');
+              if (profileAvatar) {
+                profileAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+              }
+              if (headerAvatar) {
+                headerAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+              }
+              kupToast('Profile photo updated!', 'success');
+            } else {
+              console.error('Upload response missing urls:', result);
+              kupToast('Upload failed — unexpected response', 'error');
+            }
+          } catch (err) {
+            console.error('Photo upload error:', err);
+            kupToast('Upload failed: ' + (err.message || 'please try again'), 'error');
+          }
         });
       }
 
@@ -1443,6 +1662,20 @@
           emailInput.value = '';
           kupToast('Invite sent to ' + email + ' as ' + roleLabels[role], 'success');
         });
+      }
+
+      /* ============== WAIT FOR FIREBASE AUTH, THEN LOAD ============== */
+      if (typeof auth !== 'undefined') {
+        auth.onAuthStateChanged(function(user) {
+          if (user) {
+            loadOwnerAccount();
+          } else {
+            // Not logged in — redirect to login
+            window.location.href = '/pages/login.html';
+          }
+        });
+      } else {
+        console.warn('Firebase auth not available — page will show hardcoded defaults');
       }
     });
   </script>

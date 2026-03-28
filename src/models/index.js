@@ -16,4 +16,5 @@ module.exports = {
   Subscription: require('./Subscription'),
   Transaction: require('./Transaction'),
   Payout: require('./Payout'),
+  Withdrawal: require('./Withdrawal'),
 };

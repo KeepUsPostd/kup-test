@@ -536,11 +536,11 @@
     .influencer-item .avatar-placeholder {
       width: 42px; height: 42px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.75rem;
       flex-shrink: 0;
@@ -671,17 +671,14 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
         <div class="profile-menu">
           <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
-            <div class="profile-avatar">ST</div>
-            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <div class="profile-avatar" id="headerAvatar">ST</div>
+            <div class="profile-info"><div class="name" id="headerName">Santana T.</div><div class="brand" id="headerBrand">KeepUsPostd</div></div>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
           <div class="profile-dropdown" id="profileDropdown">
@@ -711,7 +708,7 @@
     <!-- Page Header -->
     <div class="page-header">
       <h1>Activity</h1>
-      <p class="page-subtitle">Your brand performance overview for <strong>KeepUsPostd</strong></p>
+      <p class="page-subtitle">Your brand performance overview for <strong id="activityBrandName">your brand</strong></p>
     </div>
 
     <!-- Section 1: Content Pipeline Funnel -->
@@ -719,23 +716,23 @@
       <h3>Content Pipeline</h3>
       <div class="pipeline-funnel">
         <div class="pipeline-stage submitted">
-          <div class="stage-count">620</div>
+          <div class="stage-count" id="pipelineSubmitted">0</div>
           <div class="stage-label">Submitted</div>
         </div>
         <div class="pipeline-connector">
           <div class="connector-arrow"></div>
-          <span class="connector-rate">75.3% approval</span>
+          <span class="connector-rate" id="pipelineApprovalRate">—</span>
         </div>
         <div class="pipeline-stage approved">
-          <div class="stage-count">467</div>
+          <div class="stage-count" id="pipelineApproved">0</div>
           <div class="stage-label">Approved</div>
         </div>
         <div class="pipeline-connector">
           <div class="connector-arrow"></div>
-          <span class="connector-rate">73.2% postd</span>
+          <span class="connector-rate" id="pipelinePostdRate">—</span>
         </div>
         <div class="pipeline-stage postd">
-          <div class="stage-count">342</div>
+          <div class="stage-count" id="pipelinePostd">0</div>
           <div class="stage-label">Postd</div>
         </div>
       </div>
@@ -748,28 +745,20 @@
         <div class="kpi-header">
           <span class="kpi-label">Active Influencers</span>
         </div>
-        <div class="kpi-value">38 <span style="font-size:1rem;font-weight:600;color:#888;">of 247</span></div>
+        <div class="kpi-value" id="kpiActiveInfluencers">0 <span style="font-size:1rem;font-weight:600;color:#888;">of 0</span></div>
         <div class="kpi-trend">
-          <span class="label">15.4% active</span>
-          <span class="change up">
-            <svg viewBox="0 0 14 14"><path d="M7 2L12 9H2L7 2Z" fill="currentColor"/></svg>
-            2.1%
-          </span>
+          <span class="label" id="kpiActivePercent">0% active</span>
         </div>
       </div>
 
-      <!-- Avg. Time to Post -->
+      <!-- Total Submissions -->
       <div class="kpi-card">
         <div class="kpi-header">
-          <span class="kpi-label">Avg. Time to Post</span>
+          <span class="kpi-label">Total Submissions</span>
         </div>
-        <div class="kpi-value">2.3 <span style="font-size:1rem;font-weight:600;color:#888;">days</span></div>
+        <div class="kpi-value" id="kpiTotalSubmissions">0</div>
         <div class="kpi-trend">
-          <span class="label">vs. last month</span>
-          <span class="change improving">
-            <svg viewBox="0 0 14 14"><path d="M7 12L12 5H2L7 12Z" fill="currentColor"/></svg>
-            0.4 days faster
-          </span>
+          <span class="label" id="kpiPendingCount">0 pending review</span>
         </div>
       </div>
 
@@ -778,25 +767,20 @@
         <div class="kpi-header">
           <span class="kpi-label">Campaign Health</span>
         </div>
-        <div class="kpi-value">3 <span style="font-size:1rem;font-weight:600;color:#888;">of 4 on track</span></div>
+        <div class="kpi-value" id="kpiCampaignHealth">0 <span style="font-size:1rem;font-weight:600;color:#888;">active</span></div>
         <div class="kpi-trend">
-          <span class="label">campaigns active</span>
-          <span class="change neutral">1 needs attention</span>
+          <span class="label" id="kpiCampaignTotal">0 campaigns total</span>
         </div>
       </div>
 
-      <!-- Cost per Postd -->
+      <!-- Approval Rate -->
       <div class="kpi-card">
         <div class="kpi-header">
-          <span class="kpi-label">Cost per Postd</span>
+          <span class="kpi-label">Approval Rate</span>
         </div>
-        <div class="kpi-value">$12.40</div>
+        <div class="kpi-value" id="kpiApprovalRate">—</div>
         <div class="kpi-trend">
-          <span class="label">vs. last month</span>
-          <span class="change improving">
-            <svg viewBox="0 0 14 14"><path d="M7 12L12 5H2L7 12Z" fill="currentColor"/></svg>
-            $1.20 lower
-          </span>
+          <span class="label" id="kpiApprovalDetail">of reviewed content</span>
         </div>
       </div>
     </div>
@@ -814,89 +798,17 @@
 
       <!-- Panel: Submitted -->
       <div class="leaderboard-panel active" id="panel-submitted" role="tabpanel" aria-labelledby="tab-submitted">
-        <div class="influencer-item">
-          <div class="avatar-placeholder">JD</div>
-          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">34</div><div class="label">submissions</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">MK</div>
-          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
-          <div class="stat"><div class="count">28</div><div class="label">submissions</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">AL</div>
-          <div class="info"><div class="username">@amylee_creates</div><div class="tier">Nano Influencer</div></div>
-          <div class="stat"><div class="count">22</div><div class="label">submissions</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">TR</div>
-          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">19</div><div class="label">submissions</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">DW</div>
-          <div class="info"><div class="username">@dani_wellness</div><div class="tier">Nano Influencer</div></div>
-          <div class="stat"><div class="count">15</div><div class="label">submissions</div></div>
-        </div>
+        <div class="leaderboard-empty" style="text-align:center;padding:32px 16px;color:#999;font-size:0.9rem;">No submissions yet</div>
       </div>
 
       <!-- Panel: Approved -->
       <div class="leaderboard-panel" id="panel-approved" role="tabpanel" aria-labelledby="tab-approved">
-        <div class="influencer-item">
-          <div class="avatar-placeholder">MK</div>
-          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
-          <div class="stat"><div class="count">26</div><div class="label">approved</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">JD</div>
-          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">21</div><div class="label">approved</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">NK</div>
-          <div class="info"><div class="username">@nina_k</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">18</div><div class="label">approved</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">AL</div>
-          <div class="info"><div class="username">@amylee_creates</div><div class="tier">Nano Influencer</div></div>
-          <div class="stat"><div class="count">15</div><div class="label">approved</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">TR</div>
-          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">12</div><div class="label">approved</div></div>
-        </div>
+        <div class="leaderboard-empty" style="text-align:center;padding:32px 16px;color:#999;font-size:0.9rem;">No approved content yet</div>
       </div>
 
       <!-- Panel: Postd -->
       <div class="leaderboard-panel" id="panel-postd" role="tabpanel" aria-labelledby="tab-postd">
-        <div class="influencer-item">
-          <div class="avatar-placeholder">JD</div>
-          <div class="info"><div class="username">@jessicadavis</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">19</div><div class="label">postd</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">MK</div>
-          <div class="info"><div class="username">@marcusking</div><div class="tier">Macro Influencer</div></div>
-          <div class="stat"><div class="count">16</div><div class="label">postd</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">TR</div>
-          <div class="info"><div class="username">@tyreese_r</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">14</div><div class="label">postd</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">NK</div>
-          <div class="info"><div class="username">@nina_k</div><div class="tier">Micro Influencer</div></div>
-          <div class="stat"><div class="count">11</div><div class="label">postd</div></div>
-        </div>
-        <div class="influencer-item">
-          <div class="avatar-placeholder">DW</div>
-          <div class="info"><div class="username">@dani_wellness</div><div class="tier">Nano Influencer</div></div>
-          <div class="stat"><div class="count">9</div><div class="label">postd</div></div>
-        </div>
+        <div class="leaderboard-empty" style="text-align:center;padding:32px 16px;color:#999;font-size:0.9rem;">No postd content yet</div>
       </div>
     </div>
 
@@ -904,21 +816,21 @@
     <div class="chart-card">
       <div class="chart-header">
         <h3>Growth Trend</h3>
-        <span class="date-range">Feb 1 – Feb 28, 2026</span>
+        <span class="date-range" id="chartDateRange">—</span>
       </div>
       <div class="chart-summary">
         <div class="summary-item">
           <div class="value">
-            <span class="health-score">
-              <span class="health-dot green"></span>
-              82<span style="font-size:1rem;font-weight:600;color:#888;">/100</span>
+            <span class="health-score" id="healthScore">
+              <span class="health-dot" id="healthDot"></span>
+              <span id="healthValue">—</span><span style="font-size:1rem;font-weight:600;color:#888;">/100</span>
             </span>
           </div>
           <div class="desc">Brand Health Score</div>
         </div>
         <div class="summary-item">
-          <div class="value" style="color: var(--kup-blue);">+14.2%</div>
-          <div class="desc">vs. previous period</div>
+          <div class="value" style="color: var(--kup-blue);" id="chartGrowthPct">—</div>
+          <div class="desc">approval rate</div>
         </div>
       </div>
       <div class="chart-container">
@@ -1055,74 +967,334 @@
       });
     })();
 
-    // Growth Trend Chart (Chart.js)
-    const ctx = document.getElementById('growthChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(46, 165, 221, 0.15)');
-    gradient.addColorStop(1, 'rgba(46, 165, 221, 0)');
+    // Chart.js instance — initialized empty, updated when data loads
+    var growthChartInstance = null;
+    function initEmptyChart() {
+      var ctx = document.getElementById('growthChart').getContext('2d');
+      var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(46, 165, 221, 0.15)');
+      gradient.addColorStop(1, 'rgba(46, 165, 221, 0)');
 
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Feb 1', 'Feb 4', 'Feb 7', 'Feb 10', 'Feb 13', 'Feb 16', 'Feb 19', 'Feb 22', 'Feb 25', 'Feb 28'],
-        datasets: [{
-          label: 'Growth Trend',
-          data: [120, 145, 162, 178, 195, 210, 188, 225, 240, 268],
-          borderColor: '#2EA5DD',
-          backgroundColor: gradient,
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#2EA5DD',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a1a1a',
-            titleFont: { family: "'Montserrat', sans-serif", weight: '600' },
-            bodyFont: { family: "'Montserrat', sans-serif" },
-            padding: 12,
-            cornerRadius: 8,
-            displayColors: false,
-          }
+      growthChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Submissions',
+            data: [],
+            borderColor: '#2EA5DD',
+            backgroundColor: gradient,
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#2EA5DD',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+          }]
         },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              font: { family: "'Montserrat', sans-serif", size: 11 },
-              color: '#999'
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a1a1a',
+              titleFont: { family: "'Montserrat', sans-serif", weight: '600' },
+              bodyFont: { family: "'Montserrat', sans-serif" },
+              padding: 12,
+              cornerRadius: 8,
+              displayColors: false,
             }
           },
-          y: {
-            grid: { color: '#f0f0f0', drawBorder: false },
-            ticks: {
-              font: { family: "'Montserrat', sans-serif", size: 11 },
-              color: '#999'
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: "'Montserrat', sans-serif", size: 11 }, color: '#999' }
+            },
+            y: {
+              grid: { color: '#f0f0f0', drawBorder: false },
+              ticks: { font: { family: "'Montserrat', sans-serif", size: 11 }, color: '#999' },
+              beginAtZero: true
             }
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
+          },
+          interaction: { intersect: false, mode: 'index' }
         }
-      }
-    });
+      });
+    }
+    initEmptyChart();
   </script>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script>
+    // Hydrate header profile + page subtitle from brand context
+    (function() {
+      try {
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        if (brand && brand.name) {
+          var brandEl = document.getElementById('headerBrand');
+          if (brandEl) brandEl.textContent = brand.name;
+          var subtitleEl = document.getElementById('activityBrandName');
+          if (subtitleEl) subtitleEl.textContent = brand.name;
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
+    // ========== LOAD REAL ACTIVITY DATA ==========
+    auth.onAuthStateChanged(async function(user) {
+      if (!user) return; // Not logged in — page stays at zero defaults
+
+      try {
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        var brandId = brand ? brand.mongoId : null;
+        if (!brandId) {
+          console.log('Activity: No brand mongoId found — showing empty state');
+          return;
+        }
+
+        // Fetch all 3 data sources in parallel
+        var results = await Promise.allSettled([
+          kupApi.get('/api/content?brandId=' + brandId),
+          kupApi.get('/api/partnerships?brandId=' + brandId),
+          kupApi.get('/api/campaigns?brandId=' + brandId)
+        ]);
+
+        var contentData = results[0].status === 'fulfilled' ? results[0].value : null;
+        var partnerData = results[1].status === 'fulfilled' ? results[1].value : null;
+        var campaignData = results[2].status === 'fulfilled' ? results[2].value : null;
+
+        // ---- CONTENT PIPELINE ----
+        if (contentData && contentData.stats) {
+          var stats = contentData.stats;
+          document.getElementById('pipelineSubmitted').textContent = stats.submitted || 0;
+          document.getElementById('pipelineApproved').textContent = stats.approved || 0;
+          document.getElementById('pipelinePostd').textContent = stats.postd || 0;
+
+          // Calculate rates
+          var totalSubmitted = stats.total || 0;
+          var approved = stats.approved || 0;
+          var postd = stats.postd || 0;
+          if (totalSubmitted > 0) {
+            var approvalRate = ((approved + postd) / totalSubmitted * 100).toFixed(1);
+            document.getElementById('pipelineApprovalRate').textContent = approvalRate + '% approval';
+          }
+          if (approved + postd > 0) {
+            var postdRate = (postd / (approved + postd) * 100).toFixed(1);
+            document.getElementById('pipelinePostdRate').textContent = postdRate + '% postd';
+          }
+
+          // ---- KPI: Total Submissions ----
+          document.getElementById('kpiTotalSubmissions').textContent = totalSubmitted;
+          document.getElementById('kpiPendingCount').textContent = (stats.submitted || 0) + ' pending review';
+
+          // ---- KPI: Approval Rate ----
+          var reviewed = (approved || 0) + (postd || 0) + (stats.rejected || 0);
+          if (reviewed > 0) {
+            var overallApproval = (((approved || 0) + (postd || 0)) / reviewed * 100).toFixed(1);
+            document.getElementById('kpiApprovalRate').textContent = overallApproval + '%';
+            document.getElementById('kpiApprovalDetail').textContent = reviewed + ' reviewed submissions';
+          }
+
+          // ---- LEADERBOARD (from submissions data) ----
+          if (contentData.submissions && contentData.submissions.length > 0) {
+            buildLeaderboard(contentData.submissions);
+          }
+
+          // ---- GROWTH CHART (submissions over time) ----
+          if (contentData.submissions && contentData.submissions.length > 0) {
+            buildGrowthChart(contentData.submissions);
+          }
+
+          // ---- BRAND HEALTH SCORE ----
+          // Simple formula: weighted by approval rate + active campaigns + influencer activity
+          var healthScore = calculateHealthScore(stats, partnerData, campaignData);
+          document.getElementById('healthValue').textContent = healthScore;
+          var dot = document.getElementById('healthDot');
+          if (healthScore >= 70) { dot.className = 'health-dot green'; }
+          else if (healthScore >= 40) { dot.className = 'health-dot yellow'; }
+          else { dot.className = 'health-dot red'; }
+
+          if (reviewed > 0) {
+            document.getElementById('chartGrowthPct').textContent = overallApproval + '%';
+          }
+        }
+
+        // ---- KPI: Active Influencers ----
+        if (partnerData && partnerData.stats) {
+          var active = partnerData.stats.active || 0;
+          var total = partnerData.stats.total || 0;
+          document.getElementById('kpiActiveInfluencers').innerHTML = active + ' <span style="font-size:1rem;font-weight:600;color:#888;">of ' + total + '</span>';
+          if (total > 0) {
+            document.getElementById('kpiActivePercent').textContent = ((active / total) * 100).toFixed(1) + '% active';
+          }
+        }
+
+        // ---- KPI: Campaign Health ----
+        if (campaignData && campaignData.stats) {
+          var activeCampaigns = campaignData.stats.active || 0;
+          var totalCampaigns = campaignData.stats.total || 0;
+          document.getElementById('kpiCampaignHealth').innerHTML = activeCampaigns + ' <span style="font-size:1rem;font-weight:600;color:#888;">active</span>';
+          document.getElementById('kpiCampaignTotal').textContent = totalCampaigns + ' campaigns total';
+        }
+
+      } catch (err) {
+        console.error('Activity dashboard load error:', err);
+      }
+    });
+
+    // ========== BUILD LEADERBOARD FROM REAL DATA ==========
+    function buildLeaderboard(submissions) {
+      // Group submissions by influencer and count by status
+      var influencerMap = {}; // keyed by influencer handle
+      submissions.forEach(function(sub) {
+        var inf = sub.influencerProfileId || {};
+        var handle = inf.handle || 'unknown';
+        var displayName = inf.displayName || handle;
+        var tier = inf.tier || 'Creator';
+        if (!influencerMap[handle]) {
+          influencerMap[handle] = { handle: handle, displayName: displayName, tier: tier, submitted: 0, approved: 0, postd: 0 };
+        }
+        influencerMap[handle].submitted++;
+        if (sub.status === 'approved') influencerMap[handle].approved++;
+        if (sub.status === 'postd') influencerMap[handle].postd++;
+      });
+
+      var influencers = Object.values(influencerMap);
+
+      // Build each panel
+      buildLeaderboardPanel('panel-submitted', influencers, 'submitted', 'submissions');
+      buildLeaderboardPanel('panel-approved', influencers, 'approved', 'approved');
+      buildLeaderboardPanel('panel-postd', influencers, 'postd', 'postd');
+    }
+
+    function buildLeaderboardPanel(panelId, influencers, sortKey, label) {
+      var panel = document.getElementById(panelId);
+      if (!panel) return;
+
+      // Sort by the relevant count, descending
+      var sorted = influencers.slice().sort(function(a, b) { return b[sortKey] - a[sortKey]; });
+      // Only show top 5 with count > 0
+      var top5 = sorted.filter(function(i) { return i[sortKey] > 0; }).slice(0, 5);
+
+      if (top5.length === 0) {
+        panel.innerHTML = '<div class="leaderboard-empty" style="text-align:center;padding:32px 16px;color:#999;font-size:0.9rem;">No ' + label + ' yet</div>';
+        return;
+      }
+
+      var html = '';
+      top5.forEach(function(inf) {
+        html += '<div class="influencer-item">';
+        html += '<div class="avatar-placeholder">' + PERSON_SVG + '</div>';
+        html += '<div class="info"><div class="username">@' + inf.handle + '</div><div class="tier">' + inf.tier + '</div></div>';
+        html += '<div class="stat"><div class="count">' + inf[sortKey] + '</div><div class="label">' + label + '</div></div>';
+        html += '</div>';
+      });
+      panel.innerHTML = html;
+    }
+
+    // ========== BUILD GROWTH CHART FROM REAL DATA ==========
+    function buildGrowthChart(submissions) {
+      // Group submissions by date (last 30 days)
+      var now = new Date();
+      var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      var dateMap = {};
+
+      // Initialize all dates in range
+      for (var d = new Date(thirtyDaysAgo); d <= now; d.setDate(d.getDate() + 1)) {
+        var key = d.toISOString().split('T')[0];
+        dateMap[key] = 0;
+      }
+
+      // Count submissions per date
+      submissions.forEach(function(sub) {
+        var subDate = new Date(sub.submittedAt || sub.createdAt);
+        if (subDate >= thirtyDaysAgo) {
+          var key = subDate.toISOString().split('T')[0];
+          if (dateMap[key] !== undefined) dateMap[key]++;
+        }
+      });
+
+      var sortedDates = Object.keys(dateMap).sort();
+      var labels = sortedDates.map(function(d) {
+        var parts = d.split('-');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[parseInt(parts[1]) - 1] + ' ' + parseInt(parts[2]);
+      });
+
+      // Cumulative count for growth trend
+      var cumulative = [];
+      var runningTotal = 0;
+      sortedDates.forEach(function(d) {
+        runningTotal += dateMap[d];
+        cumulative.push(runningTotal);
+      });
+
+      // Update date range text
+      if (sortedDates.length > 0) {
+        var first = labels[0];
+        var last = labels[labels.length - 1];
+        document.getElementById('chartDateRange').textContent = first + ' – ' + last;
+      }
+
+      // Update chart
+      if (growthChartInstance) {
+        growthChartInstance.data.labels = labels;
+        growthChartInstance.data.datasets[0].data = cumulative;
+        growthChartInstance.update();
+      }
+    }
+
+    // ========== BRAND HEALTH SCORE ==========
+    function calculateHealthScore(contentStats, partnerData, campaignData) {
+      var score = 0;
+
+      // Content activity (0-40 points): based on approval rate
+      var total = contentStats.total || 0;
+      var approved = (contentStats.approved || 0) + (contentStats.postd || 0);
+      if (total > 0) {
+        score += Math.round((approved / total) * 40);
+      }
+
+      // Influencer engagement (0-30 points): active partnerships
+      if (partnerData && partnerData.stats) {
+        var activePartners = partnerData.stats.active || 0;
+        var totalPartners = partnerData.stats.total || 0;
+        if (totalPartners > 0) {
+          score += Math.round((activePartners / totalPartners) * 30);
+        }
+      }
+
+      // Campaign health (0-30 points): active campaigns
+      if (campaignData && campaignData.stats) {
+        var activeCampaigns = campaignData.stats.active || 0;
+        var totalCampaigns = campaignData.stats.total || 0;
+        if (totalCampaigns > 0) {
+          score += Math.round((activeCampaigns / totalCampaigns) * 30);
+        } else if (total > 0) {
+          // Has content but no campaigns — give partial credit
+          score += 15;
+        }
+      }
+
+      return Math.min(100, Math.max(0, score));
+    }
+  </script>
+
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

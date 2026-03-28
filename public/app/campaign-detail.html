@@ -649,6 +649,78 @@
       border-color: rgba(239, 68, 68, 0.35);
     }
 
+    /* Activate Campaign CTA */
+    .btn-activate-campaign {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 24px;
+      margin-top: 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      color: var(--kup-white);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-activate-campaign:hover {
+      opacity: 0.88;
+    }
+
+    .btn-activate-campaign:active {
+      opacity: 0.8;
+    }
+
+    .btn-activate-campaign.show {
+      display: inline-flex;
+    }
+
+    /* Update Campaign CTA (edit mode) */
+    .btn-update-campaign {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 24px;
+      margin-top: 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--kup-blue);
+      color: var(--kup-white);
+      font-family: var(--kup-font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-update-campaign:hover { opacity: 0.88; }
+    .btn-update-campaign:active { opacity: 0.8; }
+    .btn-update-campaign.show { display: inline-flex; }
+    .btn-update-campaign svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn-activate-campaign svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     /* Description Section */
     .detail-section {
       margin-bottom: 24px;
@@ -752,12 +824,13 @@
       height: 32px;
       border-radius: 50%;
       border: 2px solid var(--kup-white);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 0.62rem;
-      color: var(--kup-white);
+      color: #9CA3AF;
       margin-left: -8px;
       flex-shrink: 0;
       cursor: pointer;
@@ -774,10 +847,10 @@
       z-index: 2;
     }
 
-    .influencer-avatar.av-1 { background: #ED8444; }
-    .influencer-avatar.av-2 { background: #2EA5DD; }
-    .influencer-avatar.av-3 { background: #707BBB; }
-    .influencer-avatar.av-4 { background: #22c55e; }
+    .influencer-avatar.av-1 { background: #E8E8E8; }
+    .influencer-avatar.av-2 { background: #E8E8E8; }
+    .influencer-avatar.av-3 { background: #E8E8E8; }
+    .influencer-avatar.av-4 { background: #E8E8E8; }
 
     .influencer-avatar.av-more {
       background: #e0e0e0;
@@ -929,11 +1002,11 @@
     .ip-avatar {
       width: 80px; height: 80px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 1.5rem;
       margin: 0 auto 12px;
@@ -1514,7 +1587,7 @@
         <div class="notif-wrap">
           <button class="header-notification" id="notifBtn" aria-label="Notifications" aria-expanded="false" title="Notifications">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="notification-badge" id="notifBadge" aria-hidden="true"></span>
+            <span class="notification-badge" id="notifBadge" aria-hidden="true" style="display:none"></span>
           </button>
 
           <!-- Notification Center Popover -->
@@ -1528,51 +1601,7 @@
               <button class="notif-tab" data-tab="unread">Unread</button>
             </div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
-                  <div class="notif-time">2 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item unread">
-                <div class="notif-icon approval">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
-                  <div class="notif-time">15 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon payment">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
-                  <div class="notif-time">1 hour ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon joined">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
-                  <div class="notif-time">3 hours ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
-                  <div class="notif-time">5 hours ago</div>
-                </div>
-              </li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -1612,6 +1641,17 @@
     </nav>
   </header>
 
+  <script>
+    // Hydrate header with active brand name
+    (function() {
+      if (typeof KUP_BRAND_CONTEXT === 'undefined') return;
+      var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+      if (!ab) return;
+      var brandEl = document.querySelector('.profile-brand');
+      if (brandEl) brandEl.textContent = ab.name || brandEl.textContent;
+    })();
+  </script>
+
   <!-- ============================================
        MAIN CONTENT
        ============================================ -->
@@ -1623,7 +1663,7 @@
            ========================================== -->
       <aside class="kup-sidebar" role="complementary" aria-label="Campaign sidebar">
         <div class="sidebar-header">
-          <h5>Manage Brand</h5>
+          <h5>Manage Brand Campaigns</h5>
           <a href="campaigns.html" class="sidebar-back" aria-label="Back to campaigns">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Back to Campaigns
@@ -1635,42 +1675,7 @@
 
         <!-- Campaign Items -->
         <ul class="campaign-list" role="list" aria-label="Campaign list">
-          <li class="active" role="listitem" aria-current="true" tabindex="0" data-campaign="summer">
-            <span class="campaign-number" aria-hidden="true">1</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Summer Promo 2026</div>
-              <div class="campaign-list-status status-active">
-                <span class="status-dot" aria-hidden="true"></span>Active
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0" data-campaign="launch">
-            <span class="campaign-number" aria-hidden="true">2</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Brand Launch</div>
-              <div class="campaign-list-status status-active">
-                <span class="status-dot" aria-hidden="true"></span>Active
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0" data-campaign="holiday">
-            <span class="campaign-number" aria-hidden="true">3</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Holiday Special</div>
-              <div class="campaign-list-status status-draft">
-                <span class="status-dot" aria-hidden="true"></span>Draft
-              </div>
-            </div>
-          </li>
-          <li role="listitem" tabindex="0" data-campaign="spring">
-            <span class="campaign-number" aria-hidden="true">4</span>
-            <div class="campaign-list-info">
-              <div class="campaign-list-title">Spring Flash Sale</div>
-              <div class="campaign-list-status status-paused">
-                <span class="status-dot" aria-hidden="true"></span>Paused
-              </div>
-            </div>
-          </li>
+          <li style="padding:16px; color:#999; font-size:.85rem;">Loading campaigns...</li>
         </ul>
       </aside>
 
@@ -1680,11 +1685,11 @@
       <div class="campaign-detail-panel">
 
         <!-- Hero Image -->
-        <div class="detail-hero" aria-label="Campaign hero image">
-          <img src="/images/inf-mark-banner.png" alt="Summer Promo 2026 campaign banner">
+        <div class="detail-hero" aria-label="Campaign hero image" style="background:linear-gradient(135deg, #2EA5DD 0%, #707BBB 50%, #ED8444 100%);">
+          <img id="detailHeroImage" src="" alt="Campaign banner" style="display:none;">
           <div class="hero-overlay">
-            <span class="hero-category-badge">Fashion &amp; Beauty</span>
-            <h2 class="hero-title" id="detailHeroTitle">Summer Promo 2026</h2>
+            <span class="hero-category-badge" id="detailHeroBadge">--</span>
+            <h2 class="hero-title" id="detailHeroTitle">Loading...</h2>
           </div>
         </div>
 
@@ -1696,16 +1701,28 @@
             <div class="detail-status-group">
               <span class="detail-status-pill pill-active" id="detailStatusPill" aria-label="Campaign status: Active">
                 <span class="pill-dot" aria-hidden="true"></span>
-                Active
+                --
               </span>
-              <span class="detail-created-date">Created Feb 15, 2026</span>
+              <span class="detail-created-date" id="detailCreatedDate">Loading...</span>
             </div>
             <div class="detail-action-btns">
-              <button type="button" class="btn-detail-action btn-detail-edit" id="editCampaignBtn" aria-label="Edit campaign">
+              <button type="button" class="btn-detail-action btn-detail-edit" id="editCampaignBtn" aria-label="Edit campaign" style="display:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit
               </button>
-              <button type="button" class="btn-detail-action btn-detail-delete" id="deleteCampaignBtn" aria-label="Delete campaign">
+              <button type="button" class="btn-detail-action" id="pauseCampaignBtn" aria-label="Pause campaign" style="display:none;color:#f59e0b;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                Pause
+              </button>
+              <button type="button" class="btn-detail-action" id="resumeCampaignBtn" aria-label="Resume campaign" style="display:none;color:#16a34a;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Resume
+              </button>
+              <button type="button" class="btn-detail-action" id="endCampaignBtn" aria-label="End campaign" style="display:none;color:#94a3b8;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                End
+              </button>
+              <button type="button" class="btn-detail-action btn-detail-delete" id="deleteCampaignBtn" aria-label="Delete campaign" style="display:none;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 Delete
               </button>
@@ -1718,21 +1735,21 @@
               <div class="stat-icon icon-influencers" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
-              <div class="stat-number">12</div>
+              <div class="stat-number" id="statInfluencers">0</div>
               <div class="stat-label">Influencers</div>
             </div>
             <div class="detail-stat-card">
               <div class="stat-icon icon-content" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               </div>
-              <div class="stat-number">34</div>
+              <div class="stat-number" id="statContent">0</div>
               <div class="stat-label">Content</div>
             </div>
             <div class="detail-stat-card">
               <div class="stat-icon icon-reach" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </div>
-              <div class="stat-number">8.2K</div>
+              <div class="stat-number" id="statReach">--</div>
               <div class="stat-label">Est. Reach</div>
             </div>
           </div>
@@ -1741,7 +1758,50 @@
           <div class="detail-section">
             <div class="detail-section-label">Description</div>
             <div class="detail-section-value" id="detailDescription">
-              Promote our Summer 2026 collection across Instagram and TikTok. We are looking for fashion and lifestyle influencers who can create authentic content featuring our new seasonal product line. Deliverables include 2 Instagram posts, 3 Stories, and 1 TikTok video per influencer.
+              Loading campaign details...
+            </div>
+          </div>
+
+          <!-- Edit Campaign Form (hidden by default, shown when Edit button clicked) -->
+          <div class="campaign-edit-section" id="campaignEditSection" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:24px; margin-bottom:20px;">
+            <h4 style="margin:0 0 16px; font-size:1rem; color:#1a1a1a;">Edit Campaign Details</h4>
+            <div class="brief-form" style="display:flex;">
+              <div class="brief-field">
+                <label for="editCampaignTitle">Campaign Title</label>
+                <input type="text" id="editCampaignTitle" placeholder="Campaign title...">
+              </div>
+              <div class="brief-field">
+                <label for="editCampaignDescription">Description</label>
+                <textarea id="editCampaignDescription" rows="4" placeholder="Campaign description..."></textarea>
+              </div>
+              <div class="brief-field">
+                <label for="editCampaignCategory">Category</label>
+                <select id="editCampaignCategory">
+                  <option value="">Select category...</option>
+                  <option value="Fashion & Beauty">Fashion & Beauty</option>
+                  <option value="Food & Beverage">Food & Beverage</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Health & Fitness">Health & Fitness</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Lifestyle">Lifestyle</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Education">Education</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div class="brief-field">
+                <label for="editCampaignDeadline">Deadline</label>
+                <input type="date" id="editCampaignDeadline">
+              </div>
+              <div class="brief-field">
+                <label for="editCampaignMaxSubmissions">Max Submissions</label>
+                <input type="number" id="editCampaignMaxSubmissions" min="1" placeholder="e.g. 50">
+              </div>
+              <div style="display:flex; gap:12px; margin-top:8px;">
+                <button type="button" id="cancelEditBtn" style="padding:8px 20px; border:1px solid #ddd; border-radius:var(--radius-sm); background:white; color:#555; font-family:var(--kup-font); font-size:0.85rem; font-weight:500; cursor:pointer;">Cancel</button>
+              </div>
             </div>
           </div>
 
@@ -1818,7 +1878,7 @@
               </div>
             </div>
             <div class="brief-footer">
-              <span class="brief-preview-text" id="briefPreviewText">Will be sent to 12 influencers as a notification</span>
+              <span class="brief-preview-text" id="briefPreviewText">Will be sent to associated influencers as a notification</span>
               <button class="btn-compose-brief" id="btnComposeBrief">Save Brief</button>
             </div>
           </div>
@@ -1827,38 +1887,40 @@
           <div class="detail-meta-row">
             <div class="detail-meta-item detail-section">
               <div class="detail-section-label">Category</div>
-              <div class="detail-section-value" id="detailCategory">Fashion &amp; Beauty</div>
+              <div class="detail-section-value" id="detailCategory">--</div>
             </div>
             <div class="detail-meta-item detail-section">
               <div class="detail-section-label">Duration</div>
-              <div class="detail-section-value">Feb 15 &mdash; Jun 30, 2026</div>
+              <div class="detail-section-value" id="detailDuration">--</div>
             </div>
             <div class="detail-meta-item detail-section">
               <div class="detail-section-label">Budget</div>
-              <div class="detail-section-value">$2,500 / month</div>
+              <div class="detail-section-value" id="detailBudget">--</div>
             </div>
           </div>
 
           <!-- Associated Influencers -->
           <div class="detail-section">
             <div class="detail-section-label">Associated Influencers</div>
-            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:6px;">
-              <div class="influencer-avatars" aria-label="Influencer avatars">
-                <div class="influencer-avatar av-1" title="Alex M." aria-label="Alex M." data-influencer="alex_m">AM</div>
-                <div class="influencer-avatar av-2" title="Jordan K." aria-label="Jordan K." data-influencer="jordan_k">JK</div>
-                <div class="influencer-avatar av-3" title="Taylor R." aria-label="Taylor R." data-influencer="taylor_r">TR</div>
-                <div class="influencer-avatar av-4" title="Casey L." aria-label="Casey L." data-influencer="casey_l">CL</div>
-                <div class="influencer-avatar av-more" title="8 more influencers" aria-label="8 more influencers">+8</div>
+            <div id="influencerContainer" style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:6px;">
+              <div class="influencer-avatars" id="influencerAvatars" aria-label="Influencer avatars">
+                <span style="color:#999; font-size:.85rem;">Loading...</span>
               </div>
-              <span class="influencer-names">
-                <span class="inf-name-link" data-influencer="alex_m">Alex M.</span>,
-                <span class="inf-name-link" data-influencer="jordan_k">Jordan K.</span>,
-                <span class="inf-name-link" data-influencer="taylor_r">Taylor R.</span>,
-                <span class="inf-name-link" data-influencer="casey_l">Casey L.</span>
-                and 8 others
-              </span>
+              <span class="influencer-names" id="influencerNames"></span>
             </div>
           </div>
+
+          <!-- Activate Campaign CTA (draft campaigns only) -->
+          <button type="button" class="btn-activate-campaign" id="activateCampaignBtn" aria-label="Activate this campaign">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Activate Campaign
+          </button>
+
+          <!-- Update Campaign CTA (edit mode) -->
+          <button type="button" class="btn-update-campaign" id="updateCampaignBtn" aria-label="Update this campaign">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Update Campaign
+          </button>
 
         </div>
       </div>
@@ -1875,7 +1937,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
       </div>
       <h4 id="deleteModalTitle">Delete Campaign?</h4>
-      <p id="deleteModalDesc">Are you sure you want to delete <strong>"Summer Promo 2026"</strong>? This action cannot be undone. All associated content and influencer assignments will be removed.</p>
+      <p id="deleteModalDesc">Are you sure you want to delete <strong>"this campaign"</strong>? This action cannot be undone. All associated content and influencer assignments will be removed.</p>
       <div class="modal-btns">
         <button type="button" class="btn-modal-cancel" id="cancelDeleteBtn" aria-label="Cancel deletion">Cancel</button>
         <button type="button" class="btn-modal-confirm-delete" id="confirmDeleteBtn" aria-label="Confirm deletion">Delete Campaign</button>
@@ -1894,7 +1956,7 @@
       </div>
       <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
       <div class="ip-header">
-        <div class="ip-avatar" id="ipAvatar">AM</div>
+        <div class="ip-avatar" id="ipAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <h3 class="ip-handle" id="ipModalHandle">@alex_m</h3>
         <p class="ip-name" id="ipName">Alex Martinez</p>
         <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
@@ -1933,7 +1995,7 @@
       <button class="kup-modal-close" id="cdNoticeModalClose" aria-label="Close">&times;</button>
       <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
       <div class="notice-header">
-        <div class="notice-avatar" id="cdNoticeAvatar">AM</div>
+        <div class="notice-avatar" id="cdNoticeAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
           <div class="notice-user-name" id="cdNoticeModalName">Alex Martinez</div>
           <div class="notice-user-handle" id="cdNoticeHandle">@alex_m</div>
@@ -1962,10 +2024,6 @@
           <label for="cdNoticeCampaign">Campaign (optional)</label>
           <select id="cdNoticeCampaign">
             <option value="">— None —</option>
-            <option value="summer-promo" selected>Summer Promo 2026</option>
-            <option value="brand-launch">Brand Launch</option>
-            <option value="holiday-special">Holiday Special</option>
-            <option value="spring-flash">Spring Flash Sale</option>
           </select>
         </div>
         <div>
@@ -1995,6 +2053,14 @@
   <footer class="kup-inner-footer" role="contentinfo">
     Copyright &copy;2026. All Rights Reserved by KeepUsPostd
   </footer>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/platform-config.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/api.js"></script>
 
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -2058,129 +2124,507 @@
     });
 
     /* ============================================
-       CAMPAIGN DATA (prototype mock)
+       CAMPAIGN DETAIL — REAL API DATA
        ============================================ */
-    var campaigns = {
-      summer: {
-        title: 'Summer Promo 2026',
-        description: 'Promote our Summer 2026 collection across Instagram and TikTok. We are looking for fashion and lifestyle influencers who can create authentic content featuring our new seasonal product line. Deliverables include 2 Instagram posts, 3 Stories, and 1 TikTok video per influencer.',
-        category: 'Fashion & Beauty',
-        status: 'Active',
-        statusClass: 'pill-active',
-        created: 'Feb 15, 2026',
-        influencers: 12,
-        content: 34,
-        reach: '8.2K'
-      },
-      launch: {
-        title: 'Brand Launch',
-        description: 'Introduce KeepUsPostd to new audiences through targeted micro-influencer partnerships. Content should focus on brand awareness, app downloads, and community building across all major social platforms.',
-        category: 'Tech & Gadgets',
-        status: 'Active',
-        statusClass: 'pill-active',
-        created: 'Jan 10, 2026',
-        influencers: 8,
-        content: 21,
-        reach: '5.4K'
-      },
-      holiday: {
-        title: 'Holiday Special',
-        description: 'End-of-year holiday campaign targeting seasonal shoppers. Influencers will showcase gift guides, unboxing content, and limited-time promotional codes for the holiday season.',
-        category: 'Entertainment',
-        status: 'Draft',
-        statusClass: 'pill-draft',
-        created: 'Mar 1, 2026',
-        influencers: 0,
-        content: 0,
-        reach: '0'
-      },
-      spring: {
-        title: 'Spring Flash Sale',
-        description: 'A 48-hour flash sale promotion leveraging influencer stories and live streams. Quick-turn content with urgency-driven messaging and exclusive discount codes.',
-        category: 'Food & Beverage',
-        status: 'Paused',
-        statusClass: 'pill-paused',
-        created: 'Feb 28, 2026',
-        influencers: 5,
-        content: 11,
-        reach: '2.1K'
-      }
-    };
+    var currentCampaignId = null;
+    var currentCampaign = null;
+    var allSidebarCampaigns = [];
 
-    /* ============================================
-       CAMPAIGN LIST — Switch detail view
-       ============================================ */
-    var campaignItems = document.querySelectorAll('.campaign-list li');
-    var heroTitle = document.getElementById('detailHeroTitle');
-    var detailDescription = document.getElementById('detailDescription');
-    var detailCategory = document.getElementById('detailCategory');
-    var detailStatusPill = document.getElementById('detailStatusPill');
-
-    function updateDetail(key) {
-      var data = campaigns[key];
-      if (!data) return;
-
-      heroTitle.textContent = data.title;
-      detailDescription.textContent = data.description;
-      detailCategory.textContent = data.category;
-
-      // Update status pill
-      detailStatusPill.className = 'detail-status-pill ' + data.statusClass;
-      detailStatusPill.innerHTML = '<span class="pill-dot" aria-hidden="true"></span> ' + data.status;
-      detailStatusPill.setAttribute('aria-label', 'Campaign status: ' + data.status);
-
-      // Update created date
-      document.querySelector('.detail-created-date').textContent = 'Created ' + data.created;
-
-      // Update stats
-      var statNumbers = document.querySelectorAll('.stat-number');
-      statNumbers[0].textContent = data.influencers;
-      statNumbers[1].textContent = data.content;
-      statNumbers[2].textContent = data.reach;
-
-      // Update hero category badge
-      document.querySelector('.hero-category-badge').textContent = data.category;
-
-      // Update delete modal text
-      document.querySelector('#deleteModalDesc strong').textContent = '"' + data.title + '"';
+    // Read ?id= from URL
+    function getCampaignIdFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('id') || null;
     }
 
-    campaignItems.forEach(function(item) {
-      item.addEventListener('click', function() {
-        campaignItems.forEach(function(li) {
-          li.classList.remove('active');
-          li.removeAttribute('aria-current');
+    // Format date helper
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '--';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    // Status → pill class mapping
+    function statusPillClass(status) {
+      var s = (status || '').toLowerCase();
+      if (s === 'active') return 'pill-active';
+      if (s === 'draft') return 'pill-draft';
+      if (s === 'paused') return 'pill-paused';
+      if (s === 'ended') return 'pill-ended';
+      return 'pill-draft';
+    }
+
+    // Status → sidebar dot class mapping
+    function statusDotClass(status) {
+      var s = (status || '').toLowerCase();
+      if (s === 'active') return 'status-active';
+      if (s === 'draft') return 'status-draft';
+      if (s === 'paused') return 'status-paused';
+      if (s === 'ended') return 'status-ended';
+      return 'status-draft';
+    }
+
+    // Capitalize first letter
+    function capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    /* ---- Populate detail view from campaign object ---- */
+    function populateDetail(campaign, contentData) {
+      currentCampaign = campaign;
+      var submissions = (contentData && contentData.submissions) ? contentData.submissions : [];
+
+      // Hero
+      document.getElementById('detailHeroTitle').textContent = campaign.title || campaign.name || 'Untitled Campaign';
+      document.getElementById('detailHeroBadge').textContent = campaign.category || 'General';
+      var heroImg = document.getElementById('detailHeroImage');
+      if (campaign.coverImageUrl) {
+        heroImg.src = campaign.coverImageUrl;
+        heroImg.style.display = '';
+      } else {
+        // No image uploaded — show gradient background instead of old placeholder
+        heroImg.style.display = 'none';
+        heroImg.parentElement.style.background = 'linear-gradient(135deg, #2EA5DD 0%, #707BBB 50%, #ED8444 100%)';
+      }
+      heroImg.alt = (campaign.title || campaign.name || 'Campaign') + ' banner';
+
+      // Status pill
+      var pillEl = document.getElementById('detailStatusPill');
+      var status = capitalize(campaign.status || 'draft');
+      pillEl.className = 'detail-status-pill ' + statusPillClass(campaign.status);
+      pillEl.innerHTML = '<span class="pill-dot" aria-hidden="true"></span> ' + status;
+      pillEl.setAttribute('aria-label', 'Campaign status: ' + status);
+
+      // Created date
+      document.getElementById('detailCreatedDate').textContent = 'Created ' + formatDate(campaign.createdAt);
+
+      // Stats
+      var uniqueInfluencers = [];
+      submissions.forEach(function(s) {
+        var infId = (s.influencer && s.influencer._id) || s.influencerId || s.influencer;
+        if (infId && uniqueInfluencers.indexOf(infId) === -1) uniqueInfluencers.push(infId);
+      });
+      document.getElementById('statInfluencers').textContent = uniqueInfluencers.length;
+      document.getElementById('statContent').textContent = submissions.length;
+      document.getElementById('statReach').textContent = '--';
+
+      // Description
+      document.getElementById('detailDescription').textContent = campaign.description || 'No description provided.';
+
+      // Category
+      document.getElementById('detailCategory').textContent = campaign.category || 'General';
+
+      // Duration
+      var startDate = formatDate(campaign.activatedAt || campaign.createdAt);
+      var endDate = campaign.deadline ? formatDate(campaign.deadline) : 'Ongoing';
+      document.getElementById('detailDuration').innerHTML = startDate + ' &mdash; ' + endDate;
+
+      // Budget
+      document.getElementById('detailBudget').textContent = campaign.budget ? ('$' + Number(campaign.budget).toLocaleString()) : '--';
+
+      // Brief preview text
+      var briefPreview = document.getElementById('briefPreviewText');
+      if (briefPreview) {
+        briefPreview.textContent = 'Will be sent to ' + uniqueInfluencers.length + ' influencer' + (uniqueInfluencers.length !== 1 ? 's' : '') + ' as a notification';
+      }
+
+      // Delete modal text
+      document.querySelector('#deleteModalDesc strong').textContent = '"' + (campaign.title || campaign.name || 'Untitled') + '"';
+
+      // Show Activate button for draft campaigns only
+      // Show/hide action buttons based on campaign status
+      var st = (campaign.status || '').toLowerCase();
+      var activateBtn = document.getElementById('activateCampaignBtn');
+      var editBtn = document.getElementById('editCampaignBtn');
+      var pauseBtn = document.getElementById('pauseCampaignBtn');
+      var resumeBtn = document.getElementById('resumeCampaignBtn');
+      var endBtn = document.getElementById('endCampaignBtn');
+      var deleteBtn = document.getElementById('deleteCampaignBtn');
+
+      // Activate: only for draft
+      if (activateBtn) { if (st === 'draft') { activateBtn.classList.add('show'); } else { activateBtn.classList.remove('show'); } }
+      // Edit: active or paused (returning to edit)
+      if (editBtn) { editBtn.style.display = (st === 'active' || st === 'paused') ? '' : 'none'; }
+      // Pause: only for active
+      if (pauseBtn) { pauseBtn.style.display = (st === 'active') ? '' : 'none'; }
+      // Resume: only for paused
+      if (resumeBtn) { resumeBtn.style.display = (st === 'paused') ? '' : 'none'; }
+      // End: active or paused
+      if (endBtn) { endBtn.style.display = (st === 'active' || st === 'paused') ? '' : 'none'; }
+      // Delete: only for draft
+      if (deleteBtn) { deleteBtn.style.display = (st === 'draft') ? '' : 'none'; }
+
+      // Reset edit mode on detail load
+      var editSection = document.getElementById('campaignEditSection');
+      if (editSection) editSection.style.display = 'none';
+      var updateBtn = document.getElementById('updateCampaignBtn');
+      if (updateBtn) updateBtn.classList.remove('show');
+
+      // Associated influencers
+      renderInfluencerAvatars(submissions);
+    }
+
+    /* ---- Render influencer avatars from content submissions ---- */
+    function renderInfluencerAvatars(submissions) {
+      var avatarsEl = document.getElementById('influencerAvatars');
+      var namesEl = document.getElementById('influencerNames');
+      avatarsEl.innerHTML = '';
+      namesEl.innerHTML = '';
+
+      // Deduplicate by influencer ID
+      var seen = {};
+      var influencers = [];
+      submissions.forEach(function(s) {
+        var inf = s.influencer || {};
+        var infId = inf._id || s.influencerId || '';
+        if (!infId || seen[infId]) return;
+        seen[infId] = true;
+        influencers.push({
+          id: infId,
+          name: inf.displayName || inf.name || inf.handle || 'Unknown',
+          handle: inf.handle || '',
+          avatarUrl: inf.avatarUrl || inf.profileImageUrl || ''
         });
-        this.classList.add('active');
-        this.setAttribute('aria-current', 'true');
-
-        var key = this.getAttribute('data-campaign');
-        updateDetail(key);
       });
 
-      item.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.click();
+      if (influencers.length === 0) {
+        avatarsEl.innerHTML = '<span style="color:#999; font-size:.85rem;">No influencers yet</span>';
+        return;
+      }
+
+      var showMax = 4;
+      var colors = ['#2EA5DD', '#ED8444', '#707BBB', '#16a34a', '#dc2626'];
+      for (var i = 0; i < Math.min(showMax, influencers.length); i++) {
+        var inf = influencers[i];
+        var avDiv = document.createElement('div');
+        avDiv.className = 'influencer-avatar av-' + (i + 1);
+        avDiv.title = inf.name;
+        avDiv.setAttribute('aria-label', inf.name);
+        avDiv.style.background = colors[i % colors.length];
+        avDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+        avatarsEl.appendChild(avDiv);
+
+        // Name link
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'inf-name-link';
+        nameSpan.textContent = inf.name;
+        namesEl.appendChild(nameSpan);
+        if (i < Math.min(showMax, influencers.length) - 1) {
+          namesEl.appendChild(document.createTextNode(', '));
         }
+      }
+
+      if (influencers.length > showMax) {
+        var moreCount = influencers.length - showMax;
+        var moreDiv = document.createElement('div');
+        moreDiv.className = 'influencer-avatar av-more';
+        moreDiv.title = moreCount + ' more influencer' + (moreCount !== 1 ? 's' : '');
+        moreDiv.textContent = '+' + moreCount;
+        avatarsEl.appendChild(moreDiv);
+        namesEl.appendChild(document.createTextNode(' and ' + moreCount + ' other' + (moreCount !== 1 ? 's' : '')));
+      }
+    }
+
+    /* ---- Build sidebar from API data ---- */
+    function renderSidebar(campaigns, activeId) {
+      var listEl = document.querySelector('.campaign-list');
+      listEl.innerHTML = '';
+      allSidebarCampaigns = campaigns;
+
+      if (campaigns.length === 0) {
+        listEl.innerHTML = '<li style="padding:16px; color:#999; font-size:.85rem;">No campaigns found</li>';
+        return;
+      }
+
+      // Update breadcrumb
+      var breadcrumb = document.querySelector('.sidebar-breadcrumb');
+      if (breadcrumb) breadcrumb.textContent = 'Campaign  |  Page 1 of 1';
+
+      campaigns.forEach(function(c, idx) {
+        var li = document.createElement('li');
+        li.setAttribute('role', 'listitem');
+        li.setAttribute('tabindex', '0');
+        li.setAttribute('data-campaign-id', c._id);
+        if (c._id === activeId) {
+          li.classList.add('active');
+          li.setAttribute('aria-current', 'true');
+        }
+
+        li.innerHTML =
+          '<span class="campaign-number" aria-hidden="true">' + (idx + 1) + '</span>' +
+          '<div class="campaign-list-info">' +
+            '<div class="campaign-list-title">' + (c.title || c.name || 'Untitled') + '</div>' +
+            '<div class="campaign-list-status ' + statusDotClass(c.status) + '">' +
+              '<span class="status-dot" aria-hidden="true"></span>' + capitalize(c.status || 'draft') +
+            '</div>' +
+          '</div>';
+
+        // Click to navigate
+        li.addEventListener('click', function() {
+          window.location.href = 'campaign-detail.html?id=' + c._id;
+        });
+        li.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+        });
+
+        listEl.appendChild(li);
       });
+    }
+
+    /* ---- Populate notice modal campaign dropdown ---- */
+    function renderNoticeDropdown(campaigns, activeId) {
+      var select = document.getElementById('cdNoticeCampaign');
+      if (!select) return;
+      select.innerHTML = '<option value="">— None —</option>';
+      campaigns.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c._id;
+        opt.textContent = c.name || 'Untitled';
+        if (c._id === activeId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    /* ---- Main loader ---- */
+    async function loadCampaignDetail() {
+      var campaignId = getCampaignIdFromUrl();
+      if (!campaignId) {
+        kupToast('No campaign ID found — redirecting to campaigns list', 'error');
+        setTimeout(function() { window.location.href = 'campaigns.html'; }, 1500);
+        return;
+      }
+      currentCampaignId = campaignId;
+
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || '') : '';
+
+      // If mongoId isn't synced yet, fetch directly from API
+      if (!brandId) {
+        try {
+          var brandData = await kupApi.get('/api/brands');
+          if (brandData && brandData.brands && brandData.brands.length > 0) {
+            brandId = brandData.brands[0]._id;
+            if (brand) { brand.mongoId = brandId; KUP_BRAND_CONTEXT.setActiveBrand(brand); }
+            else { brand = { mongoId: brandId, name: brandData.brands[0].name || 'Brand' }; }
+          }
+        } catch (e) { console.warn('Brand fetch fallback failed:', e); }
+      }
+
+      if (!brandId) {
+        kupToast('No active brand selected', 'error');
+        return;
+      }
+
+      try {
+        // Fetch campaign detail, sidebar list, and content submissions in parallel
+        var results = await Promise.all([
+          kupApi.get('/api/campaigns/' + campaignId),
+          kupApi.get('/api/campaigns?brandId=' + brandId),
+          kupApi.get('/api/content?brandId=' + brandId + '&campaignId=' + campaignId)
+        ]);
+
+        var campaignData = results[0];
+        var listData = results[1];
+        var contentData = results[2];
+
+        if (!campaignData || campaignData.error) {
+          kupToast(campaignData ? campaignData.error : 'Campaign not found', 'error');
+          return;
+        }
+
+        var campaign = campaignData.campaign || campaignData;
+        var campaignsList = (listData && listData.campaigns) ? listData.campaigns : [];
+
+        // Populate everything
+        populateDetail(campaign, contentData);
+        renderSidebar(campaignsList, campaignId);
+        renderNoticeDropdown(campaignsList, campaignId);
+
+      } catch (err) {
+        kupToast('Failed to load campaign details', 'error');
+        console.error('loadCampaignDetail error:', err);
+      }
+    }
+
+    /* ============================================
+       EDIT BUTTON — Populate edit form with current campaign data
+       ============================================ */
+    document.getElementById('editCampaignBtn').addEventListener('click', function() {
+      if (!currentCampaign || !currentCampaignId) return;
+
+      var editSection = document.getElementById('campaignEditSection');
+      var updateBtn = document.getElementById('updateCampaignBtn');
+
+      // Populate edit form fields with current campaign data
+      document.getElementById('editCampaignTitle').value = currentCampaign.title || currentCampaign.name || '';
+      document.getElementById('editCampaignDescription').value = currentCampaign.description || '';
+
+      // Set category dropdown
+      var catSelect = document.getElementById('editCampaignCategory');
+      var catValue = currentCampaign.category || '';
+      catSelect.value = catValue;
+      // If the exact value isn't in the dropdown, try to match or leave blank
+      if (catSelect.value !== catValue && catValue) {
+        // Add a custom option if not in list
+        var customOpt = document.createElement('option');
+        customOpt.value = catValue;
+        customOpt.textContent = catValue;
+        catSelect.appendChild(customOpt);
+        catSelect.value = catValue;
+      }
+
+      // Set deadline
+      if (currentCampaign.deadline) {
+        var dl = new Date(currentCampaign.deadline);
+        if (!isNaN(dl.getTime())) {
+          var yyyy = dl.getFullYear();
+          var mm = String(dl.getMonth() + 1).padStart(2, '0');
+          var dd = String(dl.getDate()).padStart(2, '0');
+          document.getElementById('editCampaignDeadline').value = yyyy + '-' + mm + '-' + dd;
+        }
+      } else {
+        document.getElementById('editCampaignDeadline').value = '';
+      }
+
+      // Set max submissions
+      document.getElementById('editCampaignMaxSubmissions').value = currentCampaign.maxSubmissions || '';
+
+      // Show edit section and Update button
+      editSection.style.display = 'block';
+      updateBtn.classList.add('show');
+
+      // Scroll to edit section
+      editSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      kupToast('Edit mode — update the fields below and click Update Campaign', 'info');
     });
 
     /* ============================================
-       EDIT BUTTON — Redirect to campaign form
+       CANCEL EDIT — Hide edit form
        ============================================ */
-    document.getElementById('editCampaignBtn').addEventListener('click', function() {
-      // In a real app this would navigate to the edit form
-      kupToast('Navigating to edit form...', 'info');
+    document.getElementById('cancelEditBtn').addEventListener('click', function() {
+      document.getElementById('campaignEditSection').style.display = 'none';
+      document.getElementById('updateCampaignBtn').classList.remove('show');
+    });
+
+    /* ============================================
+       UPDATE CAMPAIGN — PUT changes to API
+       ============================================ */
+    document.getElementById('updateCampaignBtn').addEventListener('click', async function() {
+      if (!currentCampaignId) return;
+
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      var payload = {
+        title: document.getElementById('editCampaignTitle').value.trim(),
+        description: document.getElementById('editCampaignDescription').value.trim(),
+        category: document.getElementById('editCampaignCategory').value
+      };
+
+      var deadline = document.getElementById('editCampaignDeadline').value;
+      if (deadline) payload.deadline = deadline;
+
+      var maxSub = document.getElementById('editCampaignMaxSubmissions').value;
+      if (maxSub) payload.maxSubmissions = parseInt(maxSub, 10);
+
+      // Validate title
+      if (!payload.title) {
+        kupToast('Campaign title is required', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Update Campaign';
+        return;
+      }
+
+      try {
+        var result = await kupApi.put('/api/campaigns/' + currentCampaignId, payload);
+        if (result && result.error) {
+          kupToast(result.error, 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Update Campaign';
+          return;
+        }
+        kupToast('Campaign updated successfully!', 'success');
+        setTimeout(function() { window.location.reload(); }, 1200);
+      } catch (err) {
+        kupToast('Failed to update campaign', 'error');
+        console.error('Update error:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Update Campaign';
+      }
+    });
+
+    /* ============================================
+       ACTIVATE BUTTON — Set campaign status to active
+       ============================================ */
+    document.getElementById('activateCampaignBtn').addEventListener('click', async function() {
+      if (!currentCampaignId) return;
+
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Activating...';
+
+      try {
+        var result = await kupApi.put('/api/campaigns/' + currentCampaignId + '/status', { status: 'active' });
+        if (result && result.error) {
+          kupToast(result.error, 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Activate Campaign';
+          return;
+        }
+        kupToast('Campaign activated successfully!', 'success');
+        setTimeout(function() { window.location.reload(); }, 1200);
+      } catch (err) {
+        kupToast('Failed to activate campaign', 'error');
+        console.error('Activate error:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Activate Campaign';
+      }
+    });
+
+    /* ============================================
+       PAUSE / RESUME / END — Status transitions
+       ============================================ */
+    async function changeCampaignStatus(newStatus, label) {
+      if (!currentCampaignId) return;
+      try {
+        var result = await kupApi.put('/api/campaigns/' + currentCampaignId + '/status', { status: newStatus });
+        if (result && result.error) {
+          kupToast(result.error, 'error');
+          return;
+        }
+        kupToast('Campaign ' + label + ' successfully', 'success');
+        setTimeout(function() { window.location.reload(); }, 1000);
+      } catch (err) {
+        kupToast('Failed to ' + label.toLowerCase() + ' campaign', 'error');
+        console.error('Status change error:', err);
+      }
+    }
+
+    document.getElementById('pauseCampaignBtn').addEventListener('click', function() {
+      if (confirm('Pause this campaign? Influencers will no longer be able to submit content.')) {
+        changeCampaignStatus('paused', 'paused');
+      }
+    });
+
+    document.getElementById('resumeCampaignBtn').addEventListener('click', function() {
+      changeCampaignStatus('active', 'resumed');
+    });
+
+    document.getElementById('endCampaignBtn').addEventListener('click', function() {
+      if (confirm('End this campaign? This cannot be undone. The campaign will be permanently closed.')) {
+        changeCampaignStatus('ended', 'ended');
+      }
     });
 
     /* ============================================
        DELETE BUTTON — Show confirmation modal
-       (Standardized: uses openModal/closeModal + toast)
+       (Standardized: uses openModal/closeModal + real API)
        ============================================ */
     document.getElementById('deleteCampaignBtn').addEventListener('click', function() {
       openModal('deleteModal');
-      // Focus the cancel button for accessibility
       document.getElementById('cancelDeleteBtn').focus();
     });
 
@@ -2188,10 +2632,42 @@
       closeModal('deleteModal');
     });
 
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-      closeModal('deleteModal');
-      kupToast('Campaign deleted successfully', 'success');
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+      if (!currentCampaignId || !currentCampaign) {
+        closeModal('deleteModal');
+        return;
+      }
+
+      // Only allow deleting draft campaigns
+      var status = (currentCampaign.status || '').toLowerCase();
+      if (status !== 'draft') {
+        closeModal('deleteModal');
+        kupToast('Only draft campaigns can be deleted. Pause or end this campaign first.', 'error');
+        return;
+      }
+
+      try {
+        var result = await kupApi.delete('/api/campaigns/' + currentCampaignId);
+        closeModal('deleteModal');
+        if (result && result.error) {
+          kupToast(result.error, 'error');
+          return;
+        }
+        kupToast('Campaign deleted successfully', 'success');
+        setTimeout(function() { window.location.href = 'campaigns.html'; }, 1200);
+      } catch (err) {
+        closeModal('deleteModal');
+        kupToast('Failed to delete campaign', 'error');
+        console.error('Delete error:', err);
+      }
     });
+
+    /* ---- INIT: Wait for Firebase auth ---- */
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) { if (user) loadCampaignDetail(); });
+    } else {
+      loadCampaignDetail();
+    }
 
     /* ============================================
        PROFILE DROPDOWN
@@ -2246,44 +2722,6 @@
     /* ============================================
        INFLUENCER PROFILE MODAL
        ============================================ */
-    var influencerData = {
-      alex_m:   { initials: 'AM', handle: '@alex_m', name: 'Alex Martinez', tier: 'Micro Influencer', tierClass: 'micro', followers: '18.3K', engagement: '4.1%', posts: '27', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
-      jordan_k: { initials: 'JK', handle: '@jordan_k', name: 'Jordan Kim', tier: 'Macro Influencer', tierClass: 'macro', followers: '156K', engagement: '2.9%', posts: '42', bio: 'Tech and lifestyle vlogger covering the latest trends. Known for high-quality production and honest brand partnerships.' },
-      taylor_r: { initials: 'TR', handle: '@taylor_r', name: 'Taylor Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '24.7K', engagement: '3.8%', posts: '31', bio: 'Beauty and skincare creator sharing daily routines and product reviews. Clean beauty advocate and wellness enthusiast.' },
-      casey_l:  { initials: 'CL', handle: '@casey_l', name: 'Casey Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '9.1K', engagement: '5.4%', posts: '18', bio: 'Food and travel micro-influencer creating authentic content for boutique brands. Community-first approach to partnerships.' }
-    };
-
-    document.querySelectorAll('[data-influencer]').forEach(function(el) {
-      el.addEventListener('click', function() {
-        var key = this.getAttribute('data-influencer');
-        var data = influencerData[key];
-        if (!data) return;
-        document.getElementById('ipAvatar').textContent = data.initials;
-        document.getElementById('ipModalHandle').textContent = data.handle;
-        document.getElementById('ipName').textContent = data.name;
-        var tierEl = document.getElementById('ipTier');
-        tierEl.textContent = data.tier;
-        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
-        document.getElementById('ipFollowers').textContent = data.followers;
-        document.getElementById('ipEngagement').textContent = data.engagement;
-        document.getElementById('ipPosts').textContent = data.posts;
-        document.getElementById('ipBio').textContent = data.bio;
-        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
-          var brandLogoEl = document.getElementById('ipBrandLogo');
-          if (ab.logoUrl) {
-            brandLogoEl.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
-            brandLogoEl.style.background = '#fff';
-          } else {
-            brandLogoEl.textContent = ab.abbreviation || 'KP';
-            brandLogoEl.style.background = ab.color || '#2EA5DD';
-          }
-          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
-        }
-        openModal('influencerProfileModal');
-      });
-    });
-
     document.getElementById('ipModalClose').addEventListener('click', function() {
       closeModal('influencerProfileModal');
     });
@@ -2292,9 +2730,8 @@
     document.getElementById('ipNoticeBtn').addEventListener('click', function() {
       var name = document.getElementById('ipName').textContent;
       var handle = document.getElementById('ipModalHandle').textContent;
-      var initials = document.getElementById('ipAvatar').textContent;
       closeModal('influencerProfileModal');
-      document.getElementById('cdNoticeAvatar').textContent = initials;
+      document.getElementById('cdNoticeAvatar').innerHTML = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
       document.getElementById('cdNoticeModalName').textContent = name;
       document.getElementById('cdNoticeHandle').textContent = handle;
       resetCdNoticeForm();
@@ -2555,7 +2992,6 @@
     });
   </script>
 
-    <script src="/js/brand-context.js"></script>
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
   <!-- Mobile Bottom Navigation -->

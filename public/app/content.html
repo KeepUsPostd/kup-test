@@ -419,11 +419,11 @@
     .influencer-cell .avatar {
       width: 36px; height: 36px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.7rem;
       flex-shrink: 0;
@@ -596,11 +596,11 @@
     .ip-avatar {
       width: 80px; height: 80px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 1.5rem;
       margin: 0 auto 12px;
@@ -710,11 +710,11 @@
     .notice-avatar {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.75rem;
       flex-shrink: 0;
@@ -1277,51 +1277,7 @@
               <button class="notif-tab" data-tab="unread">Unread</button>
             </div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
-                  <div class="notif-time">2 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item unread">
-                <div class="notif-icon approval">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
-                  <div class="notif-time">15 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon payment">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
-                  <div class="notif-time">1 hour ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon joined">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
-                  <div class="notif-time">3 hours ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
-                  <div class="notif-time">5 hours ago</div>
-                </div>
-              </li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -1530,13 +1486,9 @@
 
       <!-- Pagination -->
       <div class="table-footer">
-        <span class="showing">Showing 1-5 of 24 items</span>
-        <div class="pagination-btns">
-          <button class="page-btn">&larr;</button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn">&rarr;</button>
+        <span class="showing">Showing 1-5 of 0 items</span>
+        <div class="pagination-btns" id="paginationBtns">
+          <!-- Dynamically generated -->
         </div>
       </div>
     </div>
@@ -1551,7 +1503,7 @@
       </div>
       <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
       <div class="ip-header">
-        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <div class="ip-avatar" id="ipAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
         <p class="ip-name" id="ipName">Jessica Davis</p>
         <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
@@ -1588,7 +1540,7 @@
       <button class="kup-modal-close" id="cNoticeModalClose" aria-label="Close">&times;</button>
       <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
       <div class="notice-header">
-        <div class="notice-avatar" id="cNoticeAvatar">JD</div>
+        <div class="notice-avatar" id="cNoticeAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
           <div class="notice-user-name" id="cNoticeModalName">Jessica Davis</div>
           <div class="notice-user-handle" id="cNoticeHandle">@jessicadavis</div>
@@ -1757,6 +1709,7 @@
 
     /* ============== CAMPAIGN FILTER (Refactored) ============== */
     function filterByCampaign(value) {
+      currentPage = 1; // Reset to page 1 on filter change
       applyAllFilters();
       kupToast('Filtered by ' + document.getElementById('campaignFilter').options[document.getElementById('campaignFilter').selectedIndex].text, 'info');
     }
@@ -1790,6 +1743,9 @@
       kupToast('Sort order updated', 'info');
     });
 
+    /* ============== Person silhouette SVG for influencer avatars ============== */
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
     /* ============== INFLUENCER PROFILE MODAL ============== */
     var influencerData = {
       jessicadavis:   { initials: 'JD', handle: '@jessicadavis',   name: 'Jessica Davis',      tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
@@ -1805,7 +1761,7 @@
         var key = this.getAttribute('data-influencer');
         var data = influencerData[key];
         if (!data) return;
-        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
         document.getElementById('ipModalHandle').textContent = data.handle;
         document.getElementById('ipName').textContent = data.name;
         var tierEl = document.getElementById('ipTier');
@@ -1839,8 +1795,7 @@
       closeModal('influencerProfileModal');
       var handle = document.getElementById('ipModalHandle').textContent;
       var name = document.getElementById('ipName').textContent;
-      var initials = document.getElementById('ipAvatar').textContent;
-      document.getElementById('cNoticeAvatar').textContent = initials;
+      document.getElementById('cNoticeAvatar').innerHTML = PERSON_SVG;
       document.getElementById('cNoticeModalName').textContent = name;
       document.getElementById('cNoticeHandle').textContent = handle;
       resetNoticeForm();
@@ -2002,10 +1957,15 @@
       document.querySelectorAll('.inbox-filter-tab').forEach(function(tab) {
         tab.classList.toggle('active', tab.getAttribute('data-filter') === status);
       });
+      currentPage = 1; // Reset to page 1 on filter change
       applyAllFilters();
     }
 
-    // ========== UNIFIED FILTER SYSTEM ==========
+    // ========== PAGINATION STATE ==========
+    var ROWS_PER_PAGE = 5;
+    var currentPage = 1;
+
+    // ========== UNIFIED FILTER SYSTEM (with pagination) ==========
     function applyAllFilters() {
       var activeTab = document.querySelector('.inbox-filter-tab.active');
       var activeStatus = activeTab ? activeTab.getAttribute('data-filter') : 'all';
@@ -2013,8 +1973,11 @@
       var searchInput = document.getElementById('searchInput');
       var searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-      document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
-        // Map tab filter names to API status values (e.g. "pending" tab → "submitted" status)
+      // Step 1: Determine which rows match the current filters
+      var allRows = Array.from(document.querySelectorAll('.data-table tbody tr'));
+      var matchingRows = [];
+
+      allRows.forEach(function(row) {
         var filterStatus = activeStatus === 'pending' ? 'submitted' : activeStatus;
         var statusMatch = (activeStatus === 'all') || (row.getAttribute('data-status') === filterStatus);
         var campaignMatch = (activeCampaign === 'all') || (row.getAttribute('data-campaign') === activeCampaign);
@@ -2023,8 +1986,83 @@
           var rowText = row.textContent.toLowerCase();
           searchMatch = rowText.indexOf(searchQuery) !== -1;
         }
-        row.style.display = (statusMatch && campaignMatch && searchMatch) ? '' : 'none';
+        if (statusMatch && campaignMatch && searchMatch) {
+          matchingRows.push(row);
+        }
       });
+
+      // Step 2: Calculate pagination
+      var totalMatching = matchingRows.length;
+      var totalPages = Math.max(1, Math.ceil(totalMatching / ROWS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      var startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+      var endIdx = startIdx + ROWS_PER_PAGE;
+
+      // Step 3: Show/hide rows based on pagination
+      allRows.forEach(function(row) { row.style.display = 'none'; });
+      matchingRows.forEach(function(row, idx) {
+        row.style.display = (idx >= startIdx && idx < endIdx) ? '' : 'none';
+      });
+
+      // Step 4: Update "Showing X-Y of Z" text
+      var showingEl = document.querySelector('.showing');
+      if (showingEl) {
+        if (totalMatching === 0) {
+          showingEl.textContent = 'No items found';
+        } else {
+          showingEl.textContent = 'Showing ' + (startIdx + 1) + '-' + Math.min(endIdx, totalMatching) + ' of ' + totalMatching + ' items';
+        }
+      }
+
+      // Step 5: Render pagination buttons
+      renderPaginationButtons(totalPages, totalMatching);
+    }
+
+    function renderPaginationButtons(totalPages, totalItems) {
+      var container = document.getElementById('paginationBtns');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (totalItems <= ROWS_PER_PAGE) return; // No pagination needed for 5 or fewer items
+
+      // Left arrow
+      var leftBtn = document.createElement('button');
+      leftBtn.className = 'page-btn';
+      leftBtn.innerHTML = '&larr;';
+      leftBtn.disabled = (currentPage === 1);
+      leftBtn.style.opacity = (currentPage === 1) ? '0.4' : '1';
+      leftBtn.addEventListener('click', function() {
+        if (currentPage > 1) { currentPage--; applyAllFilters(); }
+      });
+      container.appendChild(leftBtn);
+
+      // Page number buttons (show max 5 pages with ellipsis for large sets)
+      var startPage = Math.max(1, currentPage - 2);
+      var endPage = Math.min(totalPages, startPage + 4);
+      if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+      for (var p = startPage; p <= endPage; p++) {
+        var btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.setAttribute('data-page', p);
+        btn.addEventListener('click', function() {
+          currentPage = parseInt(this.getAttribute('data-page'));
+          applyAllFilters();
+        });
+        container.appendChild(btn);
+      }
+
+      // Right arrow
+      var rightBtn = document.createElement('button');
+      rightBtn.className = 'page-btn';
+      rightBtn.innerHTML = '&rarr;';
+      rightBtn.disabled = (currentPage === totalPages);
+      rightBtn.style.opacity = (currentPage === totalPages) ? '0.4' : '1';
+      rightBtn.addEventListener('click', function() {
+        if (currentPage < totalPages) { currentPage++; applyAllFilters(); }
+      });
+      container.appendChild(rightBtn);
     }
 
     // ========== SORT TABLE ==========
@@ -2044,11 +2082,13 @@
         return 0;
       });
       rows.forEach(function(row) { tbody.appendChild(row); });
+      currentPage = 1; // Reset to page 1 on sort
       applyAllFilters();
     }
 
     // ========== SEARCH INPUT LISTENER ==========
     document.getElementById('searchInput').addEventListener('input', function() {
+      currentPage = 1; // Reset to page 1 on search
       applyAllFilters();
     });
 
@@ -2332,10 +2372,6 @@
         const influencer = sub.influencerProfileId || {};
         const displayName = influencer.displayName || influencer.handle || 'New Creator';
         const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
-        const nameParts = displayName.trim().split(/\s+/);
-        const initials = nameParts.length >= 2
-          ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-          : displayName.charAt(0).toUpperCase();
         const tier = influencer.influenceTier || 'Nano Influencer';
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
         const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
@@ -2382,7 +2418,7 @@
           <td data-label="Campaign"><span class="${campClass}" data-campaign="${campaignSlug}">${campaignTitle}</span></td>
           <td data-label="Submitted By">
             <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}">
-              <div class="avatar">${initials}</div>
+              <div class="avatar">${PERSON_SVG}</div>
               <div>
                 <div class="name">@${handle}</div>
                 <div class="tier">${tier}</div>
@@ -2396,9 +2432,9 @@
         tbody.appendChild(row);
       });
 
-      // Update pagination text
-      const showingEl = document.querySelector('.showing');
-      if (showingEl) showingEl.textContent = 'Showing 1-' + submissions.length + ' of ' + submissions.length + ' items';
+      // Apply pagination + filters (shows first page of results)
+      currentPage = 1;
+      applyAllFilters();
 
       // Check for expiring items and show alert
       if (typeof checkExpiringItems === 'function') checkExpiringItems();
@@ -2410,13 +2446,8 @@
           var name = this.getAttribute('data-influencer-name') || 'Unknown';
           var handle = this.getAttribute('data-influencer-handle') || '';
           var tier = this.getAttribute('data-influencer-tier') || 'Creator';
-          var nameParts = name.trim().split(/\s+/);
-          var initials = nameParts.length >= 2
-            ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-            : name.charAt(0).toUpperCase();
-
           // Populate the existing influencer profile modal
-          document.getElementById('ipAvatar').textContent = initials;
+          document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
           document.getElementById('ipModalHandle').textContent = '@' + handle;
           document.getElementById('ipName').textContent = name;
           var tierEl = document.getElementById('ipTier');

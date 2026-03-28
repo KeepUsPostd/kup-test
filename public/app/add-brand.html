@@ -356,17 +356,14 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
         <div class="profile-menu">
           <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
-            <div class="profile-avatar">ST</div>
-            <div class="profile-info"><div class="name">Santana T.</div><div class="brand">KeepUsPostd</div></div>
+            <div class="profile-avatar" id="headerAvatar">ST</div>
+            <div class="profile-info"><div class="name" id="headerName">Santana T.</div><div class="brand" id="headerBrand">KeepUsPostd</div></div>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
           <div class="profile-dropdown" id="profileDropdown">
@@ -486,16 +483,6 @@
             <label for="brandIndustry">Industry *</label>
             <select id="brandIndustry">
               <option value="" disabled selected>Select an industry</option>
-              <option value="Fashion & Beauty">Fashion &amp; Beauty</option>
-              <option value="Food & Beverage">Food &amp; Beverage</option>
-              <option value="Technology & SaaS">Technology &amp; SaaS</option>
-              <option value="Health & Fitness">Health &amp; Fitness</option>
-              <option value="Travel & Lifestyle">Travel &amp; Lifestyle</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Education">Education</option>
-              <option value="Finance">Finance</option>
-              <option value="Retail & E-commerce">Retail &amp; E-commerce</option>
-              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -815,6 +802,22 @@
 
   <!-- ========== FOOTER ========== -->
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- ========== PLATFORM CONFIG ========== -->
+  <script src="/js/platform-config.js"></script>
+  <script>
+  (function() {
+    var sel = document.getElementById('brandIndustry');
+    if (sel && typeof KUP_PLATFORM !== 'undefined' && KUP_PLATFORM.BRAND_CATEGORIES) {
+      KUP_PLATFORM.BRAND_CATEGORIES.forEach(function(cat) {
+        var opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+    }
+  })();
+  </script>
 
   <!-- ========== WIZARD LOGIC ========== -->
   <script>
@@ -1221,40 +1224,109 @@
     }
   }
 
+  /* ── Collect brand form data ───────────────── */
+  function collectBrandPayload(status) {
+    var selectedOffers = [];
+    document.querySelectorAll('.offer-card.selected').forEach(function(c) {
+      selectedOffers.push(c.getAttribute('data-offer'));
+    });
+    return {
+      name: (document.getElementById('brandName').value || '').trim(),
+      industry: document.getElementById('brandIndustry').value || '',
+      description: (document.getElementById('brandDescription').value || '').trim(),
+      location: (document.getElementById('brandLocation').value || '').trim(),
+      contactName: (document.getElementById('contactName').value || '').trim(),
+      website: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
+      socials: {
+        instagram: (document.getElementById('socialIg').value || '').trim(),
+        twitter: (document.getElementById('socialX').value || '').trim(),
+        tiktok: (document.getElementById('socialTt').value || '').trim(),
+        facebook: (document.getElementById('socialFb').value || '').trim(),
+        linkedin: (document.getElementById('socialLi').value || '').trim()
+      },
+      offers: selectedOffers,
+      offerDescription: (document.getElementById('offerDescription') ? document.getElementById('offerDescription').value.trim() : ''),
+      offerValue: (document.getElementById('offerValue') ? document.getElementById('offerValue').value.trim() : ''),
+      status: status
+    };
+  }
+
   /* ── Publish / Save Draft ───────────────────── */
-  document.getElementById('publishBtn').addEventListener('click', function() {
-    // Generate the brand URL from the brand name field
-    var brandName = document.getElementById('brandName') ? document.getElementById('brandName').value.trim() : '';
-    var brandSlug = brandName ? brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'yourbrand';
-    var brandUrl = 'keepuspostd.com/brand/' + brandSlug;
+  document.getElementById('publishBtn').addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Publishing...';
 
-    // Update the success overlay with the actual brand URL
-    var urlDisplay = document.getElementById('successLinkUrl');
-    if (urlDisplay) urlDisplay.textContent = brandUrl;
+    try {
+      var payload = collectBrandPayload('published');
+      var result = await kupApi.post('/api/brands', payload);
 
-    // Show success overlay
-    var overlay = document.getElementById('publishSuccessOverlay');
-    if (overlay) overlay.classList.add('visible');
+      if (result && result.error) {
+        kupToast(result.error || 'Failed to publish brand.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Publish to Marketplace';
+        return;
+      }
 
-    // Copy button functionality
-    var copyBtn = document.getElementById('successCopyBtn');
-    if (copyBtn) {
-      copyBtn.onclick = function() {
-        var fullUrl = 'https://' + brandUrl;
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(fullUrl).then(function() {
-            copyBtn.textContent = 'Copied!';
-            copyBtn.style.background = '#16a34a';
-            setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.style.background = ''; }, 2000);
-          });
-        }
-      };
+      // Generate the brand URL from the brand name field
+      var brandName = payload.name;
+      var brandSlug = brandName ? brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'yourbrand';
+      var brandUrl = 'keepuspostd.com/brand/' + brandSlug;
+
+      // Update the success overlay with the actual brand URL
+      var urlDisplay = document.getElementById('successLinkUrl');
+      if (urlDisplay) urlDisplay.textContent = brandUrl;
+
+      // Show success overlay
+      var overlay = document.getElementById('publishSuccessOverlay');
+      if (overlay) overlay.classList.add('visible');
+
+      // Copy button functionality
+      var copyBtn = document.getElementById('successCopyBtn');
+      if (copyBtn) {
+        copyBtn.onclick = function() {
+          var fullUrl = 'https://' + brandUrl;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullUrl).then(function() {
+              copyBtn.textContent = 'Copied!';
+              copyBtn.style.background = '#16a34a';
+              setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.style.background = ''; }, 2000);
+            });
+          }
+        };
+      }
+    } catch (err) {
+      console.error('Publish brand error:', err);
+      kupToast('Something went wrong. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Publish to Marketplace';
     }
   });
 
-  document.getElementById('draftBtn').addEventListener('click', function() {
-    kupToast('Brand saved as draft. You can publish anytime.', 'info');
-    setTimeout(function() { window.location.href = 'activity.html'; }, 2000);
+  document.getElementById('draftBtn').addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      var payload = collectBrandPayload('draft');
+      var result = await kupApi.post('/api/brands', payload);
+
+      if (result && result.error) {
+        kupToast(result.error || 'Failed to save draft.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Save Draft & Explore Platform';
+        return;
+      }
+
+      kupToast('Brand saved as draft. You can publish anytime.', 'info');
+      setTimeout(function() { window.location.href = 'manage-brands.html'; }, 2000);
+    } catch (err) {
+      console.error('Save draft error:', err);
+      kupToast('Something went wrong. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Save Draft & Explore Platform';
+    }
   });
 
   /* ── Agency Variant Detection ───────────────── */
@@ -1332,7 +1404,35 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/brand-context.js"></script>
+    <script>
+      // Hydrate header profile from brand context
+      (function() {
+        try {
+          var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+          if (brand && brand.name) {
+            var brandEl = document.getElementById('headerBrand');
+            if (brandEl) brandEl.textContent = brand.name;
+          }
+        } catch(e) {}
+      })();
+    </script>
     <script src="/js/onboarding.js"></script>
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+  /* ============== AUTH GATE ============== */
+  if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+      }
+    });
+  }
+  </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

@@ -280,11 +280,11 @@
     .request-avatar {
       width: 48px; height: 48px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.85rem;
       flex-shrink: 0;
@@ -847,11 +847,11 @@
     .ip-avatar {
       width: 80px; height: 80px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 1.5rem;
       margin: 0 auto 12px;
@@ -1871,51 +1871,7 @@
               <button class="notif-tab" data-tab="unread">Unread</button>
             </div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
-                  <div class="notif-time">2 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item unread">
-                <div class="notif-icon approval">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
-                  <div class="notif-time">15 minutes ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon payment">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
-                  <div class="notif-time">1 hour ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon joined">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
-                  <div class="notif-time">3 hours ago</div>
-                </div>
-              </li>
-              <li class="notif-item">
-                <div class="notif-icon submission">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <div class="notif-body">
-                  <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
-                  <div class="notif-time">5 hours ago</div>
-                </div>
-              </li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -1958,7 +1914,7 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div>
-          <div class="stat-card-value">247</div>
+          <div class="stat-card-value" id="statTotalInfluencers">—</div>
           <div class="stat-card-label">Total Influencers</div>
         </div>
       </div>
@@ -1967,8 +1923,8 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <div>
-          <div class="stat-card-value">38</div>
-          <div class="stat-card-label">Active This Week</div>
+          <div class="stat-card-value" id="statActiveInfluencers">—</div>
+          <div class="stat-card-label">Active Partners</div>
         </div>
       </div>
       <div class="stat-card">
@@ -1976,8 +1932,8 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </div>
         <div>
-          <div class="stat-card-value">3.4%</div>
-          <div class="stat-card-label">Avg Engagement</div>
+          <div class="stat-card-value" id="statTotalSubmissions">—</div>
+          <div class="stat-card-label">Total Submissions</div>
         </div>
       </div>
       <div class="stat-card">
@@ -1985,17 +1941,17 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <div>
-          <div class="stat-card-value">8</div>
-          <div class="stat-card-label">Pending Requests</div>
+          <div class="stat-card-value" id="statPausedPartners">—</div>
+          <div class="stat-card-label">Paused Partners</div>
         </div>
       </div>
     </div>
 
     <!-- Tabs -->
     <div class="influencer-tabs">
-      <button class="inf-tab active" data-inf-tab="tab-my-influencers">My Influencers <span class="inf-tab-badge">247</span></button>
-      <button class="inf-tab" data-inf-tab="tab-requests">Requests <span class="inf-tab-badge alert">8</span></button>
-      <button class="inf-tab" data-inf-tab="tab-invited">Invited <span class="inf-tab-badge">3</span></button>
+      <button class="inf-tab active" data-inf-tab="tab-my-influencers">My Influencers <span class="inf-tab-badge" id="badgeMyInfluencers">—</span></button>
+      <button class="inf-tab" data-inf-tab="tab-requests">Requests <span class="inf-tab-badge alert" id="badgeRequests">—</span></button>
+      <button class="inf-tab" data-inf-tab="tab-invited">Invited <span class="inf-tab-badge" id="badgeInvited">—</span></button>
       <button class="inf-tab" data-inf-tab="tab-discovery">Discovery <span class="inf-tab-badge" style="background:rgba(22,163,74,0.1); color:#16a34a;">NEW</span></button>
     </div>
 
@@ -2010,10 +1966,10 @@
       <!-- Toolbar -->
       <div class="influencer-toolbar">
         <div class="toolbar-left">
-          <span class="influencer-count"><strong>247</strong> Brand Influencers</span>
-          <span class="slot-counter">
+          <span class="influencer-count"><strong id="toolbarInfluencerCount">—</strong> Brand Influencers</span>
+          <span class="slot-counter" id="slotCounter">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            247 / 300 slots used
+            <span id="slotCounterText">— / — slots used</span>
           </span>
         </div>
         <div class="toolbar-right">
@@ -2085,239 +2041,13 @@
               <th></th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="jessicadavis">JD</div>
-                  <div>
-                    <div class="name" data-influencer="jessicadavis">@jessicadavis</div>
-                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <div class="kup-rating-display">
-                  <div class="kup-rating-stars">
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  </div>
-                  <span class="kup-rating-score">4.8</span>
-                  <span class="kup-rating-count">(12)</span>
-                </div>
-              </td>
-              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-              <td class="stat-cell" data-label="Total Submissions">34</td>
-              <td class="time-cell" data-label="Last Submission">2 hours ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">1 day ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="jessicadavis" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="jessicadavis" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@jessicadavis"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="marcusking" style="background: linear-gradient(135deg, #ED8444, #e06030);">MK</div>
-                  <div>
-                    <div class="name" data-influencer="marcusking">@marcusking</div>
-                    <div class="tier"><span class="tier-badge macro">Macro Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <div class="kup-rating-display">
-                  <div class="kup-rating-stars">
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  </div>
-                  <span class="kup-rating-score">4.3</span>
-                  <span class="kup-rating-count">(8)</span>
-                </div>
-              </td>
-              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-              <td class="stat-cell" data-label="Total Submissions">28</td>
-              <td class="time-cell" data-label="Last Submission">5 hours ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">3 days ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="marcusking" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="marcusking" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@marcusking"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="amylee_creates">AL</div>
-                  <div>
-                    <div class="name" data-influencer="amylee_creates">@amylee_creates</div>
-                    <div class="tier"><span class="tier-badge nano">Nano Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <span class="kup-rating-new">New</span>
-              </td>
-              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-              <td class="stat-cell" data-label="Total Submissions">22</td>
-              <td class="time-cell" data-label="Last Submission">1 day ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">4 days ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="amylee_creates" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="amylee_creates" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@amylee_creates"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="tyreese_r">TR</div>
-                  <div>
-                    <div class="name" data-influencer="tyreese_r">@tyreese_r</div>
-                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <div class="kup-rating-display">
-                  <div class="kup-rating-stars">
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  </div>
-                  <span class="kup-rating-score">3.5</span>
-                  <span class="kup-rating-count">(5)</span>
-                </div>
-              </td>
-              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-              <td class="stat-cell" data-label="Total Submissions">19</td>
-              <td class="time-cell" data-label="Last Submission">2 days ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">1 week ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="tyreese_r" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="tyreese_r" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@tyreese_r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="nina_k" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">NK</div>
-                  <div>
-                    <div class="name" data-influencer="nina_k">@nina_k</div>
-                    <div class="tier"><span class="tier-badge micro">Micro Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <div class="kup-rating-display">
-                  <div class="kup-rating-stars">
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  </div>
-                  <span class="kup-rating-score">4.6</span>
-                  <span class="kup-rating-count">(7)</span>
-                </div>
-              </td>
-              <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-              <td class="stat-cell" data-label="Total Submissions">18</td>
-              <td class="time-cell" data-label="Last Submission">3 days ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">5 days ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="nina_k" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="nina_k" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@nina_k"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td data-label="Influencer">
-                <div class="influencer-cell">
-                  <div class="avatar" data-influencer="chelseap_fit" style="background: linear-gradient(135deg, #16a34a, #15803d);">CP</div>
-                  <div>
-                    <div class="name" data-influencer="chelseap_fit">@chelseap_fit</div>
-                    <div class="tier"><span class="tier-badge mega">Mega Influencer</span></div>
-                  </div>
-                </div>
-              </td>
-              <td class="rating-cell" data-label="Rating">
-                <div class="kup-rating-display">
-                  <div class="kup-rating-stars">
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  </div>
-                  <span class="kup-rating-score">4.9</span>
-                  <span class="kup-rating-count">(24)</span>
-                </div>
-              </td>
-              <td data-label="Status"><span class="status-badge inactive-status">Inactive</span></td>
-              <td class="stat-cell" data-label="Total Submissions">45</td>
-              <td class="time-cell" data-label="Last Submission">6 hours ago</td>
-              <td class="time-cell" data-label="Last Postd Submission">2 days ago</td>
-              <td data-label="">
-                <div class="row-actions-wrap">
-                  <button class="btn-row-actions" aria-label="Actions">⋯</button>
-                  <div class="row-actions-menu">
-                    <button class="row-action-item" data-influencer="chelseap_fit" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>
-                    <button class="row-action-item" data-msg="chelseap_fit" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>
-                    <button class="row-action-item danger" data-action="remove" data-name="@chelseap_fit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Remove Partner</button>
-                  </div>
-                </div>
-              </td>
-            </tr>
+          <tbody id="influencersTbody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:#aaa">Loading partnerships...</td></tr>
           </tbody>
         </table>
 
         <div class="table-footer">
-          <span class="showing">Showing 1-6 of 247 influencers</span>
-          <div class="pagination-btns">
-            <button class="page-btn">&larr;</button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <button class="page-btn">&hellip;</button>
-            <button class="page-btn">42</button>
-            <button class="page-btn">&rarr;</button>
-          </div>
+          <span class="showing" id="tableShowing">Showing 0 influencers</span>
         </div>
       </div>
     </div>
@@ -2326,90 +2056,13 @@
     <div class="inf-tab-panel" id="tab-requests">
       <div class="influencer-toolbar" style="margin-bottom: 20px;">
         <div class="toolbar-left">
-          <span class="influencer-count"><strong>8</strong> Partnership Requests</span>
-          <span class="slot-counter">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            53 slots remaining
-          </span>
+          <span class="influencer-count"><strong id="requestCount">—</strong> Partnership Requests</span>
         </div>
       </div>
 
       <div class="request-cards" id="requestCards">
-        <!-- Request 1 -->
-        <div class="request-card">
-          <div class="request-avatar">DW</div>
-          <div class="request-info">
-            <p class="request-name">@darlene_writes</p>
-            <div class="request-meta">
-              <span class="tier-badge nano">Nano</span>
-              <span>Requested 2 hours ago</span>
-            </div>
-          </div>
-          <div class="request-stats">
-            <div class="request-stat"><div class="request-stat-value">9.2K</div><div class="request-stat-label">Followers</div></div>
-            <div class="request-stat"><div class="request-stat-value">5.8%</div><div class="request-stat-label">Engagement</div></div>
-          </div>
-          <div class="request-actions">
-            <button class="btn-approve" data-name="@darlene_writes">Approve</button>
-            <button class="btn-decline" data-name="@darlene_writes">Decline</button>
-          </div>
-        </div>
-        <!-- Request 2 -->
-        <div class="request-card">
-          <div class="request-avatar" style="background: linear-gradient(135deg, #ED8444, #e06030);">KJ</div>
-          <div class="request-info">
-            <p class="request-name">@kevinj_photo</p>
-            <div class="request-meta">
-              <span class="tier-badge micro">Micro</span>
-              <span>Requested 5 hours ago</span>
-            </div>
-          </div>
-          <div class="request-stats">
-            <div class="request-stat"><div class="request-stat-value">28.3K</div><div class="request-stat-label">Followers</div></div>
-            <div class="request-stat"><div class="request-stat-value">3.1%</div><div class="request-stat-label">Engagement</div></div>
-          </div>
-          <div class="request-actions">
-            <button class="btn-approve" data-name="@kevinj_photo">Approve</button>
-            <button class="btn-decline" data-name="@kevinj_photo">Decline</button>
-          </div>
-        </div>
-        <!-- Request 3 -->
-        <div class="request-card">
-          <div class="request-avatar" style="background: linear-gradient(135deg, #707BBB, #5a6aaa);">RM</div>
-          <div class="request-info">
-            <p class="request-name">@rachelmoon_</p>
-            <div class="request-meta">
-              <span class="tier-badge micro">Micro</span>
-              <span>Requested 1 day ago</span>
-            </div>
-          </div>
-          <div class="request-stats">
-            <div class="request-stat"><div class="request-stat-value">41.7K</div><div class="request-stat-label">Followers</div></div>
-            <div class="request-stat"><div class="request-stat-value">2.9%</div><div class="request-stat-label">Engagement</div></div>
-          </div>
-          <div class="request-actions">
-            <button class="btn-approve" data-name="@rachelmoon_">Approve</button>
-            <button class="btn-decline" data-name="@rachelmoon_">Decline</button>
-          </div>
-        </div>
-        <!-- Request 4 -->
-        <div class="request-card">
-          <div class="request-avatar" style="background: linear-gradient(135deg, #16a34a, #15803d);">TS</div>
-          <div class="request-info">
-            <p class="request-name">@tonysstyle</p>
-            <div class="request-meta">
-              <span class="tier-badge macro">Macro</span>
-              <span>Requested 2 days ago</span>
-            </div>
-          </div>
-          <div class="request-stats">
-            <div class="request-stat"><div class="request-stat-value">189K</div><div class="request-stat-label">Followers</div></div>
-            <div class="request-stat"><div class="request-stat-value">2.4%</div><div class="request-stat-label">Engagement</div></div>
-          </div>
-          <div class="request-actions">
-            <button class="btn-approve" data-name="@tonysstyle">Approve</button>
-            <button class="btn-decline" data-name="@tonysstyle">Decline</button>
-          </div>
+        <div class="requests-empty" id="requestsLoading">
+          <p>Loading requests...</p>
         </div>
       </div>
     </div>
@@ -2418,7 +2071,7 @@
     <div class="inf-tab-panel" id="tab-invited">
       <div class="influencer-toolbar" style="margin-bottom: 20px;">
         <div class="toolbar-left">
-          <span class="influencer-count"><strong>3</strong> Invitations Sent</span>
+          <span class="influencer-count"><strong id="invitedCount">—</strong> Invitations Sent</span>
         </div>
         <div class="toolbar-right">
           <button class="btn-add-influencer" id="addInfluencerBtn2">
@@ -2434,31 +2087,14 @@
         <table>
           <thead>
             <tr>
-              <th>Email</th>
-              <th>Date Sent</th>
+              <th>Influencer</th>
+              <th>Invited</th>
+              <th>Source</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">sarah.martinez@gmail.com</td>
-              <td data-label="Date Sent" class="time-cell">Mar 3, 2026</td>
-              <td data-label="Status"><span class="invited-status sent">Sent</span></td>
-              <td data-label="Action"><button class="btn-resend">Resend</button></td>
-            </tr>
-            <tr>
-              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">mike.chen@outlook.com</td>
-              <td data-label="Date Sent" class="time-cell">Feb 28, 2026</td>
-              <td data-label="Status"><span class="invited-status accepted">Accepted</span></td>
-              <td data-label="Action"><span style="font-size: 0.78rem; color: #888;">—</span></td>
-            </tr>
-            <tr>
-              <td data-label="Email" style="font-weight: 600; font-size: 0.85rem;">lisa.johnson@yahoo.com</td>
-              <td data-label="Date Sent" class="time-cell">Feb 15, 2026</td>
-              <td data-label="Status"><span class="invited-status expired">Expired</span></td>
-              <td data-label="Action"><button class="btn-resend">Resend</button></td>
-            </tr>
+          <tbody id="invitedTbody">
+            <tr><td colspan="4" style="text-align:center;padding:40px;color:#aaa">Loading invitations...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2918,7 +2554,7 @@
       </div>
       <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
       <div class="ip-header">
-        <div class="ip-avatar" id="ipAvatar">JD</div>
+        <div class="ip-avatar" id="ipAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
         <p class="ip-name" id="ipName">Jessica Davis</p>
         <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
@@ -2955,7 +2591,7 @@
       <button class="kup-modal-close" id="noticeModalClose" aria-label="Close">&times;</button>
       <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Notice</h3>
       <div class="notice-header">
-        <div class="notice-avatar" id="noticeAvatar">JD</div>
+        <div class="notice-avatar" id="noticeAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
           <div class="notice-user-name" id="noticeModalName">Jessica Davis</div>
           <div class="notice-user-handle" id="noticeHandle">@jessicadavis</div>
@@ -3150,12 +2786,12 @@
 
     /* ============== INFLUENCER DATA ============== */
     var influencerData = {
-      jessicadavis:  { initials: 'JD', handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
-      marcusking:    { initials: 'MK', handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
-      amylee_creates:{ initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
-      tyreese_r:     { initials: 'TR', handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
-      nina_k:        { initials: 'NK', handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' },
-      chelseap_fit:  { initials: 'CP', handle: '@chelseap_fit', name: 'Chelsea Patterson', tier: 'Mega Influencer', tierClass: 'mega', followers: '1.2M', engagement: '1.8%', posts: '45', bio: 'Celebrity fitness trainer and brand ambassador. Partnered with 50+ fitness and nutrition brands worldwide.' }
+      jessicadavis:  { handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
+      marcusking:    { handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
+      amylee_creates:{ handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
+      tyreese_r:     { handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
+      nina_k:        { handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' },
+      chelseap_fit:  { handle: '@chelseap_fit', name: 'Chelsea Patterson', tier: 'Mega Influencer', tierClass: 'mega', followers: '1.2M', engagement: '1.8%', posts: '45', bio: 'Celebrity fitness trainer and brand ambassador. Partnered with 50+ fitness and nutrition brands worldwide.' }
     };
 
     /* ============== INFLUENCER TABS ============== */
@@ -3192,7 +2828,7 @@
           var key = this.getAttribute('data-influencer');
           var data = influencerData[key];
           if (data) {
-            document.getElementById('ipAvatar').textContent = data.initials;
+            document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
             document.getElementById('ipModalHandle').textContent = data.handle;
             document.getElementById('ipName').textContent = data.name;
             var tierEl = document.getElementById('ipTier');
@@ -3220,7 +2856,7 @@
           var key = this.getAttribute('data-msg');
           var data = influencerData[key];
           if (data) {
-            document.getElementById('noticeAvatar').textContent = data.initials;
+            document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
             document.getElementById('noticeModalName').textContent = data.name;
             document.getElementById('noticeHandle').textContent = data.handle;
             resetNoticeForm();
@@ -3440,7 +3076,7 @@
         var key = this.getAttribute('data-influencer');
         var data = influencerData[key];
         if (!data) return;
-        document.getElementById('ipAvatar').textContent = data.initials;
+        document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
         document.getElementById('ipModalHandle').textContent = data.handle;
         document.getElementById('ipName').textContent = data.name;
         var tierEl = document.getElementById('ipTier');
@@ -3473,8 +3109,7 @@
       closeModal('influencerProfileModal');
       var handle = document.getElementById('ipModalHandle').textContent;
       var name = document.getElementById('ipName').textContent;
-      var initials = document.getElementById('ipAvatar').textContent;
-      document.getElementById('noticeAvatar').textContent = initials;
+      document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
       document.getElementById('noticeModalName').textContent = name;
       document.getElementById('noticeHandle').textContent = handle;
       resetNoticeForm();
@@ -3757,19 +3392,301 @@
       });
     });
   </script>
-  <!--
-    KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
-    <script src="/js/brand-context.js"></script>
-    Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
-    Key APIs for this page:
-      KUP_PLATFORM.INFLUENCER_TABS, .INFLUENCE_TIERS, .DISCOVERY_TIERS, .INFLUENCER_RULES
-      KUP_PLATFORM.RATING_SYSTEM
-  -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
   <script src="/js/platform-config.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ============================================================
+       INFLUENCERS — REAL API WIRING (Partnerships)
+       ============================================================ */
+
+    var PLAN_INFLUENCER_LIMITS = { starter: 10, growth: 100, pro: 500, agency: 2000, enterprise: Infinity };
+    var AVATAR_GRADIENTS = [
+      'linear-gradient(135deg,#2EA5DD,#707BBB)',
+      'linear-gradient(135deg,#ED8444,#e06030)',
+      'linear-gradient(135deg,#707BBB,#5a6aaa)',
+      'linear-gradient(135deg,#16a34a,#15803d)',
+      'linear-gradient(135deg,#654ea3,#eaafc8)',
+      'linear-gradient(135deg,#cc2b5e,#753a88)',
+      'linear-gradient(135deg,#2193b0,#6dd5ed)',
+      'linear-gradient(135deg,#232526,#414345)'
+    ];
+
+    var allPartnerships = [];
+
+    /* ---- Helpers ---- */
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
+    function tierBadgeClass(tier) {
+      if (!tier) return '';
+      if (tier.indexOf('nano') >= 0 || tier === 'newcomer') return 'nano';
+      if (tier.indexOf('micro') >= 0 || tier === 'reviewer') return 'micro';
+      if (tier.indexOf('rising') >= 0 || tier.indexOf('macro') >= 0 || tier === 'verified_reviewer') return 'macro';
+      if (tier.indexOf('established') >= 0 || tier.indexOf('premium') >= 0 || tier === 'featured_creator' || tier === 'top_creator') return 'mega';
+      return 'nano';
+    }
+
+    function tierLabel(tier) {
+      if (!tier) return 'Unverified';
+      return tier.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+
+    function timeAgo(dateStr) {
+      if (!dateStr) return '—';
+      var now = Date.now();
+      var then = new Date(dateStr).getTime();
+      var diff = now - then;
+      var mins = Math.floor(diff / 60000);
+      if (mins < 60) return mins + ' min ago';
+      var hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      var days = Math.floor(hours / 24);
+      if (days < 30) return days + 'd ago';
+      return Math.floor(days / 30) + 'mo ago';
+    }
+
+    function buildStars(rating, count) {
+      if (!rating || !count) return '<span class="kup-rating-new">New</span>';
+      var full = Math.floor(rating);
+      var html = '<div class="kup-rating-display"><div class="kup-rating-stars">';
+      for (var i = 0; i < 5; i++) {
+        var cls = i < full ? 'star-filled' : 'star-empty';
+        html += '<svg viewBox="0 0 24 24"><polygon class="' + cls + '" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+      }
+      html += '</div><span class="kup-rating-score">' + rating.toFixed(1) + '</span>';
+      html += '<span class="kup-rating-count">(' + count + ')</span></div>';
+      return html;
+    }
+
+    /* ---- Build one table row ---- */
+    function buildPartnerRow(p, index) {
+      var inf = p.influencerProfileId || {};
+      var handle = inf.handle || 'unknown';
+      var name = inf.displayName || handle;
+      var tier = inf.influenceTier || inf.creatorTier || 'unverified';
+      var avatarUrl = inf.avatarUrl;
+      var gradient = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
+      var rating = inf.stats ? inf.stats.averageRating : (inf.averageRating || null);
+      var ratingCount = inf.stats ? inf.stats.ratingCount : (inf.ratingCount || 0);
+      var subs = p.totalSubmissions || 0;
+      var statusClass = p.status === 'active' ? 'active-status' : (p.status === 'paused' ? 'pending-status' : 'inactive-status');
+      var statusLabel = p.status.charAt(0).toUpperCase() + p.status.slice(1);
+
+      var avatarHtml = avatarUrl
+        ? '<div class="avatar" style="overflow:hidden"><img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'
+        : '<div class="avatar" style="background:' + gradient + ';display:flex;align-items:center;justify-content:center">' + PERSON_SVG + '</div>';
+
+      return '<tr data-partnership-id="' + p._id + '" data-handle="' + handle + '" data-name="' + name + '" data-status="' + p.status + '">' +
+        '<td data-label="Influencer"><div class="influencer-cell">' + avatarHtml +
+          '<div><div class="name" data-influencer="' + handle + '">@' + handle + '</div>' +
+          '<div class="tier"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier) + '</span></div></div></div></td>' +
+        '<td class="rating-cell" data-label="Rating">' + buildStars(rating, ratingCount) + '</td>' +
+        '<td data-label="Status"><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td class="stat-cell" data-label="Total Submissions">' + subs + '</td>' +
+        '<td class="time-cell" data-label="Started">' + timeAgo(p.startedAt) + '</td>' +
+        '<td class="time-cell" data-label="Last Updated">' + timeAgo(p.updatedAt) + '</td>' +
+        '<td data-label=""><div class="row-actions-wrap">' +
+          '<button class="btn-row-actions" aria-label="Actions">&#x22EF;</button>' +
+          '<div class="row-actions-menu">' +
+            '<button class="row-action-item" data-influencer="' + handle + '" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>' +
+            '<button class="row-action-item" data-msg="' + handle + '" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>' +
+            '<button class="row-action-item danger" data-action="remove" data-partnership="' + p._id + '" data-name="@' + handle + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> End Partnership</button>' +
+          '</div></div></td></tr>';
+    }
+
+    /* ---- Render table ---- */
+    function renderInfluencersTable(partnerships) {
+      var tbody = document.getElementById('influencersTbody');
+      var showing = document.getElementById('tableShowing');
+
+      if (!partnerships || partnerships.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:#aaa"><div style="font-size:2rem;margin-bottom:8px">&#x1F465;</div>No influencer partnerships yet.<br><span style="font-size:0.82rem">Use the "Add Influencers" button to invite creators.</span></td></tr>';
+        showing.textContent = 'Showing 0 influencers';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < partnerships.length; i++) {
+        html += buildPartnerRow(partnerships[i], i);
+      }
+      tbody.innerHTML = html;
+      showing.textContent = 'Showing ' + partnerships.length + ' influencer' + (partnerships.length !== 1 ? 's' : '');
+
+      // Re-bind row action menus
+      bindRowActions();
+    }
+
+    /* ---- Render requests (source=request, not yet active) ---- */
+    function renderRequests(partnerships) {
+      var container = document.getElementById('requestCards');
+      // Requests are partnerships with source "request" — for now we show paused as "pending requests"
+      // In reality, a "request" workflow may need a separate model. For MVP, show all partnerships.
+      // Show empty state
+      var requestPartners = partnerships.filter(function(p) { return p.source === 'request'; });
+
+      var countEl = document.getElementById('requestCount');
+      var badgeEl = document.getElementById('badgeRequests');
+      countEl.textContent = requestPartners.length;
+      badgeEl.textContent = requestPartners.length;
+
+      if (requestPartners.length === 0) {
+        container.innerHTML = '<div class="requests-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No pending partnership requests</p></div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < requestPartners.length; i++) {
+        var p = requestPartners[i];
+        var inf = p.influencerProfileId || {};
+        var handle = inf.handle || 'unknown';
+        var tier = inf.influenceTier || 'unverified';
+        var gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
+        var followers = inf.realFollowerCount ? (inf.realFollowerCount >= 1000 ? (inf.realFollowerCount / 1000).toFixed(1) + 'K' : inf.realFollowerCount) : '—';
+
+        html += '<div class="request-card" data-partnership-id="' + p._id + '">' +
+          '<div class="request-avatar" style="background:' + gradient + ';display:flex;align-items:center;justify-content:center">' + PERSON_SVG + '</div>' +
+          '<div class="request-info"><p class="request-name">@' + handle + '</p>' +
+          '<div class="request-meta"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier) + '</span>' +
+          '<span>Requested ' + timeAgo(p.createdAt) + '</span></div></div>' +
+          '<div class="request-stats"><div class="request-stat"><div class="request-stat-value">' + followers + '</div><div class="request-stat-label">Followers</div></div></div>' +
+          '<div class="request-actions">' +
+            '<button class="btn-approve" data-partnership="' + p._id + '">Approve</button>' +
+            '<button class="btn-decline" data-partnership="' + p._id + '">Decline</button>' +
+          '</div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    /* ---- Render invited (source=invitation) ---- */
+    function renderInvited(partnerships) {
+      var invited = partnerships.filter(function(p) { return p.source === 'invitation'; });
+      var tbody = document.getElementById('invitedTbody');
+      var countEl = document.getElementById('invitedCount');
+      var badgeEl = document.getElementById('badgeInvited');
+
+      countEl.textContent = invited.length;
+      badgeEl.textContent = invited.length;
+
+      if (invited.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#aaa">No invitations sent yet</td></tr>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < invited.length; i++) {
+        var p = invited[i];
+        var inf = p.influencerProfileId || {};
+        var handle = inf.handle || 'unknown';
+        var statusClass = p.status === 'active' ? 'accepted' : (p.status === 'ended' ? 'expired' : 'sent');
+        var statusLabel = p.status === 'active' ? 'Accepted' : (p.status === 'ended' ? 'Ended' : 'Pending');
+
+        html += '<tr>' +
+          '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem">@' + handle + '</td>' +
+          '<td data-label="Invited" class="time-cell">' + timeAgo(p.createdAt) + '</td>' +
+          '<td data-label="Source"><span style="font-size:0.78rem;color:#888">' + (p.source || 'invitation') + '</span></td>' +
+          '<td data-label="Status"><span class="invited-status ' + statusClass + '">' + statusLabel + '</span></td>' +
+          '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    /* ---- Update all stats ---- */
+    function updateInfluencerStats(stats, partnerships) {
+      document.getElementById('statTotalInfluencers').textContent = stats.total || 0;
+      document.getElementById('statActiveInfluencers').textContent = stats.active || 0;
+
+      // Total submissions across all partnerships
+      var totalSubs = 0;
+      for (var i = 0; i < partnerships.length; i++) {
+        totalSubs += partnerships[i].totalSubmissions || 0;
+      }
+      document.getElementById('statTotalSubmissions').textContent = totalSubs;
+      document.getElementById('statPausedPartners').textContent = stats.paused || 0;
+
+      // Tab badges
+      document.getElementById('badgeMyInfluencers').textContent = stats.total || 0;
+      document.getElementById('toolbarInfluencerCount').textContent = stats.total || 0;
+
+      // Slot counter
+      var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+      var plan = brand ? (brand.plan || 'starter') : 'starter';
+      var limit = PLAN_INFLUENCER_LIMITS[plan] || 10;
+      var limitText = limit === Infinity ? 'Unlimited' : limit;
+      document.getElementById('slotCounterText').textContent = (stats.total || 0) + ' / ' + limitText + ' slots used';
+    }
+
+    /* ---- Search ---- */
+    var searchInput = document.getElementById('myInfluencerSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        var q = this.value.toLowerCase().trim();
+        var filtered = !q ? allPartnerships : allPartnerships.filter(function(p) {
+          var inf = p.influencerProfileId || {};
+          var handle = (inf.handle || '').toLowerCase();
+          var name = (inf.displayName || '').toLowerCase();
+          return handle.indexOf(q) >= 0 || name.indexOf(q) >= 0;
+        });
+        renderInfluencersTable(filtered);
+      });
+    }
+
+    /* ---- Row action menus ---- */
+    function bindRowActions() {
+      document.querySelectorAll('#influencersTbody .btn-row-actions').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var menu = this.nextElementSibling;
+          // Close other menus
+          document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { if (m !== menu) m.classList.remove('show'); });
+          menu.classList.toggle('show');
+        });
+      });
+    }
+
+    /* ---- LOAD PARTNERSHIPS FROM API ---- */
+    async function loadPartnerships() {
+      var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+      if (!brand || !brand.mongoId) {
+        document.getElementById('influencersTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:#aaa">Select a brand to view influencer partnerships</td></tr>';
+        return;
+      }
+
+      try {
+        var data = await kupApi.get('/api/partnerships?brandId=' + brand.mongoId);
+        if (!data || data.error) {
+          kupToast(data ? data.error : 'Could not load partnerships', 'error');
+          document.getElementById('influencersTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#e74c3c">Error loading partnerships</td></tr>';
+          return;
+        }
+
+        allPartnerships = data.partnerships || [];
+        var stats = data.stats || { total: 0, active: 0, paused: 0, ended: 0 };
+
+        updateInfluencerStats(stats, allPartnerships);
+        renderInfluencersTable(allPartnerships);
+        renderRequests(allPartnerships);
+        renderInvited(allPartnerships);
+
+      } catch (err) {
+        kupToast('Failed to load partnerships', 'error');
+        document.getElementById('influencersTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#e74c3c">Failed to load</td></tr>';
+      }
+    }
+
+    /* ---- INIT: wait for Firebase auth ---- */
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) { if (user) loadPartnerships(); });
+    } else {
+      loadPartnerships();
+    }
+  </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

@@ -1020,6 +1020,176 @@
     document.getElementById('profileDropdown').classList.remove('show');
   });
   </script>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+  /* ── API Submission — wire Publish & Draft to POST /api/campaigns ── */
+  (function() {
+    // Compute a deadline date from the duration select value
+    function computeDeadline() {
+      var dur = document.getElementById('campaignDuration').value;
+      if (dur === 'custom') {
+        return document.getElementById('endDate').value || null;
+      }
+      var days = parseInt(dur, 10); // "3 days" → 3, "7 days" → 7, etc.
+      if (!days) return null;
+      var d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString();
+    }
+
+    // Build the request body from form fields
+    function buildCampaignBody(brandId) {
+      var title = document.getElementById('campaignTitle').value.trim();
+      var description = document.getElementById('campaignDesc').value.trim();
+      var category = document.getElementById('campaignCategory').value;
+
+      // Build brief from content guidelines + reward info
+      var brief = document.getElementById('contentGuidelines').value.trim() || description;
+
+      // Determine if cash reward is selected (platform bonus)
+      var hasPlatformBonus = !!document.querySelector('.offer-card[data-offer="cash"].selected');
+
+      // Max submissions = budget cap / cash amount (or 0 for unlimited)
+      var budgetCap = parseFloat(document.getElementById('budgetCap').value) || 0;
+      var cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
+      var maxSubmissions = (budgetCap > 0 && cashAmount > 0) ? Math.floor(budgetCap / cashAmount) : 0;
+
+      return {
+        brandId: brandId,
+        title: title,
+        description: description,
+        brief: brief,
+        category: category,
+        coverImageUrl: uploadedImageSrc || '',
+        maxSubmissions: maxSubmissions,
+        deadline: computeDeadline(),
+        hasPlatformBonus: hasPlatformBonus
+      };
+    }
+
+    // Submit campaign to the API
+    async function submitCampaign(isDraft) {
+      // Get brand context
+      var brandId = null;
+      try {
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          if (ab) brandId = ab.mongoId || ab.id;
+        }
+        if (!brandId) {
+          var stored = localStorage.getItem('kup_active_brand');
+          if (stored) {
+            var brand = JSON.parse(stored);
+            brandId = brand.mongoId || brand.id;
+          }
+        }
+      } catch(e) {}
+
+      if (!brandId) {
+        kupToast('No active brand found. Please select a brand first.', 'error');
+        setTimeout(function() { window.location.href = 'manage-brands.html'; }, 1500);
+        return;
+      }
+
+      var body = buildCampaignBody(brandId);
+
+      // Disable buttons during submission
+      var publishBtn = document.getElementById('publishBtn');
+      var draftBtn = document.getElementById('draftBtn');
+      var origPublishText = publishBtn.textContent;
+      var origDraftText = draftBtn.textContent;
+      publishBtn.disabled = true;
+      draftBtn.disabled = true;
+      publishBtn.textContent = 'Publishing...';
+      publishBtn.style.opacity = '0.6';
+
+      try {
+        var result = await kupApi.post('/api/campaigns', body);
+
+        if (result && result.error) {
+          // Handle plan limit error
+          if (result.error === 'Campaign limit reached' || (result.message && result.message.indexOf('limit') !== -1)) {
+            kupToast('Campaign limit reached on your current plan. Please upgrade to create more campaigns.', 'warning');
+          } else {
+            kupToast(result.error || result.message || 'Failed to create campaign', 'error');
+          }
+          return;
+        }
+
+        if (result && (result._id || result.id)) {
+          var newId = result._id || result.id;
+          kupToast('Campaign "' + body.title + '" published successfully!', 'success');
+          setTimeout(function() {
+            window.location.href = 'campaign-detail.html?id=' + newId;
+          }, 1500);
+        } else {
+          kupToast('Campaign created but no ID returned. Redirecting...', 'warning');
+          setTimeout(function() {
+            window.location.href = 'brand-campaign.html';
+          }, 1500);
+        }
+      } catch (err) {
+        console.error('Campaign creation error:', err);
+        kupToast('Something went wrong. Please try again.', 'error');
+      } finally {
+        publishBtn.disabled = false;
+        draftBtn.disabled = false;
+        publishBtn.textContent = origPublishText;
+        publishBtn.style.opacity = '1';
+      }
+    }
+
+    // Override the publish button handler once auth is ready
+    function wirePublishButton() {
+      var publishBtn = document.getElementById('publishBtn');
+      var draftBtn = document.getElementById('draftBtn');
+
+      // Remove old inline listeners by cloning
+      var newPublishBtn = publishBtn.cloneNode(true);
+      publishBtn.parentNode.replaceChild(newPublishBtn, publishBtn);
+      var newDraftBtn = draftBtn.cloneNode(true);
+      draftBtn.parentNode.replaceChild(newDraftBtn, draftBtn);
+
+      newPublishBtn.addEventListener('click', function() {
+        if (!document.getElementById('termsCheck').checked) {
+          kupToast('Please accept the community guidelines', 'warning');
+          return;
+        }
+        submitCampaign(false);
+      });
+
+      newDraftBtn.addEventListener('click', function() {
+        var title = document.getElementById('campaignTitle').value || 'Untitled';
+        kupToast('Campaign "' + title + '" saved as draft', 'info');
+        setTimeout(function() {
+          window.location.href = 'brand-campaign.html';
+        }, 2000);
+      });
+    }
+
+    // Wait for Firebase auth before wiring
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          wirePublishButton();
+        } else {
+          window.location.href = '/pages/login.html';
+        }
+      });
+    } else {
+      // Fallback: wire immediately if no auth SDK
+      wirePublishButton();
+    }
+  })();
+  </script>
+
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>

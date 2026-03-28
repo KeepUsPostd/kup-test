@@ -35,8 +35,11 @@ const transactionSchema = new mongoose.Schema({
     required: true,
   },
 
-  // Amount
-  amount: { type: Number, required: true, min: 0 }, // use Decimal128 in production
+  // Amount breakdown
+  amount: { type: Number, required: true, min: 0 },          // What the influencer receives (net)
+  brandPaysAmount: { type: Number, default: null, min: 0 },  // What the brand is charged (gross)
+  kupFee: { type: Number, default: 0, min: 0 },              // KUP platform fee ($0.50)
+  paypalFee: { type: Number, default: 0, min: 0 },           // PayPal processing fee
   currency: { type: String, default: 'USD' },
 
   // Context (what triggered this payment)
@@ -67,7 +70,15 @@ const transactionSchema = new mongoose.Schema({
     ref: 'Payout',
     default: null,
   },
+  paypalOrderId: { type: String, default: null },
   paypalTransactionId: { type: String, default: null },
+
+  // Wallet: links this transaction to a cashout (prevents double-counting)
+  withdrawalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Withdrawal',
+    default: null,
+  },
 
   paidAt: { type: Date, default: null },
   failedReason: { type: String, default: null },

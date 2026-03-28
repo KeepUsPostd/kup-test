@@ -386,9 +386,7 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -660,15 +658,117 @@
   </script>
   <!--
     KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
-    <script src="/js/brand-context.js"></script>
     Master architecture: /brands/KeepUsPostd/product/PLATFORM_ARCHITECTURE.md
     Key APIs for this page:
       KUP_PLATFORM.PRICING_TIERS, .canAccess(tier, feature), .getPlanLimit(tier, key)
   -->
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <!-- KUP Auth + API helpers -->
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
   <script src="/js/platform-config.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
+
+  <script>
+    // ---- Auth gate: redirect to login if not signed in ----
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+
+      // Populate header with user info
+      var kupUser = JSON.parse(localStorage.getItem('kupUser') || '{}');
+      var nameEl = document.querySelector('.profile-info .name');
+      if (nameEl && kupUser.legalFirstName) {
+        nameEl.textContent = kupUser.legalFirstName + (kupUser.legalLastName ? ' ' + kupUser.legalLastName.charAt(0) + '.' : '');
+      }
+      var avatarEl = document.querySelector('.profile-avatar');
+      if (avatarEl && kupUser.legalFirstName) {
+        avatarEl.textContent = (kupUser.legalFirstName.charAt(0) + (kupUser.legalLastName ? kupUser.legalLastName.charAt(0) : '')).toUpperCase();
+      }
+
+      // Highlight the user's current plan card
+      highlightCurrentPlan();
+
+      // Try to fetch subscription details from API
+      fetchSubscription();
+    });
+
+    function highlightCurrentPlan() {
+      var brand = null;
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+        brand = KUP_BRAND_CONTEXT.getActiveBrand();
+      }
+      var currentPlan = (brand && brand.plan) ? brand.plan.toLowerCase() : 'starter';
+
+      // Update header brand name
+      var brandEl = document.querySelector('.profile-info .brand');
+      if (brandEl && brand && brand.name) {
+        brandEl.textContent = brand.name;
+      }
+
+      // Map plan names to card indices (0-based)
+      var planMap = { starter: 0, growth: 1, pro: 2, agency: 3, enterprise: 4 };
+      var cards = document.querySelectorAll('.pricing-card');
+
+      cards.forEach(function(card, idx) {
+        // Remove any previous current-plan indicator
+        var existingBadge = card.querySelector('.current-plan-badge');
+        if (existingBadge) existingBadge.remove();
+
+        var btn = card.querySelector('.btn-kup');
+        if (idx === planMap[currentPlan]) {
+          // Mark as current plan
+          var badge = document.createElement('span');
+          badge.className = 'current-plan-badge';
+          badge.textContent = 'Current Plan';
+          badge.style.cssText = 'display:inline-block;background:#16a34a;color:#fff;font-size:0.72rem;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;';
+          card.querySelector('.pricing-card-wrap').insertBefore(badge, card.querySelector('.pricing-card-wrap').firstChild);
+
+          if (btn) {
+            btn.textContent = 'Current Plan';
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.6';
+          }
+        } else if (idx < planMap[currentPlan]) {
+          // Downgrade plans
+          if (btn) btn.textContent = 'Downgrade';
+        } else {
+          // Upgrade plans
+          if (btn) btn.textContent = 'Upgrade';
+        }
+      });
+    }
+
+    function fetchSubscription() {
+      var brand = null;
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+        brand = KUP_BRAND_CONTEXT.getActiveBrand();
+      }
+      if (!brand || !brand.mongoId) return;
+
+      if (typeof kupApi !== 'undefined') {
+        kupApi.get('/api/billing/subscription?brandId=' + brand.mongoId)
+          .then(function(data) {
+            if (data && data.subscription) {
+              console.log('[subscription-detail] Subscription loaded:', data.subscription);
+              // Future: populate billing cycle, next payment date, etc.
+            }
+          })
+          .catch(function(err) {
+            console.warn('[subscription-detail] Could not load subscription:', err.message || err);
+          });
+      }
+    }
+  </script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">

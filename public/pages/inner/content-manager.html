@@ -171,7 +171,7 @@
 
     /* Influencer info */
     .cm-influencer{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:var(--radius-md);margin-bottom:14px}
-    .cm-influencer .avatar{width:48px;height:48px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+    .cm-influencer .avatar{width:48px;height:48px;border-radius:50%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-weight:700;font-size:.85rem;flex-shrink:0}
     .cm-influencer .info .name{font-weight:600;font-size:.9rem}.cm-influencer .info .tier{font-size:.75rem;color:#888}
 
     /* Detail rows */
@@ -222,11 +222,11 @@
     .feedback-avatar {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.75rem;
       flex-shrink: 0;
@@ -480,7 +480,7 @@
     .rating-modal-header p { font-size:0.82rem; color:#888; margin:0; }
     .rating-modal-body { padding:20px 28px; }
     .rating-influencer-info { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#f8f9fa; border-radius:8px; margin-bottom:20px; }
-    .rating-inf-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+    .rating-inf-avatar { width:40px; height:40px; border-radius:50%; background:#E8E8E8; display:flex; align-items:center; justify-content:center; color:#9CA3AF; font-weight:700; font-size:0.8rem; flex-shrink:0; }
     .rating-inf-name { font-weight:600; font-size:0.88rem; color:#1a1a1a; }
     .rating-inf-handle { font-size:0.75rem; color:#888; }
     .rating-criteria-list { display:flex; flex-direction:column; gap:16px; }
@@ -531,7 +531,7 @@
     .library-type-badge { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: 50px; font-size: 0.68rem; font-weight: 600; background: rgba(0,0,0,0.6); color: rgba(255,255,255,0.8); }
     .library-card-info { padding: 14px; }
     .library-card-influencer { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .library-card-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
+    .library-card-avatar { width: 32px; height: 32px; border-radius: 50%; background: #E8E8E8; display: flex; align-items: center; justify-content: center; color: #9CA3AF; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
     .library-card-name { font-weight: 600; font-size: 0.82rem; }
     .library-card-campaign { font-size: 0.7rem; color: #888; }
     .library-card-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: #666; margin-bottom: 12px; }
@@ -552,7 +552,7 @@
     .download-modal-header p { font-size:0.82rem; color:#888; margin:0; }
     .download-modal-body { padding:20px 28px; }
     .download-content-info { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#f8f9fa; border-radius:8px; margin-bottom:20px; }
-    .download-content-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+    .download-content-avatar { width:40px; height:40px; border-radius:50%; background:#E8E8E8; display:flex; align-items:center; justify-content:center; color:#9CA3AF; font-weight:700; font-size:0.8rem; flex-shrink:0; }
     .download-content-name { font-weight:600; font-size:0.88rem; color:#1a1a1a; }
     .download-content-type { font-size:0.75rem; color:#888; }
     .download-format-section { margin-bottom:20px; }
@@ -700,10 +700,8 @@
           <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
           <div class="notif-tabs-row"><button class="notif-tab-btn active" data-tab="all">All</button><button class="notif-tab-btn" data-tab="unread">Unread</button></div>
           <ul class="notif-list" id="notifList">
-            <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-            <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-            <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-          </ul>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
+            </ul>
         </div>
       </div>
       <div class="profile-menu">
@@ -878,7 +876,7 @@
         <h4>Content Details</h4>
 
         <div class="cm-influencer">
-          <div class="avatar" id="cmAvatar">JD</div>
+          <div class="avatar" id="cmAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
           <div class="info">
             <div class="name" id="cmInfluencer">@jessicadavis</div>
             <div class="tier" id="cmTier">Micro Influencer</div>
@@ -962,7 +960,7 @@
       <button class="kup-modal-close" id="cmFeedbackModalClose" aria-label="Close">&times;</button>
       <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Send Feedback</h3>
       <div class="feedback-header">
-        <div class="feedback-avatar" id="cmFeedbackAvatar">JD</div>
+        <div class="feedback-avatar" id="cmFeedbackAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
           <div class="feedback-user-name" id="cmFeedbackName">Jessica Davis</div>
           <div class="feedback-user-handle" id="cmFeedbackHandle">@jessicadavis</div>
@@ -1038,7 +1036,7 @@
         </div>
         <div class="rating-modal-body">
           <div class="rating-influencer-info">
-            <div class="rating-inf-avatar" id="ratingAvatar">JD</div>
+            <div class="rating-inf-avatar" id="ratingAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
             <div>
               <div class="rating-inf-name" id="ratingName">Jessica Davis</div>
               <div class="rating-inf-handle" id="ratingHandle">@jessicadavis</div>
@@ -1138,7 +1136,7 @@
       </div>
       <div class="download-modal-body">
         <div class="download-content-info">
-          <div class="download-content-avatar" id="dlAvatar">MK</div>
+          <div class="download-content-avatar" id="dlAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
           <div>
             <div class="download-content-name" id="dlInfluencer">@marcusking</div>
             <div class="download-content-type" id="dlType">Image &middot; 3.2 MB</div>
@@ -1218,7 +1216,6 @@
         var influencer = sub.influencerProfileId || {};
         var displayName = influencer.displayName || influencer.handle || 'New Creator';
         var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
-        var initials = getInitials(displayName);
         var tier = influencer.influenceTier || 'Creator';
         var campaign = sub.campaignId ? sub.campaignId.title : 'General';
         var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
@@ -1242,7 +1239,6 @@
           icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
           influencer: handle,
           name: displayName,
-          initials: initials,
           tier: tier,
           campaign: campaign,
           date: timeAgo(sub.submittedAt || sub.createdAt),
@@ -1299,7 +1295,7 @@
             icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
             influencer: handle,
             name: displayName,
-            initials: getInitials(displayName),
+            initials: '',
             tier: influencer.influenceTier || 'Creator',
             campaign: sub.campaignId ? sub.campaignId.title : 'General',
             date: timeAgo(sub.submittedAt || sub.createdAt),
@@ -1344,13 +1340,8 @@
       loadContent(currentIndex);
     }
 
-    // ========== Helper: Get initials from name ==========
-    function getInitials(name) {
-      if (!name) return '?';
-      var parts = name.trim().split(/\s+/);
-      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      return parts[0].substring(0, 2).toUpperCase();
-    }
+    // ========== Helper: Person silhouette SVG for influencer avatars ==========
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
 
     // ========== Helper: Time ago ==========
     function timeAgo(dateStr) {
@@ -1475,9 +1466,8 @@
         captionWrap.style.display = 'none';
       }
 
-      // Influencer avatar — show their initials
-      document.getElementById('cmAvatar').textContent = item.initials;
-      if (item.avatarStyle) { document.getElementById('cmAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('cmAvatar').removeAttribute('style'); }
+      // Influencer avatar — show person silhouette
+      document.getElementById('cmAvatar').innerHTML = PERSON_SVG;
       document.getElementById('cmInfluencer').textContent = item.influencer;
       document.getElementById('cmTier').textContent = item.tier;
 
@@ -1807,7 +1797,7 @@
     document.getElementById('cmFeedbackBtn').addEventListener('click', function() {
       var item = contentItems[currentIndex];
       // Populate header
-      document.getElementById('cmFeedbackAvatar').textContent = item.initials;
+      document.getElementById('cmFeedbackAvatar').innerHTML = PERSON_SVG;
       document.getElementById('cmFeedbackName').textContent = item.name;
       document.getElementById('cmFeedbackHandle').textContent = item.influencer;
       // Populate content reference
@@ -1975,7 +1965,7 @@
 
       // Find influencer data
       var item = contentItems[currentIndex];
-      document.getElementById('ratingAvatar').textContent = item.initials;
+      document.getElementById('ratingAvatar').innerHTML = PERSON_SVG;
       document.getElementById('ratingName').textContent = item.name;
       document.getElementById('ratingHandle').textContent = item.influencer;
 
@@ -3494,7 +3484,7 @@
           '</div>' +
           '<div class="library-card-info">' +
             '<div class="library-card-influencer">' +
-              '<div class="library-card-avatar"' + avatarStyle + '>' + item.initials + '</div>' +
+              '<div class="library-card-avatar">' + PERSON_SVG + '</div>' +
               '<div>' +
                 '<div class="library-card-name">' + item.influencer + '</div>' +
                 '<div class="library-card-campaign">' + item.campaign + '</div>' +
@@ -3540,8 +3530,7 @@
       if (!item) return;
 
       // Populate modal basics
-      document.getElementById('dlAvatar').textContent = item.initials;
-      if (item.avatarStyle) { document.getElementById('dlAvatar').setAttribute('style', item.avatarStyle); } else { document.getElementById('dlAvatar').style.background = ''; }
+      document.getElementById('dlAvatar').innerHTML = PERSON_SVG;
       document.getElementById('dlInfluencer').textContent = item.influencer;
       document.getElementById('dlType').textContent = item.type + ' \u00B7 ' + item.fileSize;
 
@@ -4023,7 +4012,7 @@
             icon: contentType === 'Video' ? '\u25B6' : '\uD83D\uDDBC',
             influencer: handle,
             name: displayName,
-            initials: getInitials(displayName),
+            initials: '',
             tier: influencer.influenceTier || 'Creator',
             campaign: sub.campaignId ? sub.campaignId.title : 'General',
             date: timeAgo(sub.submittedAt || sub.createdAt),

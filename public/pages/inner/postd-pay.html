@@ -320,11 +320,11 @@
       width: 100px;
       height: 100px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--kup-white);
+      color: #9CA3AF;
       font-weight: 800;
       font-size: 2rem;
       margin: 0 auto 20px;
@@ -712,11 +712,11 @@
     .msg-avatar {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: var(--kup-gradient);
+      background: #E8E8E8;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #9CA3AF;
       font-weight: 700;
       font-size: 0.75rem;
       flex-shrink: 0;
@@ -876,257 +876,6 @@
       .kup-notif-popover { width: calc(100vw - 32px); right: -120px; }
     }
 
-    /* ============== QR SCAN SECTION ============== */
-    .scan-section {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: var(--radius-md);
-      padding: 32px;
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .scan-section-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .scan-section-header svg {
-      width: 28px;
-      height: 28px;
-      color: var(--kup-blue);
-    }
-    .scan-section-header h2 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      margin: 0;
-    }
-    .scan-subtitle {
-      font-size: 0.88rem;
-      color: #888;
-      margin: 0 0 24px;
-    }
-    .scan-viewfinder {
-      position: relative;
-      width: 280px;
-      height: 280px;
-      margin: 0 auto 24px;
-      background: #0d0d1a;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .scan-viewfinder video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 16px;
-    }
-    /* Corner brackets */
-    .scan-corners {
-      position: absolute;
-      inset: 20px;
-      pointer-events: none;
-    }
-    .scan-corners::before,
-    .scan-corners::after,
-    .scan-corner-bl::before,
-    .scan-corner-br::before {
-      content: '';
-      position: absolute;
-      width: 32px;
-      height: 32px;
-      border-color: var(--kup-blue);
-      border-style: solid;
-    }
-    .scan-corners::before {
-      top: 0; left: 0;
-      border-width: 3px 0 0 3px;
-      border-radius: 4px 0 0 0;
-    }
-    .scan-corners::after {
-      top: 0; right: 0;
-      border-width: 3px 3px 0 0;
-      border-radius: 0 4px 0 0;
-    }
-    .scan-corner-bl::before {
-      bottom: 0; left: 0;
-      border-width: 0 0 3px 3px;
-      border-radius: 0 0 0 4px;
-    }
-    .scan-corner-br::before {
-      bottom: 0; right: 0;
-      border-width: 0 3px 3px 0;
-      border-radius: 0 0 4px 0;
-    }
-    /* Scanning line animation */
-    .scan-line {
-      position: absolute;
-      left: 24px;
-      right: 24px;
-      height: 2px;
-      background: var(--kup-blue);
-      box-shadow: 0 0 8px rgba(46,165,221,0.6);
-      animation: scanMove 2s ease-in-out infinite;
-    }
-    @keyframes scanMove {
-      0%, 100% { top: 24px; }
-      50% { top: calc(100% - 24px); }
-    }
-    .scan-placeholder-icon {
-      font-size: 3rem;
-      color: rgba(255,255,255,0.3);
-    }
-    .scan-placeholder-text {
-      font-size: 0.82rem;
-      color: rgba(255,255,255,0.5);
-      margin-top: 8px;
-    }
-    .btn-scan {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 14px 40px;
-      background: var(--kup-gradient);
-      color: white;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--kup-font);
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-height: 52px;
-    }
-    .btn-scan:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(46,165,221,0.3);
-    }
-    .btn-scan svg {
-      width: 22px;
-      height: 22px;
-    }
-    .btn-scan.active {
-      background: #dc2626;
-    }
-    .btn-scan.active:hover {
-      box-shadow: 0 6px 20px rgba(220,38,38,0.3);
-    }
-    .scan-instructions {
-      margin-top: 20px;
-      font-size: 0.78rem;
-      color: #999;
-      line-height: 1.6;
-    }
-    .scan-instructions strong {
-      color: #666;
-    }
-    /* Scan result card */
-    .scan-result {
-      display: none;
-      margin-top: 24px;
-      padding: 20px;
-      background: #f8fdf9;
-      border: 1px solid #d1e7dd;
-      border-radius: var(--radius-md);
-      text-align: left;
-    }
-    .scan-result.show { display: block; }
-    .scan-result.error { background: #fef8f8; border-color: #f8d7da; }
-    .scan-result-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .scan-result-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(34,197,94,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-    .scan-result.error .scan-result-icon { background: rgba(220,38,38,0.1); }
-    .scan-result-title { font-weight: 700; font-size: 1rem; }
-    .scan-result-details {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 8px 16px;
-      font-size: 0.85rem;
-    }
-    .scan-result-details .srd-label { color: #888; font-weight: 600; }
-    .scan-result-details .srd-value { font-weight: 600; color: #1a1a1a; }
-    .scan-result-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .btn-award-points {
-      flex: 1;
-      padding: 12px;
-      background: #16a34a;
-      color: white;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--kup-font);
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-    }
-    .btn-award-points:hover { background: #15803d; }
-    .btn-scan-again {
-      padding: 12px 20px;
-      background: none;
-      border: 1px solid #ddd;
-      border-radius: var(--radius-sm);
-      font-family: var(--kup-font);
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #666;
-      cursor: pointer;
-    }
-    .btn-scan-again:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
-    /* Points awarded animation */
-    .points-awarded {
-      display: none;
-      text-align: center;
-      padding: 24px;
-    }
-    .points-awarded.show { display: block; }
-    .points-awarded .pa-icon {
-      width: 64px; height: 64px;
-      border-radius: 50%;
-      background: rgba(34,197,94,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 12px;
-      font-size: 1.8rem;
-    }
-    .points-awarded h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
-    .points-awarded .pa-amount { font-size: 2rem; font-weight: 800; color: #16a34a; margin-bottom: 4px; }
-    .points-awarded p { font-size: 0.82rem; color: #888; margin: 0; }
-
-    @media (max-width: 767px) {
-      .scan-section { padding: 20px 16px; }
-      .scan-viewfinder { width: 240px; height: 240px; }
-      .btn-scan { width: 100%; }
-      .scan-result-actions { flex-direction: column; }
-      .btn-award-points, .btn-scan-again { width: 100%; }
-    }
-    @media (max-width: 480px) {
-      .scan-viewfinder { width: 200px; height: 200px; }
-    }
-  
     /* Sticky Footer */
     body{display:flex;flex-direction:column;min-height:100vh}
     main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
@@ -1161,52 +910,8 @@
                 <button class="notif-tab" data-tab="unread">Unread</button>
               </div>
               <ul class="notif-list" id="notifList">
-                <li class="notif-item unread">
-                  <div class="notif-icon submission">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  </div>
-                  <div class="notif-body">
-                    <p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p>
-                    <div class="notif-time">2 minutes ago</div>
-                  </div>
-                </li>
-                <li class="notif-item unread">
-                  <div class="notif-icon approval">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                  </div>
-                  <div class="notif-body">
-                    <p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p>
-                    <div class="notif-time">15 minutes ago</div>
-                  </div>
-                </li>
-                <li class="notif-item">
-                  <div class="notif-icon payment">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                  </div>
-                  <div class="notif-body">
-                    <p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p>
-                    <div class="notif-time">1 hour ago</div>
-                  </div>
-                </li>
-                <li class="notif-item">
-                  <div class="notif-icon joined">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                  </div>
-                  <div class="notif-body">
-                    <p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p>
-                    <div class="notif-time">3 hours ago</div>
-                  </div>
-                </li>
-                <li class="notif-item">
-                  <div class="notif-icon submission">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  </div>
-                  <div class="notif-body">
-                    <p class="notif-text"><strong>@amylee_creates</strong> submitted 2 images for Brand Launch</p>
-                    <div class="notif-time">5 hours ago</div>
-                  </div>
-                </li>
-              </ul>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
+            </ul>
             </div>
           </div>
           <!-- Profile Dropdown -->
@@ -1256,67 +961,7 @@
     </div>
   </div>
 
-  <!-- ============================================
-       QR CODE SCANNER — PURCHASE POINTS
-       ============================================ -->
-  <div class="container">
-    <div class="scan-section" id="scanSection">
-      <div class="scan-section-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        <h2>Scan Purchase Points QR</h2>
-      </div>
-      <p class="scan-subtitle">Scan an influencer's QR code to award purchase points instantly</p>
-
-      <div class="scan-viewfinder" id="scanViewfinder">
-        <video id="scanVideo" autoplay playsinline muted style="display:none;"></video>
-        <div id="scanPlaceholder">
-          <div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div>
-          <div class="scan-placeholder-text">Camera preview</div>
-        </div>
-        <div class="scan-corners"><div class="scan-corner-bl"></div><div class="scan-corner-br"></div></div>
-        <div class="scan-line" id="scanLine" style="display:none;"></div>
-      </div>
-
-      <button class="btn-scan" id="btnScan" onclick="toggleScan()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg>
-        Start Scanning
-      </button>
-
-      <div class="scan-instructions">
-        <strong>How it works:</strong> Have the influencer show their KeepUsPostd QR code on their phone. Tap "Start Scanning" to open your camera, then point it at the QR code. Points will be awarded automatically.
-      </div>
-
-      <!-- Scan Result (shown after successful scan) -->
-      <div class="scan-result" id="scanResult">
-        <div class="scan-result-header">
-          <div class="scan-result-icon"><i class="ph ph-check"></i></div>
-          <div class="scan-result-title" id="scanResultTitle">Influencer Found</div>
-        </div>
-        <div class="scan-result-details">
-          <span class="srd-label">Influencer</span>
-          <span class="srd-value" id="scanInfluencer">@jessicadavis</span>
-          <span class="srd-label">Name</span>
-          <span class="srd-value" id="scanName">Jessica Davis</span>
-          <span class="srd-label">Tier</span>
-          <span class="srd-value" id="scanTier">Micro Influencer</span>
-          <span class="srd-label">Points to Award</span>
-          <span class="srd-value" id="scanPoints" style="color: var(--kup-blue);">+50 Purchase Points</span>
-        </div>
-        <div class="scan-result-actions">
-          <button class="btn-award-points" onclick="awardPoints()"><i class="ph ph-check"></i> Award 50 Points</button>
-          <button class="btn-scan-again" onclick="resetScan()">Scan Again</button>
-        </div>
-      </div>
-
-      <!-- Points Awarded (shown after confirmation) -->
-      <div class="points-awarded" id="pointsAwarded">
-        <div class="pa-icon"><i class="ph ph-confetti"></i></div>
-        <h3>Points Awarded!</h3>
-        <div class="pa-amount">+50 pts</div>
-        <p>@jessicadavis earned 50 purchase points</p>
-      </div>
-    </div>
-  </div>
+  <!-- QR Scanner removed — scan functionality lives on Distribute Reward page -->
 
   <!-- ============================================
        MAIN CONTENT — TWO COLUMN
@@ -1328,9 +973,9 @@
       <div class="col-lg-5">
         <div class="card-kup">
           <div class="influencer-card">
-            <div class="influencer-avatar">JD</div>
-            <div class="influencer-username">Jessica Davis</div>
-            <div class="influencer-handle">@jessicadavis</div>
+            <div class="influencer-avatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+            <div class="influencer-username">Loading...</div>
+            <div class="influencer-handle">@—</div>
             <div class="influencer-tier">Micro Influencer</div>
 
             <div class="influencer-stats">
@@ -1367,7 +1012,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
             </div>
             <div class="postdpay-title">Send Payment</div>
-            <div class="postdpay-subtitle">Pay @jessicadavis via PostdPay</div>
+            <div class="postdpay-subtitle">Pay influencer via PostdPay</div>
 
             <!-- Payment Form -->
             <form id="paymentForm">
@@ -1385,7 +1030,7 @@
 
             <!-- Transaction History Summary -->
             <div class="tx-history">
-              <div class="tx-history-title">Recent Payments to @jessicadavis</div>
+              <div class="tx-history-title">Recent Payments</div>
 
               <div class="tx-item">
                 <div class="tx-left">
@@ -1445,7 +1090,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
       </div>
       <div class="confirm-title" id="paymentConfirmTitle">Confirm Payment</div>
-      <div class="confirm-desc" id="paymentConfirmDesc">Send payment of $0.00 to @jessicadavis via PostdPay?</div>
+      <div class="confirm-desc" id="paymentConfirmDesc">Send payment of $0.00 to @influencer via PostdPay?</div>
       <div class="modal-actions" style="justify-content: center;">
         <button class="btn-modal-cancel" id="paymentConfirmCancel">Cancel</button>
         <button class="btn-modal-primary" id="paymentConfirmSubmit">Confirm Payment</button>
@@ -1461,10 +1106,10 @@
       <div style="padding: 20px 24px 0;">
         <button class="kup-modal-close" id="msgModalClose" aria-label="Close">&times;</button>
         <div class="msg-header">
-          <div class="msg-avatar" id="msgAvatar">JD</div>
+          <div class="msg-avatar" id="msgAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
           <div>
-            <div class="msg-user-name" id="msgModalName">Jessica Davis</div>
-            <div class="msg-user-handle" id="msgHandle">@jessicadavis</div>
+            <div class="msg-user-name" id="msgModalName">Influencer</div>
+            <div class="msg-user-handle" id="msgHandle">@—</div>
           </div>
         </div>
       </div>
@@ -1474,7 +1119,7 @@
           <div class="msg-bubble-time">Yesterday, 3:42 PM</div>
         </div>
         <div class="msg-bubble outgoing">
-          <div>Thanks Jessica! The video looks great. Quick question — can you add a product close-up in the first 5 seconds?</div>
+          <div>Thanks! The video looks great. Quick question — can you add a product close-up in the first 5 seconds?</div>
           <div class="msg-bubble-time">Yesterday, 4:15 PM</div>
         </div>
         <div class="msg-bubble incoming">
@@ -1507,6 +1152,13 @@
 
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/brand-context.js"></script>
 
   <script>
     /* ============== TOAST NOTIFICATION SYSTEM ============== */
@@ -1603,6 +1255,10 @@
       kupToast('All notifications marked as read', 'success');
     });
 
+    /* ============== POSTDPAY — LIVE DATA STATE ============== */
+    var currentInfluencer = null;   // populated from partnerships API
+    var currentPartnership = null;  // the partnership object for this influencer
+
     /* ============== PAYMENT FORM — CONFIRMATION FLOW ============== */
     document.getElementById('paymentForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -1612,9 +1268,10 @@
         kupToast('Please enter a valid payment amount', 'error');
         return;
       }
+      var handle = currentInfluencer ? ('@' + (currentInfluencer.handle || currentInfluencer.username || 'influencer')) : '@influencer';
       var formatted = amount.toFixed(2);
       document.getElementById('paymentConfirmDesc').textContent =
-        'Send payment of $' + formatted + ' to @jessicadavis via PostdPay?';
+        'Send payment of $' + formatted + ' to ' + handle + ' via PostdPay?';
       openModal('paymentConfirmModal');
     });
 
@@ -1625,23 +1282,67 @@
     document.getElementById('paymentConfirmCancel').addEventListener('click', function() {
       closeModal('paymentConfirmModal');
     });
-    // Payment confirm — submit
-    document.getElementById('paymentConfirmSubmit').addEventListener('click', function() {
+    // Payment confirm — submit (REAL API CALL)
+    document.getElementById('paymentConfirmSubmit').addEventListener('click', async function() {
+      var btn = this;
       var amountInput = document.getElementById('paymentAmount');
-      var amount = parseFloat(amountInput.value).toFixed(2);
-      closeModal('paymentConfirmModal');
-      kupToast('Payment of $' + amount + ' sent successfully!', 'success');
-      // Reset form
-      amountInput.value = '';
-      document.getElementById('paymentMemo').value = '';
+      var memoInput = document.getElementById('paymentMemo');
+      var amount = parseFloat(amountInput.value);
+      var memo = memoInput.value.trim();
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        var brandId = brand.mongoId || brand.id;
+        var payload = {
+          brandId: brandId,
+          amount: amount,
+          memo: memo || 'PostdPay payment',
+          type: 'cash'
+        };
+        // Attach influencer/partnership identifiers if available
+        if (currentPartnership && currentPartnership._id) {
+          payload.partnershipId = currentPartnership._id;
+        }
+        if (currentInfluencer && currentInfluencer._id) {
+          payload.influencerId = currentInfluencer._id;
+        }
+
+        var result = await kupApi.post('/api/payouts/transaction', payload);
+
+        closeModal('paymentConfirmModal');
+
+        if (result && !result.error) {
+          kupToast('Payment of $' + amount.toFixed(2) + ' sent successfully!', 'success');
+          amountInput.value = '';
+          memoInput.value = '';
+          // Refresh transaction history
+          loadTransactions();
+        } else {
+          kupToast(result.error || 'Payment failed — please try again', 'error');
+        }
+      } catch (err) {
+        closeModal('paymentConfirmModal');
+        kupToast('Network error — payment could not be sent', 'error');
+        console.error('PostdPay transaction error:', err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm Payment';
+      }
     });
 
     /* ============== MESSAGING MODAL ============== */
     document.getElementById('influencerMsgBtn').addEventListener('click', function() {
-      // Pre-populated with @jessicadavis data
-      document.getElementById('msgAvatar').textContent = 'JD';
-      document.getElementById('msgModalName').textContent = 'Jessica Davis';
-      document.getElementById('msgHandle').textContent = '@jessicadavis';
+      // Use live influencer data if available, fall back to what's already in the DOM
+      if (currentInfluencer) {
+        var displayName = ((currentInfluencer.firstName || '') + ' ' + (currentInfluencer.lastName || '')).trim() || currentInfluencer.username || 'Influencer';
+        var handle = currentInfluencer.handle || currentInfluencer.username || 'influencer';
+        document.getElementById('msgAvatar').innerHTML = PERSON_SVG;
+        document.getElementById('msgModalName').textContent = displayName;
+        document.getElementById('msgHandle').textContent = '@' + handle;
+      }
       openModal('messagingModal');
     });
     document.getElementById('msgModalClose').addEventListener('click', function() {
@@ -1680,122 +1381,208 @@
         document.getElementById('notifPopover').classList.remove('show');
       }
     });
-  </script>
 
-  <!-- QR Scanner Logic -->
-  <script>
-    var scanning = false;
-    var stream = null;
+    /* ==============================================================
+       DYNAMIC DATA — Firebase Auth Gate + API Loading
+       ============================================================== */
 
-    function toggleScan() {
-      if (scanning) {
-        stopScan();
-      } else {
-        startScan();
+    // Read influencerId from URL query string (?influencerId=xxx)
+    function getUrlParam(key) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(key);
+    }
+
+    // --- Load influencer profile from partnerships API ---
+    async function loadInfluencerProfile() {
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+
+      // Direct API fallback if mongoId not synced yet
+      if (!brandId) {
+        try {
+          var brandData = await kupApi.get('/api/brands');
+          var brands = brandData && brandData.brands ? brandData.brands : [];
+          if (brands.length > 0) {
+            brandId = brands[0]._id;
+            if (brand) { brand.mongoId = brandId; try { KUP_BRAND_CONTEXT.setActiveBrand(brand); } catch(e) {} }
+          }
+        } catch(e) {}
+      }
+      if (!brandId) return;
+
+      // Instant hydrate from URL params while API loads
+      var urlName = getUrlParam('name');
+      var urlHandle = getUrlParam('handle');
+      if (urlName || urlHandle) {
+        var h = urlHandle || '';
+        document.querySelector('.influencer-username').textContent = urlName || 'Influencer';
+        document.querySelector('.influencer-handle').textContent = '@' + h.replace(/^@/, '');
+        document.querySelector('.postdpay-subtitle').textContent = 'Pay @' + h.replace(/^@/, '') + ' via PostdPay';
+        document.querySelector('.tx-history-title').textContent = 'Recent Payments to @' + h.replace(/^@/, '');
+      }
+      var targetInfluencerId = getUrlParam('influencerId');
+
+      try {
+        var data = await kupApi.get('/api/partnerships?brandId=' + brandId);
+        var partnerships = data.partnerships || data.items || data || [];
+        if (!Array.isArray(partnerships)) partnerships = [];
+
+        // Find the partnership for the target influencer, or use the first one
+        var match = null;
+        if (targetInfluencerId) {
+          for (var i = 0; i < partnerships.length; i++) {
+            var p = partnerships[i];
+            var inf = p.influencer || p;
+            var infId = inf._id || inf.influencerId || '';
+            if (infId === targetInfluencerId) {
+              match = p;
+              break;
+            }
+          }
+        }
+        if (!match && partnerships.length > 0) {
+          match = partnerships[0];
+        }
+
+        if (match) {
+          currentPartnership = match;
+          var inf = match.influencer || match;
+          currentInfluencer = inf;
+
+          var displayName = (inf.firstName || '') + ' ' + (inf.lastName || '');
+          displayName = displayName.trim() || inf.username || inf.handle || 'Influencer';
+          var handle = inf.handle || inf.username || inf.email || 'influencer';
+          var tier = inf.tier || match.tier || 'Influencer';
+          var followers = inf.followers || inf.followerCount || '--';
+          var engagement = inf.engagement || inf.engagementRate || '--';
+          var reviews = inf.reviewCount || inf.reviews || '--';
+
+          // Update influencer profile card
+          document.querySelector('.influencer-avatar').innerHTML = PERSON_SVG;
+          document.querySelector('.influencer-username').textContent = displayName;
+          document.querySelector('.influencer-handle').textContent = '@' + handle;
+          document.querySelector('.influencer-tier').textContent = tier;
+
+          // Update stats
+          var statValues = document.querySelectorAll('.influencer-stat-value');
+          if (statValues[0]) statValues[0].textContent = formatFollowers(followers);
+          if (statValues[1]) statValues[1].textContent = typeof engagement === 'number' ? engagement.toFixed(1) + '%' : engagement;
+          if (statValues[2]) statValues[2].textContent = reviews;
+
+          // Update payment form subtitle
+          document.querySelector('.postdpay-subtitle').textContent = 'Pay @' + handle + ' via PostdPay';
+
+          // Update messaging modal defaults
+          document.getElementById('msgAvatar').innerHTML = PERSON_SVG;
+          document.getElementById('msgModalName').textContent = displayName;
+          document.getElementById('msgHandle').textContent = '@' + handle;
+
+          // Update tx history title
+          document.querySelector('.tx-history-title').textContent = 'Recent Payments to @' + handle;
+        }
+      } catch (err) {
+        console.error('Failed to load influencer profile:', err);
       }
     }
 
-    function startScan() {
-      var btn = document.getElementById('btnScan');
-      var video = document.getElementById('scanVideo');
-      var placeholder = document.getElementById('scanPlaceholder');
-      var scanLine = document.getElementById('scanLine');
+    // --- Load transaction history from API ---
+    async function loadTransactions() {
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+      if (!brandId) {
+        try {
+          var brandData = await kupApi.get('/api/brands');
+          var brands = brandData && brandData.brands ? brandData.brands : [];
+          if (brands.length > 0) brandId = brands[0]._id;
+        } catch(e) {}
+      }
+      if (!brandId) return;
+      var txContainer = document.querySelector('.tx-history');
+      var titleEl = txContainer.querySelector('.tx-history-title');
+      var titleText = titleEl ? titleEl.outerHTML : '';
 
-      // Request camera access
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-          .then(function(s) {
-            stream = s;
-            video.srcObject = s;
-            video.style.display = 'block';
-            placeholder.style.display = 'none';
-            scanLine.style.display = 'block';
-            scanning = true;
-            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
-            btn.classList.add('active');
+      try {
+        var url = '/api/payouts/transactions?brandId=' + brandId;
+        var targetInfluencerId = getUrlParam('influencerId');
+        if (targetInfluencerId) {
+          url += '&influencerId=' + targetInfluencerId;
+        }
 
-            // Simulate QR detection after 3 seconds (demo)
-            setTimeout(function() {
-              if (scanning) {
-                stopScan();
-                showScanResult();
-              }
-            }, 3000);
-          })
-          .catch(function(err) {
-            // Camera not available — simulate scan for demo
-            placeholder.innerHTML = '<div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div><div class="scan-placeholder-text">Camera access needed<br>Simulating scan...</div>';
-            scanLine.style.display = 'block';
-            scanning = true;
-            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
-            btn.classList.add('active');
+        var data = await kupApi.get(url);
+        var transactions = data.transactions || data.items || data || [];
+        if (!Array.isArray(transactions)) transactions = [];
 
-            // Simulate QR detection after 2 seconds
-            setTimeout(function() {
-              if (scanning) {
-                stopScan();
-                showScanResult();
-              }
-            }, 2000);
+        // Keep the title, replace the tx-items
+        var html = titleText;
+
+        if (transactions.length === 0) {
+          html += '<div style="text-align:center;padding:24px 0;color:#999;font-size:0.85rem;">No transactions yet</div>';
+        } else {
+          transactions.forEach(function(tx) {
+            var desc = tx.memo || tx.description || tx.type || 'Payment';
+            var date = tx.createdAt ? formatDate(tx.createdAt) : '--';
+            var amount = parseFloat(tx.amount || 0);
+            var amountClass = amount >= 0 ? 'credit' : 'debit';
+            var amountStr = (amount < 0 ? '-' : '-') + '$' + Math.abs(amount).toFixed(2);
+
+            html += '<div class="tx-item">'
+              + '<div class="tx-left">'
+              + '<div class="tx-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg></div>'
+              + '<div>'
+              + '<div class="tx-desc">' + escapeHtml(desc) + '</div>'
+              + '<div class="tx-date">' + date + '</div>'
+              + '</div></div>'
+              + '<div class="tx-amount ' + amountClass + '">' + amountStr + '</div>'
+              + '</div>';
           });
-      } else {
-        // Fallback for demo
-        scanLine.style.display = 'block';
-        scanning = true;
-        btn.classList.add('active');
-        btn.innerHTML = 'Scanning...';
-        setTimeout(function() {
-          stopScan();
-          showScanResult();
-        }, 2000);
+        }
+
+        txContainer.innerHTML = html;
+      } catch (err) {
+        console.error('Failed to load transactions:', err);
       }
     }
 
-    function stopScan() {
-      var btn = document.getElementById('btnScan');
-      var video = document.getElementById('scanVideo');
-      var placeholder = document.getElementById('scanPlaceholder');
-      var scanLine = document.getElementById('scanLine');
+    // --- Utility helpers ---
+    var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
 
-      if (stream) {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-        stream = null;
-      }
-      video.style.display = 'none';
-      video.srcObject = null;
-      placeholder.style.display = '';
-      placeholder.innerHTML = '<div class="scan-placeholder-icon"><i class="ph ph-camera"></i></div><div class="scan-placeholder-text">Camera preview</div>';
-      scanLine.style.display = 'none';
-      scanning = false;
-      btn.classList.remove('active');
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg> Start Scanning';
+    function formatFollowers(n) {
+      if (typeof n === 'string') return n;
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return String(n);
     }
 
-    function showScanResult() {
-      document.getElementById('scanResult').classList.add('show');
-      document.getElementById('btnScan').style.display = 'none';
+    function formatDate(isoStr) {
+      try {
+        var d = new Date(isoStr);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      } catch(e) { return '--'; }
     }
 
-    function awardPoints() {
-      document.getElementById('scanResult').classList.remove('show');
-      document.getElementById('pointsAwarded').classList.add('show');
-      kupToast('+50 Purchase Points awarded to @jessicadavis', 'success');
-
-      // Reset after 3 seconds
-      setTimeout(function() {
-        document.getElementById('pointsAwarded').classList.remove('show');
-        document.getElementById('btnScan').style.display = '';
-      }, 4000);
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
     }
 
-    function resetScan() {
-      document.getElementById('scanResult').classList.remove('show');
-      document.getElementById('pointsAwarded').classList.remove('show');
-      document.getElementById('btnScan').style.display = '';
+    /* ---- Wait for Firebase auth, then load live data ---- */
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          loadInfluencerProfile();
+          loadTransactions();
+        } else {
+          window.location.href = '/pages/login.html';
+        }
+      });
     }
   </script>
 
-    <script src="/js/brand-context.js"></script>
+  <!-- QR Scanner removed — scan functionality lives on Distribute Reward page -->
+
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
   <!-- Mobile Bottom Navigation -->

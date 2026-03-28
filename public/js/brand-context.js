@@ -552,9 +552,17 @@ var KUP_BRAND_CONTEXT = (function() {
   //  All pages can then use getActiveBrand().mongoId for API calls.
   // ================================================================
 
+  var _syncRetries = 0;
   function syncBrandsWithApi() {
     // Only run if kupApi and Firebase auth are available
-    if (typeof kupApi === 'undefined' || typeof auth === 'undefined') return;
+    // If not ready yet (brand-context loads before firebase/api scripts), retry up to 10 times
+    if (typeof kupApi === 'undefined' || typeof auth === 'undefined') {
+      if (_syncRetries < 10) {
+        _syncRetries++;
+        setTimeout(syncBrandsWithApi, 300 * _syncRetries);
+      }
+      return;
+    }
 
     auth.onAuthStateChanged(function(user) {
       if (!user) return;

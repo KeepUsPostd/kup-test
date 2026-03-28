@@ -598,7 +598,6 @@ var KUP_PLATFORM = (function() {
     /**
      * Cash payout is resolved from influencer's tier, not brand-defined.
      * Actual tier rates are managed in platform admin settings.
-     * The prototype displays "Tier-Based Rate" as a placeholder.
      */
     rateSource: 'influence-tier',
 
@@ -612,7 +611,71 @@ var KUP_PLATFORM = (function() {
      * Budget caps are optional per Bonus Cash reward config.
      * When the total paid hits the cap, bonuses stop. No overage.
      */
-    budgetCapEnforced: true
+    budgetCapEnforced: true,
+
+    // ── Fee Structure ──────────────────────────────────
+    // Deducted at the moment the brand pays the influencer.
+    // Influencer receives the clean whole-dollar amount after both fees.
+    fees: {
+      paypal: { percent: 0.0299, flat: 0.49 },  // PayPal card transaction fee
+      kup:    { flat: 0.50 }                     // KUP platform fee per transaction
+    },
+
+    // ── Tier-Based Pay Rates ───────────────────────────
+    // Rule G7: Brands cannot override these — rates come from influencer tier.
+    // brandPays = (influencerGets + kupFee + paypalFlat) / (1 - paypalPercent)
+    // Bonus Cash = 30% of the influencer's base pay (paid separately).
+    //
+    // Model tier names → display names:
+    //   unverified → Startup | nano → Nano | micro → Micro
+    //   rising → Mid | established → Macro | premium → Mega
+    //   celebrity → Celebrity (requires model enum update)
+    bonusCashPercent: 0.30,
+
+    tierRates: {
+      unverified: {
+        displayName: 'Startup',
+        followerRange: '0–5k',
+        video: { influencerGets: 4,  brandPays: 5.14  },
+        image: { influencerGets: 2,  brandPays: 3.08  }
+      },
+      nano: {
+        displayName: 'Nano',
+        followerRange: '5k–10k',
+        video: { influencerGets: 8,  brandPays: 9.27  },
+        image: { influencerGets: 4,  brandPays: 5.14  }
+      },
+      micro: {
+        displayName: 'Micro',
+        followerRange: '10k–50k',
+        video: { influencerGets: 11, brandPays: 12.36 },
+        image: { influencerGets: 6,  brandPays: 7.21  }
+      },
+      rising: {
+        displayName: 'Mid',
+        followerRange: '50k–500k',
+        video: { influencerGets: 18, brandPays: 19.58 },
+        image: { influencerGets: 9,  brandPays: 10.30 }
+      },
+      established: {
+        displayName: 'Macro',
+        followerRange: '500k–1m',
+        video: { influencerGets: 25, brandPays: 26.79 },
+        image: { influencerGets: 12, brandPays: 13.39 }
+      },
+      premium: {
+        displayName: 'Mega',
+        followerRange: '1m–5m',
+        video: { influencerGets: 33, brandPays: 35.04 },
+        image: { influencerGets: 15, brandPays: 16.48 }
+      },
+      celebrity: {
+        displayName: 'Celebrity',
+        followerRange: '5m+',
+        video: { influencerGets: 45, brandPays: 47.41 },
+        image: { influencerGets: 23, brandPays: 24.73 }
+      }
+    }
   };
 
 
@@ -1479,6 +1542,42 @@ var KUP_PLATFORM = (function() {
 
 
   // ================================================================
+  //  22. BRAND CATEGORIES
+  // ================================================================
+  //  Centralized list of industry categories for brand onboarding,
+  //  add-brand, and influencer discovery filters.
+  //  Alphabetical order. "Other" always last.
+
+  var BRAND_CATEGORIES = [
+    'Arts & Creative',
+    'Automotive',
+    'Cannabis & CBD',
+    'Education',
+    'Entertainment',
+    'Fashion & Beauty',
+    'Finance',
+    'Food & Beverage',
+    'Gaming & Esports',
+    'Health & Fitness',
+    'Home & Garden',
+    'Hospitality & Restaurant',
+    'Legal & Professional Services',
+    'Media & Publishing',
+    'Music & Audio',
+    'Nonprofit & Cause',
+    'Parenting & Family',
+    'Pet & Animal',
+    'Real Estate',
+    'Retail & E-commerce',
+    'Sports & Outdoors',
+    'Sustainability & Eco',
+    'Technology & SaaS',
+    'Travel & Lifestyle',
+    'Other'
+  ];
+
+
+  // ================================================================
   //  PUBLIC API
   // ================================================================
 
@@ -1563,6 +1662,9 @@ var KUP_PLATFORM = (function() {
 
     // Account-Level Billing
     ACCOUNT_BILLING: ACCOUNT_BILLING,
+
+    // Brand Categories
+    BRAND_CATEGORIES: BRAND_CATEGORIES,
 
     // Global Rules
     GLOBAL_RULES: GLOBAL_RULES

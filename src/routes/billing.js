@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Subscription, BrandProfile, Brand } = require('../models');
+const paypal = require('../config/paypal');
 
 // Plan pricing (USD)
 const PLAN_PRICING = {
@@ -70,6 +71,18 @@ const PLAN_FEATURES = {
   },
 };
 
+// ── PayPal Plan IDs ──────────────────────────────────────
+// Loaded from env (created via POST /api/billing/setup-plans).
+// Format: PAYPAL_PLAN_{TIER}_{CYCLE} = P-xxxxx
+const PAYPAL_PLAN_IDS = {
+  growth_monthly:  process.env.PAYPAL_PLAN_GROWTH_MONTHLY  || null,
+  growth_annual:   process.env.PAYPAL_PLAN_GROWTH_ANNUAL   || null,
+  pro_monthly:     process.env.PAYPAL_PLAN_PRO_MONTHLY     || null,
+  pro_annual:      process.env.PAYPAL_PLAN_PRO_ANNUAL      || null,
+  agency_monthly:  process.env.PAYPAL_PLAN_AGENCY_MONTHLY  || null,
+  agency_annual:   process.env.PAYPAL_PLAN_AGENCY_ANNUAL   || null,
+};
+
 // GET /api/billing/plans — Public endpoint, returns plan pricing + features
 router.get('/plans', (req, res) => {
   const plans = Object.keys(PLAN_PRICING).map(tier => ({
@@ -83,7 +96,6 @@ router.get('/plans', (req, res) => {
 // GET /api/billing/subscription — Get current user's subscription
 router.get('/subscription', requireAuth, async (req, res) => {
   try {
-    // Find the user's brand profile
     const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
     if (!brandProfile) {
       return res.json({
@@ -93,7 +105,6 @@ router.get('/subscription', requireAuth, async (req, res) => {
       });
     }
 
-    // Find active subscription
     const subscription = await Subscription.findOne({
       brandProfileId: brandProfile._id,
       status: { $in: ['active', 'trialing', 'past_due'] },
@@ -106,6 +117,26 @@ router.get('/subscription', requireAuth, async (req, res) => {
         features: PLAN_FEATURES[brandProfile.planTier || 'starter'],
         message: 'No active subscription. Using free Starter plan.',
       });
+    }
+
+    // If we have a PayPal subscription, sync the latest status
+    if (subscription.paypalSubscriptionId) {
+      try {
+        const ppSub = await paypal.getSubscription(subscription.paypalSubscriptionId);
+        if (ppSub.status === 'ACTIVE' && subscription.status !== 'active') {
+          subscription.status = 'active';
+          await subscription.save();
+        } else if (ppSub.status === 'SUSPENDED' && subscription.status !== 'past_due') {
+          subscription.status = 'past_due';
+          await subscription.save();
+        } else if (ppSub.status === 'CANCELLED' && subscription.status !== 'canceled') {
+          subscription.status = 'canceled';
+          await subscription.save();
+        }
+      } catch (syncErr) {
+        // Non-blocking — return local data if PayPal sync fails
+        console.error('PayPal subscription sync error:', syncErr.message);
+      }
     }
 
     res.json({
@@ -131,12 +162,12 @@ router.get('/subscription', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/billing/subscribe — Create/upgrade subscription
-// In production, this would redirect to PayPal checkout
-// For now, it creates a subscription record directly (test mode)
+// POST /api/billing/subscribe — Start PayPal subscription checkout
+// Returns an approval URL — brand owner clicks it to pay via PayPal.
+// After approval, PayPal redirects to returnUrl, and we activate.
 router.post('/subscribe', requireAuth, async (req, res) => {
   try {
-    const { planTier, billingCycle } = req.body;
+    const { planTier, billingCycle, returnUrl, cancelUrl } = req.body;
 
     if (!planTier) {
       return res.status(400).json({ error: 'planTier is required' });
@@ -158,8 +189,9 @@ router.post('/subscribe', requireAuth, async (req, res) => {
     }
 
     const cycle = billingCycle === 'annual' ? 'annual' : 'monthly';
+    const price = PLAN_PRICING[planTier][cycle];
 
-    // Find or create brand profile
+    // Find brand profile
     let brandProfile = await BrandProfile.findOne({ userId: req.user._id });
     if (!brandProfile) {
       return res.status(400).json({
@@ -175,31 +207,71 @@ router.post('/subscribe', requireAuth, async (req, res) => {
     });
 
     if (existingSub) {
-      // Upgrade/downgrade existing subscription
-      existingSub.planTier = planTier;
-      existingSub.billingCycle = cycle;
-      existingSub.currentPeriodStart = new Date();
-      existingSub.currentPeriodEnd = cycle === 'annual'
+      // If upgrading, cancel the old PayPal sub first
+      if (existingSub.paypalSubscriptionId) {
+        try {
+          await paypal.cancelSubscription(existingSub.paypalSubscriptionId, 'Upgrading plan');
+        } catch (cancelErr) {
+          console.error('Could not cancel old PayPal subscription:', cancelErr.message);
+        }
+      }
+      existingSub.status = 'canceled';
+      await existingSub.save();
+    }
+
+    // Look up the PayPal plan ID for this tier + cycle
+    const planKey = `${planTier}_${cycle}`;
+    const paypalPlanId = PAYPAL_PLAN_IDS[planKey];
+
+    if (!paypalPlanId) {
+      // Fallback: create subscription record locally (plans not set up yet)
+      console.log(`⚠️ No PayPal plan ID for ${planKey} — creating local subscription`);
+      const now = new Date();
+      const periodEnd = cycle === 'annual'
         ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      await existingSub.save();
 
-      // Update brand profile
+      const subscription = await Subscription.create({
+        brandProfileId: brandProfile._id,
+        planTier,
+        billingCycle: cycle,
+        status: 'active',
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        gracePeriodEligible: true,
+      });
+
       brandProfile.planTier = planTier;
       brandProfile.billingCycle = cycle;
+      brandProfile.planStartedAt = now;
+      brandProfile.planExpiresAt = periodEnd;
       await brandProfile.save();
 
-      console.log(`📋 Subscription updated: ${planTier} (${cycle}) for user ${req.user._id}`);
-
-      return res.json({
-        message: `Plan updated to ${planTier} (${cycle})`,
-        subscription: existingSub,
-        // In production: paypalCheckoutUrl would be returned here
-        // paypalCheckoutUrl: 'https://www.paypal.com/checkout/...',
+      return res.status(201).json({
+        message: `Subscribed to ${planTier} plan (${cycle}) — local mode (PayPal plans not configured yet)`,
+        subscription,
+        features: PLAN_FEATURES[planTier],
+        pricing: PLAN_PRICING[planTier],
+        note: 'Run POST /api/billing/setup-plans to create PayPal plans, then subscriptions will use PayPal checkout.',
       });
     }
 
-    // Create new subscription (test mode — in production, PayPal handles this)
+    // Create PayPal subscription → returns approval URL
+    const defaultReturn = returnUrl || `http://localhost:3001/pages/inner/billing.html?subscription=success`;
+    const defaultCancel = cancelUrl || `http://localhost:3001/pages/inner/billing.html?subscription=canceled`;
+
+    const ppSubscription = await paypal.createSubscription(
+      paypalPlanId,
+      defaultReturn,
+      defaultCancel,
+      req.user.email
+    );
+
+    // Find the approval URL in PayPal's response
+    const approvalLink = ppSubscription.links?.find(l => l.rel === 'approve');
+    const approvalUrl = approvalLink ? approvalLink.href : null;
+
+    // Create a pending subscription record locally
     const now = new Date();
     const periodEnd = cycle === 'annual'
       ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
@@ -207,33 +279,86 @@ router.post('/subscribe', requireAuth, async (req, res) => {
 
     const subscription = await Subscription.create({
       brandProfileId: brandProfile._id,
+      paypalSubscriptionId: ppSubscription.id,
       planTier,
       billingCycle: cycle,
-      status: 'active', // In production: 'trialing' with 7-day grace
+      status: 'trialing', // Becomes 'active' after PayPal approval webhook
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
       gracePeriodEligible: true,
     });
 
-    // Update brand profile
-    brandProfile.planTier = planTier;
-    brandProfile.billingCycle = cycle;
-    brandProfile.planStartedAt = now;
-    brandProfile.planExpiresAt = periodEnd;
-    await brandProfile.save();
-
-    console.log(`✅ New subscription: ${planTier} (${cycle}) for user ${req.user._id}`);
+    console.log(`📋 PayPal subscription created: ${ppSubscription.id} → awaiting approval`);
 
     res.status(201).json({
-      message: `Subscribed to ${planTier} plan (${cycle})`,
+      message: `Redirecting to PayPal for ${planTier} plan (${cycle}) at $${price}/mo`,
       subscription,
+      paypalSubscriptionId: ppSubscription.id,
+      approvalUrl,
       features: PLAN_FEATURES[planTier],
       pricing: PLAN_PRICING[planTier],
-      // In production: paypalCheckoutUrl
     });
   } catch (error) {
     console.error('Subscribe error:', error.message);
     res.status(500).json({ error: 'Could not create subscription' });
+  }
+});
+
+// POST /api/billing/activate — Called after PayPal redirects back with approval
+// The frontend calls this with the PayPal subscription ID to finalize.
+router.post('/activate', requireAuth, async (req, res) => {
+  try {
+    const { paypalSubscriptionId } = req.body;
+
+    if (!paypalSubscriptionId) {
+      return res.status(400).json({ error: 'paypalSubscriptionId is required' });
+    }
+
+    // Find the pending subscription
+    const subscription = await Subscription.findOne({ paypalSubscriptionId });
+    if (!subscription) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+
+    // Verify status with PayPal
+    const ppSub = await paypal.getSubscription(paypalSubscriptionId);
+
+    if (ppSub.status === 'ACTIVE' || ppSub.status === 'APPROVED') {
+      subscription.status = 'active';
+      subscription.paypalPayerEmail = ppSub.subscriber?.email_address || null;
+      subscription.paypalCustomerId = ppSub.subscriber?.payer_id || null;
+      await subscription.save();
+
+      // Update brand profile
+      const brandProfile = await BrandProfile.findById(subscription.brandProfileId);
+      if (brandProfile) {
+        brandProfile.planTier = subscription.planTier;
+        brandProfile.billingCycle = subscription.billingCycle;
+        brandProfile.paypalCustomerId = ppSub.subscriber?.payer_id || null;
+        brandProfile.paypalSubscriptionId = paypalSubscriptionId;
+        brandProfile.planStartedAt = subscription.currentPeriodStart;
+        brandProfile.planExpiresAt = subscription.currentPeriodEnd;
+        await brandProfile.save();
+      }
+
+      console.log(`✅ Subscription activated: ${paypalSubscriptionId} → ${subscription.planTier}`);
+
+      return res.json({
+        message: 'Subscription activated!',
+        subscription,
+        plan: subscription.planTier,
+        features: PLAN_FEATURES[subscription.planTier],
+      });
+    }
+
+    res.status(400).json({
+      error: 'Subscription not yet approved',
+      paypalStatus: ppSub.status,
+      message: 'The subscription has not been approved on PayPal yet.',
+    });
+  } catch (error) {
+    console.error('Activate subscription error:', error.message);
+    res.status(500).json({ error: 'Could not activate subscription' });
   }
 });
 
@@ -254,7 +379,21 @@ router.put('/cancel', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'No active subscription to cancel' });
     }
 
-    // Mark for cancellation at end of current period (no immediate cancellation)
+    // Cancel on PayPal
+    if (subscription.paypalSubscriptionId) {
+      try {
+        await paypal.cancelSubscription(
+          subscription.paypalSubscriptionId,
+          req.body.reason || 'Customer requested cancellation via KUP'
+        );
+        console.log(`📤 PayPal subscription canceled: ${subscription.paypalSubscriptionId}`);
+      } catch (ppErr) {
+        console.error('PayPal cancel error:', ppErr.message);
+        // Continue with local cancellation even if PayPal call fails
+      }
+    }
+
+    // Mark for cancellation at end of current period
     subscription.cancelAtPeriodEnd = true;
     await subscription.save();
 
@@ -300,6 +439,53 @@ router.put('/reactivate', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Reactivate subscription error:', error.message);
     res.status(500).json({ error: 'Could not reactivate subscription' });
+  }
+});
+
+// POST /api/billing/setup-plans — One-time setup: creates PayPal products + plans
+// Run this once to register KUP subscription plans with PayPal.
+// Stores the plan IDs in memory (in production, save to DB or env).
+router.post('/setup-plans', requireAuth, async (req, res) => {
+  try {
+    console.log('🔧 Setting up PayPal subscription plans...');
+
+    // Create a PayPal product for KUP
+    const product = await paypal.createProduct(
+      'KeepUsPostd Platform',
+      'Influencer partnership management platform — subscription access'
+    );
+    console.log(`📦 Product created: ${product.id}`);
+
+    // Create plans for each paid tier × billing cycle
+    const results = {};
+    const paidTiers = ['growth', 'pro', 'agency'];
+
+    for (const tier of paidTiers) {
+      for (const cycle of ['monthly', 'annual']) {
+        const price = PLAN_PRICING[tier][cycle];
+        const interval = cycle === 'annual' ? 'YEAR' : 'MONTH';
+        const planName = `KUP ${tier.charAt(0).toUpperCase() + tier.slice(1)} (${cycle})`;
+
+        const plan = await paypal.createPlan(product.id, planName, price, interval);
+        const key = `${tier}_${cycle}`;
+        PAYPAL_PLAN_IDS[key] = plan.id;
+        results[key] = { planId: plan.id, price, interval };
+
+        console.log(`  ✅ ${planName}: ${plan.id} — $${price}/${cycle}`);
+      }
+    }
+
+    console.log('🎉 All PayPal plans created!');
+
+    res.json({
+      message: 'PayPal subscription plans created successfully',
+      productId: product.id,
+      plans: results,
+      note: 'Plan IDs are stored in memory. Restart the server and run this again if needed.',
+    });
+  } catch (error) {
+    console.error('Setup plans error:', error.message);
+    res.status(500).json({ error: 'Could not set up PayPal plans', detail: error.message });
   }
 });
 

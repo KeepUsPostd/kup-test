@@ -6,17 +6,54 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Transaction, Payout, InfluencerProfile } = require('../models');
+const paypal = require('../config/paypal');
 
-// Tier-based cash rates (per approval)
-// Rule G7: Brands cannot override these — they come from influencer tier
-const TIER_RATES = {
-  nano: { cash_per_approval: 5, bonus_cash: 10 },
-  micro: { cash_per_approval: 10, bonus_cash: 25 },
-  mid: { cash_per_approval: 25, bonus_cash: 50 },
-  macro: { cash_per_approval: 50, bonus_cash: 100 },
-  mega: { cash_per_approval: 100, bonus_cash: 250 },
-  celebrity: { cash_per_approval: 250, bonus_cash: 500 },
+// ── Fee Structure ──────────────────────────────────────────────
+// Deducted at the moment the brand pays the influencer.
+// Influencer receives clean whole-dollar amount after both fees.
+const FEES = {
+  paypal: { percent: 0.0299, flat: 0.49 },  // PayPal card transaction fee
+  kup:    { flat: 0.50 },                    // KUP platform fee per transaction
 };
+
+// ── Tier-Based Cash Rates ─────────────────────────────────────
+// Rule G7: Brands cannot override — rates come from influencer tier.
+// brandPays = (influencerGets + kupFee + paypalFlat) / (1 - paypalPercent)
+// Bonus Cash = 30% of the influencer's base pay (paid separately).
+//
+// Keys match InfluencerProfile.influenceTier enum values.
+// contentType 'video' → video rates, 'photo'/'mixed' → image rates.
+const BONUS_CASH_PERCENT = 0.30;
+
+const TIER_RATES = {
+  unverified:  { video: { influencerGets: 4,  brandPays: 5.14  }, image: { influencerGets: 2,  brandPays: 3.08  } },
+  nano:        { video: { influencerGets: 8,  brandPays: 9.27  }, image: { influencerGets: 4,  brandPays: 5.14  } },
+  micro:       { video: { influencerGets: 11, brandPays: 12.36 }, image: { influencerGets: 6,  brandPays: 7.21  } },
+  rising:      { video: { influencerGets: 18, brandPays: 19.58 }, image: { influencerGets: 9,  brandPays: 10.30 } },
+  established: { video: { influencerGets: 25, brandPays: 26.79 }, image: { influencerGets: 12, brandPays: 13.39 } },
+  premium:     { video: { influencerGets: 33, brandPays: 35.04 }, image: { influencerGets: 15, brandPays: 16.48 } },
+  celebrity:   { video: { influencerGets: 45, brandPays: 47.41 }, image: { influencerGets: 23, brandPays: 24.73 } },
+};
+
+/**
+ * Resolve the rate for a given tier + content type.
+ * @param {string} tier - InfluencerProfile.influenceTier value
+ * @param {string} contentType - 'video', 'photo', or 'mixed'
+ * @returns {{ influencerGets: number, brandPays: number }}
+ */
+function resolveRate(tier, contentType) {
+  const rates = TIER_RATES[tier] || TIER_RATES.nano;
+  return contentType === 'video' ? rates.video : rates.image;
+}
+
+/**
+ * Calculate bonus cash for a base influencer payout.
+ * @param {number} baseAmount - The influencerGets amount
+ * @returns {number} Bonus amount (30% of base, rounded to 2 decimals)
+ */
+function calcBonusCash(baseAmount) {
+  return Math.round(baseAmount * BONUS_CASH_PERCENT * 100) / 100;
+}
 
 // POST /api/payouts/transaction — Create a new transaction (cash reward)
 // Called when content is approved and a cash reward is configured
@@ -50,16 +87,41 @@ router.post('/transaction', requireAuth, async (req, res) => {
       });
     }
 
-    // For tier-based types, resolve amount from influencer tier
+    // For tier-based types, resolve amount from influencer tier + content type
     let resolvedAmount = amount;
+    let brandPaysAmount = amount;
+    let kupFee = 0;
+    let paypalFee = 0;
+
     if (['cash_per_approval', 'bonus_cash'].includes(type)) {
       const influencer = await InfluencerProfile.findById(payeeInfluencerId);
       if (!influencer) {
         return res.status(404).json({ error: 'Influencer not found' });
       }
       const tier = influencer.influenceTier || 'nano';
-      const rates = TIER_RATES[tier] || TIER_RATES.nano;
-      resolvedAmount = rates[type] || amount;
+
+      // Determine content type for video vs image rate lookup
+      let contentType = req.body.contentType || 'photo';
+      if (contentSubmissionId) {
+        const { ContentSubmission } = require('../models');
+        const sub = await ContentSubmission.findById(contentSubmissionId).select('contentType');
+        if (sub) contentType = sub.contentType;
+      }
+
+      if (type === 'cash_per_approval') {
+        const rate = resolveRate(tier, contentType);
+        resolvedAmount = rate.influencerGets;
+        brandPaysAmount = rate.brandPays;
+      } else if (type === 'bonus_cash') {
+        // Bonus = 30% of the base CPA influencerGets for this tier
+        const baseRate = resolveRate(tier, contentType);
+        resolvedAmount = calcBonusCash(baseRate.influencerGets);
+        // Bonus also has fees applied on the brand side
+        brandPaysAmount = Math.round(((resolvedAmount + FEES.kup.flat + FEES.paypal.flat) / (1 - FEES.paypal.percent)) * 100) / 100;
+      }
+
+      kupFee = FEES.kup.flat;
+      paypalFee = Math.round((brandPaysAmount * FEES.paypal.percent + FEES.paypal.flat) * 100) / 100;
     }
 
     // For postd_pay, amount is required (brand sets manually)
@@ -70,12 +132,22 @@ router.post('/transaction', requireAuth, async (req, res) => {
       });
     }
 
+    // For postd_pay, calculate fees on the manual amount
+    if (type === 'postd_pay') {
+      kupFee = FEES.kup.flat;
+      brandPaysAmount = Math.round(((resolvedAmount + FEES.kup.flat + FEES.paypal.flat) / (1 - FEES.paypal.percent)) * 100) / 100;
+      paypalFee = Math.round((brandPaysAmount * FEES.paypal.percent + FEES.paypal.flat) * 100) / 100;
+    }
+
     const transaction = await Transaction.create({
       payerType: brandId ? 'brand' : 'platform',
       payerBrandId: brandId || null,
       payeeInfluencerId,
       type,
-      amount: resolvedAmount,
+      amount: resolvedAmount,          // What the influencer receives
+      brandPaysAmount: brandPaysAmount, // What the brand is charged (gross)
+      kupFee: kupFee,                   // KUP platform fee
+      paypalFee: paypalFee,             // PayPal processing fee
       currency: 'USD',
       contentSubmissionId: contentSubmissionId || null,
       campaignId: campaignId || null,
@@ -83,7 +155,7 @@ router.post('/transaction', requireAuth, async (req, res) => {
       status: 'pending',
     });
 
-    console.log(`💰 Transaction created: $${resolvedAmount} ${type} → ${payeeInfluencerId}`);
+    console.log(`💰 Transaction created: $${resolvedAmount} to influencer (brand charged $${brandPaysAmount}) ${type} → ${payeeInfluencerId}`);
 
     res.status(201).json({
       message: 'Transaction created',
@@ -243,26 +315,61 @@ router.put('/batch/:payoutId/complete', requireAuth, async (req, res) => {
       });
     }
 
-    payout.status = 'completed';
-    payout.completedAt = new Date();
+    // Fetch all transactions in this batch and their influencer PayPal emails
+    const transactions = await Transaction.find({ _id: { $in: payout.transactionIds } });
+    const influencerIds = [...new Set(transactions.map(t => t.payeeInfluencerId.toString()))];
+    const influencers = await InfluencerProfile.find({ _id: { $in: influencerIds } });
+    const influencerMap = {};
+    for (const inf of influencers) {
+      influencerMap[inf._id.toString()] = inf;
+    }
+
+    // Build payout items for PayPal
+    const payoutItems = [];
+    const missingEmails = [];
+    for (const txn of transactions) {
+      const inf = influencerMap[txn.payeeInfluencerId.toString()];
+      if (!inf || !inf.paypalEmail) {
+        missingEmails.push(txn._id);
+        continue;
+      }
+      payoutItems.push({
+        email: inf.paypalEmail,
+        amount: txn.amount,
+        note: `KUP payout: ${txn.type} — ${inf.displayName}`,
+      });
+    }
+
+    if (missingEmails.length > 0) {
+      return res.status(400).json({
+        error: 'Some influencers have not connected PayPal',
+        missingPayPalTransactions: missingEmails,
+        message: `${missingEmails.length} transaction(s) are missing influencer PayPal emails.`,
+      });
+    }
+
+    // Call PayPal Payouts API
+    const batchId = `KUP_BATCH_${payout._id}_${Date.now()}`;
+    const paypalResult = await paypal.createPayout(payoutItems, batchId);
+
+    // Update payout with PayPal response
+    payout.paypalBatchId = paypalResult.batch_header.payout_batch_id;
+    payout.paypalResponse = paypalResult;
+    payout.status = 'processing';
     await payout.save();
 
-    // Mark all transactions as paid
+    // Mark transactions as processing (PayPal webhook will finalize to 'paid')
     await Transaction.updateMany(
       { _id: { $in: payout.transactionIds } },
-      {
-        $set: {
-          status: 'paid',
-          paidAt: new Date(),
-        },
-      }
+      { $set: { status: 'processing' } }
     );
 
-    console.log(`✅ Payout batch completed: $${payout.totalAmount}`);
+    console.log(`📤 Payout batch sent to PayPal: ${payout.paypalBatchId} — $${payout.totalAmount}`);
 
     res.json({
-      message: 'Payout batch completed — all transactions marked as paid',
+      message: 'Payout batch sent to PayPal for processing',
       payout,
+      paypalBatchId: payout.paypalBatchId,
     });
   } catch (error) {
     console.error('Complete payout error:', error.message);
@@ -272,7 +379,281 @@ router.put('/batch/:payoutId/complete', requireAuth, async (req, res) => {
 
 // GET /api/payouts/rates — Get tier-based cash rates (public info)
 router.get('/rates', (req, res) => {
-  res.json({ rates: TIER_RATES });
+  res.json({
+    rates: TIER_RATES,
+    fees: FEES,
+    bonusCashPercent: BONUS_CASH_PERCENT,
+  });
+});
+
+// ── Brand → Influencer Payment Routes ──────────────────────
+
+// POST /api/payouts/pay — Create PayPal order for brand-to-influencer payment
+// Brand clicks "Pay" → we create a PayPal order → return approval URL
+router.post('/pay', requireAuth, async (req, res) => {
+  try {
+    const { transactionId } = req.body;
+
+    if (!transactionId) {
+      return res.status(400).json({ error: 'transactionId is required' });
+    }
+
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+
+    if (transaction.status !== 'pending') {
+      return res.status(400).json({
+        error: 'Transaction is not pending',
+        message: `Transaction status is "${transaction.status}". Only pending transactions can be paid.`,
+      });
+    }
+
+    // Look up the influencer's PayPal email
+    const influencer = await InfluencerProfile.findById(transaction.payeeInfluencerId);
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer not found' });
+    }
+
+    if (!influencer.paypalEmail) {
+      return res.status(400).json({
+        error: 'Influencer has not connected their PayPal account',
+      });
+    }
+
+    // Build return/cancel URLs
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;
+    // returnUrl uses a placeholder — PayPal appends token param automatically
+    const returnUrl = `${baseUrl}/api/payouts/pay/capture?transactionId=${transactionId}`;
+    const description = `KUP payment: ${transaction.type} to ${influencer.displayName}`;
+
+    // Create PayPal order
+    const order = await paypal.createOrder(
+      transaction.brandPaysAmount,
+      description,
+      returnUrl,
+      cancelUrl
+    );
+
+    // Extract approval URL from PayPal response
+    const approvalLink = order.links && order.links.find(l => l.rel === 'payer-action' || l.rel === 'approve');
+    const approvalUrl = approvalLink ? approvalLink.href : null;
+
+    // Store order ID on transaction and mark as processing
+    transaction.paypalOrderId = order.id;
+    transaction.status = 'processing';
+    await transaction.save();
+
+    console.log(`💳 PayPal order created: ${order.id} for transaction ${transactionId}`);
+
+    res.json({
+      approvalUrl,
+      orderId: order.id,
+      transaction,
+    });
+  } catch (error) {
+    console.error('Create PayPal order error:', error.message);
+    res.status(500).json({ error: 'Could not create PayPal payment' });
+  }
+});
+
+// GET /api/payouts/pay/capture — PayPal redirects here after brand approves
+// No auth required — this is a browser redirect from PayPal
+router.get('/pay/capture', async (req, res) => {
+  try {
+    const { transactionId, token } = req.query;
+
+    if (!transactionId || !token) {
+      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=missing_params');
+    }
+
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=transaction_not_found');
+    }
+
+    if (transaction.status !== 'processing') {
+      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=invalid_status');
+    }
+
+    // Capture the PayPal order (token is the order ID PayPal sends back)
+    const capture = await paypal.captureOrder(token);
+
+    // Extract capture ID from response
+    const captureId = capture.purchase_units
+      && capture.purchase_units[0]
+      && capture.purchase_units[0].payments
+      && capture.purchase_units[0].payments.captures
+      && capture.purchase_units[0].payments.captures[0]
+      && capture.purchase_units[0].payments.captures[0].id;
+
+    // Update transaction as paid
+    transaction.status = 'paid';
+    transaction.paypalTransactionId = captureId || token;
+    transaction.paidAt = new Date();
+    await transaction.save();
+
+    // Update influencer's totalCashEarned
+    await InfluencerProfile.findByIdAndUpdate(
+      transaction.payeeInfluencerId,
+      { $inc: { totalCashEarned: transaction.amount } }
+    );
+
+    console.log(`✅ Payment captured: $${transaction.amount} to influencer ${transaction.payeeInfluencerId}`);
+
+    res.redirect('/pages/inner/cash-rewards.html?payment=success');
+  } catch (error) {
+    console.error('Capture PayPal order error:', error.message);
+    res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=capture_failed');
+  }
+});
+
+// POST /api/payouts/pay/batch — Process multiple pending transactions at once
+// Creates a single PayPal order with the combined total, then marks all as paid after capture
+router.post('/pay/batch', requireAuth, async (req, res) => {
+  try {
+    const { transactionIds } = req.body;
+
+    if (!transactionIds || !transactionIds.length) {
+      return res.status(400).json({ error: 'transactionIds array is required' });
+    }
+
+    // Validate all transactions are pending
+    const transactions = await Transaction.find({
+      _id: { $in: transactionIds },
+      status: 'pending',
+    });
+
+    if (transactions.length === 0) {
+      return res.status(400).json({
+        error: 'No pending transactions found',
+        message: 'All specified transactions are already processed or invalid.',
+      });
+    }
+
+    if (transactions.length !== transactionIds.length) {
+      return res.status(400).json({
+        error: 'Some transactions are not pending',
+        message: `Found ${transactions.length} pending out of ${transactionIds.length} requested.`,
+      });
+    }
+
+    // Verify all influencers have PayPal connected
+    const influencerIds = [...new Set(transactions.map(t => t.payeeInfluencerId.toString()))];
+    const influencers = await InfluencerProfile.find({ _id: { $in: influencerIds } });
+    const influencerMap = {};
+    for (const inf of influencers) {
+      influencerMap[inf._id.toString()] = inf;
+    }
+
+    const missingPayPal = [];
+    for (const txn of transactions) {
+      const inf = influencerMap[txn.payeeInfluencerId.toString()];
+      if (!inf || !inf.paypalEmail) {
+        missingPayPal.push(txn._id);
+      }
+    }
+
+    if (missingPayPal.length > 0) {
+      return res.status(400).json({
+        error: 'Some influencers have not connected PayPal',
+        missingPayPalTransactions: missingPayPal,
+      });
+    }
+
+    // Calculate combined total
+    const totalAmount = transactions.reduce((sum, t) => sum + (t.brandPaysAmount || t.amount), 0);
+    const roundedTotal = Math.round(totalAmount * 100) / 100;
+
+    // Build return/cancel URLs
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const txnIdsParam = transactionIds.join(',');
+    const returnUrl = `${baseUrl}/api/payouts/pay/batch/capture?transactionIds=${txnIdsParam}`;
+    const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;
+    const description = `KUP batch payment: ${transactions.length} transactions`;
+
+    // Create a single PayPal order for the total
+    const order = await paypal.createOrder(roundedTotal, description, returnUrl, cancelUrl);
+
+    const approvalLink = order.links && order.links.find(l => l.rel === 'payer-action' || l.rel === 'approve');
+    const approvalUrl = approvalLink ? approvalLink.href : null;
+
+    // Mark all transactions as processing and store order ID
+    await Transaction.updateMany(
+      { _id: { $in: transactionIds } },
+      { $set: { status: 'processing', paypalOrderId: order.id } }
+    );
+
+    console.log(`💳 Batch PayPal order created: ${order.id} for ${transactions.length} transactions ($${roundedTotal})`);
+
+    res.json({
+      approvalUrl,
+      orderId: order.id,
+      transactions: transactions.map(t => t._id),
+      totalAmount: roundedTotal,
+    });
+  } catch (error) {
+    console.error('Create batch PayPal order error:', error.message);
+    res.status(500).json({ error: 'Could not create batch PayPal payment' });
+  }
+});
+
+// GET /api/payouts/pay/batch/capture — PayPal redirects here after batch approval
+// No auth required — browser redirect from PayPal
+router.get('/pay/batch/capture', async (req, res) => {
+  try {
+    const { transactionIds, token } = req.query;
+
+    if (!transactionIds || !token) {
+      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=missing_params');
+    }
+
+    const txnIdArray = transactionIds.split(',');
+
+    // Capture the PayPal order
+    const capture = await paypal.captureOrder(token);
+
+    const captureId = capture.purchase_units
+      && capture.purchase_units[0]
+      && capture.purchase_units[0].payments
+      && capture.purchase_units[0].payments.captures
+      && capture.purchase_units[0].payments.captures[0]
+      && capture.purchase_units[0].payments.captures[0].id;
+
+    // Mark all transactions as paid
+    const now = new Date();
+    await Transaction.updateMany(
+      { _id: { $in: txnIdArray } },
+      {
+        $set: {
+          status: 'paid',
+          paypalTransactionId: captureId || token,
+          paidAt: now,
+        },
+      }
+    );
+
+    // Update each influencer's totalCashEarned
+    const transactions = await Transaction.find({ _id: { $in: txnIdArray } });
+    const earningsByInfluencer = {};
+    for (const txn of transactions) {
+      const infId = txn.payeeInfluencerId.toString();
+      earningsByInfluencer[infId] = (earningsByInfluencer[infId] || 0) + txn.amount;
+    }
+
+    for (const [infId, earned] of Object.entries(earningsByInfluencer)) {
+      await InfluencerProfile.findByIdAndUpdate(infId, { $inc: { totalCashEarned: earned } });
+    }
+
+    console.log(`✅ Batch payment captured: ${txnIdArray.length} transactions paid`);
+
+    res.redirect('/pages/inner/cash-rewards.html?payment=success');
+  } catch (error) {
+    console.error('Capture batch PayPal order error:', error.message);
+    res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=capture_failed');
+  }
 });
 
 module.exports = router;

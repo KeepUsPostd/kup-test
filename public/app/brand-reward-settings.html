@@ -734,6 +734,24 @@
       .detail-grid { grid-template-columns: 1fr; }
     }
   
+    /* ============== DYNAMIC REWARD CARDS ============== */
+    .reward-settings-card { background:#fff; border:1px solid #eee; border-radius:12px; padding:20px; margin-bottom:16px; }
+    .rsc-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .rsc-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .rsc-info { flex:1; min-width:0; }
+    .rsc-title { font-size:.95rem; font-weight:700; margin:0 0 2px; color:#1a1a1a; }
+    .rsc-type { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.3px; color:#999; }
+    .rsc-status { font-size:.7rem; font-weight:700; padding:4px 10px; border-radius:20px; text-transform:capitalize; flex-shrink:0; }
+    .rsc-desc { font-size:.82rem; color:#666; margin:0 0 10px; line-height:1.5; }
+    .rsc-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+    .rs-tag { display:inline-block; padding:3px 10px; border-radius:16px; font-size:.72rem; font-weight:600; background:#f3f4f6; color:#555; }
+    .rsc-actions { display:flex; gap:8px; border-top:1px solid #f0f0f0; padding-top:12px; }
+    .rsc-btn { padding:6px 16px; border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; border:1px solid #e5e5e5; background:#fff; color:#444; text-decoration:none; display:inline-block; }
+    .rsc-btn:hover { background:#f8f8f8; }
+    .rsc-btn-activate { background:rgba(22,163,74,0.08); color:#16a34a; border-color:rgba(22,163,74,0.2); }
+    .rsc-btn-pause { background:rgba(245,158,11,0.08); color:#f59e0b; border-color:rgba(245,158,11,0.2); }
+    .rsc-btn-delete { background:rgba(220,38,38,0.08); color:#dc2626; border-color:rgba(220,38,38,0.2); }
+
     /* Sticky Footer */
     body{display:flex;flex-direction:column;min-height:100vh}
     main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
@@ -762,10 +780,7 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -854,6 +869,25 @@
             Market Code
           </a>
         </li>
+        <li>
+          <a href="google-business.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Google Business
+          </a>
+        </li>
+        <li>
+          <a href="kiosk-mode.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            Kiosk Mode
+          </a>
+        </li>
       </ul>
 
       <a href="manage-brands.html" class="back-link">
@@ -899,279 +933,9 @@
         </div>
       </div>
 
-      <!-- ============== NON-CASH REWARDS ============== -->
-      <div class="section-label non-cash">
-        <span class="label-icon"><i class="ph ph-gift"></i></span> Non-Cash Rewards
-      </div>
-
-      <div class="reward-settings-list">
-
-        <!-- Reward 1: 500 Loyalty Points (Point-Based) -->
-        <div class="reward-setting-card" id="rewardPoints">
-          <div class="reward-card-main">
-            <div class="reward-card-icon points"><i class="ph ph-star"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                500 Loyalty Points
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
-              </div>
-              <p class="reward-card-subtitle">Points / Store Credit &mdash; Redeem in our online store (100 pts = $1)</p>
-              <div class="reward-card-tags">
-                <span class="point-cat-tag content-pts">Content Pts</span>
-                <span class="point-cat-tag gratitude-pts">Gratitude</span>
-                <span class="unlock-badge"><i class="ph ph-lock"></i> 500 pts to unlock</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>94</strong><span>redeemed</span></div>
-                <div class="reward-metric"><strong>32</strong><span>in progress</span></div>
-              </div>
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('rewardPoints')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <div class="detail-group">
-                <h6><i class="ph ph-microphone"></i> Content Points</h6>
-                <div class="detail-row"><span class="label">Submitted to brand</span><span class="value"><input type="number" class="edit-input" value="10"><span class="edit-suffix">pts</span></span></div>
-                <div class="detail-row"><span class="label">Approved by brand</span><span class="value"><input type="number" class="edit-input" value="25"><span class="edit-suffix">pts</span></span></div>
-                <div class="detail-row"><span class="label">Published by brand</span><span class="value"><input type="number" class="edit-input" value="40"><span class="edit-suffix">pts</span></span></div>
-                <div class="detail-row"><span class="label">Bonus (own community)</span><span class="value"><input type="number" class="edit-input" value="15"><span class="edit-suffix">pts</span></span></div>
-              </div>
-              <div class="detail-group">
-                <h6><i class="ph ph-confetti"></i> Gratitude Points</h6>
-                <div class="detail-row"><span class="label">Joins as influencer</span><span class="value"><input type="number" class="edit-input" value="50"><span class="edit-suffix">pts</span></span></div>
-                <div class="detail-row"><span class="label">Birthday</span><span class="value"><input type="number" class="edit-input" value="25"><span class="edit-suffix">pts</span></span></div>
-                <div class="detail-row"><span class="label">Partnership anniversary</span><span class="value"><input type="number" class="edit-input" value="100"><span class="edit-suffix">pts</span></span></div>
-              </div>
-              <div class="detail-group full-width">
-                <h6><i class="ph ph-lock"></i> Unlock Threshold</h6>
-                <div class="detail-row"><span class="label">Total points to unlock</span><span class="value"><input type="number" class="edit-input" value="500" style="font-size:1rem;width:100px;color:var(--kup-orange)"><span class="edit-suffix">pts</span></span></div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('rewardPoints')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('rewardPoints')">Save Changes</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Reward 2: Free Gift Box (Per Approval) -->
-        <div class="reward-setting-card" id="rewardGiftBox">
-          <div class="reward-card-main">
-            <div class="reward-card-icon free-product"><i class="ph ph-gift"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                Free Gift Box
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
-              </div>
-              <p class="reward-card-subtitle">Free Product &mdash; A curated box of our best products shipped free</p>
-              <div class="reward-card-tags">
-                <span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>28</strong><span>sent</span></div>
-                <div class="reward-metric"><strong>5</strong><span>pending</span></div>
-              </div>
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('rewardGiftBox')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <div class="detail-group">
-                <h6>Reward Details</h6>
-                <div class="detail-row"><span class="label">Earning Method</span><span class="value" style="color:var(--kup-blue);font-weight:700;">Per Approval</span></div>
-                <div class="detail-row"><span class="label">Estimated Value</span><span class="value"><input type="text" class="edit-input wide" value="$45"></span></div>
-                <div class="detail-row"><span class="label">Shipping</span><span class="value"><select class="edit-select"><option selected>Via address</option><option>Via email</option><option>In-store pickup</option></select></span></div>
-                <div class="detail-row stacked"><span class="label">Reward Description</span><textarea class="edit-textarea">A curated box of our best products shipped free</textarea></div>
-              </div>
-              <div class="detail-group">
-                <p class="stat-only-label"><i class="ph ph-chart-bar"></i> Performance (read-only)</p>
-                <div class="detail-row"><span class="label">Total sent</span><span class="value">28</span></div>
-                <div class="detail-row"><span class="label">Pending shipment</span><span class="value">5</span></div>
-                <div class="detail-row"><span class="label">This month</span><span class="value">7</span></div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('rewardGiftBox')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('rewardGiftBox')">Save Changes</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Reward 3: 20% Off First Order (Point-Based, Draft) -->
-        <div class="reward-setting-card" id="rewardDiscount">
-          <div class="reward-card-main">
-            <div class="reward-card-icon discount"><i class="ph ph-tag"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                20% Off First Order
-                <span class="status-pill draft"><span class="status-dot"></span>Draft</span>
-              </div>
-              <p class="reward-card-subtitle">Discount / Coupon &mdash; 20% off first order, 30-day expiration</p>
-              <div class="reward-card-tags">
-                <span class="point-cat-tag content-pts">Content Pts</span>
-                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="point-cat-tag gratitude-pts">Gratitude</span>
-                <span class="unlock-badge"><i class="ph ph-lock"></i> 300 pts to unlock</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>&mdash;</strong><span>redeemed</span></div>
-                <div class="reward-metric"><strong>&mdash;</strong><span>in progress</span></div>
-              </div>
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('rewardDiscount')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <div class="detail-group">
-                <h6>Discount Details</h6>
-                <div class="detail-row"><span class="label">Discount type</span><span class="value"><select class="edit-select"><option selected>Percentage off</option><option>Dollar amount off</option><option>Free shipping</option></select></span></div>
-                <div class="detail-row"><span class="label">Discount value</span><span class="value"><input type="text" class="edit-input wide" value="20%"></span></div>
-                <div class="detail-row"><span class="label">Coupon code</span><span class="value"><input type="text" class="edit-input wide" value="WELCOME20" style="text-transform:uppercase"></span></div>
-                <div class="detail-row"><span class="label">Expiration</span><span class="value"><select class="edit-select"><option selected>30 days</option><option>60 days</option><option>No expiration</option></select></span></div>
-              </div>
-              <div class="detail-group">
-                <h6>Point Categories</h6>
-                <div class="detail-row"><span class="label">Content Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">Purchase Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">Gratitude Points</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">Unlock threshold</span><span class="value"><input type="number" class="edit-input" value="300" style="color:var(--kup-orange)"><span class="edit-suffix">pts</span></span></div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('rewardDiscount')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('rewardDiscount')">Save Changes</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ============== CASH REWARDS ============== -->
-      <div class="section-label cash">
-        <span class="label-icon"><i class="ph ph-money"></i></span> Cash Offers
-      </div>
-
-      <div class="reward-settings-list">
-
-        <!-- Cash Reward 1: Cash Per Approval -->
-        <div class="reward-setting-card" id="rewardCashApproval">
-          <div class="reward-card-main">
-            <div class="reward-card-icon cash-approval"><i class="ph ph-coins"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                Cash Per Approval
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
-              </div>
-              <p class="reward-card-subtitle">Pays influencers per approved submission based on influence tier</p>
-              <div class="reward-card-tags">
-                <span class="cash-amount-badge"><i class="ph ph-coins"></i> Tier-based payout</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>47</strong><span>payments</span></div>
-                <div class="reward-metric"><strong>$1,680</strong><span>total paid</span></div>
-              </div>
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('rewardCashApproval')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <div class="detail-group">
-                <h6>Payment Info</h6>
-                <div class="detail-row"><span class="label">Payment method</span><span class="value">PayPal Business</span></div>
-                <div class="detail-row"><span class="label">Rate structure</span><span class="value">Influence tier-based</span></div>
-                <div class="detail-row stacked"><span class="label">Payment memo</span><textarea class="edit-textarea">Thank you for your approved submission for our brand!</textarea></div>
-              </div>
-              <div class="detail-group">
-                <p class="stat-only-label"><i class="ph ph-chart-bar"></i> This Month (read-only)</p>
-                <div class="detail-row"><span class="label">Payments sent</span><span class="value">12</span></div>
-                <div class="detail-row"><span class="label">Amount paid</span><span class="value" style="color: var(--kup-orange);">$420</span></div>
-                <div class="detail-row"><span class="label">Avg per payment</span><span class="value">$35</span></div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('rewardCashApproval')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('rewardCashApproval')">Save Changes</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cash Reward 2: Bonus Cash -->
-        <div class="reward-setting-card" id="rewardBonusCash">
-          <div class="reward-card-main">
-            <div class="reward-card-icon bonus-cash"><i class="ph ph-target"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                Bonus Cash
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
-              </div>
-              <p class="reward-card-subtitle">Automatic bonus when influencer posts to their own community</p>
-              <div class="reward-card-tags">
-                <span class="cash-amount-badge"><i class="ph ph-target"></i> Auto-send on post</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>18</strong><span>bonuses</span></div>
-                <div class="reward-metric"><strong>$660</strong><span>total paid</span></div>
-              </div>
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('rewardBonusCash')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <div class="detail-group">
-                <h6>Configuration</h6>
-                <div class="detail-row"><span class="label">Auto-send on verified post</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">Rate structure</span><span class="value">Influence tier-based</span></div>
-                <div class="detail-row"><span class="label">Budget cap</span><span class="value"><input type="text" class="edit-input wide" value="No limit" placeholder="e.g., $500"></span></div>
-              </div>
-              <div class="detail-group">
-                <h6>Qualifying Content</h6>
-                <div class="detail-row"><span class="label">Instagram Reel</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">TikTok Video</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">YouTube Short</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span></div>
-                <div class="detail-row"><span class="label">Blog Post</span><span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span></div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('rewardBonusCash')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('rewardBonusCash')">Save Changes</button>
-            </div>
-          </div>
-        </div>
+      <!-- ============== DYNAMIC REWARD CARDS ============== -->
+      <div id="rewardCardsList">
+        <div style="text-align:center;padding:40px;color:#999">Loading rewards...</div>
       </div>
 
     </main>
@@ -1332,10 +1096,63 @@
       }
     }
 
-    // Save: keep values and collapse
+    // Save: persist via API, then collapse
     function saveEdit(cardId) {
       var card = document.getElementById(cardId);
       if (!card) return;
+
+      // Collect updated values from inputs
+      var updates = {};
+      card.querySelectorAll('.edit-input').forEach(function(el) {
+        var label = el.closest('.detail-row');
+        if (label) {
+          var key = label.querySelector('.label');
+          if (key) updates[key.textContent.trim()] = el.value;
+        }
+      });
+      card.querySelectorAll('.edit-textarea').forEach(function(el) {
+        var label = el.closest('.detail-row');
+        if (label) {
+          var key = label.querySelector('.label');
+          if (key) updates[key.textContent.trim()] = el.value;
+        }
+      });
+      card.querySelectorAll('.edit-select').forEach(function(el) {
+        var label = el.closest('.detail-row');
+        if (label) {
+          var key = label.querySelector('.label');
+          if (key) updates[key.textContent.trim()] = el.value;
+        }
+      });
+      card.querySelectorAll('.edit-check').forEach(function(el) {
+        var label = el.closest('.detail-row');
+        if (label) {
+          var key = label.querySelector('.label');
+          if (key) updates[key.textContent.trim()] = el.checked;
+        }
+      });
+
+      // Get reward name from card title
+      var titleEl = card.querySelector('.reward-card-title');
+      var rewardName = titleEl ? titleEl.textContent.trim().split('\n')[0].trim() : 'Reward';
+
+      // Attempt API save if brand context is available
+      try {
+        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        if (brandId && typeof kupApi !== 'undefined') {
+          kupApi.put('/api/rewards/' + cardId, { brandId: brandId, settings: updates }).then(function() {
+            kupToast(rewardName + ' settings saved', 'success');
+          }).catch(function(err) {
+            console.warn('[brand-reward-settings] API save failed, local only:', err);
+            kupToast(rewardName + ' settings saved locally', 'warning');
+          });
+        } else {
+          kupToast(rewardName + ' settings saved', 'success');
+        }
+      } catch(e) {
+        kupToast(rewardName + ' settings saved', 'success');
+      }
 
       card.classList.remove('editing');
       card.classList.remove('expanded');
@@ -1348,18 +1165,180 @@
 
       // Clear snapshot (values are now "saved")
       delete originalValues[cardId];
-
-      // Get reward name from card title
-      var titleEl = card.querySelector('.reward-card-title');
-      var rewardName = titleEl ? titleEl.textContent.trim().split('\n')[0].trim() : 'Reward';
-
-      kupToast(rewardName + ' settings saved', 'success');
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
+
+  <!-- Auth gate + load rewards from API -->
+  <script>
+    auth.onAuthStateChanged(function(user) {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+
+      // Hydrate header from brand context
+      try {
+        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        if (brand && brand.name) {
+          var brandEl = document.querySelector('.profile-info .brand');
+          if (brandEl) brandEl.textContent = brand.name;
+          // Header profile stays as HTML defaults (consistent across all pages)
+          // Update sidebar brand name
+          var sidebarName = document.querySelector('.brand-identity .brand-name');
+          if (sidebarName) sidebarName.textContent = brand.name;
+          var sidebarLogo = document.querySelector('.brand-identity .logo');
+          if (sidebarLogo && brand.name) sidebarLogo.textContent = brand.name.substring(0, 2).toUpperCase();
+          // Update header subtitle
+          var headerSpan = document.querySelector('.settings-header h3 span');
+          if (headerSpan) headerSpan.textContent = '| ' + brand.name;
+        }
+
+        // Load rewards from API
+        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        if (brandId) {
+          kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
+            if (data && data.rewards) {
+              hydrateRewardStats(data.rewards);
+              renderRewardCards(data.rewards);
+            }
+          }).catch(function(err) {
+            console.warn('[brand-reward-settings] Could not load rewards:', err);
+          });
+        }
+      } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
+    });
+
+    // Hydrate the summary stat cards from real reward data
+    function hydrateRewardStats(rewards) {
+      var activeCount = 0, draftCount = 0, totalRedeemed = 0, cashPaidOut = 0;
+      rewards.forEach(function(r) {
+        if (r.status === 'active') activeCount++;
+        else if (r.status === 'draft') draftCount++;
+        if (r.redeemed) totalRedeemed += r.redeemed;
+        if (r.cashPaidOut) cashPaidOut += r.cashPaidOut;
+      });
+      var statCards = document.querySelectorAll('.reward-stat-card .stat-value');
+      if (statCards.length >= 4) {
+        statCards[0].textContent = activeCount;
+        statCards[1].textContent = draftCount;
+        statCards[2].textContent = totalRedeemed;
+        statCards[3].textContent = '$' + cashPaidOut.toLocaleString();
+      }
+    }
+
+    // Render reward cards dynamically from API data
+    function renderRewardCards(rewards) {
+      var container = document.getElementById('rewardCardsList');
+      if (!rewards || rewards.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:#999"><p style="font-size:1.1rem;margin-bottom:8px">No rewards yet</p><p style="font-size:.85rem">Create your first reward to start attracting influencers.</p><a href="brand-reward.html" class="btn-create-reward" style="display:inline-block;margin-top:12px;padding:10px 24px;background:var(--kup-gradient);color:#fff;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">+ Create Reward</a></div>';
+        return;
+      }
+
+      var typeNames = { 'points_store_credit':'Points / Store Credit', 'free_product':'Free Product', 'discount':'Discount / Coupon', 'cash_per_approval':'Cash Per Approval', 'bonus_cash':'Bonus Cash', 'postd_pay':'Postd Pay' };
+      var typeIcons = { 'points_store_credit':'\uD83C\uDFC6', 'free_product':'\uD83C\uDF81', 'discount':'\uD83C\uDFF7\uFE0F', 'cash_per_approval':'\uD83D\uDCB5', 'bonus_cash':'\uD83D\uDCB0', 'postd_pay':'\uD83D\uDCB3' };
+      var statusColors = { 'active':'#16a34a', 'draft':'#f59e0b', 'paused':'#888', 'ended':'#dc2626' };
+
+      var html = '';
+      rewards.forEach(function(r) {
+        var icon = typeIcons[r.type] || '\uD83C\uDF81';
+        var typeName = typeNames[r.type] || r.type;
+        var statusColor = statusColors[r.status] || '#888';
+        var isCash = ['cash_per_approval','bonus_cash','postd_pay'].indexOf(r.type) >= 0;
+
+        // Config details
+        var details = '';
+        if (r.type === 'points_store_credit' && r.pointConfig) {
+          details = '<span class="rs-tag">Unlock: ' + (r.pointConfig.unlockThreshold || '\u2014') + ' pts</span>';
+          if (r.pointConfig.contentEnabled) details += '<span class="rs-tag">Content Pts</span>';
+          if (r.pointConfig.purchaseEnabled) details += '<span class="rs-tag">Purchase Pts</span>';
+          if (r.pointConfig.gratitudeEnabled) details += '<span class="rs-tag">Gratitude</span>';
+        } else if (r.type === 'discount' && r.discountConfig) {
+          details = '<span class="rs-tag">' + (r.discountConfig.discountValue || '') + (r.discountConfig.discountType === 'percentage' ? '%' : r.discountConfig.discountType === 'fixed' ? ' off' : ' Free Ship') + '</span>';
+          if (r.discountConfig.expirationDays) details += '<span class="rs-tag">' + r.discountConfig.expirationDays + ' day expiry</span>';
+        } else if (r.type === 'free_product' && r.productConfig) {
+          if (r.productConfig.productValue) details = '<span class="rs-tag">~$' + r.productConfig.productValue + ' value</span>';
+          if (r.productConfig.shippingMethod) details += '<span class="rs-tag">' + r.productConfig.shippingMethod + '</span>';
+        } else if (isCash) {
+          details = '<span class="rs-tag">Tier-based rates</span>';
+          if (r.cashConfig && r.cashConfig.budgetCap) details += '<span class="rs-tag">Cap: $' + r.cashConfig.budgetCap + '</span>';
+        }
+
+        html += '<div class="reward-settings-card" data-reward-id="' + r._id + '">';
+        html += '  <div class="rsc-header">';
+        html += '    <div class="rsc-icon" style="background:' + (isCash ? 'rgba(237,132,68,0.08)' : 'rgba(22,163,74,0.08)') + '"><span style="font-size:1.3rem">' + icon + '</span></div>';
+        html += '    <div class="rsc-info">';
+        html += '      <h4 class="rsc-title">' + (r.title || 'Untitled') + '</h4>';
+        html += '      <span class="rsc-type">' + typeName + '</span>';
+        html += '    </div>';
+        html += '    <span class="rsc-status" style="background:' + statusColor + '15;color:' + statusColor + '">' + (r.status || 'draft') + '</span>';
+        html += '  </div>';
+        if (r.description) html += '  <p class="rsc-desc">' + r.description + '</p>';
+        if (details) html += '  <div class="rsc-tags">' + details + '</div>';
+        html += '  <div class="rsc-actions">';
+        html += '    <a href="brand-reward.html?edit=' + r._id + '" class="rsc-btn">Edit</a>';
+        if (r.status === 'draft') {
+          html += '    <button class="rsc-btn rsc-btn-activate" onclick="toggleRewardStatus(\'' + r._id + '\', \'active\')">Activate</button>';
+          html += '    <button class="rsc-btn rsc-btn-delete" onclick="deleteReward(\'' + r._id + '\', \'' + (r.title || '').replace(/'/g, "\\'") + '\')">Delete</button>';
+        } else if (r.status === 'active') {
+          html += '    <button class="rsc-btn rsc-btn-pause" onclick="toggleRewardStatus(\'' + r._id + '\', \'paused\')">Pause</button>';
+        } else if (r.status === 'paused') {
+          html += '    <button class="rsc-btn rsc-btn-activate" onclick="toggleRewardStatus(\'' + r._id + '\', \'active\')">Reactivate</button>';
+        }
+        html += '  </div>';
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Toggle reward status (activate/pause)
+    async function toggleRewardStatus(rewardId, newStatus) {
+      try {
+        await kupApi.put('/api/rewards/' + rewardId + '/status', { status: newStatus });
+        kupToast('Reward ' + newStatus, 'success');
+        loadRewardSettings(); // reload
+      } catch (err) {
+        kupToast(err.message || 'Failed to update status', 'error');
+      }
+    }
+
+    // Delete a reward (draft only)
+    async function deleteReward(rewardId, title) {
+      if (!confirm('Delete "' + title + '"? This cannot be undone.')) return;
+      try {
+        await kupApi.delete('/api/rewards/' + rewardId);
+        kupToast('Reward deleted', 'success');
+        loadRewardSettings(); // reload
+      } catch (err) {
+        kupToast(err.message || 'Failed to delete reward', 'error');
+      }
+    }
+
+    // Reload reward settings (called after status change or delete)
+    function loadRewardSettings() {
+      try {
+        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        if (brandId) {
+          kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
+            if (data && data.rewards) {
+              hydrateRewardStats(data.rewards);
+              renderRewardCards(data.rewards);
+            }
+          }).catch(function(err) {
+            console.warn('[brand-reward-settings] Could not reload rewards:', err);
+          });
+        }
+      } catch(e) { console.warn('[brand-reward-settings] Reload failed:', e); }
+    }
+  </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
     <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
