@@ -37,6 +37,13 @@ const brandProfileSchema = new mongoose.Schema({
   planStartedAt: { type: Date, default: null },
   planExpiresAt: { type: Date, default: null },
 
+  // 14-day free trial — full Pro access, no CC required
+  trialActive: { type: Boolean, default: false },
+  trialTier: { type: String, default: 'pro' },  // What tier they get during trial
+  trialStartedAt: { type: Date, default: null },
+  trialEndsAt: { type: Date, default: null },
+  trialExpired: { type: Boolean, default: false },  // True after downgrade to starter
+
   // Referral
   referralCode: { type: String, unique: true, sparse: true },
   referredBy: {
@@ -51,6 +58,7 @@ const brandProfileSchema = new mongoose.Schema({
 // Indexes
 brandProfileSchema.index({ primaryBrandId: 1 });
 brandProfileSchema.index({ planTier: 1 });
+brandProfileSchema.index({ trialActive: 1, trialEndsAt: 1 }); // Trial expiry queries
 // referralCode already indexed via unique/sparse in field def
 
 module.exports = mongoose.model('BrandProfile', brandProfileSchema);

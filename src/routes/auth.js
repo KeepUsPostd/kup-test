@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { User, InfluencerProfile, BrandProfile } = require('../models');
 const notify = require('../services/notifications');
+const { startTrial } = require('../services/trial');
 
 // POST /api/auth/register
 // Called after Firebase client-side auth succeeds
@@ -53,10 +54,12 @@ router.post('/register', async (req, res) => {
       } else if (wantsBrand) {
         // Add brand profile to existing account
         const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        await BrandProfile.create({
+        const brandProfile = await BrandProfile.create({
           userId: user._id,
           referralCode,
         });
+        // Start 14-day free trial (Pro-level access, no CC required)
+        await startTrial(brandProfile);
         user.hasBrandProfile = true;
         user.activeProfile = 'brand';
         await user.save();
@@ -93,10 +96,12 @@ router.post('/register', async (req, res) => {
         await user.save();
       } else if (profileType === 'brand') {
         const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        await BrandProfile.create({
+        const brandProfile = await BrandProfile.create({
           userId: user._id,
           referralCode,
         });
+        // Start 14-day free trial (Pro-level access, no CC required)
+        await startTrial(brandProfile);
         user.hasBrandProfile = true;
         user.activeProfile = 'brand';
         await user.save();

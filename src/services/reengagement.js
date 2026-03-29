@@ -18,6 +18,7 @@ const { sendEmail } = require('../config/email');
 const { sendPushToUser } = require('../config/push');
 const Notification = require('../models/Notification');
 
+const { processExpiredTrials } = require('./trial');
 const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 
 // ── Helper: Dollar format ─────────────────────────────────
@@ -500,6 +501,9 @@ async function platformMilestone({ milestone, description }) {
 async function runAll() {
   console.log('\n📣 Running all re-engagement campaigns...');
   const results = [];
+
+  // Trial expiry processing (downgrades expired trials to Starter)
+  results.push(await processExpiredTrials().then(r => ({ campaign: 'TRIAL-EXPIRY', ...r })).catch(e => ({ campaign: 'TRIAL-EXPIRY', error: e.message })));
 
   // Influencer campaigns
   results.push(await influencerInactive3Days().catch(e => ({ campaign: 'RE-I-001', error: e.message })));

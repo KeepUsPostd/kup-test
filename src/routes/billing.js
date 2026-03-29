@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Subscription, BrandProfile, Brand } = require('../models');
 const paypal = require('../config/paypal');
+const { checkTrialStatus, processExpiredTrials } = require('../services/trial');
 
 // Plan pricing (USD)
 const PLAN_PRICING = {
@@ -101,9 +102,13 @@ router.get('/subscription', requireAuth, async (req, res) => {
       return res.json({
         subscription: null,
         plan: 'starter',
+        trial: null,
         message: 'No brand profile found. Using free Starter plan.',
       });
     }
+
+    // Check trial status
+    const trialStatus = checkTrialStatus(brandProfile);
 
     const subscription = await Subscription.findOne({
       brandProfileId: brandProfile._id,
@@ -113,9 +118,12 @@ router.get('/subscription', requireAuth, async (req, res) => {
     if (!subscription) {
       return res.json({
         subscription: null,
-        plan: brandProfile.planTier || 'starter',
-        features: PLAN_FEATURES[brandProfile.planTier || 'starter'],
-        message: 'No active subscription. Using free Starter plan.',
+        plan: trialStatus.effectiveTier,
+        features: PLAN_FEATURES[trialStatus.effectiveTier] || PLAN_FEATURES.starter,
+        trial: trialStatus.trial,
+        message: trialStatus.trial?.active
+          ? `Free trial active — ${trialStatus.trial.daysRemaining} day${trialStatus.trial.daysRemaining !== 1 ? 's' : ''} remaining.`
+          : 'No active subscription. Using free Starter plan.',
       });
     }
 
@@ -155,6 +163,7 @@ router.get('/subscription', requireAuth, async (req, res) => {
       plan: subscription.planTier,
       features: PLAN_FEATURES[subscription.planTier],
       pricing: PLAN_PRICING[subscription.planTier],
+      trial: trialStatus.trial,
     });
   } catch (error) {
     console.error('Get subscription error:', error.message);

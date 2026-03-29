@@ -5,6 +5,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { requireBrandRole } = require('../middleware/brandAccess');
 const { Brand, BrandProfile, BrandMember } = require('../models');
+const { startTrial } = require('../services/trial');
 
 // Generate consistent brand initials: single word → first letter, multi-word → first letter of each (max 3)
 function computeInitials(name) {
@@ -44,6 +45,8 @@ router.post('/', requireAuth, async (req, res) => {
         userId: req.user._id,
         referralCode,
       });
+      // Start 14-day free trial (Pro-level access, no CC required)
+      await startTrial(brandProfile);
       req.user.hasBrandProfile = true;
       req.user.activeProfile = req.user.activeProfile || 'brand';
       await req.user.save();

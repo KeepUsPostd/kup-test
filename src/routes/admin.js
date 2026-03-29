@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const reengagement = require('../services/reengagement');
+const { processExpiredTrials } = require('../services/trial');
 
 // ── Middleware: Require admin/owner role ───────────────────
 // For now, we check if the user has a brand profile (brand owners = admins)
@@ -89,6 +90,18 @@ router.post('/reengagement/milestone', requireAuth, requireAdmin, async (req, re
     res.json({ message: 'Milestone announced', result });
   } catch (error) {
     res.status(500).json({ error: 'Failed to send milestone', message: error.message });
+  }
+});
+
+// POST /api/admin/trials/process-expired — Downgrade expired trials to Starter
+// Run daily via cron or manually from admin panel.
+router.post('/trials/process-expired', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const result = await processExpiredTrials();
+    res.json({ message: 'Trial expiry processing complete', result });
+  } catch (error) {
+    console.error('Trial expiry error:', error.message);
+    res.status(500).json({ error: 'Failed to process expired trials', message: error.message });
   }
 });
 

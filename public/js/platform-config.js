@@ -49,6 +49,15 @@ var KUP_PLATFORM = (function() {
   // The entire platform is gated by these 5 tiers.
   // Every feature check must go through canAccess().
 
+  // 14-day free trial: full Pro access, no CC required.
+  // After trial expires, user is downgraded to Starter.
+  var TRIAL = {
+    durationDays: 14,
+    tier: 'pro',        // What they get during trial
+    requiresCC: false,  // No credit card needed to start
+    fallbackTier: 'starter',  // Where they land after expiry
+  };
+
   var PRICING_TIERS = {
     starter: {
       price: 0,
@@ -1587,6 +1596,7 @@ var KUP_PLATFORM = (function() {
 
     // Pricing & Gating
     PRICING_TIERS: PRICING_TIERS,
+    TRIAL: TRIAL,
     canAccess: canAccess,
     getPlanLimit: getPlanLimit,
 

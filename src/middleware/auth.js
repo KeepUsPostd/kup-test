@@ -3,6 +3,7 @@
 // and attaches the MongoDB User document to req.user
 const admin = require('../config/firebase');
 const { User, InfluencerProfile, BrandProfile } = require('../models');
+const { startTrial } = require('../services/trial');
 
 // requireAuth — blocks request if not authenticated (401)
 const requireAuth = async (req, res, next) => {
@@ -56,10 +57,12 @@ const requireAuth = async (req, res, next) => {
           handle: handle,
           referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
         });
-        await BrandProfile.create({
+        const brandProfile = await BrandProfile.create({
           userId: user._id,
           referralCode: 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
         });
+        // Start 14-day free trial (Pro-level access, no CC required)
+        await startTrial(brandProfile);
         user.hasInfluencerProfile = true;
         user.hasBrandProfile = true;
         user.activeProfile = 'brand';
