@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brands — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span><span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html" class="active"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Brand Management</h2>
+      <div class="header-actions"><div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div></div>
+    </header>
+
+    <div class="admin-content">
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search brands..." onkeyup="if(event.key==='Enter')loadBrands()">
+        <select id="typeFilter" onchange="loadBrands()">
+          <option value="">All Types</option>
+          <option value="user">User-Created</option>
+          <option value="admin">Admin (Unclaimed)</option>
+          <option value="admin_claimed">Admin (Claimed)</option>
+        </select>
+        <select id="statusFilter" onchange="loadBrands()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadBrands()">Search</button>
+      </div>
+
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Brands <span id="brandCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Reviews</th>
+                <th>Content</th>
+                <th>Influencers</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="brandsBody">
+              <tr><td colspan="9" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+      <!-- Brand Detail Modal -->
+      <div id="brandModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto;padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 id="modalTitle" style="font-size:18px;font-weight:700;">Brand Detail</h3>
+            <button onclick="document.getElementById('brandModal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+          </div>
+          <div id="modalContent">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null, currentPage = 1;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadBrands();
+    });
+
+    async function apiFetch(path) {
+      const res = await fetch('/api/admin-panel' + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+      if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function loadBrands(page) {
+      currentPage = page || 1;
+      const search = document.getElementById('searchInput').value;
+      const brandType = document.getElementById('typeFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      let url = `/brands?page=${currentPage}&limit=25`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (brandType) url += `&brandType=${brandType}`;
+      if (status) url += `&status=${status}`;
+
+      try {
+        const data = await apiFetch(url);
+        document.getElementById('brandCount').textContent = `(${data.pagination.total})`;
+
+        const tbody = document.getElementById('brandsBody');
+        if (data.brands.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#999">No brands found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.brands.map(b => `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:36px;height:36px;border-radius:8px;background:${b.logoUrl ? 'url(' + b.logoUrl + ') center/cover' : (b.generatedColor || 'linear-gradient(135deg,#2EA5DD,#707BBB)')};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;">
+                  ${b.logoUrl ? '' : (b.initials || b.name?.substring(0, 2).toUpperCase() || '??')}
+                </div>
+                <strong style="font-size:13px">${b.name}</strong>
+              </div>
+            </td>
+            <td><span class="status-pill ${b.brandType === 'admin' ? 'pending' : 'active'}">${b.brandType}</span></td>
+            <td style="font-size:12px">${b.category || '—'}</td>
+            <td><span class="status-pill ${b.status}">${b.status}</span></td>
+            <td>${b.totalReviews || 0}</td>
+            <td>${b.totalContentPieces || 0}</td>
+            <td>${b.totalInfluencersEngaged || 0}</td>
+            <td style="font-size:12px;color:#999">${new Date(b.createdAt).toLocaleDateString()}</td>
+            <td><button class="btn btn-secondary btn-sm" onclick="viewBrand('${b._id}')">View</button></td>
+          </tr>
+        `).join('');
+
+        // Pagination
+        const p = data.pagination;
+        let pHtml = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadBrands(${p.page - 1})">&laquo;</button>`;
+        for (let i = 1; i <= Math.min(p.pages, 10); i++) {
+          pHtml += `<button class="${i === p.page ? 'active' : ''}" onclick="loadBrands(${i})">${i}</button>`;
+        }
+        pHtml += `<button ${p.page >= p.pages ? 'disabled' : ''} onclick="loadBrands(${p.page + 1})">&raquo;</button>`;
+        document.getElementById('pagination').innerHTML = pHtml;
+      } catch (e) {
+        console.error('Load brands error:', e);
+      }
+    }
+
+    async function viewBrand(id) {
+      const modal = document.getElementById('brandModal');
+      modal.style.display = 'flex';
+      document.getElementById('modalContent').innerHTML = '<p style="color:#999">Loading...</p>';
+
+      try {
+        const data = await apiFetch(`/brands/${id}`);
+        const b = data.brand;
+        document.getElementById('modalTitle').textContent = b.name;
+        document.getElementById('modalContent').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+            <div><strong>Type:</strong> <span class="status-pill ${b.brandType === 'admin' ? 'pending' : 'active'}">${b.brandType}</span></div>
+            <div><strong>Status:</strong> <span class="status-pill ${b.status}">${b.status}</span></div>
+            <div><strong>Category:</strong> ${b.category || 'N/A'}</div>
+            <div><strong>Location:</strong> ${b.city || ''} ${b.state || ''}</div>
+            <div><strong>Claim Status:</strong> ${b.claimStatus || 'N/A'}</div>
+            <div><strong>Website:</strong> ${b.websiteUrl ? `<a href="${b.websiteUrl}" target="_blank" style="color:#2EA5DD">${b.websiteUrl}</a>` : 'N/A'}</div>
+            <div><strong>Total Reviews:</strong> ${b.totalReviews || 0}</div>
+            <div><strong>Content Pieces:</strong> ${b.totalContentPieces || 0}</div>
+            <div><strong>Influencers:</strong> ${b.totalInfluencersEngaged || 0}</div>
+            <div><strong>Avg Rating:</strong> ${b.averageRating ? b.averageRating.toFixed(1) + '/5' : 'N/A'}</div>
+            <div><strong>Kiosk:</strong> ${b.kioskEnabled ? 'Enabled' : 'Disabled'}</div>
+            <div><strong>Created:</strong> ${new Date(b.createdAt).toLocaleString()}</div>
+          </div>
+          ${data.campaigns && data.campaigns.length > 0 ? `
+            <h4 style="margin:16px 0 8px;font-size:14px">Campaigns (${data.campaigns.length})</h4>
+            <table class="admin-table" style="font-size:12px">
+              <thead><tr><th>Title</th><th>Status</th><th>Submissions</th></tr></thead>
+              <tbody>
+                ${data.campaigns.map(c => `<tr><td>${c.title}</td><td><span class="status-pill ${c.status}">${c.status}</span></td><td>${c.submissionCount || 0}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          ` : '<p style="margin-top:16px;color:#999;font-size:13px">No campaigns yet</p>'}
+          ${data.rewards && data.rewards.length > 0 ? `
+            <h4 style="margin:16px 0 8px;font-size:14px">Rewards (${data.rewards.length})</h4>
+            <div style="font-size:13px">${data.rewards.map(r => `<span class="status-pill ${r.status}" style="margin:2px">${r.name || r.rewardType}</span>`).join(' ')}</div>
+          ` : ''}
+          <div style="margin-top:16px;font-size:13px;color:#999">
+            <strong>Active Partnerships:</strong> ${data.activePartnerships || 0} &nbsp;|&nbsp;
+            <strong>Total Submissions:</strong> ${data.totalSubmissions || 0}
+          </div>
+        `;
+      } catch (e) {
+        document.getElementById('modalContent').innerHTML = '<p style="color:red">Failed to load brand details</p>';
+      }
+    }
+  </script>
+</body>
+</html>

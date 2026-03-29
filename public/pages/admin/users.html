@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html" class="active"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>User Management</h2>
+      <div class="header-actions">
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by name or email..." onkeyup="if(event.key==='Enter')loadUsers()">
+        <select id="profileFilter" onchange="loadUsers()">
+          <option value="">All Profiles</option>
+          <option value="brand">Brand Owners</option>
+          <option value="influencer">Creators</option>
+        </select>
+        <select id="statusFilter" onchange="loadUsers()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadUsers()">Search</button>
+      </div>
+
+      <!-- Users Table -->
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Users <span id="userCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Profile Type</th>
+                <th>Status</th>
+                <th>Last Login</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+      <!-- User Detail Modal -->
+      <div id="userModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 id="modalTitle" style="font-size:18px;font-weight:700;">User Detail</h3>
+            <button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+          </div>
+          <div id="modalContent">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null;
+    let currentPage = 1;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadUsers();
+    });
+
+    async function apiFetch(path) {
+      const res = await fetch('/api/admin-panel' + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+      if (res.status === 403) throw new Error('Forbidden');
+      if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function loadUsers(page) {
+      currentPage = page || 1;
+      const search = document.getElementById('searchInput').value;
+      const profileType = document.getElementById('profileFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      let url = `/users?page=${currentPage}&limit=25`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (profileType) url += `&profileType=${profileType}`;
+      if (status) url += `&status=${status}`;
+
+      try {
+        const data = await apiFetch(url);
+        document.getElementById('userCount').textContent = `(${data.pagination.total})`;
+
+        const tbody = document.getElementById('usersBody');
+        if (data.users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#999">No users found</td></tr>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.users.map(u => `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:32px;height:32px;border-radius:50%;background:${u.avatarUrl ? 'url(' + u.avatarUrl + ') center/cover' : 'linear-gradient(135deg,#2EA5DD,#707BBB)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">
+                  ${u.avatarUrl ? '' : (u.legalFirstName || u.email || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:13px">${u.legalFirstName || ''} ${u.legalLastName || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td>${u.email}</td>
+            <td>
+              ${u.hasBrandProfile ? '<span class="status-pill active" style="margin-right:4px">Brand</span>' : ''}
+              ${u.hasInfluencerProfile ? '<span class="status-pill postd">Creator</span>' : ''}
+            </td>
+            <td><span class="status-pill ${u.status}">${u.status}</span></td>
+            <td style="font-size:12px;color:#999">${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : 'Never'}</td>
+            <td style="font-size:12px;color:#999">${new Date(u.createdAt).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="viewUser('${u._id}')">View</button>
+              ${u.status === 'active'
+                ? `<button class="btn btn-danger btn-sm" onclick="toggleStatus('${u._id}','suspended')">Suspend</button>`
+                : `<button class="btn btn-sm" style="background:#D1FAE5;color:#059669" onclick="toggleStatus('${u._id}','active')">Activate</button>`
+              }
+            </td>
+          </tr>
+        `).join('');
+
+        // Pagination
+        const p = data.pagination;
+        let pHtml = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadUsers(${p.page - 1})">&laquo;</button>`;
+        for (let i = 1; i <= Math.min(p.pages, 10); i++) {
+          pHtml += `<button class="${i === p.page ? 'active' : ''}" onclick="loadUsers(${i})">${i}</button>`;
+        }
+        pHtml += `<button ${p.page >= p.pages ? 'disabled' : ''} onclick="loadUsers(${p.page + 1})">&raquo;</button>`;
+        document.getElementById('pagination').innerHTML = pHtml;
+      } catch (e) {
+        console.error('Load users error:', e);
+      }
+    }
+
+    async function viewUser(id) {
+      const modal = document.getElementById('userModal');
+      modal.style.display = 'flex';
+      document.getElementById('modalContent').innerHTML = '<p style="color:#999">Loading...</p>';
+
+      try {
+        const data = await apiFetch(`/users/${id}`);
+        const u = data.user;
+        document.getElementById('modalTitle').textContent = `${u.legalFirstName || ''} ${u.legalLastName || ''} — ${u.email}`;
+        document.getElementById('modalContent').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+            <div><strong>Status:</strong> <span class="status-pill ${u.status}">${u.status}</span></div>
+            <div><strong>Active Profile:</strong> ${u.activeProfile || 'None'}</div>
+            <div><strong>Login Count:</strong> ${u.loginCount || 0}</div>
+            <div><strong>Last Login:</strong> ${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}</div>
+            <div><strong>Joined:</strong> ${new Date(u.createdAt).toLocaleString()}</div>
+            <div><strong>Firebase UID:</strong> <code style="font-size:11px">${u.firebaseUid || 'N/A'}</code></div>
+          </div>
+          ${data.influencer ? `
+            <h4 style="margin:16px 0 8px;font-size:14px">Creator Profile</h4>
+            <div style="font-size:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div><strong>Handle:</strong> @${data.influencer.handle}</div>
+              <div><strong>Display:</strong> ${data.influencer.displayName}</div>
+              <div><strong>Tier:</strong> ${data.influencer.creatorTier || data.influencer.influenceTier || 'N/A'}</div>
+              <div><strong>Cash Earned:</strong> $${(data.influencer.totalCashEarned || 0).toFixed(2)}</div>
+              <div><strong>PayPal:</strong> ${data.influencer.paypalEmail ? 'Connected' : 'Not connected'}</div>
+              <div><strong>Reviews:</strong> ${data.influencer.totalReviews || 0}</div>
+            </div>
+          ` : ''}
+          ${data.ownedBrands && data.ownedBrands.length > 0 ? `
+            <h4 style="margin:16px 0 8px;font-size:14px">Owned Brands</h4>
+            <div style="font-size:13px">${data.ownedBrands.map(b => `<span class="status-pill active" style="margin:2px">${b.name || b}</span>`).join(' ')}</div>
+          ` : ''}
+        `;
+      } catch (e) {
+        document.getElementById('modalContent').innerHTML = '<p style="color:red">Failed to load user details</p>';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('userModal').style.display = 'none';
+    }
+
+    async function toggleStatus(id, newStatus) {
+      if (!confirm(`Are you sure you want to ${newStatus === 'suspended' ? 'suspend' : 'reactivate'} this user?`)) return;
+      try {
+        await fetch(`/api/admin-panel/users/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus, reason: newStatus === 'suspended' ? 'Admin action' : undefined }),
+        });
+        loadUsers(currentPage);
+      } catch (e) {
+        alert('Failed to update user status');
+      }
+    }
+  </script>
+</body>
+</html>

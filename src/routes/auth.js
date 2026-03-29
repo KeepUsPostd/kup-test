@@ -231,6 +231,96 @@ router.put('/profile', requireAuth, async (req, res) => {
   }
 });
 
+// ── Branded Auth Emails (Password Reset + Email Verification) ──────
+// Uses Firebase Admin SDK to generate action links, then sends via SendGrid
+// with KUP-branded templates instead of Firebase's default emails.
+
+const admin = require('../config/firebase');
+const { sendEmail } = require('../config/email');
+
+// POST /api/auth/send-reset-email — Send KUP-branded password reset email
+// No auth required (user is locked out)
+router.post('/send-reset-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+
+    // Generate Firebase password reset link with custom action URL
+    const actionCodeSettings = {
+      url: `${APP_URL}/pages/auth-action.html`,
+      handleCodeInApp: false,
+    };
+
+    const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+
+    // Send branded email via SendGrid
+    await sendEmail({
+      to: email,
+      subject: 'Reset Your KeepUsPostd Password',
+      headline: 'Reset Your Password',
+      preheader: 'You requested a password reset for your KeepUsPostd account.',
+      bodyHtml: `
+        <p style="margin: 0 0 16px;">We received a request to reset the password for your KeepUsPostd account.</p>
+        <p style="margin: 0 0 16px;">Click the button below to create a new password. This link expires in 1 hour.</p>
+        <p style="margin: 24px 0 0; font-size: 13px; color: #999;">If you didn't request this, you can safely ignore this email. Your password won't be changed.</p>
+      `,
+      ctaText: 'Reset Password',
+      ctaUrl: resetLink,
+      variant: 'brand',
+    });
+
+    console.log(`🔑 Branded reset email sent to ${email}`);
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Send reset email error:', error.message);
+    // Don't reveal whether the email exists (security best practice)
+    if (error.code === 'auth/user-not-found') {
+      return res.json({ message: 'Password reset email sent' });
+    }
+    res.status(500).json({ error: 'Could not send reset email' });
+  }
+});
+
+// POST /api/auth/send-verification-email — Send KUP-branded email verification
+// Requires auth (user is logged in but unverified)
+router.post('/send-verification-email', requireAuth, async (req, res) => {
+  try {
+    const email = req.user.email;
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+
+    const actionCodeSettings = {
+      url: `${APP_URL}/pages/auth-action.html`,
+      handleCodeInApp: false,
+    };
+
+    const verifyLink = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+
+    await sendEmail({
+      to: email,
+      subject: 'Verify Your KeepUsPostd Email',
+      headline: 'Verify Your Email Address',
+      preheader: 'One quick step to activate your KeepUsPostd account.',
+      bodyHtml: `
+        <p style="margin: 0 0 16px;">Welcome to KeepUsPostd! Please verify your email address to activate your account.</p>
+        <p style="margin: 0 0 16px;">Click the button below to confirm your email. This link expires in 24 hours.</p>
+      `,
+      ctaText: 'Verify Email',
+      ctaUrl: verifyLink,
+      variant: 'brand',
+    });
+
+    console.log(`📧 Branded verification email sent to ${email}`);
+    res.json({ message: 'Verification email sent' });
+  } catch (error) {
+    console.error('Send verification email error:', error.message);
+    res.status(500).json({ error: 'Could not send verification email' });
+  }
+});
+
 // ── PayPal Onboarding Routes ──────────────────────────────
 
 // PUT /api/auth/paypal-connect — Connect influencer's PayPal email

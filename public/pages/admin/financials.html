@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financials — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span><span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html" class="active"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Financial Dashboard</h2>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="loadFinancials()">Refresh</button>
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Financial KPIs -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-card highlight"><div class="kpi-label">Active Subscriptions</div><div class="kpi-value" id="kpiSubs">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Paid Out</div><div class="kpi-value" id="kpiPaid">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Pending Payouts</div><div class="kpi-value" id="kpiPending">—</div><div class="kpi-change" id="kpiPendingCount"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Failed Transactions</div><div class="kpi-value" id="kpiFailed">—</div></div>
+      </div>
+
+      <!-- Subscription breakdown -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <div class="admin-panel-section">
+          <div class="section-header"><h3>Subscriptions by Tier</h3></div>
+          <div style="padding:16px 20px" id="subsTierList">
+            <div style="text-align:center;padding:16px;color:#999">Loading...</div>
+          </div>
+        </div>
+        <div class="admin-panel-section">
+          <div class="section-header"><h3>Transactions by Type</h3></div>
+          <div style="padding:16px 20px" id="txTypeList">
+            <div style="text-align:center;padding:16px;color:#999">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Ledger -->
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Transaction Ledger</h3>
+          <div class="section-actions">
+            <select id="txStatusFilter" onchange="loadTransactions()" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:inherit">
+              <option value="">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+            <select id="txTypeFilter" onchange="loadTransactions()" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:inherit">
+              <option value="">All Types</option>
+              <option value="cash_per_approval">Cash Per Approval</option>
+              <option value="bonus_cash">Bonus Cash</option>
+              <option value="postd_pay">Postd Pay</option>
+              <option value="platform_bonus">Platform Bonus</option>
+              <option value="referral_bonus">Referral Bonus</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>KUP Fee</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null, currentPage = 1;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadFinancials();
+      loadTransactions();
+    });
+
+    async function apiFetch(path) {
+      const res = await fetch('/api/admin-panel' + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+      if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function loadFinancials() {
+      try {
+        const data = await apiFetch('/financials');
+
+        document.getElementById('kpiSubs').textContent = data.activeSubscriptions;
+        document.getElementById('kpiPaid').textContent = '$' + (data.totalPaidOut || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+        document.getElementById('kpiPending').textContent = '$' + (data.pendingPayouts.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+        document.getElementById('kpiPendingCount').textContent = data.pendingPayouts.count + ' transactions';
+        document.getElementById('kpiFailed').textContent = data.failedTransactions;
+
+        // Subs by tier
+        const tiers = data.subscriptionsByTier || [];
+        if (tiers.length === 0) {
+          document.getElementById('subsTierList').innerHTML = '<p style="color:#999;font-size:13px">No active subscriptions</p>';
+        } else {
+          document.getElementById('subsTierList').innerHTML = tiers.map(t => `
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px">
+              <span style="text-transform:capitalize;font-weight:600">${t._id}</span>
+              <span>${t.count} brands</span>
+            </div>
+          `).join('');
+        }
+
+        // Tx by type
+        const types = data.transactionsByType || [];
+        if (types.length === 0) {
+          document.getElementById('txTypeList').innerHTML = '<p style="color:#999;font-size:13px">No transactions yet</p>';
+        } else {
+          document.getElementById('txTypeList').innerHTML = types.map(t => `
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px">
+              <span>${t._id.replace(/_/g, ' ')}</span>
+              <span style="font-weight:600">$${(t.total || 0).toFixed(2)} <span style="color:#999;font-weight:400">(${t.count})</span></span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Financials error:', e);
+      }
+    }
+
+    async function loadTransactions(page) {
+      currentPage = page || 1;
+      const status = document.getElementById('txStatusFilter').value;
+      const type = document.getElementById('txTypeFilter').value;
+
+      let url = `/financials/transactions?page=${currentPage}&limit=20`;
+      if (status) url += `&status=${status}`;
+      if (type) url += `&type=${type}`;
+
+      try {
+        const data = await apiFetch(url);
+        const tbody = document.getElementById('txBody');
+
+        if (data.transactions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#999">No transactions found</td></tr>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.transactions.map(t => `
+          <tr>
+            <td style="font-size:12px;color:#999;white-space:nowrap">${new Date(t.createdAt).toLocaleDateString()} ${new Date(t.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td>
+            <td style="font-size:12px">${t.type.replace(/_/g, ' ')}</td>
+            <td style="font-size:12px">${t.payerBrandId?.name || (t.payerType === 'platform' ? 'KUP Platform' : '—')}</td>
+            <td style="font-size:12px">${t.payeeInfluencerId?.displayName || '—'} ${t.payeeInfluencerId?.handle ? '@' + t.payeeInfluencerId.handle : ''}</td>
+            <td style="font-weight:700">$${(t.amount || 0).toFixed(2)}${t.brandPaysAmount ? ` <span style="color:#999;font-weight:400;font-size:11px">(gross: $${t.brandPaysAmount.toFixed(2)})</span>` : ''}</td>
+            <td style="font-size:12px;color:#999">${t.kupFee ? '$' + t.kupFee.toFixed(2) : '—'}</td>
+            <td><span class="status-pill ${t.status}">${t.status}</span></td>
+          </tr>
+        `).join('');
+
+        const p = data.pagination;
+        let pHtml = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadTransactions(${p.page - 1})">&laquo;</button>`;
+        for (let i = 1; i <= Math.min(p.pages, 10); i++) {
+          pHtml += `<button class="${i === p.page ? 'active' : ''}" onclick="loadTransactions(${i})">${i}</button>`;
+        }
+        pHtml += `<button ${p.page >= p.pages ? 'disabled' : ''} onclick="loadTransactions(${p.page + 1})">&raquo;</button>`;
+        document.getElementById('pagination').innerHTML = pHtml;
+      } catch (e) {
+        console.error('Transactions error:', e);
+      }
+    }
+  </script>
+</body>
+</html>

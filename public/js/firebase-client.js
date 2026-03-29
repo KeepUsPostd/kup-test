@@ -32,14 +32,6 @@ async function kupSignUp(email, password, firstName, lastName, profileType) {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const firebaseUser = userCredential.user;
 
-    // Send email verification
-    try {
-      await firebaseUser.sendEmailVerification();
-      console.log('📧 Verification email sent to', email);
-    } catch (verifyErr) {
-      console.warn('Email verification send failed (non-blocking):', verifyErr.message);
-    }
-
     // Register in our backend (creates MongoDB user + profile)
     const token = await firebaseUser.getIdToken();
     const response = await fetch('/api/auth/register', {
@@ -59,6 +51,20 @@ async function kupSignUp(email, password, firstName, lastName, profileType) {
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || 'Registration failed');
+
+    // Send branded verification email via our API (non-blocking)
+    try {
+      await fetch('/api/auth/send-verification-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      console.log('📧 Branded verification email sent to', email);
+    } catch (verifyErr) {
+      console.warn('Verification email send failed (non-blocking):', verifyErr.message);
+    }
 
     console.log('KUP signup successful:', data);
     return data;

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span><span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html" class="active"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Reviews Management</h2>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">Export CSV</button>
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Review KPIs -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="kpi-card highlight"><div class="kpi-label">Total Reviews</div><div class="kpi-value" id="kpiTotal">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Guest Reviewers</div><div class="kpi-value" id="kpiReviewers">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg Reviews / Brand</div><div class="kpi-value" id="kpiAvg">—</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" id="brandSearch" placeholder="Filter by brand ID..." onkeyup="if(event.key==='Enter')loadReviews()">
+        <button class="btn btn-primary btn-sm" onclick="loadReviews()">Search</button>
+      </div>
+
+      <!-- Reviews Table -->
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Guest Reviewers <span id="reviewCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Reviewer</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Brand</th>
+                <th>Reviews</th>
+                <th>Rewards Earned</th>
+                <th>Last Visit</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody id="reviewsBody">
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null, currentPage = 1, allReviewers = [];
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadReviews();
+    });
+
+    async function apiFetch(path) {
+      const res = await fetch('/api/admin-panel' + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+      if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function loadReviews(page) {
+      currentPage = page || 1;
+      const brandId = document.getElementById('brandSearch').value.trim();
+
+      let url = `/reviews?page=${currentPage}&limit=25`;
+      if (brandId) url += `&brandId=${encodeURIComponent(brandId)}`;
+
+      try {
+        const data = await apiFetch(url);
+        allReviewers = data.reviewers;
+
+        document.getElementById('kpiTotal').textContent = (data.totalReviewCount || 0).toLocaleString();
+        document.getElementById('kpiReviewers').textContent = data.pagination.total.toLocaleString();
+        document.getElementById('kpiAvg').textContent = data.pagination.total > 0
+          ? (data.totalReviewCount / Math.max(1, new Set(data.reviewers.map(r => r.brandId?._id)).size)).toFixed(1)
+          : '0';
+        document.getElementById('reviewCount').textContent = `(${data.pagination.total})`;
+
+        const tbody = document.getElementById('reviewsBody');
+        if (data.reviewers.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#999">No reviews found</td></tr>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.reviewers.map(r => `
+          <tr>
+            <td style="font-weight:600">${r.firstName || '—'}</td>
+            <td style="font-size:12px">${r.phone || '—'}</td>
+            <td style="font-size:12px">${r.email || '—'}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px">
+                ${r.brandId?.logoUrl ? `<img src="${r.brandId.logoUrl}" style="width:20px;height:20px;border-radius:4px">` : ''}
+                <span style="font-size:13px">${r.brandId?.name || 'Unknown'}</span>
+              </div>
+            </td>
+            <td style="font-weight:700">${r.totalReviews || 0}</td>
+            <td>${r.totalRewardsEarned || 0}</td>
+            <td style="font-size:12px;color:#999">${r.lastVisitAt ? new Date(r.lastVisitAt).toLocaleDateString() : '—'}</td>
+            <td style="font-size:12px;color:#999">${new Date(r.createdAt).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+
+        const p = data.pagination;
+        let pHtml = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadReviews(${p.page - 1})">&laquo;</button>`;
+        for (let i = 1; i <= Math.min(p.pages, 10); i++) {
+          pHtml += `<button class="${i === p.page ? 'active' : ''}" onclick="loadReviews(${i})">${i}</button>`;
+        }
+        pHtml += `<button ${p.page >= p.pages ? 'disabled' : ''} onclick="loadReviews(${p.page + 1})">&raquo;</button>`;
+        document.getElementById('pagination').innerHTML = pHtml;
+      } catch (e) {
+        console.error('Reviews error:', e);
+      }
+    }
+
+    function exportCSV() {
+      if (allReviewers.length === 0) { alert('No data to export'); return; }
+      const headers = ['Name', 'Phone', 'Email', 'Brand', 'Reviews', 'Rewards', 'Last Visit', 'Joined'];
+      const rows = allReviewers.map(r => [
+        r.firstName || '', r.phone || '', r.email || '',
+        r.brandId?.name || '', r.totalReviews || 0, r.totalRewardsEarned || 0,
+        r.lastVisitAt ? new Date(r.lastVisitAt).toLocaleDateString() : '',
+        new Date(r.createdAt).toLocaleDateString(),
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `kup-reviews-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click(); URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

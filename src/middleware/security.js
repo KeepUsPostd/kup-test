@@ -10,8 +10,7 @@
 //   - CORS lockdown: In production, only YOUR domain can call the API
 
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const hpp = require('hpp');
+// express-mongo-sanitize and hpp replaced with custom Express 5-compatible versions below
 
 // ── Environment Detection ─────────────────────────────────
 const isProduction = process.env.NODE_ENV === 'production';
@@ -94,37 +93,83 @@ const cashoutLimiter = rateLimit({
 });
 
 // ═══════════════════════════════════════════════════════════
-// 2. MONGO SANITIZE
+// 2. MONGO SANITIZE (Express 5 compatible — custom)
 // ═══════════════════════════════════════════════════════════
-// Strips out $ and . from user input so attackers can't inject
-// MongoDB operators like { $gt: "" } to bypass authentication.
+// Strips $ and . prefixes from user input to prevent MongoDB
+// operator injection (e.g., { $gt: "" } bypassing auth).
 //
-// Example attack it prevents:
-//   POST /login { email: { "$gt": "" }, password: { "$gt": "" } }
-//   Without this, that query would match ANY user in the database.
+// express-mongo-sanitize is incompatible with Express 5 because
+// req.query is a read-only getter. This custom version sanitizes
+// req.body and req.params (writable) and deep-clones query for checking.
 
-const mongoSanitizeMiddleware = mongoSanitize({
-  replaceWith: '_', // Replace dangerous characters with underscore
-  onSanitize: ({ req, key }) => {
-    console.warn(`⚠️ Sanitized key "${key}" in ${req.method} ${req.path} from ${req.ip}`);
-  },
-});
+function sanitizeValue(val) {
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) return val.map(sanitizeValue);
+  if (val && typeof val === 'object') {
+    const clean = {};
+    for (const key of Object.keys(val)) {
+      if (key.startsWith('$') || key.includes('.')) {
+        const safeKey = key.replace(/[\$\.]/g, '_');
+        console.warn(`⚠️ Sanitized key "${key}" → "${safeKey}"`);
+        clean[safeKey] = sanitizeValue(val[key]);
+      } else {
+        clean[key] = sanitizeValue(val[key]);
+      }
+    }
+    return clean;
+  }
+  return val;
+}
+
+function mongoSanitizeMiddleware(req, res, next) {
+  if (req.body) req.body = sanitizeValue(req.body);
+  if (req.params) {
+    const sanitized = sanitizeValue(req.params);
+    for (const key of Object.keys(sanitized)) {
+      req.params[key] = sanitized[key];
+    }
+  }
+  // req.query is read-only in Express 5 — validate but don't reassign
+  const q = req.query;
+  if (q && typeof q === 'object') {
+    for (const key of Object.keys(q)) {
+      if (key.startsWith('$') || key.includes('.')) {
+        return res.status(400).json({ error: 'Invalid query parameter' });
+      }
+      if (typeof q[key] === 'object' && q[key] !== null) {
+        const str = JSON.stringify(q[key]);
+        if (str.includes('"$')) {
+          return res.status(400).json({ error: 'Invalid query parameter' });
+        }
+      }
+    }
+  }
+  next();
+}
 
 // ═══════════════════════════════════════════════════════════
-// 3. HTTP PARAMETER POLLUTION (HPP)
+// 3. HTTP PARAMETER POLLUTION (Express 5 compatible — custom)
 // ═══════════════════════════════════════════════════════════
-// Prevents attackers from sending duplicate query parameters
-// to confuse your server. Example: ?status=active&status=deleted
-// HPP picks the last value, preventing confusion.
+// Prevents duplicate query parameters (e.g., ?status=active&status=deleted).
+// In Express 5, req.query is read-only, so instead of modifying it
+// we reject requests with array values on non-whitelisted params.
 
-const hppMiddleware = hpp({
-  // Allow specific params that legitimately use arrays
-  whitelist: [
-    'tags',       // Content tags can be multiple
-    'categories', // Brand categories
-    'type',       // Notification type filter
-  ],
-});
+const HPP_WHITELIST = new Set(['tags', 'categories', 'type']);
+
+function hppMiddleware(req, res, next) {
+  const q = req.query;
+  if (q && typeof q === 'object') {
+    for (const key of Object.keys(q)) {
+      if (Array.isArray(q[key]) && !HPP_WHITELIST.has(key)) {
+        return res.status(400).json({
+          error: 'Duplicate query parameter',
+          message: `Parameter "${key}" must not be repeated.`,
+        });
+      }
+    }
+  }
+  next();
+}
 
 // ═══════════════════════════════════════════════════════════
 // 4. CORS CONFIGURATION (Production-Ready)

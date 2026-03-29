@@ -2,7 +2,9 @@
 // This is the "brain" of your backend. It starts the web server,
 // connects to your database, initializes Firebase, and mounts all API routes.
 
-require('dotenv').config({ path: '.env.test' });
+// Load environment: .env.production if NODE_ENV=production, otherwise .env.test
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.test';
+require('dotenv').config({ path: envFile });
 
 const express = require('express');
 const cors = require('cors');
@@ -36,8 +38,10 @@ const PORT = process.env.PORT || 3001;
 // --- Global Middleware (runs on every request) ---
 
 // Security headers (CSP configured for KUP frontend)
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(helmet({
-  hsts: false,  // DISABLE for local dev — no HTTPS on localhost/LAN
+  hsts: isProduction,  // Enable HSTS in production, disable for local dev
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -76,6 +80,8 @@ app.use(helmet({
         "https://www.googleapis.com",
         "https://securetoken.googleapis.com",
         "https://identitytoolkit.googleapis.com",
+        "https://keepuspostd.com",
+        "https://www.keepuspostd.com",
       ],
       mediaSrc: [
         "'self'",
@@ -94,10 +100,8 @@ app.use(helmet({
 app.use(cors(getCorsOptions()));                   // CORS — open in dev, locked in production
 app.use(express.json(jsonLimit));                   // Parse JSON (10mb limit)
 app.use(express.urlencoded(urlencodedLimit));       // Parse form data (10mb limit)
-// mongoSanitize & hpp disabled — incompatible with Express 5 (req.query is read-only getter)
-// TODO: Replace with Express 5-compatible alternatives or custom middleware
-// app.use(mongoSanitizeMiddleware);
-// app.use(hppMiddleware);
+app.use(mongoSanitizeMiddleware);                   // Custom Express 5-compatible mongo sanitize
+app.use(hppMiddleware);                              // Custom Express 5-compatible HPP protection
 app.use(additionalSecurityHeaders);                 // Extra security headers on API routes
 app.use(requestLogger);                             // Log failed requests in production
 
@@ -113,11 +117,16 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
     if (/\.mov$/i.test(filePath)) {
       res.setHeader('Content-Type', 'video/mp4');
     }
-    // Prevent browser caching of HTML and JS files during development
     if (/\.(html|js)$/i.test(filePath)) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+      if (isProduction) {
+        // Short cache in production (5 min) — allows quick updates
+        res.setHeader('Cache-Control', 'public, max-age=300');
+      } else {
+        // No cache in development
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
     }
   }
 }));
@@ -172,6 +181,9 @@ app.use('/api/notifications', require('./routes/notifications'));
 
 // Admin routes (re-engagement campaigns, platform management)
 app.use('/api/admin', require('./routes/admin'));
+
+// Admin Panel routes (dashboard, user mgmt, content mod, financials)
+app.use('/api/admin-panel', require('./routes/admin-panel'));
 
 // Webhook routes (PayPal event notifications — no auth, signature-verified)
 // NO rate limit — PayPal needs unrestricted access

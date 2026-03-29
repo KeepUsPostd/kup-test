@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeepUsPostd</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      max-width: 440px;
+      width: 100%;
+      margin: 24px;
+      overflow: hidden;
+    }
+    .auth-header {
+      background: linear-gradient(135deg, #2EA5DD, #707BBB);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .auth-header img {
+      height: 36px;
+      margin-bottom: 16px;
+    }
+    .auth-header h1 {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .auth-body {
+      padding: 32px 28px;
+    }
+    .auth-body p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'Montserrat', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #2EA5DD;
+    }
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #2EA5DD, #707BBB);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-msg {
+      background: #FEE2E2;
+      color: #DC2626;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .success-msg {
+      background: #D1FAE5;
+      color: #059669;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .password-rules {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+    .password-rules.invalid { color: #DC2626; }
+    .password-rules.valid { color: #059669; }
+    .icon-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .icon-success {
+      background: #D1FAE5;
+    }
+    .icon-error {
+      background: #FEE2E2;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      color: #2EA5DD;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 16px;
+    }
+    .back-link:hover { text-decoration: underline; }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Hidden sections */
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KeepUsPostd" onerror="this.style.display='none'">
+      <h1 id="headerTitle">KeepUsPostd</h1>
+    </div>
+
+    <div class="auth-body">
+
+      <!-- Loading state -->
+      <div id="loadingSection" class="section active">
+        <p><span class="loading-spinner"></span> Processing your request...</p>
+      </div>
+
+      <!-- Password Reset Form -->
+      <div id="resetSection" class="section">
+        <p>Enter your new password below.</p>
+        <div id="resetError" class="error-msg"></div>
+        <form id="resetForm" onsubmit="handleResetSubmit(event)">
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter new password" required minlength="6">
+            <div id="pwRules" class="password-rules">At least 6 characters</div>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+          </div>
+          <button type="submit" class="btn-primary" id="resetBtn">Reset Password</button>
+        </form>
+        <a href="/pages/login.html" class="back-link">Back to Login</a>
+      </div>
+
+      <!-- Reset Success -->
+      <div id="resetSuccessSection" class="section">
+        <div class="icon-circle icon-success">&#10003;</div>
+        <p style="font-weight: 600; color: #333; font-size: 16px;">Password Updated!</p>
+        <p>Your password has been reset successfully. You can now log in with your new password.</p>
+        <a href="/pages/login.html" class="btn-primary" style="display: block; text-align: center; text-decoration: none; margin-top: 16px;">Log In</a>
+      </div>
+
+      <!-- Email Verification Processing -->
+      <div id="verifySection" class="section">
+        <p><span class="loading-spinner"></span> Verifying your email address...</p>
+      </div>
+
+      <!-- Verify Success -->
+      <div id="verifySuccessSection" class="section">
+        <div class="icon-circle icon-success">&#10003;</div>
+        <p style="font-weight: 600; color: #333; font-size: 16px;">Email Verified!</p>
+        <p>Your email address has been confirmed. Your account is now fully activated.</p>
+        <a href="/pages/login.html" class="btn-primary" style="display: block; text-align: center; text-decoration: none; margin-top: 16px;">Continue to Dashboard</a>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorSection" class="section">
+        <div class="icon-circle icon-error">&#10007;</div>
+        <p style="font-weight: 600; color: #333; font-size: 16px;" id="errorTitle">Something Went Wrong</p>
+        <p id="errorMessage">This link may have expired or already been used. Please request a new one.</p>
+        <a href="/pages/login.html" class="back-link">Back to Login</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: 'AIzaSyD1l25JoVfDqsV31InLhhmTzUnBFhXVzWc',
+      authDomain: 'kup-test.firebaseapp.com',
+      projectId: 'kup-test',
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Parse URL params
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const oobCode = params.get('oobCode');
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showError(title, message) {
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorMessage').textContent = message;
+      showSection('errorSection');
+    }
+
+    // Route based on mode
+    if (!oobCode || !mode) {
+      showError('Invalid Link', 'This link is missing required information. Please request a new one.');
+    } else if (mode === 'resetPassword') {
+      handleResetPassword();
+    } else if (mode === 'verifyEmail') {
+      handleVerifyEmail();
+    } else {
+      showError('Unknown Action', 'This link type is not supported.');
+    }
+
+    // Password Reset Flow
+    async function handleResetPassword() {
+      try {
+        // Verify the code is valid before showing the form
+        await auth.verifyPasswordResetCode(oobCode);
+        document.getElementById('headerTitle').textContent = 'Reset Password';
+        showSection('resetSection');
+
+        // Password validation
+        const pwInput = document.getElementById('newPassword');
+        const rules = document.getElementById('pwRules');
+        pwInput.addEventListener('input', () => {
+          if (pwInput.value.length >= 6) {
+            rules.className = 'password-rules valid';
+            rules.textContent = 'Password meets requirements';
+          } else {
+            rules.className = 'password-rules invalid';
+            rules.textContent = 'At least 6 characters';
+          }
+        });
+      } catch (error) {
+        if (error.code === 'auth/expired-action-code') {
+          showError('Link Expired', 'This password reset link has expired. Please request a new one from the login page.');
+        } else if (error.code === 'auth/invalid-action-code') {
+          showError('Invalid Link', 'This password reset link has already been used or is invalid. Please request a new one.');
+        } else {
+          showError('Something Went Wrong', error.message);
+        }
+      }
+    }
+
+    async function handleResetSubmit(e) {
+      e.preventDefault();
+      const pw = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+      const btn = document.getElementById('resetBtn');
+      const errorDiv = document.getElementById('resetError');
+
+      errorDiv.style.display = 'none';
+
+      if (pw.length < 6) {
+        errorDiv.textContent = 'Password must be at least 6 characters.';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      if (pw !== confirm) {
+        errorDiv.textContent = 'Passwords do not match.';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span> Resetting...';
+
+      try {
+        await auth.confirmPasswordReset(oobCode, pw);
+        document.getElementById('headerTitle').textContent = 'Success!';
+        showSection('resetSuccessSection');
+      } catch (error) {
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+        if (error.code === 'auth/expired-action-code') {
+          errorDiv.textContent = 'This link has expired. Please request a new reset email.';
+        } else if (error.code === 'auth/weak-password') {
+          errorDiv.textContent = 'Password is too weak. Please choose a stronger password.';
+        } else {
+          errorDiv.textContent = error.message;
+        }
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // Email Verification Flow
+    async function handleVerifyEmail() {
+      document.getElementById('headerTitle').textContent = 'Email Verification';
+      showSection('verifySection');
+
+      try {
+        await auth.applyActionCode(oobCode);
+        document.getElementById('headerTitle').textContent = 'Verified!';
+        showSection('verifySuccessSection');
+      } catch (error) {
+        if (error.code === 'auth/expired-action-code') {
+          showError('Link Expired', 'This verification link has expired. Please log in and request a new one.');
+        } else if (error.code === 'auth/invalid-action-code') {
+          showError('Already Verified', 'This email has already been verified, or the link is invalid.');
+        } else {
+          showError('Verification Failed', error.message);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

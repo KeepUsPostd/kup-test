@@ -442,9 +442,6 @@
         var cred = await auth.createUserWithEmailAndPassword(email, password);
         var firebaseUser = cred.user;
 
-        // Send email verification
-        try { await firebaseUser.sendEmailVerification(); } catch(ve) { console.warn('Verification email failed:', ve.message); }
-
         var token = await firebaseUser.getIdToken();
 
         // Register in backend as INFLUENCER
@@ -466,6 +463,14 @@
 
         var data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Registration failed');
+
+        // Send branded verification email (non-blocking)
+        try {
+          await fetch('/api/auth/send-verification-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          });
+        } catch(ve) { console.warn('Verification email failed:', ve.message); }
 
         localStorage.setItem('kupUser', JSON.stringify(data.user || {}));
 

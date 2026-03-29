@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Moderation — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .content-card {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: center;
+    }
+    .content-card:last-child { border-bottom: none; }
+    .content-card:hover { background: #fafafa; }
+    .content-thumb {
+      width: 120px; height: 80px;
+      border-radius: 8px;
+      background: #f0f0f0;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      color: #ccc; font-size: 24px;
+    }
+    .content-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .content-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .content-meta { font-size: 12px; color: #999; display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .content-actions { display: flex; gap: 6px; flex-direction: column; }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span><span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html" class="active"><span class="nav-icon">&#9998;</span> Content</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Content Moderation</h2>
+      <div class="header-actions"><div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div></div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Quick stat cards -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+        <div class="kpi-card"><div class="kpi-label">Pending Review</div><div class="kpi-value" id="kpiPending">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Approved</div><div class="kpi-value" id="kpiApproved">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Rejected</div><div class="kpi-value" id="kpiRejected">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Postd</div><div class="kpi-value" id="kpiPostd">—</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="statusFilter" onchange="loadContent()">
+          <option value="submitted">Pending Review</option>
+          <option value="">All Status</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="postd">Postd</option>
+        </select>
+        <select id="typeFilter" onchange="loadContent()">
+          <option value="">All Types</option>
+          <option value="photo">Photo</option>
+          <option value="video">Video</option>
+          <option value="mixed">Mixed</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadContent()">Refresh</button>
+      </div>
+
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Content Queue <span id="contentCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div id="contentList">
+          <div class="empty-state"><p>Loading content...</p></div>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null, currentPage = 1;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadContent();
+      loadStats();
+    });
+
+    async function apiFetch(path, opts) {
+      const res = await fetch('/api/admin-panel' + path, {
+        ...opts,
+        headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', ...(opts?.headers || {}) },
+      });
+      if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function loadStats() {
+      try {
+        const [pending, approved, rejected, postd] = await Promise.all([
+          apiFetch('/content?status=submitted&limit=1'),
+          apiFetch('/content?status=approved&limit=1'),
+          apiFetch('/content?status=rejected&limit=1'),
+          apiFetch('/content?status=postd&limit=1'),
+        ]);
+        document.getElementById('kpiPending').textContent = pending.pagination.total;
+        document.getElementById('kpiApproved').textContent = approved.pagination.total;
+        document.getElementById('kpiRejected').textContent = rejected.pagination.total;
+        document.getElementById('kpiPostd').textContent = postd.pagination.total;
+      } catch (e) { /* non-critical */ }
+    }
+
+    async function loadContent(page) {
+      currentPage = page || 1;
+      const status = document.getElementById('statusFilter').value;
+      const contentType = document.getElementById('typeFilter').value;
+
+      let url = `/content?page=${currentPage}&limit=15`;
+      if (status) url += `&status=${status}`;
+      if (contentType) url += `&contentType=${contentType}`;
+
+      try {
+        const data = await apiFetch(url);
+        document.getElementById('contentCount').textContent = `(${data.pagination.total})`;
+        const list = document.getElementById('contentList');
+
+        if (data.content.length === 0) {
+          list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#10003;</div><p>No content in queue</p></div>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        list.innerHTML = data.content.map(c => {
+          const thumb = c.mediaUrls && c.mediaUrls[0]
+            ? `<img src="${c.mediaUrls[0]}" alt="content">`
+            : (c.contentType === 'video' ? '&#9654;' : '&#128247;');
+          return `
+            <div class="content-card">
+              <div class="content-thumb">${typeof thumb === 'string' && thumb.startsWith('<') ? thumb : thumb}</div>
+              <div class="content-info">
+                <h4>${c.contentType} submission — ${c.brandId?.name || 'Unknown Brand'}</h4>
+                <div style="font-size:13px;color:#666;margin-top:2px">${c.caption ? c.caption.substring(0, 100) : 'No caption'}</div>
+                <div class="content-meta">
+                  <span>By: ${c.influencerProfileId?.displayName || 'Unknown'} (@${c.influencerProfileId?.handle || '?'})</span>
+                  <span><span class="status-pill ${c.status}">${c.status}</span></span>
+                  <span>${new Date(c.createdAt).toLocaleDateString()}</span>
+                  ${c.platform ? `<span>Platform: ${c.platform}</span>` : ''}
+                </div>
+              </div>
+              <div class="content-actions">
+                ${c.status === 'submitted' ? `
+                  <button class="btn btn-sm" style="background:#D1FAE5;color:#059669" onclick="moderate('${c._id}','approve')">Approve</button>
+                  <button class="btn btn-danger btn-sm" onclick="moderate('${c._id}','reject')">Reject</button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Pagination
+        const p = data.pagination;
+        let pHtml = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadContent(${p.page - 1})">&laquo;</button>`;
+        for (let i = 1; i <= Math.min(p.pages, 10); i++) {
+          pHtml += `<button class="${i === p.page ? 'active' : ''}" onclick="loadContent(${i})">${i}</button>`;
+        }
+        pHtml += `<button ${p.page >= p.pages ? 'disabled' : ''} onclick="loadContent(${p.page + 1})">&raquo;</button>`;
+        document.getElementById('pagination').innerHTML = pHtml;
+      } catch (e) {
+        console.error('Load content error:', e);
+      }
+    }
+
+    async function moderate(id, action) {
+      let reason = '';
+      if (action === 'reject') {
+        reason = prompt('Rejection reason (optional):') || 'Rejected by admin';
+      }
+      try {
+        await apiFetch(`/content/${id}/moderate`, {
+          method: 'PUT',
+          body: JSON.stringify({ action, reason }),
+        });
+        loadContent(currentPage);
+        loadStats();
+      } catch (e) {
+        alert('Failed to moderate content');
+      }
+    }
+  </script>
+</body>
+</html>
