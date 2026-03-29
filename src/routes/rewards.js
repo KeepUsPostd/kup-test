@@ -18,7 +18,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const { brandId, type, earningMethod, title, description,
             pointConfig, cashConfig, discountConfig, productConfig,
-            imageUrl } = req.body;
+            imageUrl, bannerImageUrl } = req.body;
 
     if (!brandId) {
       return res.status(400).json({ error: 'brandId is required' });
@@ -94,18 +94,19 @@ router.post('/', requireAuth, async (req, res) => {
       title: title.trim(),
       description: description || null,
       imageUrl: imageUrl || null,
+      bannerImageUrl: bannerImageUrl || null,
       pointConfig: earningMethod === 'point_based' ? pointConfig : undefined,
       cashConfig: CASH_TYPES.includes(type) ? (cashConfig || {}) : undefined,
       discountConfig: type === 'discount' ? (discountConfig || {}) : undefined,
       productConfig: type === 'free_product' ? (productConfig || {}) : undefined,
-      status: 'draft',
+      status: req.body.status === 'active' ? 'active' : 'draft',
       createdBy: req.user._id,
     });
 
-    console.log(`✅ Reward created: "${reward.title}" (${reward.type}) for brand ${brandId}`);
+    console.log(`✅ Reward created: "${reward.title}" (${reward.type}) status=${reward.status} for brand ${brandId}`);
 
     res.status(201).json({
-      message: 'Reward created as draft',
+      message: reward.status === 'active' ? 'Reward created and active' : 'Reward created as draft',
       reward,
     });
   } catch (error) {
@@ -180,7 +181,7 @@ router.put('/:rewardId', requireAuth, async (req, res) => {
       });
     }
 
-    const allowedFields = ['title', 'description', 'imageUrl',
+    const allowedFields = ['title', 'description', 'imageUrl', 'bannerImageUrl',
       'pointConfig', 'cashConfig', 'discountConfig', 'productConfig',
       'status'];
 

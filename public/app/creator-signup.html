@@ -441,6 +441,10 @@
         // Create Firebase account
         var cred = await auth.createUserWithEmailAndPassword(email, password);
         var firebaseUser = cred.user;
+
+        // Send email verification
+        try { await firebaseUser.sendEmailVerification(); } catch(ve) { console.warn('Verification email failed:', ve.message); }
+
         var token = await firebaseUser.getIdToken();
 
         // Register in backend as INFLUENCER

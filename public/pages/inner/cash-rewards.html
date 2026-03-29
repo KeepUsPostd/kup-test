@@ -1947,11 +1947,16 @@
     var selectedRewardPill = 'all';
 
     function selectRewardPill(btn) {
-      document.querySelectorAll('.reward-pill').forEach(function(p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedRewardPill = btn.getAttribute('data-reward');
-      // Reward table is now rendered from API data — pill filtering handled there
-      if (typeof window.loadCashRewards === 'function') window.loadCashRewards();
+      var rewardSlug = btn.getAttribute('data-reward');
+      // "All Rewards" pill filters the table; individual reward pills navigate to settings
+      if (rewardSlug === 'all') {
+        document.querySelectorAll('.reward-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        selectedRewardPill = 'all';
+        if (typeof window.loadCashRewards === 'function') window.loadCashRewards();
+      } else {
+        window.location.href = 'brand-reward-settings.html';
+      }
     }
 
     // updateRewardTable is now handled by API-driven renderRewardTable
@@ -2333,7 +2338,7 @@
             '<div class="avatar">' + PERSON_SVG + '</div>' +
             '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
           '</div></div></td>' +
-        '<td data-label="Reward" style="text-align:center;" class="reward-col">' + rewardTitle + '</td>' +
+        '<td data-label="Reward" style="text-align:center;" class="reward-col"><a href="brand-reward-settings.html" style="color:var(--kup-blue);font-weight:600;text-decoration:none">' + rewardTitle + '</a></td>' +
         '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
         '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
       '</tr>';
@@ -2402,7 +2407,7 @@
               '<div class="avatar">' + PERSON_SVG + '</div>' +
               '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
             '</div></div></td>' +
-          '<td data-label="Reward" style="text-align:center;" class="reward-col">' + rewardTitle + '</td>' +
+          '<td data-label="Reward" style="text-align:center;" class="reward-col"><a href="brand-reward-settings.html" style="color:var(--kup-blue);font-weight:600;text-decoration:none">' + rewardTitle + '</a></td>' +
           '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
           '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
         '</tr>';
@@ -2444,7 +2449,7 @@
       if (r.status === 'draft') statusBadge = '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700;background:rgba(245,158,11,0.1);color:#f59e0b;margin-left:6px">Draft</span>';
       else if (r.status === 'paused') statusBadge = '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700;background:rgba(136,136,136,0.1);color:#888;margin-left:6px">Paused</span>';
 
-      return '<div class="reward-card-enhanced">' +
+      return '<div class="reward-card-enhanced" style="cursor:pointer" onclick="window.location.href=\'brand-reward-settings.html\'">' +
         '<div class="rce-top">' +
           '<div class="rce-icon ' + iconClass + '"><i class="ph ' + icon + '"></i></div>' +
           '<div class="rce-info">' +
@@ -2454,7 +2459,7 @@
         '</div>' +
         '<p class="rce-desc">' + (r.description || '') + '</p>' +
         metaHtml +
-        '<div class="reward-card-actions">' +
+        '<div class="reward-card-actions" onclick="event.stopPropagation()">' +
           '<button class="rca-btn" onclick="window.location.href=\'brand-reward.html?edit=' + r._id + '\'">Edit</button>' +
           '<button class="rca-btn delete" data-reward-id="' + r._id + '">Delete</button>' +
         '</div>' +

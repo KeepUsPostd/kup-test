@@ -32,6 +32,14 @@ async function kupSignUp(email, password, firstName, lastName, profileType) {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const firebaseUser = userCredential.user;
 
+    // Send email verification
+    try {
+      await firebaseUser.sendEmailVerification();
+      console.log('📧 Verification email sent to', email);
+    } catch (verifyErr) {
+      console.warn('Email verification send failed (non-blocking):', verifyErr.message);
+    }
+
     // Register in our backend (creates MongoDB user + profile)
     const token = await firebaseUser.getIdToken();
     const response = await fetch('/api/auth/register', {

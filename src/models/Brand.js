@@ -67,6 +67,13 @@ const brandSchema = new mongoose.Schema({
     default: 'gradient',
   },
 
+  // Brand colors (used for gradient backgrounds on rewards, campaigns, profile cards)
+  // Fallback chain: custom banner image → brand colors gradient → KUP default gradient
+  brandColors: {
+    primary: { type: String, default: null },    // e.g., '#ED8444' (hex)
+    secondary: { type: String, default: null },  // e.g., '#E84393' (hex)
+  },
+
   // Franchise
   isFranchise: { type: Boolean, default: false },
   parentBrandId: {

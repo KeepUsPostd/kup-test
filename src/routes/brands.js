@@ -27,7 +27,7 @@ const PLAN_LIMITS = {
 // POST /api/brands — Create a new brand
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { name, category, description, websiteUrl, tags } = req.body;
+    const { name, category, description, websiteUrl, tags, brandColors } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -87,6 +87,7 @@ router.post('/', requireAuth, async (req, res) => {
       tags: tags || [],
       initials,
       generatedColor,
+      brandColors: brandColors || undefined,
     });
 
     // Create brand member with owner role (rule G2: one owner)
@@ -177,7 +178,8 @@ router.put('/:brandId', requireAuth, requireBrandRole('admin'), async (req, res)
   try {
     const allowedFields = ['name', 'category', 'subcategory', 'description',
       'websiteUrl', 'tags', 'logoUrl', 'heroImageUrl', 'location',
-      'email', 'phone', 'address', 'city', 'state', 'zip', 'socialLinks'];
+      'email', 'phone', 'address', 'city', 'state', 'zip', 'socialLinks',
+      'brandColors'];
 
     const updates = {};
     for (const field of allowedFields) {

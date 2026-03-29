@@ -717,6 +717,8 @@
     }
     .auth-footer a { color: var(--kup-blue); font-weight: 500; }
 
+    /* ============== UNIFIED REWARD CARDS (gradient banner + info) ============== */
+
     /* Responsive */
     @media (max-width: 1024px) {
       .brand-layout { grid-template-columns: 280px 1fr; }
@@ -732,25 +734,45 @@
       .profile-info { display: none; }
       .reward-stat-card { padding: 14px; }
       .detail-grid { grid-template-columns: 1fr; }
+      #rewardCardsList { grid-template-columns: 1fr; }
+      .reward-stats-row { flex-wrap: wrap; }
+      .reward-stat-card { flex: 1 1 45%; }
     }
   
-    /* ============== DYNAMIC REWARD CARDS ============== */
-    .reward-settings-card { background:#fff; border:1px solid #eee; border-radius:12px; padding:20px; margin-bottom:16px; }
-    .rsc-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-    .rsc-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .rsc-info { flex:1; min-width:0; }
-    .rsc-title { font-size:.95rem; font-weight:700; margin:0 0 2px; color:#1a1a1a; }
-    .rsc-type { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.3px; color:#999; }
-    .rsc-status { font-size:.7rem; font-weight:700; padding:4px 10px; border-radius:20px; text-transform:capitalize; flex-shrink:0; }
-    .rsc-desc { font-size:.82rem; color:#666; margin:0 0 10px; line-height:1.5; }
-    .rsc-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-    .rs-tag { display:inline-block; padding:3px 10px; border-radius:16px; font-size:.72rem; font-weight:600; background:#f3f4f6; color:#555; }
-    .rsc-actions { display:flex; gap:8px; border-top:1px solid #f0f0f0; padding-top:12px; }
-    .rsc-btn { padding:6px 16px; border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; border:1px solid #e5e5e5; background:#fff; color:#444; text-decoration:none; display:inline-block; }
+    /* ============== UNIFIED REWARD CARDS — 2-column grid ============== */
+    #rewardCardsList {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .reward-settings-card { background:#fff; border:1px solid #eee; border-radius:14px; overflow:hidden; transition:box-shadow .2s, border-color .2s; }
+    .reward-settings-card:hover { border-color:rgba(46,165,221,0.3); box-shadow:0 6px 24px rgba(0,0,0,0.06); }
+    /* Gradient Banner Top */
+    .rsc-banner { position:relative; height:120px; display:flex; align-items:flex-end; padding:14px 16px; overflow:hidden; }
+    .rsc-banner-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 100%); z-index:1; }
+    .rsc-banner-content { position:relative; z-index:2; display:flex; align-items:center; gap:10px; width:100%; }
+    .rsc-banner-logo { width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.22); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:800; color:#fff; flex-shrink:0; border:2px solid rgba(255,255,255,0.3); overflow:hidden; }
+    .rsc-banner-logo img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .rsc-banner-text { flex:1; min-width:0; }
+    .rsc-banner-text h4 { font-size:.85rem; font-weight:700; color:#fff; margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rsc-banner-text .rsc-unlock { font-size:.68rem; font-weight:600; color:rgba(255,255,255,0.85); }
+    .rsc-banner-text .rsc-type-pill { display:inline-block; padding:2px 7px; border-radius:10px; font-size:.58rem; font-weight:700; background:rgba(255,255,255,0.2); color:#fff; text-transform:uppercase; letter-spacing:.3px; margin-top:3px; }
+    .rsc-banner-status { position:absolute; top:10px; right:12px; z-index:2; font-size:.65rem; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:capitalize; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+    /* Info Section Below Banner */
+    .rsc-body { padding:14px 16px 16px; }
+    .rsc-desc { font-size:.78rem; color:#666; margin:0 0 8px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .rsc-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; }
+    .rs-tag { display:inline-block; padding:2px 8px; border-radius:16px; font-size:.68rem; font-weight:600; background:#f3f4f6; color:#555; }
+    .rsc-actions { display:flex; gap:6px; align-items:center; }
+    .rsc-btn { padding:6px 14px; border-radius:7px; font-size:.75rem; font-weight:600; cursor:pointer; border:1px solid #e5e5e5; background:#fff; color:#444; text-decoration:none; display:inline-block; transition:all .15s; }
     .rsc-btn:hover { background:#f8f8f8; }
-    .rsc-btn-activate { background:rgba(22,163,74,0.08); color:#16a34a; border-color:rgba(22,163,74,0.2); }
+    .rsc-btn-activate { background:var(--kup-gradient); color:#fff; border:none; padding:8px 22px; font-weight:700; }
+    .rsc-btn-activate:hover { opacity:.9; background:var(--kup-gradient); }
     .rsc-btn-pause { background:rgba(245,158,11,0.08); color:#f59e0b; border-color:rgba(245,158,11,0.2); }
     .rsc-btn-delete { background:rgba(220,38,38,0.08); color:#dc2626; border-color:rgba(220,38,38,0.2); }
+    /* Draft card pulsing border */
+    .reward-settings-card.draft-card { border:2px dashed rgba(46,165,221,0.35); }
+    .reward-settings-card.draft-card .rsc-banner { opacity:.85; }
 
     /* Sticky Footer */
     body{display:flex;flex-direction:column;min-height:100vh}
@@ -1200,16 +1222,27 @@
           if (headerSpan) headerSpan.textContent = '| ' + brand.name;
         }
 
-        // Load rewards from API
-        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        // Load brand data (for logo, colors) + rewards
+        var brandId = brand ? (brand.mongoId || brand._id || brand.id) : null;
         if (brandId) {
-          kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
-            if (data && data.rewards) {
-              hydrateRewardStats(data.rewards);
-              renderRewardCards(data.rewards);
+          kupApi.get('/api/brands/' + brandId).then(function(bData) {
+            if (bData && bData.brand) {
+              cardBrandData = bData.brand;
+              // Fix sidebar logo — show actual image if brand has one
+              var sidebarLogo = document.querySelector('.brand-identity .logo');
+              if (sidebarLogo && bData.brand.logoUrl) {
+                sidebarLogo.innerHTML = '<img src="' + bData.brand.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="Logo">';
+              }
             }
-          }).catch(function(err) {
-            console.warn('[brand-reward-settings] Could not load rewards:', err);
+          }).catch(function() {}).finally(function() {
+            kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
+              if (data && data.rewards) {
+                hydrateRewardStats(data.rewards);
+                renderRewardCards(data.rewards);
+              }
+            }).catch(function(err) {
+              console.warn('[brand-reward-settings] Could not load rewards:', err);
+            });
           });
         }
       } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
@@ -1237,60 +1270,100 @@
     function renderRewardCards(rewards) {
       var container = document.getElementById('rewardCardsList');
       if (!rewards || rewards.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:40px;color:#999"><p style="font-size:1.1rem;margin-bottom:8px">No rewards yet</p><p style="font-size:.85rem">Create your first reward to start attracting influencers.</p><a href="brand-reward.html" class="btn-create-reward" style="display:inline-block;margin-top:12px;padding:10px 24px;background:var(--kup-gradient);color:#fff;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">+ Create Reward</a></div>';
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#999;border:2px dashed #e0e0e0;border-radius:14px"><p style="font-size:1.1rem;margin-bottom:8px;font-weight:600">No rewards yet</p><p style="font-size:.85rem;max-width:300px;margin:0 auto 16px">Create your first reward to start attracting influencers.</p><a href="brand-reward.html" style="display:inline-block;padding:10px 24px;background:var(--kup-gradient);color:#fff;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">+ Create Reward</a></div>';
         return;
       }
 
-      var typeNames = { 'points_store_credit':'Points / Store Credit', 'free_product':'Free Product', 'discount':'Discount / Coupon', 'cash_per_approval':'Cash Per Approval', 'bonus_cash':'Bonus Cash', 'postd_pay':'Postd Pay' };
-      var typeIcons = { 'points_store_credit':'\uD83C\uDFC6', 'free_product':'\uD83C\uDF81', 'discount':'\uD83C\uDFF7\uFE0F', 'cash_per_approval':'\uD83D\uDCB5', 'bonus_cash':'\uD83D\uDCB0', 'postd_pay':'\uD83D\uDCB3' };
+      var typeNames = { 'points_store_credit':'Points', 'free_product':'Free Product', 'discount':'Discount', 'cash_per_approval':'Cash Per Approval', 'bonus_cash':'Bonus Cash', 'postd_pay':'Postd Pay' };
       var statusColors = { 'active':'#16a34a', 'draft':'#f59e0b', 'paused':'#888', 'ended':'#dc2626' };
+      var statusBgs = { 'active':'rgba(22,163,74,0.15)', 'draft':'rgba(245,158,11,0.15)', 'paused':'rgba(136,136,136,0.15)', 'ended':'rgba(220,38,38,0.15)' };
+      var gradient = getCardGradient();
+      var initials = getCardInitials();
+      var logoUrl = cardBrandData && cardBrandData.logoUrl ? cardBrandData.logoUrl : null;
 
       var html = '';
       rewards.forEach(function(r) {
-        var icon = typeIcons[r.type] || '\uD83C\uDF81';
         var typeName = typeNames[r.type] || r.type;
         var statusColor = statusColors[r.status] || '#888';
+        var statusBg = statusBgs[r.status] || 'rgba(136,136,136,0.15)';
         var isCash = ['cash_per_approval','bonus_cash','postd_pay'].indexOf(r.type) >= 0;
+        var isDraft = r.status === 'draft';
 
-        // Config details
+        // Unlock / value text for banner
+        var unlockText = '';
+        if (r.pointConfig && r.pointConfig.unlockThreshold) {
+          unlockText = 'Unlock at ' + r.pointConfig.unlockThreshold + ' pts';
+        } else if (r.discountConfig && r.discountConfig.discountValue) {
+          unlockText = r.discountConfig.discountValue + (r.discountConfig.discountType === 'percentage' ? '% off' : ' off');
+        } else if (r.productConfig && r.productConfig.productValue) {
+          unlockText = '~$' + r.productConfig.productValue + ' value';
+        } else if (isCash) {
+          unlockText = 'Tier-based payout';
+        }
+
+        // Config detail tags
         var details = '';
         if (r.type === 'points_store_credit' && r.pointConfig) {
-          details = '<span class="rs-tag">Unlock: ' + (r.pointConfig.unlockThreshold || '\u2014') + ' pts</span>';
           if (r.pointConfig.contentEnabled) details += '<span class="rs-tag">Content Pts</span>';
           if (r.pointConfig.purchaseEnabled) details += '<span class="rs-tag">Purchase Pts</span>';
           if (r.pointConfig.gratitudeEnabled) details += '<span class="rs-tag">Gratitude</span>';
         } else if (r.type === 'discount' && r.discountConfig) {
-          details = '<span class="rs-tag">' + (r.discountConfig.discountValue || '') + (r.discountConfig.discountType === 'percentage' ? '%' : r.discountConfig.discountType === 'fixed' ? ' off' : ' Free Ship') + '</span>';
+          if (r.discountConfig.discountCode) details += '<span class="rs-tag">Code: ' + r.discountConfig.discountCode + '</span>';
           if (r.discountConfig.expirationDays) details += '<span class="rs-tag">' + r.discountConfig.expirationDays + ' day expiry</span>';
         } else if (r.type === 'free_product' && r.productConfig) {
-          if (r.productConfig.productValue) details = '<span class="rs-tag">~$' + r.productConfig.productValue + ' value</span>';
           if (r.productConfig.shippingMethod) details += '<span class="rs-tag">' + r.productConfig.shippingMethod + '</span>';
         } else if (isCash) {
-          details = '<span class="rs-tag">Tier-based rates</span>';
+          details += '<span class="rs-tag">Tier-based rates</span>';
           if (r.cashConfig && r.cashConfig.budgetCap) details += '<span class="rs-tag">Cap: $' + r.cashConfig.budgetCap + '</span>';
         }
 
-        html += '<div class="reward-settings-card" data-reward-id="' + r._id + '">';
-        html += '  <div class="rsc-header">';
-        html += '    <div class="rsc-icon" style="background:' + (isCash ? 'rgba(237,132,68,0.08)' : 'rgba(22,163,74,0.08)') + '"><span style="font-size:1.3rem">' + icon + '</span></div>';
-        html += '    <div class="rsc-info">';
-        html += '      <h4 class="rsc-title">' + (r.title || 'Untitled') + '</h4>';
-        html += '      <span class="rsc-type">' + typeName + '</span>';
-        html += '    </div>';
-        html += '    <span class="rsc-status" style="background:' + statusColor + '15;color:' + statusColor + '">' + (r.status || 'draft') + '</span>';
-        html += '  </div>';
-        if (r.description) html += '  <p class="rsc-desc">' + r.description + '</p>';
-        if (details) html += '  <div class="rsc-tags">' + details + '</div>';
-        html += '  <div class="rsc-actions">';
-        html += '    <a href="brand-reward.html?edit=' + r._id + '" class="rsc-btn">Edit</a>';
-        if (r.status === 'draft') {
-          html += '    <button class="rsc-btn rsc-btn-activate" onclick="toggleRewardStatus(\'' + r._id + '\', \'active\')">Activate</button>';
-          html += '    <button class="rsc-btn rsc-btn-delete" onclick="deleteReward(\'' + r._id + '\', \'' + (r.title || '').replace(/'/g, "\\'") + '\')">Delete</button>';
-        } else if (r.status === 'active') {
-          html += '    <button class="rsc-btn rsc-btn-pause" onclick="toggleRewardStatus(\'' + r._id + '\', \'paused\')">Pause</button>';
-        } else if (r.status === 'paused') {
-          html += '    <button class="rsc-btn rsc-btn-activate" onclick="toggleRewardStatus(\'' + r._id + '\', \'active\')">Reactivate</button>';
+        // Banner background: reward banner → brand gradient
+        var bgStyle = r.bannerImageUrl
+          ? 'background:url(' + r.bannerImageUrl + ') center/cover no-repeat'
+          : 'background:' + gradient;
+
+        // Card wrapper
+        html += '<div class="reward-settings-card' + (isDraft ? ' draft-card' : '') + '" data-reward-id="' + r._id + '">';
+
+        // ── Gradient Banner ──
+        var hasBanner = !!r.bannerImageUrl;
+        html += '  <div class="rsc-banner" style="' + bgStyle + '">';
+        if (!hasBanner) {
+          html += '    <div class="rsc-banner-overlay"></div>';
         }
+        html += '    <span class="rsc-banner-status" style="background:' + statusBg + ';color:' + statusColor + '">' + (r.status || 'draft') + '</span>';
+        if (!hasBanner) {
+          html += '    <div class="rsc-banner-content">';
+          if (logoUrl) {
+            html += '      <div class="rsc-banner-logo"><img src="' + logoUrl + '" alt="Logo"></div>';
+          } else {
+            html += '      <div class="rsc-banner-logo">' + initials + '</div>';
+          }
+          html += '      <div class="rsc-banner-text">';
+          html += '        <h4>' + (r.title || 'Untitled Reward') + '</h4>';
+          if (unlockText) html += '        <span class="rsc-unlock">' + unlockText + '</span>';
+          html += '        <br><span class="rsc-type-pill">' + typeName + '</span>';
+          html += '      </div>';
+          html += '    </div>';
+        }
+        html += '  </div>';
+
+        // ── Info Body ──
+        html += '  <div class="rsc-body">';
+        html += '    <h4 class="rsc-body-title" style="font-size:.88rem;font-weight:700;margin:0 0 4px;color:#1a1a1a">' + (r.title || 'Untitled Reward') + ' <span class="rsc-type-pill" style="display:inline-block;padding:2px 7px;border-radius:10px;font-size:.58rem;font-weight:700;background:rgba(46,165,221,0.1);color:var(--kup-blue);text-transform:uppercase;letter-spacing:.3px;vertical-align:middle;margin-left:4px">' + typeName + '</span></h4>';
+        if (r.description) html += '    <p class="rsc-desc">' + r.description + '</p>';
+        if (details) html += '    <div class="rsc-tags">' + details + '</div>';
+        html += '    <div class="rsc-actions">';
+        html += '      <a href="brand-reward.html?edit=' + r._id + '" class="rsc-btn">Edit</a>';
+        if (r.status === 'active') {
+          html += '      <button class="rsc-btn rsc-btn-pause" onclick="toggleRewardStatus(\'' + r._id + '\', \'paused\')">Pause</button>';
+        } else if (r.status === 'paused') {
+          html += '      <button class="rsc-btn" onclick="toggleRewardStatus(\'' + r._id + '\', \'active\')" style="color:var(--kup-blue);border-color:rgba(46,165,221,0.3)">Reactivate</button>';
+        }
+        if (isDraft) {
+          html += '      <button class="rsc-btn rsc-btn-delete" onclick="deleteReward(\'' + r._id + '\', \'' + (r.title || '').replace(/'/g, "\\'") + '\')">Delete</button>';
+        }
+        html += '    </div>';
         html += '  </div>';
         html += '</div>';
       });
@@ -1325,7 +1398,7 @@
     function loadRewardSettings() {
       try {
         var brand = KUP_BRAND_CONTEXT.getActiveBrand();
-        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        var brandId = brand ? (brand.mongoId || brand._id || brand.id) : null;
         if (brandId) {
           kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
             if (data && data.rewards) {
@@ -1337,6 +1410,27 @@
           });
         }
       } catch(e) { console.warn('[brand-reward-settings] Reload failed:', e); }
+    }
+
+    /* ============ BRAND DATA FOR CARDS ============ */
+    var cardBrandData = null;
+
+    function getCardGradient() {
+      if (cardBrandData && cardBrandData.brandColors) {
+        var p = cardBrandData.brandColors.primary || '#2EA5DD';
+        var s = cardBrandData.brandColors.secondary || '#707BBB';
+        return 'linear-gradient(135deg, ' + p + ' 0%, ' + s + ' 100%)';
+      }
+      return 'linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%)';
+    }
+
+    function getCardInitials() {
+      if (cardBrandData && cardBrandData.name) {
+        var words = cardBrandData.name.trim().split(/\s+/);
+        if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+        return cardBrandData.name.substring(0, 2).toUpperCase();
+      }
+      return 'KP';
     }
   </script>
   <!-- Mobile Bottom Navigation -->

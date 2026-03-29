@@ -37,6 +37,7 @@ const rewardSchema = new mongoose.Schema({
   title: { type: String, required: true, maxlength: 21 },
   description: { type: String, maxlength: 85, default: null },
   imageUrl: { type: String, default: null },
+  bannerImageUrl: { type: String, default: null }, // Reward card banner (fallback: brand gradient)
 
   // Point-based config (when earningMethod = "point_based")
   // Ref: DATABASE_SCHEMA.md → rewards.point_config

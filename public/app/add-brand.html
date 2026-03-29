@@ -480,6 +480,29 @@
           </div>
 
           <div class="form-group">
+            <label>Brand Colors <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional)</span></label>
+            <p style="font-size:.78rem;color:#888;margin:-2px 0 10px;line-height:1.4">Pick your brand's colors — used for gradient backgrounds on reward cards, campaigns, and your profile.</p>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="flex:1;min-width:120px">
+                <label style="font-size:.75rem;font-weight:600;color:#555;margin-bottom:3px;display:block">Primary</label>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="color" id="obColorPrimary" value="#2EA5DD" style="width:40px;height:40px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;padding:2px;background:#fff">
+                  <input type="text" id="obColorPrimaryHex" value="#2EA5DD" maxlength="7" style="width:82px;font-size:.8rem;padding:7px 8px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);text-transform:uppercase" placeholder="#HEX">
+                </div>
+              </div>
+              <div style="flex:1;min-width:120px">
+                <label style="font-size:.75rem;font-weight:600;color:#555;margin-bottom:3px;display:block">Secondary</label>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input type="color" id="obColorSecondary" value="#707BBB" style="width:40px;height:40px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;padding:2px;background:#fff">
+                  <input type="text" id="obColorSecondaryHex" value="#707BBB" maxlength="7" style="width:82px;font-size:.8rem;padding:7px 8px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);text-transform:uppercase" placeholder="#HEX">
+                </div>
+              </div>
+            </div>
+            <div id="obColorGradientPreview" style="margin-top:8px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);border:1px solid #e0e0e0"></div>
+            <p style="font-size:.68rem;color:#bbb;margin:3px 0 0;text-align:center">Gradient preview</p>
+          </div>
+
+          <div class="form-group">
             <label for="brandIndustry">Industry *</label>
             <select id="brandIndustry">
               <option value="" disabled selected>Select an industry</option>
@@ -712,7 +735,7 @@
 
         <div class="phone-screen">
           <!-- Hero Banner -->
-          <div class="app-preview-banner">
+          <div class="app-preview-banner" id="previewBanner">
             <span class="back-btn-mock">&#8592;</span>
             <span class="more-btn-mock">&#8943;</span>
           </div>
@@ -816,6 +839,46 @@
         sel.appendChild(opt);
       });
     }
+  })();
+  </script>
+
+  <!-- ========== COLOR PICKER SYNC ========== -->
+  <script>
+  (function() {
+    function syncColor(pickerId, hexId) {
+      var picker = document.getElementById(pickerId);
+      var hex = document.getElementById(hexId);
+      if (!picker || !hex) return;
+      picker.addEventListener('input', function() {
+        hex.value = picker.value.toUpperCase();
+        updateObGradient();
+      });
+      hex.addEventListener('input', function() {
+        var v = hex.value.trim();
+        if (!v.startsWith('#')) v = '#' + v;
+        if (/^#[0-9A-Fa-f]{6}$/.test(v)) { picker.value = v; updateObGradient(); }
+      });
+      hex.addEventListener('blur', function() {
+        var v = hex.value.trim();
+        if (!v.startsWith('#')) v = '#' + v;
+        if (/^#[0-9A-Fa-f]{6}$/.test(v)) hex.value = v.toUpperCase();
+        else hex.value = picker.value.toUpperCase();
+      });
+    }
+    function updateObGradient() {
+      var grad = document.getElementById('obColorGradientPreview');
+      var pc = document.getElementById('obColorPrimary');
+      var sc = document.getElementById('obColorSecondary');
+      if (grad && pc && sc) {
+        var g = 'linear-gradient(135deg,' + pc.value + ' 0%,' + sc.value + ' 100%)';
+        grad.style.background = g;
+        // Also update the live phone preview banner
+        var banner = document.getElementById('previewBanner');
+        if (banner) banner.style.background = g;
+      }
+    }
+    syncColor('obColorPrimary', 'obColorPrimaryHex');
+    syncColor('obColorSecondary', 'obColorSecondaryHex');
   })();
   </script>
 
@@ -1247,6 +1310,10 @@
       offers: selectedOffers,
       offerDescription: (document.getElementById('offerDescription') ? document.getElementById('offerDescription').value.trim() : ''),
       offerValue: (document.getElementById('offerValue') ? document.getElementById('offerValue').value.trim() : ''),
+      brandColors: {
+        primary: (document.getElementById('obColorPrimary') ? document.getElementById('obColorPrimary').value.toUpperCase() : null),
+        secondary: (document.getElementById('obColorSecondary') ? document.getElementById('obColorSecondary').value.toUpperCase() : null)
+      },
       status: status
     };
   }

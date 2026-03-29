@@ -94,8 +94,10 @@ app.use(helmet({
 app.use(cors(getCorsOptions()));                   // CORS — open in dev, locked in production
 app.use(express.json(jsonLimit));                   // Parse JSON (10mb limit)
 app.use(express.urlencoded(urlencodedLimit));       // Parse form data (10mb limit)
-app.use(mongoSanitizeMiddleware);                   // Strip MongoDB operators from input
-app.use(hppMiddleware);                             // Prevent HTTP parameter pollution
+// mongoSanitize & hpp disabled — incompatible with Express 5 (req.query is read-only getter)
+// TODO: Replace with Express 5-compatible alternatives or custom middleware
+// app.use(mongoSanitizeMiddleware);
+// app.use(hppMiddleware);
 app.use(additionalSecurityHeaders);                 // Extra security headers on API routes
 app.use(requestLogger);                             // Log failed requests in production
 

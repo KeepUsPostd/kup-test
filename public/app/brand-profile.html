@@ -416,6 +416,27 @@
           <input type="file" id="bannerFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
         </div>
 
+        <h6 style="margin-top:28px">Brand Colors</h6>
+        <p style="font-size:.82rem;color:#888;margin:-4px 0 12px">Pick your brand's primary and secondary colors. These are used for gradient backgrounds on your reward cards, campaign banners, and profile.</p>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <label for="brandColorPrimary" style="font-size:.82rem;font-weight:600;color:#444;margin-bottom:4px;display:block">Primary Color</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="color" id="brandColorPrimary" value="#2EA5DD" style="width:48px;height:48px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;padding:2px;background:#fff">
+              <input type="text" id="brandColorPrimaryHex" value="#2EA5DD" maxlength="7" style="width:90px;font-size:.85rem;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);text-transform:uppercase" placeholder="#HEX">
+            </div>
+          </div>
+          <div style="flex:1;min-width:140px">
+            <label for="brandColorSecondary" style="font-size:.82rem;font-weight:600;color:#444;margin-bottom:4px;display:block">Secondary Color</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="color" id="brandColorSecondary" value="#707BBB" style="width:48px;height:48px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;padding:2px;background:#fff">
+              <input type="text" id="brandColorSecondaryHex" value="#707BBB" maxlength="7" style="width:90px;font-size:.85rem;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);text-transform:uppercase" placeholder="#HEX">
+            </div>
+          </div>
+        </div>
+        <div id="colorPreviewGradient" style="margin-top:12px;height:40px;border-radius:10px;background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);border:1px solid #e0e0e0"></div>
+        <p style="font-size:.75rem;color:#aaa;margin-top:4px;text-align:center">Gradient preview — this is how your cards will look</p>
+
         <div class="wizard-actions">
           <button class="btn-wizard secondary" onclick="showStep(2)">← Back</button>
           <button class="btn-wizard success" id="updateBrandBtn" onclick="saveBrandProfile()">Update Brand</button>
@@ -870,7 +891,7 @@
             }
           }
 
-          // If brand has a banner, show it
+          // If brand has a banner, show it; otherwise show brand color gradient
           if (b.heroImageUrl) {
             var previewBanner = document.getElementById('previewBanner');
             if (previewBanner) {
@@ -887,6 +908,14 @@
               if (bannerIcon) bannerIcon.style.display = 'none';
               var bannerText = document.getElementById('bannerUploadText');
               if (bannerText) bannerText.textContent = 'Banner uploaded';
+            }
+          } else if (b.brandColors && (b.brandColors.primary || b.brandColors.secondary)) {
+            // No banner image — use brand color gradient as fallback
+            var previewBanner = document.getElementById('previewBanner');
+            if (previewBanner) {
+              var p = b.brandColors.primary || '#2EA5DD';
+              var s = b.brandColors.secondary || '#707BBB';
+              previewBanner.style.background = 'linear-gradient(135deg,' + p + ' 0%,' + s + ' 100%)';
             }
           }
 
@@ -921,6 +950,29 @@
             if (ttEl && b.socialLinks.tiktok) ttEl.value = b.socialLinks.tiktok;
             var liEl = document.getElementById('socialLinkedin');
             if (liEl && b.socialLinks.linkedin) liEl.value = b.socialLinks.linkedin;
+          }
+
+          // Brand colors
+          if (b.brandColors) {
+            var pc = document.getElementById('brandColorPrimary');
+            var pcHex = document.getElementById('brandColorPrimaryHex');
+            var sc = document.getElementById('brandColorSecondary');
+            var scHex = document.getElementById('brandColorSecondaryHex');
+            if (b.brandColors.primary) {
+              if (pc) pc.value = b.brandColors.primary;
+              if (pcHex) pcHex.value = b.brandColors.primary.toUpperCase();
+            }
+            if (b.brandColors.secondary) {
+              if (sc) sc.value = b.brandColors.secondary;
+              if (scHex) scHex.value = b.brandColors.secondary.toUpperCase();
+            }
+            // Update gradient preview
+            var grad = document.getElementById('colorPreviewGradient');
+            if (grad) {
+              var p = (b.brandColors.primary || '#2EA5DD');
+              var s = (b.brandColors.secondary || '#707BBB');
+              grad.style.background = 'linear-gradient(135deg,' + p + ' 0%,' + s + ' 100%)';
+            }
           }
 
           // Update stats
@@ -1040,6 +1092,52 @@
       });
     });
 
+    // ── Color picker ↔ hex input ↔ gradient preview sync ──
+    (function() {
+      function syncColorInputs(pickerId, hexId) {
+        var picker = document.getElementById(pickerId);
+        var hex = document.getElementById(hexId);
+        if (!picker || !hex) return;
+        picker.addEventListener('input', function() {
+          hex.value = picker.value.toUpperCase();
+          updateGradientPreview();
+        });
+        hex.addEventListener('input', function() {
+          var v = hex.value.trim();
+          if (!v.startsWith('#')) v = '#' + v;
+          if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+            picker.value = v;
+            updateGradientPreview();
+          }
+        });
+        hex.addEventListener('blur', function() {
+          var v = hex.value.trim();
+          if (!v.startsWith('#')) v = '#' + v;
+          if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+            hex.value = v.toUpperCase();
+          } else {
+            hex.value = picker.value.toUpperCase();
+          }
+        });
+      }
+      function updateGradientPreview() {
+        var grad = document.getElementById('colorPreviewGradient');
+        var pc = document.getElementById('brandColorPrimary');
+        var sc = document.getElementById('brandColorSecondary');
+        if (grad && pc && sc) {
+          var gradient = 'linear-gradient(135deg,' + pc.value + ' 0%,' + sc.value + ' 100%)';
+          grad.style.background = gradient;
+          // Also update live phone preview banner (if no custom banner image uploaded)
+          var previewBanner = document.getElementById('previewBanner');
+          if (previewBanner && !previewBanner.style.backgroundImage) {
+            previewBanner.style.background = gradient;
+          }
+        }
+      }
+      syncColorInputs('brandColorPrimary', 'brandColorPrimaryHex');
+      syncColorInputs('brandColorSecondary', 'brandColorSecondaryHex');
+    })();
+
     // Save brand profile — collects all form data + uploaded images and saves via API
     async function saveBrandProfile() {
       var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.getActiveBrand) ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
@@ -1087,6 +1185,15 @@
       // Add uploaded image URLs — Step 3
       if (uploadedLogoUrl) updates.logoUrl = uploadedLogoUrl;
       if (uploadedBannerUrl) updates.heroImageUrl = uploadedBannerUrl;
+
+      // Brand colors — Step 3
+      var primaryColorEl = document.getElementById('brandColorPrimary');
+      var secondaryColorEl = document.getElementById('brandColorSecondary');
+      if (primaryColorEl || secondaryColorEl) {
+        updates.brandColors = {};
+        if (primaryColorEl && primaryColorEl.value) updates.brandColors.primary = primaryColorEl.value.toUpperCase();
+        if (secondaryColorEl && secondaryColorEl.value) updates.brandColors.secondary = secondaryColorEl.value.toUpperCase();
+      }
 
       if (Object.keys(updates).length === 0) {
         kupToast('No changes to save', 'info');

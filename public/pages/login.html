@@ -530,7 +530,20 @@
         <!-- Forgot links -->
         <div class="login-forgot">
           <a href="#">Forgot email?</a>
-          <a href="#">Forgot password?</a>
+          <a href="#" id="forgotPasswordLink">Forgot password?</a>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgotPasswordModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center">
+          <div style="background:#fff;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative">
+            <button id="closeForgotModal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.4rem;color:#999;cursor:pointer">&times;</button>
+            <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 8px;font-family:'Montserrat',sans-serif">Reset your password</h3>
+            <p style="font-size:.85rem;color:#888;margin:0 0 20px;line-height:1.5">Enter your email address and we'll send you a link to reset your password.</p>
+            <div id="forgotError" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:.85rem;font-weight:500;margin-bottom:14px"></div>
+            <div id="forgotSuccess" style="display:none;background:#DCFCE7;color:#16a34a;padding:10px 14px;border-radius:8px;font-size:.85rem;font-weight:500;margin-bottom:14px"></div>
+            <input type="email" id="forgotEmail" placeholder="Enter your email address" style="width:100%;padding:12px 16px;border:1px solid #ddd;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:.9rem;margin-bottom:16px;box-sizing:border-box">
+            <button id="sendResetBtn" style="width:100%;padding:14px;background:#2EA5DD;color:#fff;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s">Send Reset Link</button>
+          </div>
         </div>
 
         <!-- Legal (passive) -->
@@ -756,6 +769,77 @@
         }
       });
     }
+
+    // ---- Forgot Password Flow ----
+    (function() {
+      var modal = document.getElementById('forgotPasswordModal');
+      var link = document.getElementById('forgotPasswordLink');
+      var closeBtn = document.getElementById('closeForgotModal');
+      var sendBtn = document.getElementById('sendResetBtn');
+      var emailInput = document.getElementById('forgotEmail');
+      var errDiv = document.getElementById('forgotError');
+      var successDiv = document.getElementById('forgotSuccess');
+
+      function showModal() {
+        modal.style.display = 'flex';
+        errDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        emailInput.value = document.getElementById('email').value || '';
+        emailInput.focus();
+      }
+      function hideModal() {
+        modal.style.display = 'none';
+      }
+
+      if (link) link.addEventListener('click', function(e) { e.preventDefault(); showModal(); });
+      if (closeBtn) closeBtn.addEventListener('click', hideModal);
+      if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) hideModal(); });
+
+      if (sendBtn) sendBtn.addEventListener('click', async function() {
+        var email = emailInput.value.trim();
+        errDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+
+        if (!email) {
+          errDiv.textContent = 'Please enter your email address.';
+          errDiv.style.display = 'block';
+          return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        try {
+          await auth.sendPasswordResetEmail(email);
+          successDiv.textContent = 'Reset link sent! Check your email inbox (and spam folder).';
+          successDiv.style.display = 'block';
+          sendBtn.textContent = 'Email Sent ✓';
+          // Allow re-sending after 30 seconds
+          setTimeout(function() {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send Reset Link';
+          }, 30000);
+        } catch (error) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Send Reset Link';
+          if (error.code === 'auth/user-not-found') {
+            errDiv.textContent = 'No account found with that email address.';
+          } else if (error.code === 'auth/invalid-email') {
+            errDiv.textContent = 'Please enter a valid email address.';
+          } else if (error.code === 'auth/too-many-requests') {
+            errDiv.textContent = 'Too many requests. Please wait a few minutes and try again.';
+          } else {
+            errDiv.textContent = error.message || 'Something went wrong. Please try again.';
+          }
+          errDiv.style.display = 'block';
+        }
+      });
+
+      // Enter key triggers send
+      if (emailInput) emailInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendBtn.click();
+      });
+    })();
 
     // ---- Check if already logged in ----
     auth.onAuthStateChanged(function(user) {
