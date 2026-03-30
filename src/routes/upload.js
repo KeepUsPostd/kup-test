@@ -1,5 +1,6 @@
 // Upload Routes — File upload for content submissions
-// Saves media files to public/uploads/ and returns their URLs.
+// Uploads media files to Cloudflare R2 (persistent object storage).
+// Falls back to local disk if R2 is not configured.
 // Uses multer for multipart/form-data handling.
 // Protected by Firebase auth — only logged-in users can upload.
 
@@ -14,19 +15,57 @@ const execFile = promisify(execFileCb);
 const { requireAuth } = require('../middleware/auth');
 const { ContentSubmission } = require('../models');
 
-// Configure where files go and how they're named
-const storage = multer.diskStorage({
-  // Save files to public/uploads/ so they're served as static files
-  destination: path.join(__dirname, '..', '..', 'public', 'uploads'),
+// ── Cloudflare R2 Setup ─────────────────────────────────────
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
-  // Name files with timestamp + random string to avoid collisions
-  // Example: 1711234567890-abc123.jpg
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    cb(null, uniqueName);
+const R2_CONFIGURED = !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_ENDPOINT);
+
+const r2Client = R2_CONFIGURED ? new S3Client({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
-});
+}) : null;
+
+const R2_BUCKET = process.env.R2_BUCKET || 'keepuspostd-uploads';
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || '';
+
+// Upload a buffer to R2 and return the public URL
+async function uploadToR2(buffer, filename, mimetype) {
+  await r2Client.send(new PutObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: filename,
+    Body: buffer,
+    ContentType: mimetype,
+  }));
+  return `${R2_PUBLIC_URL}/${filename}`;
+}
+
+// Upload a local file to R2 and return the public URL
+async function uploadFileToR2(filePath, filename, mimetype) {
+  const buffer = fs.readFileSync(filePath);
+  return uploadToR2(buffer, filename, mimetype);
+}
+
+// ── Local disk fallback (used only if R2 not configured) ────
+const uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
+if (!R2_CONFIGURED) {
+  console.warn('⚠️  R2 not configured — uploads will use local disk (not persistent)');
+}
+
+// Use memory storage so we can stream to R2; disk storage as fallback
+const storage = R2_CONFIGURED
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: uploadsDir,
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+        cb(null, uniqueName);
+      },
+    });
 
 // Set up multer with limits and file type filtering
 const upload = multer({
@@ -47,29 +86,90 @@ const upload = multer({
 
 // POST /api/upload — Upload media files
 // Expects multipart form data with field name "media"
-// Returns: { urls: ['/uploads/filename1.jpg', '/uploads/filename2.mp4'] }
-router.post('/', requireAuth, upload.array('media', 5), (req, res) => {
+// Returns: { urls: ['https://pub-xxx.r2.dev/filename.jpg', ...] }
+router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: 'No files uploaded' });
   }
 
-  // Build public URLs for each uploaded file
-  const urls = req.files.map(f => `/uploads/${f.filename}`);
+  try {
+    let urls;
 
-  console.log(`📤 ${req.files.length} file(s) uploaded by user ${req.user.email}`);
+    if (R2_CONFIGURED) {
+      // Upload each file buffer to R2
+      urls = await Promise.all(req.files.map(async (f) => {
+        const ext = path.extname(f.originalname);
+        const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+        return uploadToR2(f.buffer, filename, f.mimetype);
+      }));
+    } else {
+      // Fallback: local disk (not persistent — configure R2 env vars)
+      urls = req.files.map(f => `/uploads/${f.filename}`);
+    }
 
-  res.json({
-    message: `${req.files.length} file(s) uploaded`,
-    urls,
-  });
+    console.log(`📤 ${req.files.length} file(s) uploaded by ${req.user.email} → ${R2_CONFIGURED ? 'R2' : 'local'}`);
+
+    res.json({
+      message: `${req.files.length} file(s) uploaded`,
+      urls,
+      // Legacy single-URL support
+      url: urls[0],
+    });
+  } catch (err) {
+    console.error('Upload error:', err.message);
+    res.status(500).json({ error: 'Upload failed' });
+  }
 });
+
+// Helper: resolve a media URL to a local temp file for FFmpeg processing
+// Handles both R2 URLs (https://pub-xxx.r2.dev/file) and legacy local paths (/uploads/file)
+async function resolveToLocalFile(mediaUrl) {
+  const tmpDir = path.join(__dirname, '..', '..', 'public', 'uploads');
+  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+
+  if (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://')) {
+    // Download from R2 to a temp file for FFmpeg
+    const https = require('https');
+    const http = require('http');
+    const ext = path.extname(new URL(mediaUrl).pathname) || '.mp4';
+    const tmpFilename = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const tmpPath = path.join(tmpDir, tmpFilename);
+
+    await new Promise((resolve, reject) => {
+      const client = mediaUrl.startsWith('https://') ? https : http;
+      const file = fs.createWriteStream(tmpPath);
+      client.get(mediaUrl, (res) => {
+        res.pipe(file);
+        file.on('finish', () => { file.close(); resolve(); });
+      }).on('error', (err) => { fs.unlink(tmpPath, () => {}); reject(err); });
+    });
+
+    return { localPath: tmpPath, isTemp: true };
+  } else if (mediaUrl.startsWith('/uploads/')) {
+    // Legacy local file
+    const localPath = path.join(tmpDir, path.basename(mediaUrl));
+    return { localPath, isTemp: false };
+  }
+  throw new Error('Unsupported media URL format');
+}
+
+// Helper: after FFmpeg produces a local output file, upload to R2 (or keep local)
+async function finalizeOutput(localOutputPath, filename) {
+  if (R2_CONFIGURED) {
+    const url = await uploadFileToR2(localOutputPath, filename, 'video/mp4');
+    fs.unlink(localOutputPath, () => {}); // clean up temp file
+    return url;
+  }
+  return `/uploads/${filename}`;
+}
 
 // POST /api/upload/trim — Trim a video using FFmpeg
 // Takes: { videoUrl, startTime, endTime, submissionId (optional) }
 // If submissionId provided: saves original, updates submission with trimmed version
-// Returns: { url: '/uploads/trimmed-filename.mp4', duration: '0:07' }
+// Returns: { url: 'https://pub-xxx.r2.dev/trimmed-filename.mp4', duration: '0:07' }
 // FFmpeg cuts the video without re-encoding (instant, no quality loss)
 router.post('/trim', requireAuth, async (req, res) => {
+  let tmpSource = null;
   try {
     const { videoUrl, startTime, endTime, submissionId } = req.body;
 
@@ -77,15 +177,10 @@ router.post('/trim', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'videoUrl, startTime, and endTime are required' });
     }
 
-    // Security: only allow trimming files in /uploads/
-    if (!videoUrl.startsWith('/uploads/')) {
-      return res.status(400).json({ error: 'Can only trim uploaded files' });
-    }
-
-    // Build file paths
-    const uploadsDir = path.join(__dirname, '..', '..', 'public', 'uploads');
-    const sourceFilename = path.basename(videoUrl);
-    const sourcePath = path.join(uploadsDir, sourceFilename);
+    // Resolve source URL to local file for FFmpeg
+    const resolved = await resolveToLocalFile(videoUrl);
+    tmpSource = resolved.isTemp ? resolved.localPath : null;
+    const sourcePath = resolved.localPath;
 
     // Check source exists
     if (!fs.existsSync(sourcePath)) {
@@ -110,24 +205,22 @@ router.post('/trim', requireAuth, async (req, res) => {
     }
 
     // Output filename: always .mp4 for browser compatibility
-    // (.MOV/QuickTime files are served as video/quicktime which many browsers can't play)
     const trimmedFilename = `trimmed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.mp4`;
-    const outputPath = path.join(uploadsDir, trimmedFilename);
+    const tmpOutputPath = path.join(uploadsDir, trimmedFilename);
 
     // FFmpeg command: remux to MP4 container with stream copy (fast, no quality loss)
-    // -movflags +faststart: moves metadata to front for instant browser playback
     const args = [
-      '-y',                       // Overwrite output if exists
-      '-ss', String(startSec),    // Start time in seconds
-      '-i', sourcePath,           // Input file
-      '-t', String(durationSec),  // Duration in seconds
-      '-c', 'copy',               // Copy streams (no re-encoding)
-      '-movflags', '+faststart',  // Web-optimized: metadata at front of file
-      '-avoid_negative_ts', '1',  // Fix timestamp issues
-      outputPath,                 // Output file (always .mp4)
+      '-y',
+      '-ss', String(startSec),
+      '-i', sourcePath,
+      '-t', String(durationSec),
+      '-c', 'copy',
+      '-movflags', '+faststart',
+      '-avoid_negative_ts', '1',
+      tmpOutputPath,
     ];
 
-    console.log(`✂️ Trimming video: ${sourceFilename} (${startTime} to ${endTime}, ${durationSec}s)`);
+    console.log(`✂️ Trimming video: ${path.basename(sourcePath)} (${startTime} to ${endTime}, ${durationSec}s)`);
 
     try {
       await execFile('ffmpeg', args, { timeout: 30000 });
@@ -136,12 +229,15 @@ router.post('/trim', requireAuth, async (req, res) => {
       return res.status(500).json({ error: 'Failed to trim video' });
     }
 
-    // Verify output file was created
-    if (!fs.existsSync(outputPath)) {
+    if (!fs.existsSync(tmpOutputPath)) {
       return res.status(500).json({ error: 'Trimmed file was not created' });
     }
 
-    const outputUrl = `/uploads/${trimmedFilename}`;
+    // Upload trimmed file to R2 (or keep local)
+    const outputUrl = await finalizeOutput(tmpOutputPath, trimmedFilename);
+    // Clean up temp source if downloaded from R2
+    if (tmpSource) fs.unlink(tmpSource, () => {});
+
     const durationFormatted = Math.floor(durationSec / 60) + ':' + String(durationSec % 60).padStart(2, '0');
 
     console.log(`✅ Trim complete: ${trimmedFilename} (${durationFormatted})`);
@@ -183,6 +279,7 @@ router.post('/trim', requireAuth, async (req, res) => {
       durationSeconds: durationSec,
     });
   } catch (error) {
+    if (tmpSource) fs.unlink(tmpSource, () => {});
     console.error('Trim error:', error.message);
     res.status(500).json({ error: 'Could not trim video' });
   }
@@ -192,7 +289,7 @@ router.post('/trim', requireAuth, async (req, res) => {
 // The frontend draws the image with all edits (crop, zoom, text, logo) onto a
 // <canvas>, converts it to a PNG blob, and uploads it here as a file.
 // Takes: multipart form with field "editedImage" + optional "submissionId" and "originalUrl"
-// Returns: { url: '/uploads/edited-filename.png' }
+// Returns: { url: 'https://pub-xxx.r2.dev/edited-filename.png' }
 // Same original-preservation logic as trim: saves original on first edit, updates active URLs.
 router.post('/save-image-edit', requireAuth, upload.single('editedImage'), async (req, res) => {
   try {
@@ -200,10 +297,18 @@ router.post('/save-image-edit', requireAuth, upload.single('editedImage'), async
       return res.status(400).json({ error: 'No edited image uploaded' });
     }
 
-    const outputUrl = `/uploads/${req.file.filename}`;
     const { submissionId, originalUrl } = req.body;
 
-    console.log(`🖼️ Image edit saved: ${req.file.filename} by ${req.user.email}`);
+    // Upload to R2 or local
+    let outputUrl;
+    if (R2_CONFIGURED) {
+      const filename = `edited-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+      outputUrl = await uploadToR2(req.file.buffer, filename, 'image/png');
+    } else {
+      outputUrl = `/uploads/${req.file.filename}`;
+    }
+
+    console.log(`🖼️ Image edit saved by ${req.user.email} → ${R2_CONFIGURED ? 'R2' : 'local'}`);
 
     // If submissionId provided, update the database (same pattern as trim)
     if (submissionId) {
