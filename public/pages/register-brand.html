@@ -432,7 +432,7 @@
             // Otherwise, new influencer → download the app
             window.location.href = brandIdParam
               ? '/app/submit-content.html?brandId=' + brandIdParam
-              : 'download-app.html';
+              : 'download-app.html?from=auth';
           } else {
             window.location.href = 'onboarding.html';
           }
@@ -514,7 +514,7 @@
             var brandIdParam = params.get('brandId');
             window.location.href = brandIdParam
               ? '/app/submit-content.html?brandId=' + brandIdParam
-              : 'download-app.html';
+              : 'download-app.html?from=auth';
           } else if (data.isNewUser || !data.user?.hasBrandProfile) {
             window.location.href = 'onboarding.html';
           } else {

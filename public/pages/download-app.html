@@ -1870,6 +1870,53 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    // ── Smart Deep Link — open app if installed, else go to store ──────────
+    (function() {
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const APP_SCHEME = 'keepuspostd://open';
+      const IOS_STORE = 'https://apps.apple.com/us/app/keepuspostd/id1515156338';
+      const ANDROID_STORE = 'https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp';
+
+      // Replace all store buttons with smart deep link handler
+      document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          if (isIOS) {
+            e.preventDefault();
+            // Try to open app — if not installed, fall through to App Store after 1.5s
+            var fallback = setTimeout(function() {
+              window.location.href = IOS_STORE;
+            }, 1500);
+            window.location.href = APP_SCHEME;
+            // Cancel fallback if app opens (page goes to background)
+            window.addEventListener('blur', function() { clearTimeout(fallback); }, { once: true });
+          }
+          // On non-iOS, let default href handle it
+        });
+      });
+
+      document.querySelectorAll('a[href*="play.google.com"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          if (isAndroid) {
+            e.preventDefault();
+            var fallback = setTimeout(function() {
+              window.location.href = ANDROID_STORE;
+            }, 1500);
+            window.location.href = APP_SCHEME;
+            window.addEventListener('blur', function() { clearTimeout(fallback); }, { once: true });
+          }
+        });
+      });
+
+      // Auto-redirect if coming from influencer login/signup on mobile
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('from') === 'auth' && (isIOS || isAndroid)) {
+        setTimeout(function() {
+          window.location.href = APP_SCHEME;
+        }, 800);
+      }
+    })();
+
     // Mobile nav toggle
     const navToggle = document.getElementById('navToggle');
     const navMobile = document.getElementById('navMobile');

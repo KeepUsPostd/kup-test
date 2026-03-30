@@ -725,7 +725,7 @@
           } else if (result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
-            window.location.href = '/pages/download-app.html';
+            window.location.href = '/pages/download-app.html?from=auth';
           }
         } catch (error) {
           btn.disabled = false;
@@ -765,7 +765,7 @@
           } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
-            window.location.href = '/pages/download-app.html';
+            window.location.href = '/pages/download-app.html?from=auth';
           }
         } catch (error) {
           googleBtn.disabled = false;
