@@ -160,6 +160,7 @@ router.post('/login', requireAuth, async (req, res) => {
         activeProfile: user.activeProfile,
         hasInfluencerProfile: user.hasInfluencerProfile,
         hasBrandProfile: user.hasBrandProfile,
+        onboardingComplete: user.onboardingComplete,
       },
       profile: profileData,
     });
@@ -195,6 +196,7 @@ router.get('/me', requireAuth, async (req, res) => {
         avatarUrl: user.avatarUrl,
         hasInfluencerProfile: user.hasInfluencerProfile,
         hasBrandProfile: user.hasBrandProfile,
+        onboardingComplete: user.onboardingComplete,
         status: user.status,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -233,6 +235,19 @@ router.put('/profile', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Profile update error:', err);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// POST /api/auth/complete-onboarding — Mark onboarding as complete
+// Called by onboarding.html when user finishes all steps
+router.post('/complete-onboarding', requireAuth, async (req, res) => {
+  try {
+    req.user.onboardingComplete = true;
+    await req.user.save();
+    res.json({ success: true, message: 'Onboarding complete' });
+  } catch (err) {
+    console.error('Complete onboarding error:', err.message);
+    res.status(500).json({ error: 'Could not update onboarding status' });
   }
 });
 

@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
   // Profile flags (dual-profile system)
   hasInfluencerProfile: { type: Boolean, default: false },
   hasBrandProfile: { type: Boolean, default: false },
+  onboardingComplete: { type: Boolean, default: false },
   activeProfile: {
     type: String,
     enum: ['influencer', 'brand'],

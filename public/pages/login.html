@@ -716,10 +716,12 @@
           localStorage.setItem('kupUser', JSON.stringify(result.user));
           localStorage.setItem('kupProfile', JSON.stringify(result.profile));
 
-          // Redirect — honor ?redirect= param if present, else default dashboard
+          // Redirect — honor ?redirect= param, else check onboarding, else default dashboard
           var redirectParam = new URLSearchParams(window.location.search).get('redirect');
           if (redirectParam) {
             window.location.href = decodeURIComponent(redirectParam);
+          } else if (result.user.activeProfile === 'brand' && !result.user.onboardingComplete) {
+            window.location.href = '/pages/onboarding.html';
           } else if (result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
@@ -758,6 +760,8 @@
           var redirectParam = new URLSearchParams(window.location.search).get('redirect');
           if (redirectParam) {
             window.location.href = decodeURIComponent(redirectParam);
+          } else if (result.user && result.user.activeProfile === 'brand' && !result.user.onboardingComplete) {
+            window.location.href = '/pages/onboarding.html';
           } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
@@ -855,7 +859,9 @@
         const kupUser = localStorage.getItem('kupUser');
         if (kupUser) {
           const parsed = JSON.parse(kupUser);
-          if (parsed.activeProfile === 'brand') {
+          if (parsed.activeProfile === 'brand' && !parsed.onboardingComplete) {
+            window.location.href = '/pages/onboarding.html';
+          } else if (parsed.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           }
         }

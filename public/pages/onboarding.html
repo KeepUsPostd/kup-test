@@ -1381,6 +1381,14 @@
 
         console.log('✅ Brand created in MongoDB:', result.brand ? result.brand._id : 'success');
 
+        // Mark onboarding complete in the database
+        try {
+          await kupApi.post('/api/auth/complete-onboarding', {});
+          console.log('✅ Onboarding marked complete');
+        } catch(onboardErr) {
+          console.warn('Could not mark onboarding complete:', onboardErr);
+        }
+
         // Store the MongoDB brand ID in localStorage for other pages
         if (result.brand) {
           try {
