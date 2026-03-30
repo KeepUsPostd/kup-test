@@ -428,9 +428,11 @@
           // Redirect based on account type
           if (accountType === 'creator') {
             var brandIdParam = params.get('brandId');
+            // If coming from a specific brand QR/link, go to submit content
+            // Otherwise, new influencer → download the app
             window.location.href = brandIdParam
               ? '/app/submit-content.html?brandId=' + brandIdParam
-              : '/app/submit-content.html';
+              : 'download-app.html';
           } else {
             window.location.href = 'onboarding.html';
           }
@@ -512,7 +514,7 @@
             var brandIdParam = params.get('brandId');
             window.location.href = brandIdParam
               ? '/app/submit-content.html?brandId=' + brandIdParam
-              : '/app/submit-content.html';
+              : 'download-app.html';
           } else if (data.isNewUser || !data.user?.hasBrandProfile) {
             window.location.href = 'onboarding.html';
           } else {

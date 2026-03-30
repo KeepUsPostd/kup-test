@@ -724,8 +724,10 @@
             window.location.href = '/pages/onboarding.html';
           } else if (result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
-          } else {
+          } else if (result.user.activeProfile === 'influencer') {
             window.location.href = '/app/activity.html';
+          } else {
+            window.location.href = '/pages/download-app.html';
           }
         } catch (error) {
           btn.disabled = false;
@@ -764,8 +766,10 @@
             window.location.href = '/pages/onboarding.html';
           } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
-          } else {
+          } else if (result.user && result.user.activeProfile === 'influencer') {
             window.location.href = '/app/activity.html';
+          } else {
+            window.location.href = '/pages/download-app.html';
           }
         } catch (error) {
           googleBtn.disabled = false;
