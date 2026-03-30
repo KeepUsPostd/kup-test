@@ -4,5 +4,6 @@ Disallow: /api/
 Disallow: /app/
 Disallow: /pages/inner/
 Disallow: /uploads/
+Disallow: /pages/subscription-plan.html
 
 Sitemap: https://keepuspostd.com/sitemap.xml
