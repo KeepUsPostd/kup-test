@@ -131,6 +131,14 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
   }
 }));
 
+// --- Firebase Auth Action Redirect ---
+// Firebase sends users to /auth/action for password reset + email verification.
+// Redirect to our branded auth-action page.
+app.get('/auth/action', (req, res) => {
+  const query = new URLSearchParams(req.query).toString();
+  res.redirect(`/pages/auth-action.html${query ? '?' + query : ''}`);
+});
+
 // --- API Routes ---
 
 // Health check (no auth required, no rate limit)
