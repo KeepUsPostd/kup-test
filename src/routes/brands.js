@@ -219,4 +219,55 @@ router.get('/:brandId/members', requireAuth, requireBrandRole('viewer'), async (
   }
 });
 
+// ── Claim Your Brand (public-facing) ──────────────────────
+// POST /api/brands/:id/claim — Submit a claim request for an admin brand
+router.post('/:id/claim', async (req, res) => {
+  try {
+    const brand = await Brand.findById(req.params.id);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+    if (brand.brandType !== 'admin' || brand.claimStatus !== 'unclaimed') {
+      return res.status(400).json({ error: 'This brand is not available for claiming' });
+    }
+
+    const { claimerName, claimerTitle, claimerEmail, claimerPhone, authorizationStatement } = req.body;
+    if (!claimerName || !claimerEmail) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+
+    // Check for duplicate pending claim
+    const existingClaim = await require('../models/ClaimRequest').findOne({
+      brandId: brand._id,
+      status: 'pending',
+    });
+    if (existingClaim) {
+      return res.status(409).json({ error: 'A claim request is already pending for this brand' });
+    }
+
+    // Auto-validate email domain
+    const brandDomain = brand.websiteUrl ? new URL(brand.websiteUrl).hostname.replace('www.', '') : null;
+    const emailDomain = claimerEmail.split('@')[1];
+    const emailDomainMatch = brandDomain ? emailDomain === brandDomain : false;
+
+    const claim = await require('../models/ClaimRequest').create({
+      brandId: brand._id,
+      claimerName,
+      claimerTitle: claimerTitle || null,
+      claimerEmail,
+      claimerPhone: claimerPhone || null,
+      authorizationStatement: authorizationStatement || null,
+      emailDomainMatch,
+      duplicateClaim: false,
+    });
+
+    // Update brand claim status to pending
+    brand.claimStatus = 'pending';
+    await brand.save();
+
+    res.status(201).json({ success: true, message: 'Claim submitted for review', claimId: claim._id });
+  } catch (error) {
+    console.error('Brand claim error:', error);
+    res.status(500).json({ error: 'Failed to submit claim' });
+  }
+});
+
 module.exports = router;
