@@ -54,9 +54,17 @@
         <button class="btn btn-primary btn-sm" onclick="loadBrands()">Search</button>
       </div>
 
+      <!-- Admin Brand Stats -->
+      <div id="adminStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;"></div>
+
       <div class="admin-panel-section">
-        <div class="section-header">
+        <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;">
           <h3>Brands <span id="brandCount" style="color:#999;font-weight:400"></span></h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ Create Admin Brand</button>
+            <button class="btn btn-secondary btn-sm" onclick="openBulkModal()">Bulk Create</button>
+            <button class="btn btn-secondary btn-sm" onclick="openClaimsModal()">Claims <span id="claimsBadge" style="background:#e74c3c;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;display:none;margin-left:4px;">0</span></button>
+          </div>
         </div>
         <div style="overflow-x:auto">
           <table class="admin-table">
@@ -94,6 +102,100 @@
     </div>
   </div>
 
+  <!-- Create Admin Brand Modal -->
+  <div id="createModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="font-size:18px;font-weight:700;">Create Admin Brand</h3>
+        <button onclick="closeCreateModal()" style="background:none;border:none;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+      <div style="display:grid;gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#555;">Brand Name *</label>
+          <input type="text" id="cb_name" placeholder="e.g. Nike, Starbucks" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;">Category</label>
+            <select id="cb_category" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+              <option value="">Select category</option>
+              <option>Restaurant & Food</option><option>Coffee & Cafe</option><option>Retail & Shopping</option>
+              <option>Beauty & Wellness</option><option>Fitness & Sports</option><option>Technology</option>
+              <option>Automotive</option><option>Entertainment</option><option>Hospitality & Travel</option>
+              <option>Health & Medical</option><option>Home & Living</option><option>Fashion & Apparel</option>
+              <option>Finance & Banking</option><option>Education</option><option>Professional Services</option>
+              <option>Non-Profit</option><option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;">Subcategory</label>
+            <input type="text" id="cb_subcategory" placeholder="e.g. Fast Casual" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#555;">Description</label>
+          <textarea id="cb_description" rows="3" maxlength="500" placeholder="Brief brand description from public info..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;resize:vertical;"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;">City</label>
+            <input type="text" id="cb_city" placeholder="Beaverton" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;">State</label>
+            <input type="text" id="cb_state" placeholder="OR" maxlength="2" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;">ZIP</label>
+            <input type="text" id="cb_zip" placeholder="97005" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#555;">Website URL</label>
+          <input type="url" id="cb_website" placeholder="https://example.com" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#555;">Tags (comma-separated)</label>
+          <input type="text" id="cb_tags" placeholder="sports, apparel, footwear" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-top:4px;">
+        </div>
+        <div id="createError" style="display:none;color:#e74c3c;font-size:13px;padding:8px;background:#fdf2f2;border-radius:8px;"></div>
+        <div id="createSuccess" style="display:none;color:#27ae60;font-size:13px;padding:8px;background:#f0faf4;border-radius:8px;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+          <button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+          <button class="btn btn-primary" id="createBtn" onclick="createAdminBrand()">Create Brand</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Create Modal -->
+  <div id="bulkModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;max-width:650px;width:90%;max-height:85vh;overflow-y:auto;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;">Bulk Create Admin Brands</h3>
+        <button onclick="closeBulkModal()" style="background:none;border:none;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+      <p style="font-size:13px;color:#666;margin-bottom:12px;">Enter one brand per line in format: <code>Brand Name, Category, City State</code></p>
+      <textarea id="bulkInput" rows="12" placeholder="Nike, Athletic Apparel, Beaverton OR&#10;Starbucks, Coffee & Cafe, Seattle WA&#10;Whole Foods, Grocery & Health, Austin TX" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:monospace;resize:vertical;"></textarea>
+      <div id="bulkResults" style="display:none;margin-top:12px;font-size:13px;padding:12px;background:#f8f9fa;border-radius:8px;max-height:200px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
+        <button class="btn btn-primary" id="bulkBtn" onclick="bulkCreateBrands()">Create All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Claims Modal -->
+  <div id="claimsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;max-width:750px;width:90%;max-height:85vh;overflow-y:auto;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;">Claim Requests</h3>
+        <button onclick="closeClaimsModal()" style="background:none;border:none;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+      <div id="claimsContent" style="font-size:13px;">Loading...</div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
@@ -106,6 +208,7 @@
       authToken = await user.getIdToken();
       document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
       loadBrands();
+      loadAdminStats();
     });
 
     async function apiFetch(path) {
@@ -167,6 +270,202 @@
       } catch (e) {
         console.error('Load brands error:', e);
       }
+    }
+
+    // Load admin brand stats
+    async function loadAdminStats() {
+      try {
+        const data = await apiFetch('/admin-brands/stats');
+        document.getElementById('adminStats').innerHTML = `
+          <div style="background:#f0f7ff;padding:14px 16px;border-radius:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#2EA5DD;">${data.adminBrands.total}</div>
+            <div style="font-size:11px;color:#666;margin-top:2px;">Admin Brands</div>
+          </div>
+          <div style="background:#f0faf4;padding:14px 16px;border-radius:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#27ae60;">${data.adminBrands.unclaimed}</div>
+            <div style="font-size:11px;color:#666;margin-top:2px;">Unclaimed</div>
+          </div>
+          <div style="background:#fef9f0;padding:14px 16px;border-radius:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#f39c12;">${data.pendingClaims}</div>
+            <div style="font-size:11px;color:#666;margin-top:2px;">Pending Claims</div>
+          </div>
+          <div style="background:#f5f0ff;padding:14px 16px;border-radius:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#707BBB;">${data.adminBrands.claimed}</div>
+            <div style="font-size:11px;color:#666;margin-top:2px;">Claimed</div>
+          </div>
+          <div style="background:#f8f9fa;padding:14px 16px;border-radius:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#333;">${data.userBrands}</div>
+            <div style="font-size:11px;color:#666;margin-top:2px;">User Brands</div>
+          </div>
+        `;
+        // Update claims badge
+        if (data.pendingClaims > 0) {
+          const badge = document.getElementById('claimsBadge');
+          badge.textContent = data.pendingClaims;
+          badge.style.display = 'inline';
+        }
+      } catch (e) { console.error('Stats error:', e); }
+    }
+
+    // Create modal functions
+    function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+    function closeCreateModal() {
+      document.getElementById('createModal').style.display = 'none';
+      document.getElementById('createError').style.display = 'none';
+      document.getElementById('createSuccess').style.display = 'none';
+    }
+    function openBulkModal() { document.getElementById('bulkModal').style.display = 'flex'; }
+    function closeBulkModal() { document.getElementById('bulkModal').style.display = 'none'; }
+    function openClaimsModal() { document.getElementById('claimsModal').style.display = 'flex'; loadClaims(); }
+    function closeClaimsModal() { document.getElementById('claimsModal').style.display = 'none'; }
+
+    async function createAdminBrand() {
+      const btn = document.getElementById('createBtn');
+      const errEl = document.getElementById('createError');
+      const successEl = document.getElementById('createSuccess');
+      errEl.style.display = 'none';
+      successEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Creating...';
+
+      const tagsRaw = document.getElementById('cb_tags').value;
+      const payload = {
+        name: document.getElementById('cb_name').value.trim(),
+        category: document.getElementById('cb_category').value,
+        subcategory: document.getElementById('cb_subcategory').value.trim(),
+        description: document.getElementById('cb_description').value.trim(),
+        city: document.getElementById('cb_city').value.trim(),
+        state: document.getElementById('cb_state').value.trim().toUpperCase(),
+        zip: document.getElementById('cb_zip').value.trim(),
+        websiteUrl: document.getElementById('cb_website').value.trim(),
+        tags: tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [],
+      };
+
+      if (!payload.name) { errEl.textContent = 'Brand name is required'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Create Brand'; return; }
+
+      try {
+        const res = await fetch('/api/admin-panel/brands/create', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+
+        successEl.textContent = `"${data.brand.name}" created successfully!`;
+        successEl.style.display = 'block';
+        // Clear form
+        ['cb_name','cb_subcategory','cb_description','cb_city','cb_state','cb_zip','cb_website','cb_tags'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('cb_category').value = '';
+        loadBrands();
+        loadAdminStats();
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+      }
+      btn.disabled = false; btn.textContent = 'Create Brand';
+    }
+
+    async function bulkCreateBrands() {
+      const btn = document.getElementById('bulkBtn');
+      const resultsEl = document.getElementById('bulkResults');
+      btn.disabled = true; btn.textContent = 'Creating...';
+      resultsEl.style.display = 'none';
+
+      const lines = document.getElementById('bulkInput').value.trim().split('\n').filter(Boolean);
+      const brands = lines.map(line => {
+        const parts = line.split(',').map(p => p.trim());
+        const name = parts[0] || '';
+        const category = parts[1] || '';
+        const locationParts = (parts[2] || '').split(/\s+/);
+        const state = locationParts.length > 1 ? locationParts.pop() : '';
+        const city = locationParts.join(' ');
+        return { name, category, city, state };
+      });
+
+      try {
+        const res = await fetch('/api/admin-panel/brands/bulk-create', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brands }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+
+        let html = `<strong>Results:</strong> ${data.summary.created} created, ${data.summary.skipped} skipped, ${data.summary.errors} errors<br><br>`;
+        if (data.results.created.length) html += `<div style="color:#27ae60">Created: ${data.results.created.map(b => b.name).join(', ')}</div>`;
+        if (data.results.skipped.length) html += `<div style="color:#f39c12;margin-top:4px">Skipped: ${data.results.skipped.map(b => `${b.name} (${b.reason})`).join(', ')}</div>`;
+        if (data.results.errors.length) html += `<div style="color:#e74c3c;margin-top:4px">Errors: ${data.results.errors.map(b => `${b.name} (${b.reason})`).join(', ')}</div>`;
+        resultsEl.innerHTML = html;
+        resultsEl.style.display = 'block';
+        loadBrands();
+        loadAdminStats();
+      } catch (e) {
+        resultsEl.innerHTML = `<span style="color:#e74c3c">${e.message}</span>`;
+        resultsEl.style.display = 'block';
+      }
+      btn.disabled = false; btn.textContent = 'Create All';
+    }
+
+    async function loadClaims() {
+      try {
+        const data = await apiFetch('/claims?status=all');
+        if (data.claims.length === 0) {
+          document.getElementById('claimsContent').innerHTML = '<p style="color:#999;text-align:center;padding:24px;">No claim requests yet</p>';
+          return;
+        }
+        document.getElementById('claimsContent').innerHTML = data.claims.map(c => `
+          <div style="border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:10px;${c.status === 'pending' ? 'border-left:3px solid #f39c12;' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong>${c.brandId?.name || 'Unknown Brand'}</strong>
+              <span class="status-pill ${c.status === 'pending' ? 'pending' : c.status === 'approved' ? 'active' : 'suspended'}">${c.status}</span>
+            </div>
+            <div style="margin-top:8px;color:#555;">
+              <div><strong>Name:</strong> ${c.claimerName} ${c.claimerTitle ? '(' + c.claimerTitle + ')' : ''}</div>
+              <div><strong>Email:</strong> ${c.claimerEmail} ${c.emailDomainMatch ? '<span style="color:#27ae60">✓ domain match</span>' : '<span style="color:#e74c3c">✗ domain mismatch</span>'}</div>
+              ${c.claimerPhone ? '<div><strong>Phone:</strong> ' + c.claimerPhone + '</div>' : ''}
+              ${c.authorizationStatement ? '<div style="margin-top:4px;font-style:italic;color:#888;">"' + c.authorizationStatement + '"</div>' : ''}
+              <div style="font-size:11px;color:#999;margin-top:4px;">Submitted: ${new Date(c.createdAt).toLocaleString()}</div>
+            </div>
+            ${c.status === 'pending' ? `
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <button class="btn btn-primary btn-sm" onclick="approveClaim('${c._id}')">Approve</button>
+                <button class="btn btn-secondary btn-sm" onclick="rejectClaim('${c._id}')">Reject</button>
+              </div>
+            ` : c.reviewNotes ? `<div style="margin-top:8px;font-size:12px;color:#666;"><strong>Notes:</strong> ${c.reviewNotes}</div>` : ''}
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('claimsContent').innerHTML = '<p style="color:red">Failed to load claims</p>';
+      }
+    }
+
+    async function approveClaim(id) {
+      const notes = prompt('Approval notes (optional):');
+      try {
+        await fetch('/api/admin-panel/claims/' + id + '/approve', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes }),
+        });
+        loadClaims();
+        loadBrands();
+        loadAdminStats();
+      } catch (e) { alert('Failed to approve: ' + e.message); }
+    }
+
+    async function rejectClaim(id) {
+      const notes = prompt('Rejection reason:');
+      if (!notes) return;
+      try {
+        await fetch('/api/admin-panel/claims/' + id + '/reject', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes }),
+        });
+        loadClaims();
+        loadBrands();
+        loadAdminStats();
+      } catch (e) { alert('Failed to reject: ' + e.message); }
     }
 
     async function viewBrand(id) {
