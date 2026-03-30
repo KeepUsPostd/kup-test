@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /app/
+Disallow: /pages/inner/
+Disallow: /uploads/
+
+Sitemap: https://keepuspostd.com/sitemap.xml
