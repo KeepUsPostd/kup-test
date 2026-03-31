@@ -210,6 +210,39 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
+// PUT /api/auth/me — Update influencer profile fields (displayName, bio, avatarUrl, socialLinks)
+// This is the primary profile-update endpoint used by the Flutter app.
+router.put('/me', requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { displayName, bio, avatarUrl, socialLinks } = req.body;
+
+    // Update the user's top-level avatarUrl as well (used in some views)
+    if (avatarUrl !== undefined) {
+      user.avatarUrl = avatarUrl;
+      await user.save();
+    }
+
+    // Find and update the influencer profile
+    let influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
+    if (!influencerProfile) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    if (displayName !== undefined) influencerProfile.displayName = displayName;
+    if (bio !== undefined) influencerProfile.bio = bio;
+    if (avatarUrl !== undefined) influencerProfile.avatarUrl = avatarUrl;
+    if (socialLinks !== undefined) influencerProfile.socialLinks = socialLinks;
+
+    await influencerProfile.save();
+
+    res.json({ success: true, influencerProfile });
+  } catch (err) {
+    console.error('PUT /me error:', err.message);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 // PUT /api/auth/profile — Update user profile
 router.put('/profile', requireAuth, async (req, res) => {
   try {
