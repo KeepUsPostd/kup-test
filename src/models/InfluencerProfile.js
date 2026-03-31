@@ -29,7 +29,7 @@ const influencerProfileSchema = new mongoose.Schema({
   // Influence verification
   influenceTier: {
     type: String,
-    enum: ['unverified', 'nano', 'micro', 'rising', 'established', 'premium'],
+    enum: ['unverified', 'nano', 'micro', 'rising', 'established', 'premium', 'celebrity'],
     default: 'unverified',
   },
   realFollowerCount: { type: Number, default: null },
@@ -63,6 +63,16 @@ const influencerProfileSchema = new mongoose.Schema({
     bonusAlerts: { type: Boolean, default: true },
     campaignAlerts: { type: Boolean, default: true },
   },
+
+  // Social links — handles per platform (instagram, tiktok, youtube, twitter, etc.)
+  socialLinks: {
+    type: Map,
+    of: String,
+    default: {},
+  },
+
+  // Engagement rate (0–100, stored as a percentage e.g. 4.2 = 4.2%)
+  engagementRate: { type: Number, default: null },
 
   // Payment
   paypalEmail: { type: String, default: null },

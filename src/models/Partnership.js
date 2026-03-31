@@ -38,6 +38,17 @@ const partnershipSchema = new mongoose.Schema({
     enum: ['brand', 'influencer', 'system'],
     default: null,
   },
+
+  // Influencer rating of the brand (submitted via Rate Partnership flow)
+  influencerRating: {
+    communication: { type: Number, min: 1, max: 5, default: null },
+    paymentTimeliness: { type: Number, min: 1, max: 5, default: null },
+    creativeFreedom: { type: Number, min: 1, max: 5, default: null },
+    overallExperience: { type: Number, min: 1, max: 5, default: null },
+    overall: { type: Number, min: 1, max: 5, default: null },
+    feedback: { type: String, maxlength: 500, default: null },
+    ratedAt: { type: Date, default: null },
+  },
 }, {
   timestamps: true,
 });

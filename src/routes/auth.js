@@ -577,4 +577,151 @@ router.put('/notification-prefs', requireAuth, async (req, res) => {
   }
 });
 
+// ─── Social Verification ─────────────────────────────────────────────────────
+
+/**
+ * Tier thresholds — matches platform-config.js tierRates exactly.
+ * Follower count → influenceTier key → display name + pay rates.
+ */
+const TIER_THRESHOLDS = [
+  { key: 'celebrity',   min: 5_000_000, displayName: 'Celebrity',  range: '5M+',         video: 45, image: 23 },
+  { key: 'premium',     min: 1_000_000, displayName: 'Mega',        range: '1M–5M',       video: 33, image: 15 },
+  { key: 'established', min: 500_000,   displayName: 'Macro',       range: '500K–1M',     video: 25, image: 12 },
+  { key: 'rising',      min: 50_000,    displayName: 'Mid',         range: '50K–500K',    video: 18, image: 9  },
+  { key: 'micro',       min: 10_000,    displayName: 'Micro',       range: '10K–50K',     video: 11, image: 6  },
+  { key: 'nano',        min: 5_000,     displayName: 'Nano',        range: '5K–10K',      video: 8,  image: 4  },
+  { key: 'unverified',  min: 0,         displayName: 'Startup',     range: '0–5K',        video: 4,  image: 2  },
+];
+
+function tierFromFollowers(count) {
+  return TIER_THRESHOLDS.find(t => count >= t.min) || TIER_THRESHOLDS[TIER_THRESHOLDS.length - 1];
+}
+
+/**
+ * POST /api/auth/social-verify
+ * Stores social handles and calculates influence tier from follower count.
+ *
+ * Body: {
+ *   handles: { instagram?: string, tiktok?: string, youtube?: string, twitter?: string },
+ *   followerCount: number,          // self-reported total across platforms
+ *   engagementRate?: number         // optional, 0–100 (e.g. 4.2 = 4.2%)
+ * }
+ *
+ * TODO: Replace followerCount self-report with real Instagram/TikTok API calls
+ * once Meta and TikTok developer apps are approved.
+ */
+router.post('/social-verify', requireAuth, async (req, res) => {
+  try {
+    const { handles, followerCount, engagementRate } = req.body;
+
+    if (!handles || typeof handles !== 'object' || Object.keys(handles).length === 0) {
+      return res.status(400).json({ error: 'At least one social handle is required' });
+    }
+
+    const count = parseInt(followerCount, 10);
+    if (isNaN(count) || count < 0) {
+      return res.status(400).json({ error: 'followerCount must be a non-negative number' });
+    }
+
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    const tier = tierFromFollowers(count);
+
+    // Save social handles — merge with any existing
+    const currentLinks = influencer.socialLinks ? Object.fromEntries(influencer.socialLinks) : {};
+    const updatedLinks = { ...currentLinks, ...handles };
+    influencer.socialLinks = updatedLinks;
+
+    // Update influence data
+    influencer.influenceTier = tier.key;
+    influencer.realFollowerCount = count;
+    influencer.isVerified = true;
+    influencer.verifiedAt = influencer.verifiedAt || new Date();
+    influencer.lastVerificationAt = new Date();
+    if (engagementRate != null) {
+      influencer.engagementRate = parseFloat(engagementRate);
+    }
+
+    await influencer.save();
+
+    // Notify: social influence verified
+    try {
+      await notify.socialInfluenceVerified({
+        userId: req.user._id,
+        email: req.user.email,
+        displayName: influencer.displayName,
+        tier: tier.displayName,
+        followerCount: count,
+      });
+    } catch (notifErr) {
+      console.warn('⚠️  Social verify notification failed:', notifErr.message);
+    }
+
+    const platformCount = Object.keys(updatedLinks).length;
+    const engRate = influencer.engagementRate;
+
+    res.json({
+      verified: true,
+      tier: tier.displayName,
+      tierKey: tier.key,
+      tierRange: tier.range,
+      realFollowers: count,
+      engagementRate: engRate,
+      platforms: platformCount,
+      realFollowersPct: 92,   // Placeholder until real API analysis
+      suspiciousPct: 5,
+      inactivePct: 3,
+      payRates: { video: tier.video, image: tier.image },
+      verifiedAt: influencer.lastVerificationAt,
+    });
+  } catch (error) {
+    console.error('Social verify error:', error.message);
+    res.status(500).json({ error: 'Could not complete verification' });
+  }
+});
+
+/**
+ * GET /api/auth/social-verify/status
+ * Returns current verification status and results for the logged-in influencer.
+ */
+router.get('/social-verify/status', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    if (!influencer.isVerified) {
+      return res.json({ verified: false });
+    }
+
+    const tier = TIER_THRESHOLDS.find(t => t.key === influencer.influenceTier)
+      || TIER_THRESHOLDS[TIER_THRESHOLDS.length - 1];
+
+    const links = influencer.socialLinks ? Object.fromEntries(influencer.socialLinks) : {};
+
+    res.json({
+      verified: true,
+      tier: tier.displayName,
+      tierKey: tier.key,
+      tierRange: tier.range,
+      realFollowers: influencer.realFollowerCount,
+      engagementRate: influencer.engagementRate,
+      platforms: Object.keys(links).length,
+      socialLinks: links,
+      realFollowersPct: 92,
+      suspiciousPct: 5,
+      inactivePct: 3,
+      payRates: { video: tier.video, image: tier.image },
+      verifiedAt: influencer.lastVerificationAt,
+    });
+  } catch (error) {
+    console.error('Social verify status error:', error.message);
+    res.status(500).json({ error: 'Could not retrieve verification status' });
+  }
+});
+
 module.exports = router;

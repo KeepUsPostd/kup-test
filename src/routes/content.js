@@ -231,6 +231,16 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
     submission.status = 'approved';
     submission.reviewedAt = new Date();
     submission.reviewedBy = req.user._id;
+
+    // Generate KUP content signature (tracking ID embedded in all approved content)
+    const year = new Date().getFullYear();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const rand = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    submission.contentSignature = {
+      kupId: `KP-${year}-${rand}`,
+      generatedAt: new Date(),
+    };
+
     await submission.save();
 
     // Update partnership stats
@@ -381,6 +391,47 @@ router.put('/:submissionId/reject', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Reject content error:', error.message);
     res.status(500).json({ error: 'Could not reject content' });
+  }
+});
+
+// POST /api/content/:submissionId/download — Brand downloads approved content
+// Increments downloadCount, ensures kupId exists, returns media URLs
+router.post('/:submissionId/download', requireAuth, async (req, res) => {
+  try {
+    const submission = await ContentSubmission.findById(req.params.submissionId);
+
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    if (!['approved', 'postd'].includes(submission.status)) {
+      return res.status(400).json({ error: 'Only approved content can be downloaded' });
+    }
+
+    // Ensure kupId exists (fallback: generate now if approve somehow ran before this code)
+    if (!submission.contentSignature?.kupId) {
+      const year = new Date().getFullYear();
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const rand = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      submission.contentSignature = {
+        kupId: `KP-${year}-${rand}`,
+        generatedAt: new Date(),
+        downloadCount: 1,
+      };
+    } else {
+      submission.contentSignature.downloadCount = (submission.contentSignature.downloadCount || 0) + 1;
+    }
+
+    await submission.save();
+
+    res.json({
+      kupId: submission.contentSignature.kupId,
+      downloadCount: submission.contentSignature.downloadCount,
+      mediaUrls: submission.mediaUrls,
+    });
+  } catch (error) {
+    console.error('Download content error:', error.message);
+    res.status(500).json({ error: 'Could not process download' });
   }
 });
 

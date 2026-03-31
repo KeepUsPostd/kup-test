@@ -91,7 +91,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     const partnerships = await Partnership.find(filter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats')
-      .populate('brandId', 'name initials generatedColor')
+      .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
@@ -213,6 +213,49 @@ router.delete('/:partnershipId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Delete partnership error:', error.message);
     res.status(500).json({ error: 'Could not delete partnership' });
+  }
+});
+
+// POST /api/partnerships/:partnershipId/rate — Influencer rates a brand partnership
+router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
+  try {
+    const { communication, paymentTimeliness, creativeFreedom, overallExperience, feedback } = req.body;
+
+    // Validate all 4 required scores
+    const scores = { communication, paymentTimeliness, creativeFreedom, overallExperience };
+    for (const [key, val] of Object.entries(scores)) {
+      if (!val || val < 1 || val > 5) {
+        return res.status(400).json({ error: `${key} must be between 1 and 5` });
+      }
+    }
+
+    const partnership = await Partnership.findById(req.params.partnershipId);
+    if (!partnership) {
+      return res.status(404).json({ error: 'Partnership not found' });
+    }
+
+    const overall = Math.round(
+      (communication + paymentTimeliness + creativeFreedom + overallExperience) / 4
+    );
+
+    partnership.influencerRating = {
+      communication,
+      paymentTimeliness,
+      creativeFreedom,
+      overallExperience,
+      overall,
+      feedback: feedback || null,
+      ratedAt: new Date(),
+    };
+
+    await partnership.save();
+
+    console.log(`⭐ Partnership ${partnership._id} rated: ${overall}/5`);
+
+    res.json({ message: 'Rating saved', overall, partnership });
+  } catch (error) {
+    console.error('Rate partnership error:', error.message);
+    res.status(500).json({ error: 'Could not save rating' });
   }
 });
 
