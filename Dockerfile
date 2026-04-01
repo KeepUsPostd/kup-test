@@ -1,12 +1,13 @@
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
 # Copy dependency manifests first for layer caching
 COPY package.json package-lock.json ./
 
-# Use npm install (not npm ci) — avoids platform-specific lockfile conflicts
-# between macOS-generated lock files and the Linux build environment
+# Use node:22-slim (Debian/glibc) so the `canvas` package can use its
+# prebuilt binaries — Alpine (musl) has no prebuilts and node-gyp fails.
+# Use npm install (not npm ci) to avoid macOS↔Linux lockfile sync issues.
 RUN npm install --omit=dev
 
 # Copy the rest of the source
