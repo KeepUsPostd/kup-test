@@ -155,14 +155,17 @@ router.post('/login', requireAuth, async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        firstName: user.legalFirstName,
-        lastName: user.legalLastName,
+        firebaseUid: user.firebaseUid,
+        legalFirstName: user.legalFirstName,
+        legalLastName: user.legalLastName,
         activeProfile: user.activeProfile,
         hasInfluencerProfile: user.hasInfluencerProfile,
         hasBrandProfile: user.hasBrandProfile,
         onboardingComplete: user.onboardingComplete,
       },
+      // Return as both keys so older client versions still work
       profile: profileData,
+      influencerProfile: user.activeProfile === 'influencer' ? profileData : null,
     });
   } catch (error) {
     console.error('Login tracking error:', error.message);
