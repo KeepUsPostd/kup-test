@@ -147,6 +147,9 @@ app.get('/privacy', (req, res) => {
 app.get('/privacy-policy', (req, res) => {
   res.redirect(301, '/pages/policy.html');
 });
+app.get('/policy', (req, res) => {
+  res.redirect(301, '/pages/policy.html');
+});
 app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
