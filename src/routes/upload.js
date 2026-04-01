@@ -55,17 +55,18 @@ if (!R2_CONFIGURED) {
   console.warn('⚠️  R2 not configured — uploads will use local disk (not persistent)');
 }
 
-// Use memory storage so we can stream to R2; disk storage as fallback
-const storage = R2_CONFIGURED
-  ? multer.memoryStorage()
-  : multer.diskStorage({
-      destination: uploadsDir,
-      filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        cb(null, uniqueName);
-      },
-    });
+// Always use disk storage to prevent OOM crashes on Railway when uploading large videos.
+// Files are written to disk first, then streamed to R2, then deleted.
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: uploadsDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    cb(null, uniqueName);
+  },
+});
 
 // Set up multer with limits and file type filtering
 const upload = multer({
@@ -96,11 +97,14 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
     let urls;
 
     if (R2_CONFIGURED) {
-      // Upload each file buffer to R2
+      // Upload each file from disk to R2, then clean up the temp file
       urls = await Promise.all(req.files.map(async (f) => {
         const ext = path.extname(f.originalname);
         const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        return uploadToR2(f.buffer, filename, f.mimetype);
+        const url = await uploadFileToR2(f.path, filename, f.mimetype);
+        // Remove temp file after successful R2 upload
+        fs.unlink(f.path, () => {});
+        return url;
       }));
     } else {
       // Fallback: local disk (not persistent — configure R2 env vars)
@@ -116,6 +120,8 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
       url: urls[0],
     });
   } catch (err) {
+    // Clean up any temp files on error
+    if (req.files) req.files.forEach(f => fs.unlink(f.path, () => {}));
     console.error('Upload error:', err.message);
     res.status(500).json({ error: 'Upload failed' });
   }

@@ -78,16 +78,19 @@ const requireAuth = async (req, res, next) => {
   } catch (error) {
     console.error('Auth middleware error:', error.message);
 
-    if (error.code === 'auth/id-token-expired') {
+    // Firebase token errors → 401 (client needs to re-authenticate)
+    if (error.code && error.code.startsWith('auth/')) {
       return res.status(401).json({
-        error: 'Token expired',
+        error: error.code === 'auth/id-token-expired' ? 'Token expired' : 'Invalid token',
         message: 'Your session has expired. Please log in again.',
       });
     }
 
-    return res.status(401).json({
-      error: 'Invalid token',
-      message: 'Authentication failed. Please log in again.',
+    // Database or server errors → 503 (not an auth issue — don't confuse the client)
+    console.error('Auth middleware non-auth error:', error.stack || error.message);
+    return res.status(503).json({
+      error: 'Service temporarily unavailable',
+      message: 'Server is starting up. Please try again in a moment.',
     });
   }
 };
