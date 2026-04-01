@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wallet &mdash; KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: var(--kup-font); background-color: var(--kup-body-bg); color: #1a1a1a; line-height: 1.6; margin: 0; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100vh; }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+    main, .page-content { flex: 1; width: 100%; }
+
+    /* ============== AUTH HEADER ============== */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+
+    /* ============== NOTIFICATION POPOVER ============== */
+    .kup-notif-popover { position: absolute; top: calc(100% + 8px); right: -60px; width: 380px; max-height: 480px; background: var(--kup-white); border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); z-index: 300; display: none; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+    .notif-header h4 { margin: 0; font-size: 0.95rem; font-weight: 700; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; font-family: var(--kup-font); color: var(--kup-blue); cursor: pointer; font-weight: 600; }
+    .notif-tabs { display: flex; border-bottom: 1px solid #eee; }
+    .notif-tab { flex: 1; padding: 10px; background: none; border: none; font-family: var(--kup-font); font-size: 0.82rem; font-weight: 500; color: #888; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); font-weight: 600; }
+    .notif-list { list-style: none; margin: 0; padding: 8px 0; max-height: 340px; overflow-y: auto; }
+
+    /* ============== PAGE CONTENT ============== */
+    .page-content { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #1a1a1a; margin: 0 0 4px; }
+    .page-header p { font-size: 0.88rem; color: #888; margin: 0; }
+
+    /* ============== BALANCE CARDS ============== */
+    .wallet-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .wallet-card { background: var(--kup-white); border: 1px solid #eee; border-radius: var(--radius-md); padding: 20px 24px; }
+    .wallet-card.primary { background: var(--kup-gradient); color: white; border-color: transparent; }
+    .wallet-card .label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 6px; }
+    .wallet-card.primary .label { color: rgba(255,255,255,0.75); }
+    .wallet-card .value { font-size: 1.9rem; font-weight: 800; color: #1a1a1a; line-height: 1.1; }
+    .wallet-card.primary .value { color: white; }
+    .wallet-card .sub { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+    .wallet-card.primary .sub { color: rgba(255,255,255,0.65); }
+
+    /* ============== CASHOUT SECTION ============== */
+    .cashout-section { background: var(--kup-white); border: 1px solid #eee; border-radius: var(--radius-md); padding: 24px; margin-bottom: 28px; }
+    .cashout-section h3 { font-size: 1rem; font-weight: 700; color: #1a1a1a; margin: 0 0 6px; }
+    .cashout-section p { font-size: 0.85rem; color: #888; margin: 0 0 20px; }
+    .cashout-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .cashout-amount-group { display: flex; align-items: center; gap: 0; border: 1.5px solid #ddd; border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
+    .cashout-currency { padding: 10px 14px; font-size: 0.88rem; font-weight: 700; color: #888; background: #f8f9fa; border-right: 1px solid #ddd; }
+    .cashout-input { padding: 10px 14px; font-family: var(--kup-font); font-size: 0.95rem; font-weight: 700; color: #1a1a1a; border: none; outline: none; width: 120px; }
+    .btn-cashout { display: inline-flex; align-items: center; gap: 8px; padding: 11px 28px; background: var(--kup-blue); color: white; border: none; border-radius: var(--radius-sm); font-family: var(--kup-font); font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .btn-cashout:hover:not(:disabled) { background: #258fc4; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(46,165,221,0.3); }
+    .btn-cashout:disabled { background: #ccc; cursor: not-allowed; }
+    .paypal-notice { font-size: 0.78rem; color: #888; margin: 10px 0 0; }
+    .paypal-notice a { color: var(--kup-blue); font-weight: 600; }
+    .paypal-connected-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(22,163,74,0.08); color: #16a34a; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+    /* ============== TRANSACTION TABLE ============== */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-header h2 { font-size: 1rem; font-weight: 700; color: #1a1a1a; margin: 0; }
+    .filter-row { display: flex; gap: 8px; }
+    .filter-btn { padding: 6px 16px; border: 1.5px solid #ddd; border-radius: 20px; background: white; font-family: var(--kup-font); font-size: 0.78rem; font-weight: 600; color: #666; cursor: pointer; transition: all 0.15s; }
+    .filter-btn.active, .filter-btn:hover { border-color: var(--kup-blue); color: var(--kup-blue); background: rgba(46,165,221,0.04); }
+    .table-wrap { background: var(--kup-white); border: 1px solid #eee; border-radius: var(--radius-md); overflow: hidden; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead th { padding: 12px 16px; font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eee; text-align: left; background: #fafbfc; }
+    .data-table tbody td { padding: 14px 16px; font-size: 0.85rem; color: #1a1a1a; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: rgba(46,165,221,0.03); }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-badge.paid { background: rgba(22,163,74,0.08); color: #16a34a; }
+    .status-badge.pending { background: rgba(112,123,187,0.08); color: #707BBB; }
+    .status-badge.processing { background: rgba(46,165,221,0.08); color: var(--kup-blue); }
+    .status-badge.failed { background: rgba(231,76,60,0.08); color: #e74c3c; }
+    .amount-positive { font-weight: 700; color: #16a34a; }
+    .empty-state { text-align: center; padding: 48px 24px; color: #aaa; }
+    .empty-state svg { margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 0.88rem; margin: 0; }
+    .load-more-row { text-align: center; padding: 16px; }
+    .btn-load-more { padding: 8px 24px; border: 1.5px solid #ddd; border-radius: var(--radius-sm); background: white; font-family: var(--kup-font); font-size: 0.82rem; font-weight: 600; color: #666; cursor: pointer; transition: all 0.15s; }
+    .btn-load-more:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+
+    /* ============== TOAST ============== */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #e74c3c; }
+    .kup-toast.warning { border-left-color: var(--kup-orange); }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* ============== CASHOUT CONFIRM MODAL ============== */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: white; border-radius: var(--radius-md); padding: 32px; max-width: 420px; width: 90%; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
+    .modal-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(46,165,221,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .modal-title { text-align: center; font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; }
+    .modal-desc { text-align: center; font-size: 0.85rem; color: #666; margin: 0 0 24px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-actions button { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-family: var(--kup-font); font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+    .btn-modal-cancel { background: none; border: 1.5px solid #ddd; color: #666; }
+    .btn-modal-cancel:hover { border-color: #aaa; color: #444; }
+    .btn-modal-confirm { background: var(--kup-blue); border: none; color: white; }
+    .btn-modal-confirm:hover { background: #258fc4; }
+
+    /* ============== AUTH FOOTER ============== */
+    .auth-footer { text-align: center; padding: 16px 32px; font-size: 0.78rem; color: #999; border-top: 1px solid #eee; background: var(--kup-white); margin-top: auto; }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* ============== MOBILE BOTTOM NAV ============== */
+    .kup-mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; z-index: 90; height: 60px; align-items: stretch; }
+    .kup-mobile-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 0.6rem; font-weight: 600; color: #aaa; padding: 6px 0; transition: color 0.2s; }
+    .kup-mobile-nav-item svg { width: 20px; height: 20px; }
+    .kup-mobile-nav-item.active, .kup-mobile-nav-item:hover { color: var(--kup-blue); }
+    @media (max-width: 768px) {
+      .kup-mobile-nav { display: flex; }
+      .auth-nav { display: none; }
+      .wallet-cards { grid-template-columns: repeat(2, 1fr); }
+      .page-content { padding: 20px 16px 80px; }
+      .cashout-row { flex-direction: column; align-items: stretch; }
+      .cashout-input { width: 100%; }
+      .btn-cashout { justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .wallet-cards { grid-template-columns: 1fr 1fr; }
+      .wallet-card .value { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_black_new_logo_2.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="kup-notif-popover" id="notifPopover">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="notif-mark-read" id="markAllRead">Mark all read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" data-tab="all">All</button>
+              <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <ul class="notif-list" id="notifList">
+              <li style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger">
+            <div class="profile-avatar" id="headerAvatar">ST</div>
+            <div class="profile-info">
+              <div class="name" id="headerName">My Account</div>
+              <div class="brand" id="headerBrand">Influencer</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="cash-rewards.html">Cash &amp; Rewards</a>
+            <a href="influencer-wallet.html" style="color:var(--kup-blue);font-weight:700;">My Wallet</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="/pages/login.html" class="logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content">
+    <div class="page-header">
+      <h1>My Wallet</h1>
+      <p>Your earnings, transaction history, and PayPal cashout</p>
+    </div>
+
+    <!-- Balance Cards -->
+    <div class="wallet-cards">
+      <div class="wallet-card primary">
+        <div class="label">Available to Cash Out</div>
+        <div class="value" id="balanceAvailable">—</div>
+        <div class="sub">Ready for withdrawal</div>
+      </div>
+      <div class="wallet-card">
+        <div class="label">Pending</div>
+        <div class="value" id="balancePending">—</div>
+        <div class="sub">Awaiting brand approval</div>
+      </div>
+      <div class="wallet-card">
+        <div class="label">Total Withdrawn</div>
+        <div class="value" id="balanceWithdrawn">—</div>
+        <div class="sub">Sent to PayPal</div>
+      </div>
+      <div class="wallet-card">
+        <div class="label">Lifetime Earnings</div>
+        <div class="value" id="balanceLifetime">—</div>
+        <div class="sub">All time</div>
+      </div>
+    </div>
+
+    <!-- Cash Out Section -->
+    <div class="cashout-section">
+      <h3>Cash Out to PayPal</h3>
+      <p id="cashoutSubtext">Enter the amount you want to withdraw. Minimum cashout is $5.00.</p>
+
+      <div id="paypalWarning" style="display:none; background:rgba(237,132,68,0.08); border:1px solid rgba(237,132,68,0.2); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem; color:#b45309;">
+        <strong>PayPal not connected.</strong> You need to add your PayPal email before cashing out.
+        Go to <strong>Settings &rarr; Payment</strong> to connect your PayPal account.
+      </div>
+
+      <div class="cashout-row">
+        <div class="cashout-amount-group">
+          <span class="cashout-currency">$</span>
+          <input type="number" class="cashout-input" id="cashoutAmount" placeholder="0.00" min="5" step="0.01">
+        </div>
+        <button class="btn-cashout" id="cashoutBtn" onclick="initiateCashout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Cash Out
+        </button>
+        <div id="paypalStatus" style="display:none"></div>
+      </div>
+      <p class="paypal-notice" id="paypalEmailDisplay"></p>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="section-header">
+      <h2>Transaction History</h2>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all" onclick="filterTx(this,'all')">All</button>
+        <button class="filter-btn" data-filter="paid" onclick="filterTx(this,'paid')">Paid</button>
+        <button class="filter-btn" data-filter="pending" onclick="filterTx(this,'pending')">Pending</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table" id="txTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Brand</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="txTbody">
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <p>Loading transactions...</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="load-more-row" id="loadMoreRow" style="display:none">
+        <button class="btn-load-more" id="loadMoreBtn" onclick="loadMoreTx()">Load More</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cashout Confirm Modal -->
+  <div class="modal-overlay" id="cashoutModal">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kup-blue)" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </div>
+      <div class="modal-title">Confirm Cashout</div>
+      <div class="modal-desc" id="modalDesc">You are about to cash out <strong id="modalAmount"></strong> to your PayPal account. This may take 1–3 business days.</div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeCashoutModal()">Cancel</button>
+        <button class="btn-modal-confirm" id="confirmCashoutBtn" onclick="confirmCashout()">Confirm &amp; Cash Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    // ── Auth Gate ──
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) { window.location.href = '/pages/login.html'; return; }
+        loadWallet();
+      });
+    }
+
+    // ── State ──
+    var _txPage = 1;
+    var _txFilter = 'all';
+    var _availableBalance = 0;
+    var _paypalConnected = false;
+
+    // ── Load Wallet Balance ──
+    function loadWallet() {
+      kupApi.get('/api/wallet/balance').then(function(data) {
+        _availableBalance = data.available || 0;
+        _paypalConnected = !!data.paypalConnected;
+
+        document.getElementById('balanceAvailable').textContent = '$' + (_availableBalance).toFixed(2);
+        document.getElementById('balancePending').textContent = '$' + (data.pending || 0).toFixed(2);
+        document.getElementById('balanceWithdrawn').textContent = '$' + (data.withdrawn || 0).toFixed(2);
+        document.getElementById('balanceLifetime').textContent = '$' + (data.lifetime || 0).toFixed(2);
+
+        if (!_paypalConnected) {
+          document.getElementById('paypalWarning').style.display = 'block';
+          document.getElementById('cashoutBtn').disabled = true;
+        } else {
+          document.getElementById('paypalEmailDisplay').innerHTML =
+            '<span class="paypal-connected-badge">&#10003; PayPal Connected</span> &nbsp; Cashouts go to your verified PayPal account.';
+        }
+
+        // Set default cashout amount to full available
+        if (_availableBalance >= 5) {
+          document.getElementById('cashoutAmount').value = _availableBalance.toFixed(2);
+        }
+      }).catch(function(err) {
+        console.error('Wallet balance error:', err);
+        document.getElementById('balanceAvailable').textContent = '$0.00';
+      });
+
+      loadTransactions(1, _txFilter, false);
+    }
+
+    // ── Load Transactions ──
+    function loadTransactions(page, status, append) {
+      var url = '/api/wallet/transactions?page=' + page + '&limit=20';
+      if (status && status !== 'all') url += '&status=' + status;
+
+      kupApi.get(url).then(function(data) {
+        var txs = data.transactions || [];
+        var pagination = data.pagination || {};
+
+        if (!append) {
+          renderTransactions(txs, txs.length === 0);
+        } else {
+          appendTransactions(txs);
+        }
+
+        var hasMore = pagination.page < pagination.pages;
+        document.getElementById('loadMoreRow').style.display = hasMore ? 'block' : 'none';
+        if (hasMore) _txPage = pagination.page + 1;
+      }).catch(function(err) {
+        console.error('Transactions error:', err);
+        renderTransactions([], true);
+      });
+    }
+
+    function renderTransactions(txs, isEmpty) {
+      var tbody = document.getElementById('txTbody');
+      if (isEmpty || txs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' +
+          '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>' +
+          '<p>No transactions found.</p></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = txs.map(txRow).join('');
+    }
+
+    function appendTransactions(txs) {
+      var tbody = document.getElementById('txTbody');
+      var emptyRow = tbody.querySelector('.empty-state');
+      if (emptyRow) tbody.innerHTML = '';
+      tbody.insertAdjacentHTML('beforeend', txs.map(txRow).join(''));
+    }
+
+    function txRow(tx) {
+      var date = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+      var brand = (tx.payerBrandId && tx.payerBrandId.name) ? tx.payerBrandId.name : 'KUP Platform';
+      var type = tx.type ? tx.type.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) : 'Earnings';
+      var amount = '$' + (tx.amount || 0).toFixed(2);
+      var status = tx.status || 'pending';
+      return '<tr>' +
+        '<td>' + date + '</td>' +
+        '<td>' + brand + '</td>' +
+        '<td>' + type + '</td>' +
+        '<td class="amount-positive">' + amount + '</td>' +
+        '<td><span class="status-badge ' + status + '">' + status + '</span></td>' +
+        '</tr>';
+    }
+
+    // ── Load More ──
+    function loadMoreTx() {
+      loadTransactions(_txPage, _txFilter, true);
+    }
+
+    // ── Filter ──
+    function filterTx(btn, filter) {
+      _txFilter = filter;
+      _txPage = 1;
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadTransactions(1, filter, false);
+    }
+
+    // ── Cashout Flow ──
+    function initiateCashout() {
+      if (!_paypalConnected) {
+        kupToast('Please connect your PayPal account first.', 'error');
+        return;
+      }
+      var amount = parseFloat(document.getElementById('cashoutAmount').value);
+      if (!amount || amount < 5) {
+        kupToast('Minimum cashout is $5.00.', 'warning');
+        return;
+      }
+      if (amount > _availableBalance) {
+        kupToast('Amount exceeds your available balance of $' + _availableBalance.toFixed(2) + '.', 'error');
+        return;
+      }
+      document.getElementById('modalAmount').textContent = '$' + amount.toFixed(2);
+      document.getElementById('cashoutModal').classList.add('show');
+    }
+
+    function closeCashoutModal() {
+      document.getElementById('cashoutModal').classList.remove('show');
+    }
+
+    function confirmCashout() {
+      var amount = parseFloat(document.getElementById('cashoutAmount').value);
+      var btn = document.getElementById('confirmCashoutBtn');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      kupApi.post('/api/wallet/cashout', { amount: amount }).then(function(data) {
+        closeCashoutModal();
+        kupToast('Cashout of $' + amount.toFixed(2) + ' submitted! Check your PayPal in 1–3 business days.', 'success');
+        loadWallet();
+      }).catch(function(err) {
+        closeCashoutModal();
+        var msg = (err && err.message) ? err.message : 'Cashout failed. Please try again.';
+        kupToast(msg, 'error');
+      }).finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Cash Out';
+      });
+    }
+
+    // ── Toast ──
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type] || icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    // ── Header Interactions ──
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+
+    function closeAllPopovers() {
+      if (notifPopover) notifPopover.classList.remove('show');
+      if (profileDropdown) profileDropdown.classList.remove('show');
+    }
+
+    if (notifBtn) notifBtn.addEventListener('click', function(e) { e.stopPropagation(); var open = notifPopover.classList.contains('show'); closeAllPopovers(); if (!open) notifPopover.classList.add('show'); });
+    if (profileTrigger) profileTrigger.addEventListener('click', function(e) { e.stopPropagation(); var open = profileDropdown.classList.contains('show'); closeAllPopovers(); if (!open) profileDropdown.classList.add('show'); });
+    document.addEventListener('click', closeAllPopovers);
+
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) markAllBtn.addEventListener('click', function() {
+      document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+      var dot = document.querySelector('.notif-dot'); if (dot) dot.style.display = 'none';
+      kupToast('All notifications marked as read', 'success');
+    });
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          item.style.display = (filter === 'all' || item.classList.contains('unread')) ? '' : 'none';
+        });
+      });
+    });
+
+    // Close modal on overlay click
+    document.getElementById('cashoutModal').addEventListener('click', function(e) {
+      if (e.target === this) closeCashoutModal();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+    <a href="influencer-wallet.html" class="kup-mobile-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>Wallet</span></a>
+  </nav>
+</body>
+</html>

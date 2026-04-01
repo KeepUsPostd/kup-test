@@ -382,7 +382,7 @@
             <div class="helper">Automatically add kiosk reviews to your display loop</div>
           </div>
           <label class="kiosk-toggle" style="margin-bottom:0">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="autoApprove" checked>
             <div class="toggle-track"></div>
           </label>
         </div>
@@ -393,7 +393,7 @@
             <div class="helper">Verify customer phone before recording</div>
           </div>
           <label class="kiosk-toggle" style="margin-bottom:0">
-            <input type="checkbox">
+            <input type="checkbox" id="requireSms">
             <div class="toggle-track"></div>
           </label>
         </div>
@@ -597,10 +597,79 @@
       }
     }
 
+    // ========== Load Kiosk Settings on Page Load ==========
+    function loadKioskSettings() {
+      var stored = null;
+      try { stored = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+      var params = new URLSearchParams(window.location.search);
+      var brandId = params.get('brandId') || (stored && stored.id);
+      if (!brandId) return;
+
+      kupApi.get('/api/kiosk/config/' + brandId).then(function(data) {
+        var k = data.kiosk;
+        if (!k) return;
+        if (document.getElementById('offerTitle') && k.kioskOfferTitle) document.getElementById('offerTitle').value = k.kioskOfferTitle;
+        if (document.getElementById('rewardType') && k.kioskRewardType) document.getElementById('rewardType').value = k.kioskRewardType;
+        if (document.getElementById('rewardValue') && k.kioskRewardValue) document.getElementById('rewardValue').value = k.kioskRewardValue;
+        if (document.getElementById('recordingLimit') && k.kioskRecordingLimit) document.getElementById('recordingLimit').value = String(k.kioskRecordingLimit);
+        if (document.getElementById('dailyCap') && k.kioskDailyRewardCap) document.getElementById('dailyCap').value = k.kioskDailyRewardCap;
+        if (document.getElementById('autoApprove')) document.getElementById('autoApprove').checked = !!k.kioskAutoApprove;
+        if (document.getElementById('requireSms')) document.getElementById('requireSms').checked = !!k.kioskRequireSmsVerify;
+        if (document.getElementById('brandColor') && k.kioskBrandingColor) {
+          document.getElementById('brandColor').value = k.kioskBrandingColor;
+          if (colorSwatch) colorSwatch.style.background = k.kioskBrandingColor;
+          if (colorPicker) colorPicker.value = k.kioskBrandingColor;
+        }
+        if (data.stats) {
+          var totalGuestsEl = document.getElementById('statTotalGuests');
+          var todayRewardsEl = document.getElementById('statTodayRewards');
+          if (totalGuestsEl) totalGuestsEl.textContent = data.stats.totalGuests || '0';
+          if (todayRewardsEl) todayRewardsEl.textContent = data.stats.todayRewards || '0';
+        }
+      }).catch(function(err) {
+        console.warn('Could not load kiosk settings:', err);
+      });
+    }
+
     // ========== Save Kiosk Settings ==========
     function saveKioskSettings() {
-      kupToast('Kiosk settings saved successfully!', 'success');
+      var stored = null;
+      try { stored = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+      var params = new URLSearchParams(window.location.search);
+      var brandId = params.get('brandId') || (stored && stored.id);
+      if (!brandId) {
+        kupToast('No active brand found. Please select a brand first.', 'error');
+        return;
+      }
+
+      var btn = document.querySelector('.btn-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+      var payload = {
+        kioskOfferTitle: (document.getElementById('offerTitle') || {}).value || undefined,
+        kioskRewardType: (document.getElementById('rewardType') || {}).value || undefined,
+        kioskRewardValue: (document.getElementById('rewardValue') || {}).value || undefined,
+        kioskRecordingLimit: parseInt((document.getElementById('recordingLimit') || {}).value || '60', 10),
+        kioskDailyRewardCap: parseInt((document.getElementById('dailyCap') || {}).value || '50', 10),
+        kioskAutoApprove: document.getElementById('autoApprove') ? document.getElementById('autoApprove').checked : true,
+        kioskRequireSmsVerify: document.getElementById('requireSms') ? document.getElementById('requireSms').checked : false,
+        kioskBrandingColor: (document.getElementById('brandColor') || {}).value || undefined,
+      };
+
+      kupApi.put('/api/kiosk/config/' + brandId, payload).then(function(data) {
+        kupToast('Kiosk settings saved successfully!', 'success');
+      }).catch(function(err) {
+        kupToast('Failed to save kiosk settings. Please try again.', 'error');
+        console.error('Kiosk save error:', err);
+      }).finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Kiosk Settings'; }
+      });
     }
+
+    // Load settings when page is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      loadKioskSettings();
+    });
 
     // ========== Color Picker Sync ==========
     var colorPicker = document.getElementById('colorPickerInput');

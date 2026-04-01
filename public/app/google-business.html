@@ -369,12 +369,16 @@
             </div>
           </div>
 
-          <!-- Connect Button -->
-          <button class="btn-google" onclick="connect()">
+          <!-- Connect Button — Coming Soon -->
+          <button class="btn-google" disabled style="opacity:0.55;cursor:not-allowed;filter:grayscale(0.4);">
             <span class="g-circle">G</span>
             Connect Google Business Profile
+            <span style="margin-left:10px;background:var(--kup-orange);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;vertical-align:middle;">Coming Soon</span>
           </button>
-          <p style="font-size:.75rem;color:#aaa;margin:12px 0 0;max-width:400px;display:inline-block;line-height:1.5;">You'll be redirected to Google to authorize KUP. We only request permission to manage your Business Profile posts. <strong>Free — no charges.</strong></p>
+          <p style="font-size:.82rem;color:#888;margin:14px 0 0;max-width:440px;display:inline-block;line-height:1.6;background:rgba(46,165,221,0.05);border:1px solid rgba(46,165,221,0.15);border-radius:6px;padding:10px 14px;">
+            <strong style="color:#1a1a1a;">Google Business integration is coming soon.</strong><br>
+            We'll notify you when it's available. No action needed on your end — just check back or watch for an email from KeepUsPostd.
+          </p>
 
           <!-- Security -->
           <div style="margin-top:28px;display:inline-flex;align-items:center;gap:10px;background:#f8f9fa;padding:12px 20px;border-radius:var(--radius-sm);">
@@ -556,18 +560,6 @@
   <script>
     /* ========== STATE MANAGEMENT ========== */
     var isConnected = false;
-
-    function connect() {
-      kupToast('Redirecting to Google for authorization...', 'info');
-      setTimeout(function() {
-        isConnected = true;
-        document.getElementById('sidebarDisconnected').style.display = 'none';
-        document.getElementById('sidebarConnected').style.display = 'block';
-        document.getElementById('contentDisconnected').style.display = 'none';
-        document.getElementById('contentConnected').style.display = 'block';
-        kupToast('Google Business Profile connected successfully!', 'success');
-      }, 1500);
-    }
 
     function disconnect() {
       if (!confirm('Disconnect Google Business Profile? Influencers will no longer be able to post to your Google listing.')) return;
