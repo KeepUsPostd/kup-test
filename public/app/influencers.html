@@ -2167,7 +2167,7 @@
 
       <!-- Results Info -->
       <div class="discovery-results-info">
-        <span class="discovery-results-count">Showing <strong>12</strong> of <strong>1,847</strong> influencers</span>
+        <span class="discovery-results-count" id="discoveryResultsCount">Loading...</span>
         <select class="discovery-sort-select" id="discoverySortSelect">
           <option value="relevance">Sort: Relevance</option>
           <option value="followers">Most Followers</option>
@@ -2178,269 +2178,7 @@
 
       <!-- Discovery Cards Grid -->
       <div class="discovery-grid" id="discoveryGrid">
-
-        <!-- Card 1 -->
-        <div class="disc-card" data-niche="food">
-          <span class="disc-tier-badge established">Established</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #f97316, #ea580c);">AT</div>
-            <div>
-              <p class="disc-card-name">Aisha Thompson</p>
-              <p class="disc-card-handle">@aisha.eats</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">42.3K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">5.2%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Food & Dining</span>
-            <span class="disc-niche-tag">Reviews</span>
-          </div>
-          <div class="kup-rating-display" style="margin: 8px 0 4px;">
-            <div class="kup-rating-stars">
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <span class="kup-rating-score">4.7</span>
-            <span class="kup-rating-count">(15)</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Houston, TX
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="disc-card" data-niche="fitness">
-          <span class="disc-tier-badge premium">Premium</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #16a34a, #15803d);">DJ</div>
-            <div>
-              <p class="disc-card-name">Derek Johnson</p>
-              <p class="disc-card-handle">@derek.fit</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">128K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">4.8%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Fitness</span>
-            <span class="disc-niche-tag">Wellness</span>
-          </div>
-          <div class="kup-rating-display" style="margin: 8px 0 4px;">
-            <div class="kup-rating-stars">
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <span class="kup-rating-score">4.2</span>
-            <span class="kup-rating-count">(31)</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Atlanta, GA
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="disc-card" data-niche="lifestyle">
-          <span class="disc-tier-badge rising">Rising</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #2EA5DD, #707BBB);">MR</div>
-            <div>
-              <p class="disc-card-name">Maya Rodriguez</p>
-              <p class="disc-card-handle">@mayalifestyle</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">18.7K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">6.1%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Lifestyle</span>
-            <span class="disc-niche-tag">Home & Living</span>
-          </div>
-          <div style="margin: 8px 0 4px;">
-            <span class="kup-rating-new">New</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Los Angeles, CA
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="disc-card" data-niche="beauty">
-          <span class="disc-tier-badge micro">Micro</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #ec4899, #db2777);">KL</div>
-            <div>
-              <p class="disc-card-name">Keisha Lewis</p>
-              <p class="disc-card-handle">@keishabeauty</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">8.2K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">7.8%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Beauty</span>
-            <span class="disc-niche-tag">Skincare</span>
-          </div>
-          <div class="kup-rating-display" style="margin: 8px 0 4px;">
-            <div class="kup-rating-stars">
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <span class="kup-rating-score">4.9</span>
-            <span class="kup-rating-count">(6)</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            New Orleans, LA
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="disc-card" data-niche="tech">
-          <span class="disc-tier-badge established">Established</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">TP</div>
-            <div>
-              <p class="disc-card-name">Tyler Patel</p>
-              <p class="disc-card-handle">@tylertech</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">56.1K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">3.9%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Tech</span>
-            <span class="disc-niche-tag">Gadgets</span>
-          </div>
-          <div class="kup-rating-display" style="margin: 8px 0 4px;">
-            <div class="kup-rating-stars">
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-empty" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <span class="kup-rating-score">3.8</span>
-            <span class="kup-rating-count">(19)</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Austin, TX
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
-        <!-- Card 6 -->
-        <div class="disc-card" data-niche="food">
-          <span class="disc-tier-badge rising">Rising</span>
-          <div class="disc-card-header">
-            <div class="disc-avatar" style="background: linear-gradient(135deg, #ED8444, #d97706);">RW</div>
-            <div>
-              <p class="disc-card-name">Rachel Williams</p>
-              <p class="disc-card-handle">@rachelfoodie</p>
-            </div>
-          </div>
-          <div class="disc-card-stats">
-            <div class="disc-stat">
-              <span class="disc-stat-value">22.4K</span>
-              <span class="disc-stat-label">Followers</span>
-            </div>
-            <div class="disc-stat">
-              <span class="disc-stat-value">5.5%</span>
-              <span class="disc-stat-label">Engagement</span>
-            </div>
-          </div>
-          <div class="disc-niche-tags">
-            <span class="disc-niche-tag">Food & Dining</span>
-            <span class="disc-niche-tag">Local Eats</span>
-          </div>
-          <div class="kup-rating-display" style="margin: 8px 0 4px;">
-            <div class="kup-rating-stars">
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg viewBox="0 0 24 24"><polygon class="star-filled" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <span class="kup-rating-score">4.5</span>
-            <span class="kup-rating-count">(9)</span>
-          </div>
-          <div class="disc-card-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Baton Rouge, LA
-          </div>
-          <button class="btn-disc-invite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Invite to Partner
-          </button>
-        </div>
-
+        <div id="discoveryLoading" style="grid-column:1/-1;text-align:center;padding:48px 16px;color:#999;font-size:0.9rem;">Loading influencers...</div>
       </div>
 
       <!-- Load More -->
@@ -2795,6 +2533,7 @@
     };
 
     /* ============== INFLUENCER TABS ============== */
+    var discoveryLoaded = false;
     document.querySelectorAll('.inf-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
         document.querySelectorAll('.inf-tab').forEach(function(t) { t.classList.remove('active'); });
@@ -2802,6 +2541,11 @@
         this.classList.add('active');
         var panelId = this.getAttribute('data-inf-tab');
         document.getElementById(panelId).classList.add('active');
+        // Load discovery on first open (requires auth — kupApi handles the token)
+        if (panelId === 'tab-discovery' && !discoveryLoaded) {
+          discoveryLoaded = true;
+          loadDiscovery(true);
+        }
       });
     });
 
@@ -3253,121 +2997,204 @@
     });
 
     /* ============== CLOSE OUTSIDE CLICKS ============== */
-    /* ============== DISCOVERY TAB ============== */
-    // Filter Chips
-    document.querySelectorAll('.disc-filter-chip').forEach(function(chip) {
-      chip.addEventListener('click', function() {
-        // Toggle active state
-        document.querySelectorAll('.disc-filter-chip').forEach(function(c) { c.classList.remove('active'); });
-        this.classList.add('active');
+    /* ============== DISCOVERY TAB — REAL API ============== */
+    var discPage = 1;
+    var discTotal = 0;
+    var discLoading = false;
+    var discSearchTimer = null;
 
-        var filter = this.getAttribute('data-filter');
-        var cards = document.querySelectorAll('.disc-card');
-        var visibleCount = 0;
+    function getDiscoveryParams() {
+      var q = (document.getElementById('discoverySearchInput') || {}).value || '';
+      var niche = (document.querySelector('.disc-filter-chip.active') || {}).getAttribute('data-filter') || 'all';
+      var sort = (document.getElementById('discoverySortSelect') || {}).value || 'newest';
+      return { q: q.trim(), niche: niche !== 'all' ? niche : '', sort: sort };
+    }
 
-        cards.forEach(function(card) {
-          if (filter === 'all' || card.getAttribute('data-niche') === filter) {
-            card.style.display = '';
-            visibleCount++;
+    function formatFollowers(n) {
+      if (!n) return '—';
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return String(n);
+    }
+
+    function buildDiscCard(p) {
+      var initials = (p.displayName || p.handle || '??').substring(0, 2).toUpperCase();
+      var tier = p.influenceTier || 'unverified';
+      var niches = (p.interests || []).map(function(n) {
+        return '<span class="disc-niche-tag">' + n + '</span>';
+      }).join('');
+      var followers = formatFollowers(p.realFollowerCount);
+      var engagement = p.engagementRate ? p.engagementRate.toFixed(1) + '%' : '—';
+      var ratingHtml = (p.averageRating && p.ratingCount)
+        ? '<div class="kup-rating-display" style="margin:8px 0 4px"><div class="kup-rating-stars">' +
+          [1,2,3,4,5].map(function(i) {
+            return '<svg viewBox="0 0 24 24"><polygon class="' + (i <= Math.round(p.averageRating) ? 'star-filled' : 'star-empty') + '" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+          }).join('') +
+          '</div><span class="kup-rating-score">' + p.averageRating.toFixed(1) + '</span><span class="kup-rating-count">(' + p.ratingCount + ')</span></div>'
+        : '<div style="margin:8px 0 4px"><span class="kup-rating-new">New</span></div>';
+
+      return '<div class="disc-card" data-profile-id="' + p._id + '" data-handle="' + (p.handle || '') + '" data-name="' + (p.displayName || '') + '">' +
+        '<span class="disc-tier-badge ' + tier + '">' + tier.charAt(0).toUpperCase() + tier.slice(1) + '</span>' +
+        '<div class="disc-card-header">' +
+          (p.avatarUrl
+            ? '<div class="disc-avatar" style="overflow:hidden"><img src="' + p.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'
+            : '<div class="disc-avatar" style="background:linear-gradient(135deg,#2EA5DD,#707BBB)">' + initials + '</div>') +
+          '<div><p class="disc-card-name">' + (p.displayName || p.handle) + '</p>' +
+          '<p class="disc-card-handle">@' + p.handle + '</p></div>' +
+        '</div>' +
+        '<div class="disc-card-stats">' +
+          '<div class="disc-stat"><span class="disc-stat-value">' + followers + '</span><span class="disc-stat-label">Followers</span></div>' +
+          '<div class="disc-stat"><span class="disc-stat-value">' + engagement + '</span><span class="disc-stat-label">Engagement</span></div>' +
+        '</div>' +
+        '<div class="disc-niche-tags">' + (niches || '<span class="disc-niche-tag">Creator</span>') + '</div>' +
+        ratingHtml +
+        '<button class="btn-disc-invite" data-profile-id="' + p._id + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>' +
+          'Invite to Partner' +
+        '</button>' +
+      '</div>';
+    }
+
+    async function loadDiscovery(resetPage) {
+      if (discLoading) return;
+      discLoading = true;
+      if (resetPage) discPage = 1;
+
+      var params = getDiscoveryParams();
+      var qs = '/api/partnerships/discover?page=' + discPage + '&limit=12&sort=' + encodeURIComponent(params.sort);
+      if (params.q) qs += '&q=' + encodeURIComponent(params.q);
+      if (params.niche) qs += '&niche=' + encodeURIComponent(params.niche);
+
+      var grid = document.getElementById('discoveryGrid');
+      var loadMoreBtn = document.getElementById('loadMoreBtn');
+
+      if (resetPage || discPage === 1) {
+        grid.innerHTML = '<div id="discoveryLoading" style="grid-column:1/-1;text-align:center;padding:48px 16px;color:#999;font-size:0.9rem;">Loading influencers...</div>';
+      }
+
+      try {
+        var data = await kupApi.get(qs);
+        var profiles = data.profiles || [];
+        discTotal = data.total || 0;
+
+        if (resetPage || discPage === 1) grid.innerHTML = '';
+
+        if (profiles.length === 0 && discPage === 1) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 16px;color:#999;font-size:0.9rem;">No influencers found. Try a different search or filter.</div>';
+        } else {
+          profiles.forEach(function(p) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = buildDiscCard(p);
+            grid.appendChild(wrapper.firstChild);
+          });
+          bindDiscInviteButtons();
+        }
+
+        var shown = grid.querySelectorAll('.disc-card').length;
+        var countEl = document.getElementById('discoveryResultsCount');
+        if (countEl) countEl.innerHTML = 'Showing <strong>' + shown + '</strong> of <strong>' + discTotal + '</strong> influencers';
+
+        if (loadMoreBtn) {
+          if (shown >= discTotal) {
+            loadMoreBtn.textContent = 'All influencers loaded';
+            loadMoreBtn.disabled = true;
           } else {
-            card.style.display = 'none';
+            loadMoreBtn.textContent = 'Load More Influencers';
+            loadMoreBtn.disabled = false;
+          }
+        }
+      } catch (err) {
+        console.error('Discovery load error:', err);
+        if (discPage === 1) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 16px;color:#e74c3c;font-size:0.9rem;">Failed to load influencers</div>';
+      } finally {
+        discLoading = false;
+      }
+    }
+
+    function bindDiscInviteButtons() {
+      document.querySelectorAll('.btn-disc-invite:not([data-bound])').forEach(function(btn) {
+        btn.setAttribute('data-bound', '1');
+        btn.addEventListener('click', async function() {
+          var profileId = this.getAttribute('data-profile-id');
+          var card = this.closest('.disc-card');
+          var name = card ? (card.getAttribute('data-name') || card.getAttribute('data-handle') || 'influencer') : 'influencer';
+          var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+          if (!brand || !brand.mongoId) {
+            kupToast('Select a brand first', 'error');
+            return;
+          }
+          var originalHtml = this.innerHTML;
+          this.innerHTML = 'Sending...';
+          this.disabled = true;
+          try {
+            var result = await kupApi.post('/api/partnerships', {
+              brandId: brand.mongoId,
+              influencerProfileId: profileId,
+              source: 'discovery',
+            });
+            if (result && !result.error) {
+              this.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Invited';
+              this.classList.add('invited');
+              kupToast('Partnership invitation sent to <strong>' + name + '</strong>', 'success');
+            } else {
+              this.innerHTML = originalHtml;
+              this.disabled = false;
+              kupToast(result ? result.error : 'Failed to send invitation', 'error');
+            }
+          } catch (err) {
+            this.innerHTML = originalHtml;
+            this.disabled = false;
+            kupToast('Failed to send invitation', 'error');
           }
         });
-
-        // Update results count
-        var resultsCount = document.querySelector('.discovery-results-count');
-        if (resultsCount) {
-          resultsCount.innerHTML = 'Showing <strong>' + visibleCount + '</strong> of <strong>1,847</strong> influencers';
-        }
-      });
-    });
-
-    // My Influencers Search
-    var myInfluencerSearch = document.getElementById('myInfluencerSearch');
-    if (myInfluencerSearch) {
-      myInfluencerSearch.addEventListener('input', function() {
-        var query = this.value.toLowerCase().trim();
-        var rows = document.querySelectorAll('#tab-my-influencers .data-table tbody tr');
-        var visibleCount = 0;
-
-        rows.forEach(function(row) {
-          var nameEl = row.querySelector('.name');
-          var tierEl = row.querySelector('.tier');
-          var name = nameEl ? nameEl.textContent.toLowerCase() : '';
-          var tier = tierEl ? tierEl.textContent.toLowerCase() : '';
-
-          if (!query || name.indexOf(query) !== -1 || tier.indexOf(query) !== -1) {
-            row.style.display = '';
-            visibleCount++;
-          } else {
-            row.style.display = 'none';
-          }
-        });
-
-        var showingEl = document.querySelector('#tab-my-influencers .showing');
-        if (showingEl) {
-          showingEl.innerHTML = query ? 'Showing ' + visibleCount + ' of 247 influencers' : 'Showing 1-6 of 247 influencers';
-        }
       });
     }
 
-    // Discovery Search
+    // Filter Chips — trigger real API load
+    document.querySelectorAll('.disc-filter-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        document.querySelectorAll('.disc-filter-chip').forEach(function(c) { c.classList.remove('active'); });
+        this.classList.add('active');
+        loadDiscovery(true);
+      });
+    });
+
+    // Discovery Search — debounced real API load
     var discoverySearchInput = document.getElementById('discoverySearchInput');
     if (discoverySearchInput) {
       discoverySearchInput.addEventListener('input', function() {
-        var query = this.value.toLowerCase().trim();
-        var cards = document.querySelectorAll('.disc-card');
-        var visibleCount = 0;
-
-        cards.forEach(function(card) {
-          var name = card.querySelector('.disc-card-name').textContent.toLowerCase();
-          var handle = card.querySelector('.disc-card-handle').textContent.toLowerCase();
-          var niches = card.querySelector('.disc-niche-tags').textContent.toLowerCase();
-          var location = card.querySelector('.disc-card-location').textContent.toLowerCase();
-
-          if (!query || name.indexOf(query) !== -1 || handle.indexOf(query) !== -1 || niches.indexOf(query) !== -1 || location.indexOf(query) !== -1) {
-            card.style.display = '';
-            visibleCount++;
-          } else {
-            card.style.display = 'none';
-          }
-        });
-
-        // Reset filter chips to "All" when searching
-        document.querySelectorAll('.disc-filter-chip').forEach(function(c) { c.classList.remove('active'); });
-        document.querySelector('.disc-filter-chip[data-filter="all"]').classList.add('active');
-
-        var resultsCount = document.querySelector('.discovery-results-count');
-        if (resultsCount) {
-          resultsCount.innerHTML = 'Showing <strong>' + visibleCount + '</strong> of <strong>1,847</strong> influencers';
-        }
+        clearTimeout(discSearchTimer);
+        discSearchTimer = setTimeout(function() { loadDiscovery(true); }, 400);
       });
     }
 
-    // Invite to Partner buttons
-    document.querySelectorAll('.btn-disc-invite').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var card = this.closest('.disc-card');
-        var name = card.querySelector('.disc-card-name').textContent;
-        this.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Invited';
-        this.classList.add('invited');
-        kupToast('Partnership invitation sent to <strong>' + name + '</strong>', 'success');
-      });
-    });
+    // Sort select — trigger real API load
+    var discoverySortSelect = document.getElementById('discoverySortSelect');
+    if (discoverySortSelect) {
+      discoverySortSelect.addEventListener('change', function() { loadDiscovery(true); });
+    }
 
-    // Load More button
+    // My Influencers Search (client-side filter on loaded partnerships)
+    var myInfluencerSearch = document.getElementById('myInfluencerSearch');
+    if (myInfluencerSearch) {
+      myInfluencerSearch.addEventListener('input', function() {
+        var q = this.value.toLowerCase().trim();
+        var filtered = !q ? allPartnerships : allPartnerships.filter(function(p) {
+          var inf = p.influencerProfileId || {};
+          var handle = (inf.handle || '').toLowerCase();
+          var name = (inf.displayName || '').toLowerCase();
+          return handle.indexOf(q) >= 0 || name.indexOf(q) >= 0;
+        });
+        renderInfluencersTable(filtered);
+      });
+    }
+
+    // Load More button — real pagination
     var loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
       loadMoreBtn.addEventListener('click', function() {
-        this.textContent = 'Loading...';
-        this.style.pointerEvents = 'none';
-        var btn = this;
-        setTimeout(function() {
-          btn.textContent = 'No More Results';
-          btn.style.color = '#999';
-          btn.style.borderColor = '#eee';
-          btn.style.cursor = 'default';
-        }, 1000);
+        discPage++;
+        loadDiscovery(false);
       });
     }
 

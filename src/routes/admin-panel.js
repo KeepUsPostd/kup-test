@@ -10,6 +10,7 @@ const {
   InfluencerProfile, BrandProfile, Subscription, Partnership,
   GuestReviewer, Notification, Reward, Withdrawal, ClaimRequest,
 } = require('../models');
+const notify = require('../services/notifications');
 
 // ── Admin Auth Middleware ──────────────────────────────────
 function requireAdmin(req, res, next) {
@@ -902,6 +903,46 @@ router.put('/claims/:id/reject', async (req, res) => {
 // PLATFORM BONUS PAYMENTS
 // ═══════════════════════════════════════════════════════════
 
+// GET /api/admin-panel/influencer-lookup — Find influencer by email or handle (for bonus UI)
+router.get('/influencer-lookup', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ error: 'Query must be at least 2 characters' });
+    }
+
+    const search = q.trim().toLowerCase().replace(/^@/, '');
+
+    // Search by handle first
+    let profile = await InfluencerProfile.findOne({
+      $or: [
+        { handle: search },
+        { displayName: { $regex: search, $options: 'i' } },
+      ],
+    }).lean();
+
+    if (!profile) {
+      // Try by email via User model
+      const user = await User.findOne({ email: { $regex: search, $options: 'i' } }, { _id: 1 }).lean();
+      if (user) {
+        profile = await InfluencerProfile.findOne({ userId: user._id }).lean();
+      }
+    }
+
+    if (!profile) return res.status(404).json({ error: 'No influencer found' });
+
+    res.json({
+      userId: profile.userId,
+      handle: profile.handle,
+      displayName: profile.displayName,
+      influenceTier: profile.influenceTier,
+    });
+  } catch (error) {
+    console.error('Influencer lookup error:', error);
+    res.status(500).json({ error: 'Lookup failed' });
+  }
+});
+
 // POST /api/admin-panel/bonus — Send a bonus payment to an influencer
 router.post('/bonus', async (req, res) => {
   try {
@@ -930,6 +971,23 @@ router.post('/bonus', async (req, res) => {
       status: 'pending',
       fundedBy: 'platform',
     });
+
+    // Notify influencer (email + in-app + push)
+    try {
+      const profile = await InfluencerProfile.findOne({ userId: influencerUserId }).lean();
+      await notify.cashRewardEarned({
+        influencer: {
+          email: influencer.email,
+          userId: influencerUserId,
+          displayName: profile?.displayName || influencer.displayName || influencer.email,
+        },
+        brand: null,
+        amount,
+        type: 'platform_bonus',
+      });
+    } catch (notifyErr) {
+      console.error('Bonus notification failed (non-blocking):', notifyErr.message);
+    }
 
     res.json({
       success: true,

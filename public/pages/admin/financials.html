@@ -65,6 +65,33 @@
         </div>
       </div>
 
+      <!-- Admin Bonus Payment -->
+      <div class="admin-panel-section" style="margin-bottom:24px">
+        <div class="section-header"><h3>Send Influencer Bonus</h3></div>
+        <div style="padding:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">Influencer Handle or Email</label>
+              <div style="display:flex;gap:8px">
+                <input type="text" id="bonusSearch" placeholder="@handle or email" style="flex:1;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:inherit" oninput="lookupInfluencer(this.value)">
+              </div>
+              <div id="bonusLookupResult" style="font-size:12px;margin-top:6px;color:#666;min-height:18px"></div>
+              <input type="hidden" id="bonusInfluencerUserId">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">Amount ($)</label>
+              <input type="number" id="bonusAmount" placeholder="e.g. 10.00" min="0.01" max="100" step="0.01" style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:inherit">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">Reason</label>
+              <input type="text" id="bonusReason" placeholder="e.g. Top performer bonus" style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:inherit">
+            </div>
+            <button onclick="sendBonus()" style="padding:9px 20px;background:#2EA5DD;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap" id="bonusSubmitBtn">Send Bonus</button>
+          </div>
+          <div id="bonusStatusMsg" style="font-size:12px;margin-top:10px;min-height:18px"></div>
+        </div>
+      </div>
+
       <!-- Transaction Ledger -->
       <div class="admin-panel-section">
         <div class="section-header">
@@ -167,6 +194,81 @@
         }
       } catch (e) {
         console.error('Financials error:', e);
+      }
+    }
+
+    // Influencer lookup — debounced search by handle/email
+    let lookupTimer = null;
+    async function lookupInfluencer(val) {
+      clearTimeout(lookupTimer);
+      document.getElementById('bonusInfluencerUserId').value = '';
+      document.getElementById('bonusLookupResult').textContent = '';
+      if (!val || val.trim().length < 2) return;
+      lookupTimer = setTimeout(async () => {
+        try {
+          const q = val.trim().replace(/^@/, '');
+          const res = await fetch('/api/admin-panel/influencer-lookup?q=' + encodeURIComponent(q), {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+          });
+          if (res.status === 404) {
+            document.getElementById('bonusLookupResult').textContent = 'No influencer found';
+            document.getElementById('bonusLookupResult').style.color = '#e74c3c';
+            return;
+          }
+          const data = await res.json();
+          if (data.userId) {
+            document.getElementById('bonusInfluencerUserId').value = data.userId;
+            document.getElementById('bonusLookupResult').innerHTML = '&#10003; Found: <strong>' + (data.displayName || '@' + data.handle) + '</strong> (@' + data.handle + ') — ' + data.influenceTier;
+            document.getElementById('bonusLookupResult').style.color = '#16a34a';
+          }
+        } catch (e) {
+          document.getElementById('bonusLookupResult').textContent = 'Lookup failed';
+          document.getElementById('bonusLookupResult').style.color = '#e74c3c';
+        }
+      }, 500);
+    }
+
+    async function sendBonus() {
+      const userId = document.getElementById('bonusInfluencerUserId').value;
+      const amount = parseFloat(document.getElementById('bonusAmount').value);
+      const reason = document.getElementById('bonusReason').value.trim();
+      const statusEl = document.getElementById('bonusStatusMsg');
+      const btn = document.getElementById('bonusSubmitBtn');
+
+      if (!userId) { statusEl.textContent = 'Look up an influencer first'; statusEl.style.color = '#e74c3c'; return; }
+      if (!amount || amount <= 0 || amount > 100) { statusEl.textContent = 'Amount must be between $0.01 and $100'; statusEl.style.color = '#e74c3c'; return; }
+      if (!reason) { statusEl.textContent = 'Reason is required'; statusEl.style.color = '#e74c3c'; return; }
+
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      statusEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/admin-panel/bonus', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ influencerUserId: userId, amount, reason }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          statusEl.innerHTML = '&#10003; ' + data.message;
+          statusEl.style.color = '#16a34a';
+          document.getElementById('bonusSearch').value = '';
+          document.getElementById('bonusInfluencerUserId').value = '';
+          document.getElementById('bonusAmount').value = '';
+          document.getElementById('bonusReason').value = '';
+          document.getElementById('bonusLookupResult').textContent = '';
+          loadTransactions();
+        } else {
+          statusEl.textContent = data.error || 'Failed to send bonus';
+          statusEl.style.color = '#e74c3c';
+        }
+      } catch (e) {
+        statusEl.textContent = 'Request failed';
+        statusEl.style.color = '#e74c3c';
+      } finally {
+        btn.textContent = 'Send Bonus';
+        btn.disabled = false;
       }
     }
 

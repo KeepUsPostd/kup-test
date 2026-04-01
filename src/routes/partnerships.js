@@ -7,6 +7,57 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Partnership, InfluencerProfile, ContentSubmission } = require('../models');
 
+// GET /api/partnerships/discover — Browse influencers for brand discovery tab
+// Query params: q (search), niche, tier, sort, page, limit
+router.get('/discover', requireAuth, async (req, res) => {
+  try {
+    const { q = '', niche, tier, sort = 'newest', page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * Math.min(parseInt(limit), 50);
+    const take = Math.min(parseInt(limit), 50);
+
+    const filter = { campaignAccessUnlocked: true };
+
+    if (q && q.trim().length >= 2) {
+      const search = q.trim();
+      filter.$or = [
+        { handle: { $regex: search, $options: 'i' } },
+        { displayName: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (niche && niche !== 'all') {
+      filter.interests = niche;
+    }
+
+    if (tier && tier !== 'all') {
+      filter.influenceTier = tier;
+    }
+
+    const sortMap = {
+      newest: { createdAt: -1 },
+      followers: { realFollowerCount: -1 },
+      engagement: { engagementRate: -1 },
+      relevance: { influenceScore: -1 },
+    };
+    const sortObj = sortMap[sort] || sortMap.newest;
+
+    const [profiles, total] = await Promise.all([
+      InfluencerProfile.find(filter, {
+        handle: 1, displayName: 1, avatarUrl: 1, bio: 1,
+        influenceTier: 1, realFollowerCount: 1, engagementRate: 1,
+        interests: 1, totalBrandsPartnered: 1, isVerified: 1,
+        totalCashEarned: 1, averageRating: 1, ratingCount: 1,
+      }).sort(sortObj).skip(skip).limit(take).lean(),
+      InfluencerProfile.countDocuments(filter),
+    ]);
+
+    res.json({ profiles, total, page: parseInt(page), pages: Math.ceil(total / take) });
+  } catch (err) {
+    console.error('Discovery error:', err);
+    res.status(500).json({ error: 'Failed to load discovery results' });
+  }
+});
+
 // POST /api/partnerships — Create a new partnership
 // Brand invites an influencer OR influencer requests to join
 router.post('/', requireAuth, async (req, res) => {
