@@ -36,6 +36,10 @@ require('./config/firebase');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust Railway's proxy (required for rate limiting + IP detection behind Railway/Cloudflare)
+// Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR on every request
+app.set('trust proxy', 1);
+
 // --- Global Middleware (runs on every request) ---
 
 // Security headers (CSP configured for KUP frontend)
