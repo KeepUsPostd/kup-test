@@ -181,7 +181,11 @@
 
         // Summary table
         document.getElementById('sumBrands').textContent = k.totalBrands;
+        document.getElementById('sumUserBrands').textContent = (k.userCreatedBrands || 0).toLocaleString();
+        document.getElementById('sumAdminBrands').textContent = (k.adminOwnedBrands || 0).toLocaleString();
+        document.getElementById('sumPartnerships').textContent = (k.activePartnerships || 0).toLocaleString();
         document.getElementById('sumTransactions').textContent = k.totalTransactions;
+        document.getElementById('sumFailed').textContent = (k.failedTransactions || 0).toLocaleString();
 
         // Health alerts
         if (data.healthAlerts && data.healthAlerts.length > 0) {

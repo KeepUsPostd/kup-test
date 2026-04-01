@@ -110,6 +110,18 @@ router.post('/register', async (req, res) => {
 
     if (!isExistingUser) {
       console.log(`✅ New user registered: ${email} (${profileType || 'no profile'})`);
+
+      // Fire welcome notification (non-blocking — never fail registration on notify error)
+      try {
+        if (profileType === 'influencer') {
+          notify.influencerWelcome({ user }).catch(e => console.error('[auth/register] influencerWelcome error:', e.message));
+        } else {
+          // brand or no profile type — send generic account created email
+          notify.accountCreated({ user, brandName: null }).catch(e => console.error('[auth/register] accountCreated error:', e.message));
+        }
+      } catch (notifyErr) {
+        console.error('[auth/register] welcome notify error:', notifyErr.message);
+      }
     }
 
     res.status(201).json({

@@ -45,6 +45,10 @@ router.get('/dashboard', async (req, res) => {
       recentUsers,
       recentSubmissions,
       healthAlerts,
+      userCreatedBrands,
+      adminOwnedBrands,
+      activePartnerships,
+      failedTransactions,
     ] = await Promise.all([
       Brand.countDocuments({ status: 'active' }),
       Brand.countDocuments({ status: 'active', brandType: { $in: ['user', 'admin_claimed'] } }),
@@ -69,6 +73,11 @@ router.get('/dashboard', async (req, res) => {
       ContentSubmission.countDocuments({ createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }),
       // Health alerts
       getHealthAlerts(),
+      // Summary table extras
+      Brand.countDocuments({ brandType: 'user' }),
+      Brand.countDocuments({ brandType: { $in: ['admin', 'admin_unclaimed'] } }),
+      Partnership.countDocuments({ status: 'active' }),
+      Transaction.countDocuments({ status: 'failed' }),
     ]);
 
     res.json({
@@ -87,6 +96,11 @@ router.get('/dashboard', async (req, res) => {
         totalReviews: totalReviews[0]?.total || 0,
         recentSignups7d: recentUsers,
         recentSubmissions7d: recentSubmissions,
+        // Summary table fields
+        userCreatedBrands,
+        adminOwnedBrands,
+        activePartnerships,
+        failedTransactions,
       },
       healthAlerts,
     });

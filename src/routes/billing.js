@@ -8,6 +8,7 @@ const { requireAuth } = require('../middleware/auth');
 const { Subscription, BrandProfile, Brand } = require('../models');
 const paypal = require('../config/paypal');
 const { checkTrialStatus, processExpiredTrials } = require('../services/trial');
+const notify = require('../services/notifications');
 
 // Plan pricing (USD)
 const PLAN_PRICING = {
@@ -352,6 +353,13 @@ router.post('/activate', requireAuth, async (req, res) => {
       }
 
       console.log(`✅ Subscription activated: ${paypalSubscriptionId} → ${subscription.planTier}`);
+
+      // Fire subscription purchased notification (non-blocking)
+      notify.subscriptionPurchased({
+        brand: brandProfile,
+        planTier: subscription.planTier,
+        amount: subscription.amount || 0,
+      }).catch(err => console.error('[billing/activate] notify.subscriptionPurchased error:', err.message));
 
       return res.json({
         message: 'Subscription activated!',

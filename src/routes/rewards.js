@@ -5,7 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { Reward } = require('../models');
+const { Reward, InfluencerProfile, BrandProfile, Transaction } = require('../models');
+const notify = require('../services/notifications');
 
 // Cash reward types (rule R5: these allow multi-select per brand)
 const CASH_TYPES = ['cash_per_approval', 'bonus_cash', 'postd_pay'];
@@ -271,6 +272,117 @@ router.delete('/:rewardId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Delete reward error:', error.message);
     res.status(500).json({ error: 'Could not delete reward' });
+  }
+});
+
+// POST /api/rewards/distribute — Distribute a reward to one or more influencers
+// Called by distribute-reward.html when a brand sends a reward to a partner
+router.post('/distribute', requireAuth, async (req, res) => {
+  try {
+    const { brandId, influencerId, influencerProfileIds, rewardId } = req.body;
+
+    if (!brandId) {
+      return res.status(400).json({ error: 'brandId is required' });
+    }
+    if (!rewardId) {
+      return res.status(400).json({ error: 'rewardId is required' });
+    }
+
+    // Support single influencerId (from distribute-reward.html) or bulk array
+    const recipientIds = influencerProfileIds
+      ? (Array.isArray(influencerProfileIds) ? influencerProfileIds : [influencerProfileIds])
+      : (influencerId ? [influencerId] : []);
+
+    if (recipientIds.length === 0) {
+      return res.status(400).json({ error: 'influencerId or influencerProfileIds is required' });
+    }
+
+    // Verify the reward belongs to this brand
+    const reward = await Reward.findById(rewardId);
+    if (!reward) {
+      return res.status(404).json({ error: 'Reward not found' });
+    }
+    if (String(reward.brandId) !== String(brandId)) {
+      return res.status(403).json({ error: 'This reward does not belong to your brand' });
+    }
+    if (reward.status !== 'active') {
+      return res.status(400).json({
+        error: 'Reward is not active',
+        message: `Reward status is "${reward.status}". Only active rewards can be distributed.`,
+      });
+    }
+
+    // Verify brand profile belongs to the requesting user
+    const brandProfile = await BrandProfile.findOne({ _id: brandId, userId: req.user._id });
+    if (!brandProfile) {
+      return res.status(403).json({ error: 'You do not own this brand' });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const infId of recipientIds) {
+      try {
+        const influencer = await InfluencerProfile.findById(infId).populate('userId', 'email');
+        if (!influencer) {
+          errors.push({ influencerId: infId, error: 'Influencer not found' });
+          continue;
+        }
+
+        // Build transaction record
+        const isCash = CASH_TYPES.includes(reward.type);
+        const cashAmount = isCash && reward.cashConfig
+          ? (reward.cashConfig.amount || reward.cashConfig.rate || 0)
+          : 0;
+
+        const transaction = await Transaction.create({
+          type: 'reward_distribution',
+          brandId,
+          influencerProfileId: infId,
+          rewardId: reward._id,
+          amount: cashAmount,
+          currency: 'USD',
+          status: 'completed',
+          description: `Reward distributed: ${reward.title}`,
+          createdBy: req.user._id,
+        });
+
+        // Fire notification (non-blocking)
+        if (isCash && cashAmount > 0 && influencer.userId?.email) {
+          notify.cashRewardEarned({
+            influencer: { email: influencer.userId.email, name: influencer.influencerName },
+            brand: { name: brandProfile.businessName || brandProfile.name },
+            amount: cashAmount,
+            type: reward.type,
+          }).catch(err => console.error('[rewards/distribute] notify error:', err.message));
+        }
+
+        results.push({ influencerId: infId, transactionId: transaction._id, status: 'success' });
+        console.log(`✅ Reward "${reward.title}" distributed to influencer ${infId} by brand ${brandId}`);
+      } catch (infErr) {
+        console.error(`[rewards/distribute] Error for influencer ${infId}:`, infErr.message);
+        errors.push({ influencerId: infId, error: infErr.message });
+      }
+    }
+
+    const allFailed = results.length === 0 && errors.length > 0;
+    if (allFailed) {
+      return res.status(500).json({
+        error: 'Distribution failed for all recipients',
+        errors,
+      });
+    }
+
+    res.json({
+      message: `Reward distributed to ${results.length} influencer(s)`,
+      distributed: results.length,
+      failed: errors.length,
+      results,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
+    console.error('Distribute reward error:', error.message);
+    res.status(500).json({ error: 'Could not distribute reward' });
   }
 });
 

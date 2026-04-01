@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Campaign, BrandProfile } = require('../models');
+const notify = require('../services/notifications');
 
 // Plan limits (campaigns per brand) from PLATFORM_ARCHITECTURE.md
 const PLAN_LIMITS = {
@@ -221,6 +222,20 @@ router.put('/:campaignId/status', requireAuth, async (req, res) => {
     await campaign.save();
 
     console.log(`📋 Campaign "${campaign.title}" → ${newStatus}`);
+
+    // Fire campaign lifecycle notifications (non-blocking)
+    try {
+      const brand = await BrandProfile.findById(campaign.brandId);
+      if (newStatus === 'active') {
+        notify.campaignLive({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignLive error:', e.message));
+      } else if (newStatus === 'paused') {
+        notify.campaignPaused({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignPaused error:', e.message));
+      } else if (newStatus === 'ended') {
+        notify.campaignEnded({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignEnded error:', e.message));
+      }
+    } catch (notifyErr) {
+      console.error('[campaigns] status notify lookup error:', notifyErr.message);
+    }
 
     res.json({
       message: `Campaign ${newStatus}`,
