@@ -108,6 +108,11 @@ app.use(requestLogger);                             // Log failed requests in pr
 // General rate limit on all API routes
 app.use('/api/', generalLimiter);
 
+// --- Root redirect — send visitors straight to home, never show test dashboard ---
+app.get('/', (req, res) => {
+  res.redirect(301, '/pages/home.html');
+});
+
 // --- Serve static files (HTML, CSS, JS, images) ---
 // Override MIME types: .MOV/.mov → video/mp4 so browsers can play them
 // (video/quicktime is not supported in most browsers)
