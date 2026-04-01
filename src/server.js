@@ -199,6 +199,9 @@ app.use('/api/wallet', cashoutLimiter, require('./routes/wallet'));
 // Notification routes (in-app notification center)
 app.use('/api/notifications', require('./routes/notifications'));
 
+// Comments routes (user comments on content submissions)
+app.use('/api/comments', require('./routes/comments'));
+
 // Admin routes (re-engagement campaigns, platform management)
 app.use('/api/admin', require('./routes/admin'));
 
