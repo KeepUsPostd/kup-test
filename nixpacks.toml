@@ -4,8 +4,5 @@ nixPkgs = ["nodejs_22", "npm"]
 # failing on apt package installs (libatomic1 etc.)
 aptPkgs = []
 
-[phases.install]
-cmds = ["npm install --production"]
-
 [start]
 cmd = "node src/server.js"
