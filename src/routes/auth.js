@@ -123,10 +123,10 @@ router.post('/register', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error.message);
+    console.error('Registration error:', error.message, '| code:', error.code, '| errors:', JSON.stringify(error.errors || {}));
     res.status(500).json({
       error: 'Registration failed',
-      message: 'Something went wrong. Please try again.',
+      message: error.message || 'Something went wrong. Please try again.',
     });
   }
 });
