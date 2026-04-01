@@ -20,30 +20,44 @@ var KUP_BRAND_CONTEXT = (function() {
   var STORAGE_KEY = 'kup_active_brand';
   var BRANDS_KEY = 'kup_brands_list';
 
-  var DEFAULT_BRANDS = [
-    { id: 'kup', name: 'KeepUsPostd', abbreviation: 'KP', color: '#2EA5DD', plan: 'growth', isAnchor: true, state: 'active' },
-    { id: 'wmp', name: 'Wild Mercy Pictures', abbreviation: 'WMP', color: '#ED8444', plan: 'growth', isAnchor: false, state: 'active' }
-  ];
+  var DEFAULT_BRANDS = []; // No hardcoded fake brands — real brands loaded from API
 
 
   // ================================================================
   //  STATE MANAGEMENT
   // ================================================================
 
+  var LEGACY_FAKE_IDS = ['kup', 'wmp']; // Prototype brands — purge from localStorage
+
   function getAllBrands() {
     try {
       var stored = localStorage.getItem(BRANDS_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        var parsed = JSON.parse(stored);
+        if (parsed && parsed.length > 0) {
+          // Strip out any legacy prototype brands that are still cached
+          var clean = parsed.filter(function(b) { return LEGACY_FAKE_IDS.indexOf(b.id) === -1; });
+          if (clean.length !== parsed.length) {
+            localStorage.setItem(BRANDS_KEY, JSON.stringify(clean));
+          }
+          return clean;
+        }
+      }
     } catch(e) {}
-    localStorage.setItem(BRANDS_KEY, JSON.stringify(DEFAULT_BRANDS));
-    return DEFAULT_BRANDS;
+    return [];
   }
+
 
   function getActiveBrand() {
     try {
       var stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         var active = JSON.parse(stored);
+        // Purge legacy prototype brands
+        if (active && LEGACY_FAKE_IDS.indexOf(active.id) !== -1) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
         // Enrich: if active brand is missing fields (abbreviation, color, etc),
         // look it up in the full brands list and merge
         if (!active.abbreviation || !active.color) {
