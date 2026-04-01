@@ -1359,8 +1359,13 @@
       btn.textContent = 'Creating your brand...';
 
       try {
-        // Check if user is logged in
-        var user = auth.currentUser;
+        // Wait for Firebase auth to fully resolve (fixes timing issue where currentUser is null on first load)
+        var user = await new Promise(function(resolve) {
+          var unsubscribe = auth.onAuthStateChanged(function(u) {
+            unsubscribe();
+            resolve(u);
+          });
+        });
         if (!user) {
           if (typeof kupToast === 'function') kupToast('Please log in first', 'error');
           btn.disabled = false;
