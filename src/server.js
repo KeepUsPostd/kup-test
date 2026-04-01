@@ -150,6 +150,9 @@ app.get('/privacy-policy', (req, res) => {
 app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
+app.get('/delete-account', (req, res) => {
+  res.redirect(301, '/pages/delete-account.html');
+});
 
 // --- API Routes ---
 
