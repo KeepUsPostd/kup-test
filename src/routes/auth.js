@@ -117,7 +117,7 @@ router.post('/register', async (req, res) => {
           notify.influencerWelcome({ user }).catch(e => console.error('[auth/register] influencerWelcome error:', e.message));
         } else {
           // brand or no profile type — send generic account created email
-          notify.accountCreated({ user, brandName: null }).catch(e => console.error('[auth/register] accountCreated error:', e.message));
+          notify.accountCreated({ user, brandName: user.legalFirstName || 'there' }).catch(e => console.error('[auth/register] accountCreated error:', e.message));
         }
       } catch (notifyErr) {
         console.error('[auth/register] welcome notify error:', notifyErr.message);
@@ -294,6 +294,22 @@ router.post('/complete-onboarding', requireAuth, async (req, res) => {
     req.user.onboardingComplete = true;
     await req.user.save();
     res.json({ success: true, message: 'Onboarding complete' });
+
+    // Fire brand published welcome email (non-blocking)
+    try {
+      const { BrandProfile, Brand } = require('../models');
+      const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+      let brandName = null;
+      if (brandProfile && brandProfile.primaryBrandId) {
+        const brand = await Brand.findById(brandProfile.primaryBrandId);
+        if (brand) brandName = brand.name;
+      }
+      notify.brandPublished({ user: req.user, brand: { name: brandName || 'your brand' } })
+        .catch(e => console.error('[complete-onboarding] brandPublished error:', e.message));
+    } catch (notifyErr) {
+      console.error('[complete-onboarding] notify error:', notifyErr.message);
+    }
+
   } catch (err) {
     console.error('Complete onboarding error:', err.message);
     res.status(500).json({ error: 'Could not update onboarding status' });
