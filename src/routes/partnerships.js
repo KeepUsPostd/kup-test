@@ -73,6 +73,67 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/partnerships/my-brands — All brands the logged-in influencer is partnered with
+// Called by Flutter brand dashboard tab to list partner brands
+router.get('/my-brands', requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
+    if (!influencerProfile) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    const { status } = req.query;
+    const filter = { influencerProfileId: influencerProfile._id };
+    if (status) filter.status = status;
+
+    const partnerships = await Partnership.find(filter)
+      .populate('brandId', 'name initials generatedColor category logoUrl kioskBrandCode brandColors')
+      .sort({ createdAt: -1 })
+      .limit(200);
+
+    const brands = partnerships.map(p => ({
+      partnership: p,
+      brand: p.brandId,
+    }));
+
+    res.json({ brands, total: brands.length });
+  } catch (error) {
+    console.error('My brands error:', error.message);
+    res.status(500).json({ error: 'Could not fetch partner brands' });
+  }
+});
+
+// GET /api/partnerships/check?brandId=xxx — Check if logged-in influencer is partnered with a brand
+// Called by Flutter to show/hide follow button
+router.get('/check', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) {
+      return res.status(400).json({ error: 'brandId is required' });
+    }
+
+    const user = req.user;
+    const influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
+    if (!influencerProfile) {
+      return res.json({ isPartner: false, partnership: null });
+    }
+
+    const partnership = await Partnership.findOne({
+      brandId,
+      influencerProfileId: influencerProfile._id,
+    });
+
+    res.json({
+      isPartner: !!partnership && partnership.status === 'active',
+      partnership: partnership || null,
+    });
+  } catch (error) {
+    console.error('Partnership check error:', error.message);
+    res.status(500).json({ error: 'Could not check partnership' });
+  }
+});
+
 // GET /api/partnerships?brandId=xxx — List partnerships for a brand
 // Optional filters: ?status=active&source=invitation
 router.get('/', requireAuth, async (req, res) => {

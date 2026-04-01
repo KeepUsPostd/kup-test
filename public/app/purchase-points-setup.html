@@ -1104,9 +1104,7 @@
           <h6>Tracking Script</h6>
           <p class="script-instruction">Add this script to your store's checkout confirmation / thank-you page, just before the closing <code>&lt;/body&gt;</code> tag:</p>
           <div class="code-block">
-            <pre><code>&lt;script src="https://sdk.keepuspostd.com/purchase-tracker.js"
-  data-brand="keepuspostd"
-  data-key="kup_live_abc123xyz"&gt;&lt;/script&gt;</code></pre>
+            <pre><code id="sdkSnippet">&lt;!-- KeepUsPostd Purchase Tracker — Loading your brand key... --&gt;</code></pre>
             <button class="btn-copy-code" onclick="copyScript()">Copy</button>
           </div>
           <p class="script-note">After installing, complete a test purchase on your store to verify the connection. Points will begin tracking automatically.</p>
@@ -1408,6 +1406,35 @@
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
       }
     }
+
+    /* Load real brand API key into SDK snippet */
+    async function loadSdkSnippet() {
+      try {
+        var activeBrandId = localStorage.getItem('activeBrandId');
+        var snippet = document.getElementById('sdkSnippet');
+        if (!snippet) return;
+        if (activeBrandId) {
+          var resp = await fetch('/api/brands/' + activeBrandId);
+          if (resp.ok) {
+            var data = await resp.json();
+            var brand = data.brand || data;
+            var code = brand.kioskBrandCode || activeBrandId;
+            var apiKey = brand.apiKey || activeBrandId; // Use kioskBrandCode as public key
+            snippet.textContent =
+              '<script src="https://keepuspostd.com/js/purchase-tracker.js"\n' +
+              '  data-brand="' + code + '"\n' +
+              '  data-key="' + apiKey + '"><\/script>';
+            return;
+          }
+        }
+        snippet.textContent = '<!-- Sign in and select a brand to see your tracking snippet -->';
+      } catch(e) {
+        var snippet = document.getElementById('sdkSnippet');
+        if (snippet) snippet.textContent = '<!-- Could not load brand key — please refresh -->';
+      }
+    }
+
+    window.addEventListener('load', loadSdkSnippet);
 
     /* Copy tracking script to clipboard */
     function copyScript() {

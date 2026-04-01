@@ -1012,13 +1012,45 @@
   </div>
 
   <script>
-    /* ── Mock Data ── */
-    const reviews = [
-      { name: "Marcus T.", rating: 5, caption: "Best vegan tacos I've ever had! The jackfruit carnitas are incredible.", likes: 124, bg: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" },
-      { name: "Aisha R.", rating: 5, caption: "My whole family loves this place. We come every weekend now!", likes: 89, bg: "linear-gradient(135deg, #2d1b36 0%, #1a1a2e 50%, #162447 100%)" },
-      { name: "Jordan K.", rating: 4, caption: "Great food, great vibes. The staff is so friendly and the portions are generous.", likes: 67, bg: "linear-gradient(135deg, #1b2838 0%, #203a43 50%, #2c5364 100%)" },
-      { name: "Lisa M.", rating: 5, caption: "I'm not even vegan but these tacos converted me. Absolutely delicious!", likes: 203, bg: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" }
+    /* ── Card backgrounds ── */
+    var cardBgs = [
+      "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      "linear-gradient(135deg, #2d1b36 0%, #1a1a2e 50%, #162447 100%)",
+      "linear-gradient(135deg, #1b2838 0%, #203a43 50%, #2c5364 100%)",
+      "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)",
+      "linear-gradient(135deg, #1a1a2e 0%, #2d1b36 50%, #0f3460 100%)",
     ];
+
+    /* ── Load real approved content from backend ── */
+    var reviews = [];
+    var brandId = new URLSearchParams(window.location.search).get('brandId');
+
+    async function loadReviews() {
+      try {
+        var url = '/api/content?status=approved&limit=20';
+        if (brandId) url += '&brandId=' + encodeURIComponent(brandId);
+        var resp = await fetch(url);
+        if (resp.ok) {
+          var data = await resp.json();
+          var items = data.submissions || data.content || [];
+          reviews = items.map(function(item, i) {
+            var inf = item.influencerProfileId || {};
+            var name = inf.displayName || inf.handle || 'Anonymous';
+            return {
+              name: name,
+              rating: item.rating || 5,
+              caption: item.caption || item.description || '',
+              likes: item.likeCount || 0,
+              mediaUrl: item.mediaUrl || null,
+              bg: cardBgs[i % cardBgs.length]
+            };
+          });
+        }
+      } catch(e) { reviews = []; }
+      buildCarousel();
+    }
+
+    loadReviews();
 
     /* ── State ── */
     let currentReview = 0;
@@ -1035,9 +1067,14 @@
       const dots = document.getElementById('carouselDots');
       dots.innerHTML = '';
 
+      if (!reviews || reviews.length === 0) {
+        wrapper.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:1.1rem;opacity:0.6;">No reviews yet — be the first to post!</div>';
+        return;
+      }
+
       var cardsHTML = '';
       reviews.forEach(function(review, i) {
-        const initials = review.name.split(' ').map(function(w) { return w[0]; }).join('');
+        const initials = review.name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
         const stars = Array.from({ length: 5 }, function(_, si) {
           return '<span class="star">&#9733;</span>';
         }).join('');
@@ -1248,7 +1285,7 @@
     }
 
     /* ── Boot ── */
-    buildCarousel();
+    // buildCarousel() is called by loadReviews() above after fetching real data
     startCarousel();
   </script>
 

@@ -1152,6 +1152,27 @@
       setTimeout(function() { t.classList.remove('show'); }, 3000);
     }
 
+    // ========== Load Real Referral Code from Backend ==========
+    async function loadReferralData() {
+      try {
+        if (typeof auth === 'undefined' || !auth.currentUser) return;
+        var token = await auth.currentUser.getIdToken();
+        var resp = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (resp.ok) {
+          var data = await resp.json();
+          var brandProfile = data.brandProfile;
+          if (brandProfile && brandProfile.referralCode) {
+            var link = 'https://keepuspostd.com/signup?ref=' + brandProfile.referralCode;
+            var input = document.getElementById('referralLinkInput');
+            if (input) input.value = link;
+          }
+        }
+      } catch(e) {}
+    }
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(u) { if (u) loadReferralData(); });
+    }
+
     // ========== Copy Referral Link ==========
     document.getElementById('copyLinkBtn').addEventListener('click', function() {
       var input = document.getElementById('referralLinkInput');

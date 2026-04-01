@@ -196,6 +196,9 @@ app.use('/api/upload', uploadLimiter, require('./routes/upload'));
 // Partnership routes (stub — Phase 4)
 app.use('/api/partnerships', require('./routes/partnerships'));
 
+// Referral routes — influencer referral program
+app.use('/api/referrals', require('./routes/referrals'));
+
 // Kiosk routes (Phase 5 — guest reviews + instant rewards)
 app.use('/api/kiosk', require('./routes/kiosk'));
 

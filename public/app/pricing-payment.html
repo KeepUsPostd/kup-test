@@ -376,7 +376,7 @@
           <hr class="osd">
           <div class="ost"><span class="tl">Total</span><span class="ta" id="oTotal"></span></div>
           <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;cursor:pointer;font-size:.75rem;color:#888;line-height:1.5;"><input type="checkbox" id="agreePayTerms" style="width:16px;height:16px;margin-top:1px;flex-shrink:0;accent-color:#2EA5DD;cursor:pointer;"><span>I agree to the <a href="/pages/terms.html" target="_blank" style="color:#2EA5DD;font-weight:600;">Terms of Service</a> and authorize recurring billing.</span></label>
-          <a href="payment-success.html" class="btn-blue" id="payBtn" style="pointer-events:none;opacity:.5;">Complete Payment</a>
+          <button class="btn-blue" id="payBtn" style="pointer-events:none;opacity:.5;width:100%;border:none;cursor:pointer;" onclick="handlePayment()">Complete Payment</button>
           <p class="cn">Keep your minimum influencer marketing budget available for your partners. Set it to auto-reload or reload it manually via the <a href="cash-account.html">Cash Account Page</a>.</p>
         </div>
       </div>
@@ -442,6 +442,49 @@ function connectPaypal() {
   dd.disabled = false; dd.style.cursor = "pointer";
   dd.style.background = "#dc3545"; dd.style.color = "#fff";
   kupToast('PayPal connected successfully', 'success');
+}
+
+async function handlePayment() {
+  var btn = document.getElementById('payBtn');
+  var originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Redirecting to PayPal...';
+  btn.style.opacity = '0.7';
+
+  try {
+    var token = await new Promise(function(resolve, reject) {
+      auth.onAuthStateChanged(function(user) {
+        if (user) { user.getIdToken().then(resolve).catch(reject); }
+        else { reject(new Error('Not logged in')); }
+      });
+    });
+
+    var billingCycle = cB === 'annual' ? 'annual' : 'monthly';
+    var resp = await fetch('/api/billing/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ planTier: selectedPlanKey, billingCycle: billingCycle })
+    });
+
+    var data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || 'Could not start subscription');
+
+    // If PayPal returns an approval URL, redirect there
+    if (data.approvalUrl) {
+      window.location.href = data.approvalUrl;
+    } else if (data.subscription) {
+      // Local mode (PayPal plans not yet configured) — go straight to success
+      kupToast('Subscription activated!', 'success');
+      setTimeout(function() { window.location.href = 'payment-success.html?subscription=success'; }, 1500);
+    } else {
+      throw new Error('Unexpected response from server');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    btn.style.opacity = '1';
+    kupToast(err.message || 'Payment failed. Please try again.', 'error');
+  }
 }
 
 function applyDiscount() {

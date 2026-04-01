@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   hasBrandProfile: { type: Boolean, default: false },
   onboardingComplete: { type: Boolean, default: false },
   onboardingSteps: { type: [Number], default: [] }, // Completed step indices [0,1,2,3,4]
+  referredByCode: { type: String, default: null },  // Referral code used at signup
   activeProfile: {
     type: String,
     enum: ['influencer', 'brand'],
