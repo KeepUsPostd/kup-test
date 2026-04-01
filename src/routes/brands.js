@@ -77,6 +77,9 @@ router.post('/', requireAuth, async (req, res) => {
     }
     const generatedColor = '#' + ((hash >> 0) & 0xFFFFFF).toString(16).padStart(6, '0');
 
+    // Generate a unique kiosk brand code (avoids duplicate null index issue)
+    const kioskBrandCode = 'KUP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
     // Create the brand
     const brand = await Brand.create({
       name: name.trim(),
@@ -91,6 +94,7 @@ router.post('/', requireAuth, async (req, res) => {
       initials,
       generatedColor,
       brandColors: brandColors || undefined,
+      kioskBrandCode,
     });
 
     // Create brand member with owner role (rule G2: one owner)
