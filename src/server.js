@@ -139,6 +139,18 @@ app.get('/auth/action', (req, res) => {
   res.redirect(`/pages/auth-action.html${query ? '?' + query : ''}`);
 });
 
+// --- Legal / Public Pages ---
+// Clean URLs for App Store review and in-app WebView links
+app.get('/privacy', (req, res) => {
+  res.redirect(301, '/pages/policy.html');
+});
+app.get('/privacy-policy', (req, res) => {
+  res.redirect(301, '/pages/policy.html');
+});
+app.get('/help', (req, res) => {
+  res.redirect(301, '/pages/help.html');
+});
+
 // --- API Routes ---
 
 // Health check (no auth required, no rate limit)
