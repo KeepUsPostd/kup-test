@@ -266,8 +266,9 @@ router.post('/subscribe', requireAuth, async (req, res) => {
     }
 
     // Create PayPal subscription → returns approval URL
-    const defaultReturn = returnUrl || `http://localhost:3001/pages/inner/billing.html?subscription=success`;
-    const defaultCancel = cancelUrl || `http://localhost:3001/pages/inner/billing.html?subscription=canceled`;
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+    const defaultReturn = returnUrl || `${APP_URL}/pages/inner/payment-success.html?subscription=success`;
+    const defaultCancel = cancelUrl || `${APP_URL}/pages/inner/pricing-payment.html?subscription=canceled`;
 
     const ppSubscription = await paypal.createSubscription(
       paypalPlanId,

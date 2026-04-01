@@ -344,28 +344,49 @@
     <script src="/js/resume-banner.js"></script>
     <script src="/js/onboarding.js"></script>
 
-  <!-- Auth Gate (light) + Header Brand Context -->
+  <!-- Auth Gate + PayPal Subscription Activation -->
   <script>
     (function() {
-      // Light auth gate — just ensure user is logged in
+      var params = new URLSearchParams(window.location.search);
+      var paypalSubscriptionId = params.get('subscription_id');
+
       if (typeof auth !== 'undefined') {
-        auth.onAuthStateChanged(function(user) {
+        auth.onAuthStateChanged(async function(user) {
           if (!user) {
             window.location.href = '/pages/login.html';
             return;
           }
-          // Header profile stays as HTML defaults (consistent across all pages)
+
+          // If PayPal redirected back with a subscription_id, activate it
+          if (paypalSubscriptionId) {
+            try {
+              var token = await user.getIdToken();
+              var resp = await fetch('/api/billing/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ paypalSubscriptionId: paypalSubscriptionId })
+              });
+              var data = await resp.json();
+              if (resp.ok) {
+                kupToast('Subscription activated! Welcome to ' + (data.plan || 'your plan') + '.', 'success');
+              } else {
+                kupToast(data.message || 'Could not activate subscription. Contact support.', 'error');
+              }
+            } catch (err) {
+              kupToast('Activation error: ' + err.message, 'error');
+            }
+          }
+
+          // Populate header brand name from brand context
+          try {
+            if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+              var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+              var brandEl = document.getElementById('headerBrandName');
+              if (brand && brand.name && brandEl) brandEl.textContent = brand.name;
+            }
+          } catch(e) {}
         });
       }
-
-      // Populate header brand name from brand context
-      try {
-        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-          var brand = KUP_BRAND_CONTEXT.getActiveBrand();
-          var brandEl = document.getElementById('headerBrandName');
-          if (brand && brand.name && brandEl) brandEl.textContent = brand.name;
-        }
-      } catch(e) {}
     })();
   </script>
 

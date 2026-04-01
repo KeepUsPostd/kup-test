@@ -11,6 +11,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 const connectDB = require('./config/database');
+const cron = require('node-cron');
 
 // Security middleware (rate limiting, sanitization, CORS lockdown)
 const {
@@ -249,6 +250,21 @@ const startServer = async () => {
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'test'}`);
     console.log(`🔒 Security: Rate limiting, mongo sanitize, HPP, CORS ${process.env.NODE_ENV === 'production' ? '(locked)' : '(open — dev mode)'}`);
     console.log(`📁 API Routes: /api/auth, /api/brands, /api/campaigns, /api/rewards, /api/content, /api/partnerships, /api/kiosk, /api/billing, /api/payouts, /api/wallet, /api/notifications, /api/webhooks\n`);
+
+    // ── Daily Cron Jobs ─────────────────────────────────────────
+    // Run at 2:00 AM UTC every day
+    const { processExpiredTrials } = require('./services/trial');
+    cron.schedule('0 2 * * *', async () => {
+      console.log('⏰ [CRON] Running daily trial expiry check...');
+      try {
+        const result = await processExpiredTrials();
+        console.log(`⏰ [CRON] Trial expiry done: ${JSON.stringify(result)}`);
+      } catch (err) {
+        console.error('⏰ [CRON] Trial expiry failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+
+    console.log('⏰ Cron: Trial expiry scheduled daily at 2:00 AM UTC\n');
   });
 };
 

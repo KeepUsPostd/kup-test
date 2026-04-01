@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
   hasInfluencerProfile: { type: Boolean, default: false },
   hasBrandProfile: { type: Boolean, default: false },
   onboardingComplete: { type: Boolean, default: false },
+  onboardingSteps: { type: [Number], default: [] }, // Completed step indices [0,1,2,3,4]
   activeProfile: {
     type: String,
     enum: ['influencer', 'brand'],

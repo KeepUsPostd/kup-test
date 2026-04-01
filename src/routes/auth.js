@@ -200,6 +200,7 @@ router.get('/me', requireAuth, async (req, res) => {
         hasInfluencerProfile: user.hasInfluencerProfile,
         hasBrandProfile: user.hasBrandProfile,
         onboardingComplete: user.onboardingComplete,
+        onboardingSteps: user.onboardingSteps || [],
         status: user.status,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -284,6 +285,26 @@ router.post('/complete-onboarding', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Complete onboarding error:', err.message);
     res.status(500).json({ error: 'Could not update onboarding status' });
+  }
+});
+
+// POST /api/auth/onboarding-step — Save individual onboarding step completion
+// Persists step progress to MongoDB so users don't restart on new devices/browsers
+router.post('/onboarding-step', requireAuth, async (req, res) => {
+  try {
+    const { step } = req.body; // step = 0-indexed step number
+    if (step === undefined || step < 0 || step > 4) {
+      return res.status(400).json({ error: 'step must be 0–4' });
+    }
+    const user = req.user;
+    if (!user.onboardingSteps.includes(step)) {
+      user.onboardingSteps.push(step);
+      await user.save();
+    }
+    res.json({ success: true, onboardingSteps: user.onboardingSteps });
+  } catch (err) {
+    console.error('Onboarding step error:', err.message);
+    res.status(500).json({ error: 'Could not save onboarding step' });
   }
 });
 

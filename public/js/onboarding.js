@@ -77,7 +77,50 @@ var KUP_ONBOARDING = (function() {
       state.completed.push(stepId);
       saveState(state);
       updateWidgetUI(state);
+      persistStepToServer(stepId - 1); // 0-indexed for backend
     }
+  }
+
+  function persistStepToServer(stepIndex) {
+    try {
+      if (typeof auth === 'undefined' || !auth.currentUser) return;
+      auth.currentUser.getIdToken().then(function(token) {
+        fetch('/api/auth/onboarding-step', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ step: stepIndex })
+        }).catch(function() {});
+      }).catch(function() {});
+    } catch(e) {}
+  }
+
+  function hydrateFromServer() {
+    // Pull completed steps from backend and merge into localStorage
+    // Fixes restart bug when switching browsers or devices
+    try {
+      if (typeof auth === 'undefined') return;
+      auth.onAuthStateChanged(function(user) {
+        if (!user) return;
+        user.getIdToken().then(function(token) {
+          fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              var serverSteps = (data.user && data.user.onboardingSteps) ? data.user.onboardingSteps : [];
+              if (!serverSteps.length) return;
+              var state = getState();
+              var changed = false;
+              serverSteps.forEach(function(idx) {
+                var stepId = idx + 1; // 0-indexed → 1-indexed
+                if (state.completed.indexOf(stepId) === -1) {
+                  state.completed.push(stepId);
+                  changed = true;
+                }
+              });
+              if (changed) { saveState(state); updateWidgetUI(state); }
+            }).catch(function() {});
+        }).catch(function() {});
+      });
+    } catch(e) {}
   }
 
   function dismissTip(tipId) {
@@ -423,6 +466,9 @@ var KUP_ONBOARDING = (function() {
 
     // Inject styles
     injectStyles();
+
+    // Hydrate completed steps from server (fixes restart on new browser/device)
+    hydrateFromServer();
 
     // Auto-complete step if user is on a tracked page
     autoCompleteCurrentPage();
