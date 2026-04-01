@@ -15,7 +15,8 @@ router.get('/discover', requireAuth, async (req, res) => {
     const skip = (parseInt(page) - 1) * Math.min(parseInt(limit), 50);
     const take = Math.min(parseInt(limit), 50);
 
-    const filter = { campaignAccessUnlocked: true };
+    // Exclude the requesting user's own influencer profile from brand-side discovery
+    const filter = { campaignAccessUnlocked: true, userId: { $ne: req.user._id } };
 
     if (q && q.trim().length >= 2) {
       const search = q.trim();
