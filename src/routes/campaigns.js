@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { Campaign, BrandProfile } = require('../models');
+const { Campaign, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
 
 // Plan limits (campaigns per brand) from PLATFORM_ARCHITECTURE.md
@@ -73,16 +73,32 @@ router.post('/', requireAuth, async (req, res) => {
       coverImageUrl: coverImageUrl || null,
       maxSubmissions: maxSubmissions || null,
       deadline: deadline || null,
-      status: 'draft', // always starts as draft
+      status: req.body.status === 'active' ? 'active' : 'draft',
       createdBy: req.user._id,
     });
 
-    console.log(`✅ Campaign created: "${campaign.title}" for brand ${brandId}`);
+    console.log(`✅ Campaign created: "${campaign.title}" for brand ${brandId} (${campaign.status})`);
 
     res.status(201).json({
-      message: 'Campaign created as draft',
+      message: campaign.status === 'active' ? 'Campaign published' : 'Campaign created as draft',
       campaign,
     });
+
+    // Fire campaignLive notification if published directly (non-blocking)
+    if (campaign.status === 'active') {
+      try {
+        const brandProfile = await BrandProfile.findOne({ ownedBrandIds: campaign.brandId });
+        const brandOwner = brandProfile ? await User.findById(brandProfile.userId) : null;
+        if (brandOwner) {
+          notify.campaignLive({
+            brand: { ownerEmail: brandOwner.email, ownerId: brandOwner._id },
+            campaign: { name: campaign.title, title: campaign.title, _id: campaign._id },
+          }).catch(e => console.error('[campaigns] notify.campaignLive error:', e.message));
+        }
+      } catch (notifyErr) {
+        console.error('[campaigns] create notify error:', notifyErr.message);
+      }
+    }
   } catch (error) {
     console.error('Create campaign error:', error.message);
     res.status(500).json({ error: 'Could not create campaign' });
@@ -225,13 +241,18 @@ router.put('/:campaignId/status', requireAuth, async (req, res) => {
 
     // Fire campaign lifecycle notifications (non-blocking)
     try {
-      const brand = await BrandProfile.findById(campaign.brandId);
-      if (newStatus === 'active') {
-        notify.campaignLive({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignLive error:', e.message));
-      } else if (newStatus === 'paused') {
-        notify.campaignPaused({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignPaused error:', e.message));
-      } else if (newStatus === 'ended') {
-        notify.campaignEnded({ brand, campaign }).catch(e => console.error('[campaigns] notify.campaignEnded error:', e.message));
+      const brandProfile = await BrandProfile.findOne({ ownedBrandIds: campaign.brandId });
+      const brandOwner = brandProfile ? await User.findById(brandProfile.userId) : null;
+      const notifyBrand = brandOwner ? { ownerEmail: brandOwner.email, ownerId: brandOwner._id } : null;
+      const notifyCampaign = { name: campaign.title, title: campaign.title, _id: campaign._id };
+      if (notifyBrand) {
+        if (newStatus === 'active') {
+          notify.campaignLive({ brand: notifyBrand, campaign: notifyCampaign }).catch(e => console.error('[campaigns] notify.campaignLive error:', e.message));
+        } else if (newStatus === 'paused') {
+          notify.campaignPaused({ brand: notifyBrand, campaign: notifyCampaign }).catch(e => console.error('[campaigns] notify.campaignPaused error:', e.message));
+        } else if (newStatus === 'ended') {
+          notify.campaignEnded({ brand: notifyBrand, campaign: notifyCampaign }).catch(e => console.error('[campaigns] notify.campaignEnded error:', e.message));
+        }
       }
     } catch (notifyErr) {
       console.error('[campaigns] status notify lookup error:', notifyErr.message);
