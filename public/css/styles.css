@@ -487,7 +487,7 @@ h3 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -0.025em; }
 
 .kup-footer img[alt="KeepUsPostd"] {
   display: block;
-  margin-left: -8px;
+  margin-left: 0;
 }
 
 .footer-social {
@@ -495,7 +495,7 @@ h3 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -0.025em; }
   align-items: center;
   gap: 14px;
   margin-top: 8px;
-  margin-left: -2px;
+  margin-left: 0;
 }
 .footer-social a svg {
   display: block;
