@@ -1037,8 +1037,8 @@
               </svg>
             </div>
             <div class="payment-info">
-              <div class="method-name">PayPal <span class="connected-badge">Connected</span></div>
-              <div class="method-email" id="paypalEmail">santana@keepuspostd.com</div>
+              <div class="method-name">PayPal <span id="paypalStatus" class="connected-badge" style="display:none;">Connected</span></div>
+              <div class="method-email" id="paypalEmail" style="color:#999;">Not connected</div>
             </div>
           </div>
           <button class="btn-disconnect">Disconnect</button>
@@ -1059,54 +1059,9 @@
               </tr>
             </thead>
             <tbody id="billingHistoryBody">
-              <tr>
-                <td data-label="Date">Mar 3, 2026</td>
-                <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
-                <td data-label="Amount">$29.00</td>
-                <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-              </tr>
-              <tr>
-                <td data-label="Date">Feb 3, 2026</td>
-                <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
-                <td data-label="Amount">$29.00</td>
-                <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-              </tr>
-              <tr>
-                <td data-label="Date">Jan 3, 2026</td>
-                <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
-                <td data-label="Amount">$29.00</td>
-                <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-              </tr>
-              <tr>
-                <td data-label="Date">Dec 3, 2025</td>
-                <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
-                <td data-label="Amount">$29.00</td>
-                <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-              </tr>
-              <tr>
-                <td data-label="Date">Nov 3, 2025</td>
-                <td data-label="Description">Growth Plan &mdash; Monthly Subscription</td>
-                <td data-label="Amount">$29.00</td>
-                <td data-label="Status"><span class="status-badge completed">Completed</span></td>
-              </tr>
+              <tr><td colspan="4" style="text-align:center;padding:2rem;color:#999;">No billing history yet.</td></tr>
             </tbody>
           </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination-bar">
-          <div class="pagination-info">Showing 1&ndash;5 of 12 entries</div>
-          <div class="pagination-controls">
-            <button disabled aria-label="Previous page">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button aria-label="Next page">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1609,9 +1564,14 @@
         var billingPlanTitle = document.getElementById('billingPlanTitle');
         if (billingPlanTitle) billingPlanTitle.textContent = planDisplayName + (price ? ' \u2014 ' + price + '/month' : '');
 
-        // PayPal email
-        var paypalEmail = document.getElementById('paypalEmail');
-        if (paypalEmail) paypalEmail.textContent = email;
+        // PayPal — show Connected + email only if on a paid plan
+        var paypalEmailEl = document.getElementById('paypalEmail');
+        var paypalStatusEl = document.getElementById('paypalStatus');
+        var isPaid = planTier && planTier.toLowerCase() !== 'free';
+        if (isPaid) {
+          if (paypalEmailEl) { paypalEmailEl.textContent = email; paypalEmailEl.style.color = ''; }
+          if (paypalStatusEl) paypalStatusEl.style.display = '';
+        }
 
         // ── Team Members ──
         var activeBrandId = activeBrand ? activeBrand.mongoId : null;

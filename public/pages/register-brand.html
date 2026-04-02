@@ -88,7 +88,24 @@
             </div>
           </div>
 
-          <div class="form-card">
+          <!-- Already logged in — shown instead of form when session is active -->
+          <div id="alreadyLoggedIn" style="display:none;">
+            <div class="form-card" style="text-align:center;">
+              <div class="form-logo">
+                <a href="home.html">
+                  <img src="/images/kup_black_new_logo_2.png" alt="KeepUsPostd">
+                </a>
+              </div>
+              <div style="font-size:2rem;margin-bottom:12px;">👋</div>
+              <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">You're already signed in</h3>
+              <p id="alreadyLoggedInEmail" style="font-size:0.85rem;color:#666;margin-bottom:24px;"></p>
+              <a href="/app/manage-brands.html" class="btn-kup btn-kup-gradient" style="display:block;margin-bottom:12px;">Go to My Dashboard</a>
+              <a href="/app/add-brand.html" class="btn-kup btn-kup-outline-dark" style="display:block;margin-bottom:20px;">Add Another Brand</a>
+              <button onclick="kupSignOut()" style="background:none;border:none;color:#999;font-size:0.8rem;cursor:pointer;text-decoration:underline;">Sign out and create a new account</button>
+            </div>
+          </div>
+
+          <div class="form-card" id="registerFormCard">
 
             <!-- Logo -->
             <div class="form-logo">
@@ -178,6 +195,7 @@
             </p>
 
           </div>
+          </div><!-- /registerFormCard -->
 
           <!-- Back link -->
           <div class="text-center mt-3">
@@ -577,10 +595,15 @@
               return;
             }
 
-            // Default redirects for logged-in users without a specific type request
+            // Default: logged-in user with a brand — show the "already signed in" card
             if (!requestedType) {
               if (data.user?.hasBrandProfile) {
-                window.location.href = '/app/manage-brands.html';
+                var card = document.getElementById('alreadyLoggedIn');
+                var formCard = document.getElementById('registerFormCard');
+                var emailEl = document.getElementById('alreadyLoggedInEmail');
+                if (emailEl) emailEl.textContent = 'Signed in as ' + (data.user.email || user.email);
+                if (formCard) formCard.style.display = 'none';
+                if (card) card.style.display = 'block';
               }
             }
           }
