@@ -666,110 +666,177 @@
       z-index: 2;
     }
 
-    .recording-timer {
+    /* ── TikTok-style recording UI ── */
+
+    /* Right side panel */
+    .camera-side-panel {
+      position: fixed;
+      right: 16px;
+      bottom: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 22;
+    }
+    .camera-side-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .camera-side-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    .camera-side-item span {
+      font-size: 0.65rem;
       font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      margin-bottom: 24px;
+      color: rgba(255,255,255,0.8);
+      letter-spacing: 0.03em;
     }
 
-    .rec-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ef4444;
-      opacity: 0;
-      transition: opacity 0.2s;
+    /* Bottom overlay */
+    .camera-controls-overlay {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 24px max(32px, env(safe-area-inset-bottom));
+      padding-top: 60px;
+      z-index: 21;
+      background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%);
     }
 
-    .rec-dot.recording {
-      animation: livePulse 1s ease-in-out infinite;
-      opacity: 1;
+    .recording-for-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      margin: 0 0 6px;
+      letter-spacing: 0.03em;
+    }
+    .recording-for-text strong { color: #fff; }
+
+    .camera-label {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      margin: 0 0 20px;
+      transition: opacity 0.3s;
     }
 
-    .record-controls {
+    /* Ring + button row */
+    .record-row {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 32px;
-      margin-top: auto;
       margin-bottom: 16px;
+      width: 100%;
     }
 
-    .record-btn-wrap {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.4);
+    /* SVG progress ring wrapper */
+    .record-ring-wrap {
+      position: relative;
+      width: 100px;
+      height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
-    .record-btn-wrap.recording {
-      border-color: #ef4444;
-      box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.15), 0 0 40px rgba(239, 68, 68, 0.2);
+    .progress-ring {
+      position: absolute;
+      inset: -10px;
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg); /* start fill from top */
+      pointer-events: none;
     }
 
+    .progress-ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.2);
+      stroke-width: 4;
+    }
+
+    .progress-ring-fill {
+      fill: none;
+      stroke: #ef4444;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 339.29; /* 2π × 54 */
+      stroke-dashoffset: 339.29; /* starts empty */
+      transition: stroke-dashoffset 0.25s linear;
+    }
+
+    /* The actual record button inside the ring */
     .record-btn {
-      width: 68px;
-      height: 68px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       background: #ef4444;
-      border: none;
+      border: 4px solid rgba(255,255,255,0.9);
       cursor: pointer;
+      transition: border-radius 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                  width 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                  height 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                  transform 0.15s ease;
       position: relative;
-      transition: border-radius 0.25s ease, transform 0.15s ease, background 0.3s ease;
-      min-height: 44px;
+      z-index: 1;
     }
-
-    .record-btn:active {
-      transform: scale(0.93);
-    }
-
+    .record-btn:active { transform: scale(0.9); }
     .record-btn.recording {
-      border-radius: 12px;
-      width: 40px;
-      height: 40px;
-      background: #ef4444;
+      border-radius: 14px;
+      width: 36px;
+      height: 36px;
+      border-color: rgba(255,255,255,0.6);
     }
 
-    .record-secondary-controls {
+    /* Side action buttons (re-record / done) */
+    .side-action-btn {
       display: flex;
-      gap: 16px;
-      justify-content: center;
-    }
-
-    .btn-secondary {
-      padding: 14px 24px;
-      background: var(--kup-surface);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
       color: #fff;
       font-family: var(--kup-font);
-      font-size: 0.9rem;
+      font-size: 0.7rem;
       font-weight: 600;
-      border-radius: var(--kup-radius-sm);
       cursor: pointer;
-      min-height: 44px;
-      display: none;
+      letter-spacing: 0.03em;
+      transition: opacity 0.3s;
     }
-
-    .btn-secondary:active {
-      background: rgba(255, 255, 255, 0.1);
+    .side-action-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
     }
-
-    .btn-secondary.visible {
-      display: inline-flex;
-    }
-
-    .btn-done {
+    .btn-done-side .side-action-icon {
       background: #22c55e;
-      border-color: #22c55e;
     }
 
     /* Step 4: Reward */
@@ -970,39 +1037,77 @@
         </div>
       </div>
 
-      <!-- STEP 3: Recording (Full-Screen) -->
+      <!-- STEP 3: Recording (Full-Screen TikTok Style) -->
       <div id="recordStep3" class="record-step">
+
+        <!-- Live camera behind everything -->
         <div class="camera-preview">
           <video id="cameraStream" autoplay muted playsinline></video>
           <div class="camera-viewfinder-icon"><i class="ph ph-video-camera" style="font-size:2.4rem; color:rgba(255,255,255,0.2);"></i></div>
-          <div class="camera-label">Tap record to start</div>
         </div>
 
+        <!-- Top bar: back | timer+REC badge | flip -->
         <div class="camera-top-bar">
-          <button class="camera-close-btn" onclick="goToStep(2)"><i class="ph ph-x" style="font-size:1.2rem;"></i></button>
-          <div style="display:flex; align-items:center; gap:8px;">
+          <button class="camera-close-btn" onclick="goToStep(2)"><i class="ph ph-x" style="font-size:1.3rem;"></i></button>
+          <div style="display:flex;align-items:center;gap:8px;">
             <div class="camera-rec-badge" id="cameraRecBadge"><span class="rec-indicator"></span> REC</div>
-            <span id="cameraTimeBadge" style="font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.7); font-variant-numeric:tabular-nums;">0:00</span>
+            <span id="cameraTimeBadge" style="font-size:0.9rem;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.04em;">0:00</span>
           </div>
-          <button class="camera-close-btn" title="Flip camera"><i class="ph ph-camera-rotate" style="font-size:1.2rem;"></i></button>
+          <button class="camera-close-btn" id="flipBtn" onclick="flipCamera()"><i class="ph ph-camera-rotate" style="font-size:1.3rem;"></i></button>
         </div>
 
+        <!-- Right side panel (TikTok style) -->
+        <div class="camera-side-panel">
+          <div class="camera-side-item" onclick="flipCamera()">
+            <div class="camera-side-icon"><i class="ph ph-camera-rotate"></i></div>
+            <span>Flip</span>
+          </div>
+          <div class="camera-side-item" id="speedItem" onclick="cycleSpeed()">
+            <div class="camera-side-icon"><i class="ph ph-gauge"></i></div>
+            <span id="speedLabel">1×</span>
+          </div>
+        </div>
+
+        <!-- Bottom controls -->
         <div class="camera-controls-overlay">
-          <div style="margin-bottom:8px;">
-            <span style="font-size:0.75rem; font-weight:600; color:rgba(255,255,255,0.5);">Recording for <strong style="color:#fff;" id="recordingForLabel">Vegan Bites</strong></span>
-          </div>
-          <div class="record-controls" style="margin:0 0 6px;">
-            <div class="record-btn-wrap" id="recordBtnWrap">
-              <button class="record-btn" id="recordBtn" onclick="toggleRecording()"></button>
+
+          <!-- "Recording for Brand" -->
+          <p class="recording-for-text">Recording for <strong id="recordingForLabel">Brand</strong></p>
+
+          <!-- camera label (tap to record hint) -->
+          <p class="camera-label">Tap to record</p>
+
+          <!-- Progress ring + record button (center row) -->
+          <div class="record-row">
+
+            <!-- Re-record (left of ring) -->
+            <button class="side-action-btn" id="btnRerecord" onclick="reRecord()" style="visibility:hidden;">
+              <div class="side-action-icon"><i class="ph ph-arrow-counter-clockwise"></i></div>
+              <span>Re-record</span>
+            </button>
+
+            <!-- Ring + button -->
+            <div class="record-ring-wrap" id="recordBtnWrap" onclick="toggleRecording()">
+              <svg class="progress-ring" viewBox="0 0 120 120">
+                <!-- track -->
+                <circle class="progress-ring-track" cx="60" cy="60" r="54"/>
+                <!-- fill — animates via JS -->
+                <circle class="progress-ring-fill" cx="60" cy="60" r="54" id="recordProgressRing"/>
+              </svg>
+              <button class="record-btn" id="recordBtn"></button>
             </div>
+
+            <!-- Done (right of ring) -->
+            <button class="side-action-btn btn-done-side" id="btnDone" onclick="submitReview()" style="visibility:hidden;">
+              <div class="side-action-icon"><i class="ph ph-check-bold"></i></div>
+              <span>Done</span>
+            </button>
+
           </div>
-          <div style="text-align:center; margin-bottom:12px;">
-            <span id="timerDisplay" style="font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.5); font-variant-numeric:tabular-nums;">0:00 / 0:30</span>
-          </div>
-          <div class="record-secondary-controls">
-            <button class="btn-secondary" id="btnRerecord" onclick="reRecord()"><i class="ph ph-arrow-counter-clockwise" style="margin-right:6px;"></i> Re-record</button>
-            <button class="btn-secondary btn-done" id="btnDone" onclick="submitReview()"><i class="ph ph-check-circle" style="margin-right:6px;"></i> Done</button>
-          </div>
+
+          <!-- Hidden timer for JS compat -->
+          <span id="timerDisplay" style="display:none;">0:00 / 0:30</span>
+
         </div>
       </div>
 
@@ -1263,9 +1368,11 @@
       try {
         var videoEl = document.getElementById('cameraStream');
         cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
+          video: { facingMode: facingMode, width: { ideal: 720 }, height: { ideal: 1280 } },
           audio: true
         });
+        // Mirror only for front camera
+        videoEl.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'none';
         videoEl.srcObject = cameraStream;
         videoEl.style.display = 'block';
         var icon = document.querySelector('.camera-viewfinder-icon');
@@ -1298,10 +1405,25 @@
       if (!isRecording) { startRecording(); } else { stopRecording(); }
     }
 
+    /* ── Progress ring ── */
+    var RING_CIRC = 339.29; // 2π × 54
+    var RECORD_LIMIT = 30;
+    function updateProgressRing(seconds) {
+      var ring = document.getElementById('recordProgressRing');
+      if (!ring) return;
+      var pct = Math.min(seconds / RECORD_LIMIT, 1);
+      ring.style.strokeDashoffset = RING_CIRC * (1 - pct);
+    }
+    function resetProgressRing() {
+      var ring = document.getElementById('recordProgressRing');
+      if (ring) ring.style.strokeDashoffset = RING_CIRC;
+    }
+
     function startRecording() {
       recordedChunks = [];
       isRecording = true;
       recordSeconds = 0;
+      resetProgressRing();
 
       if (cameraStream) {
         try {
@@ -1316,17 +1438,17 @@
       }
 
       document.getElementById('recordBtn').classList.add('recording');
-      document.getElementById('recordBtnWrap').classList.add('recording');
       document.getElementById('cameraRecBadge').classList.add('visible');
-      document.querySelector('.camera-label').textContent = 'Recording...';
-      updateTimerDisplay();
+      var lbl = document.querySelector('.camera-label');
+      if (lbl) lbl.style.opacity = '0';
 
       recordingTimer = setInterval(function() {
         recordSeconds++;
-        updateTimerDisplay();
+        updateProgressRing(recordSeconds);
         var m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
         document.getElementById('cameraTimeBadge').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-        if (recordSeconds >= 30) stopRecording();
+        updateTimerDisplay();
+        if (recordSeconds >= RECORD_LIMIT) stopRecording();
       }, 1000);
     }
 
@@ -1335,26 +1457,40 @@
       clearInterval(recordingTimer);
       if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       document.getElementById('recordBtn').classList.remove('recording');
-      document.getElementById('recordBtnWrap').classList.remove('recording');
       document.getElementById('cameraRecBadge').classList.remove('visible');
-      document.querySelector('.camera-label').textContent = 'Review recorded!';
-      document.getElementById('btnRerecord').classList.add('visible');
-      document.getElementById('btnDone').classList.add('visible');
+      var lbl = document.querySelector('.camera-label');
+      if (lbl) { lbl.textContent = 'Tap Done to claim your reward!'; lbl.style.opacity = '1'; }
+      document.getElementById('btnRerecord').style.visibility = 'visible';
+      document.getElementById('btnDone').style.visibility = 'visible';
     }
 
     function reRecord() {
       recordSeconds = 0;
       recordedChunks = [];
       if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); mediaRecorder = null; }
+      resetProgressRing();
       updateTimerDisplay();
-      document.querySelector('.camera-label').textContent = 'Tap record to start';
-      document.getElementById('btnRerecord').classList.remove('visible');
-      document.getElementById('btnDone').classList.remove('visible');
+      var lbl = document.querySelector('.camera-label');
+      if (lbl) { lbl.textContent = 'Tap to record'; lbl.style.opacity = '1'; }
+      document.getElementById('btnRerecord').style.visibility = 'hidden';
+      document.getElementById('btnDone').style.visibility = 'hidden';
     }
 
     function updateTimerDisplay() {
       var m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
-      document.getElementById('timerDisplay').textContent = m + ':' + (s < 10 ? '0' : '') + s + ' / 0:30';
+      var el = document.getElementById('timerDisplay');
+      if (el) el.textContent = m + ':' + (s < 10 ? '0' : '') + s + ' / 0:30';
+    }
+
+    /* ── Flip camera ── */
+    var facingMode = 'user';
+    async function flipCamera() {
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      var wasRecording = isRecording;
+      if (wasRecording) stopRecording();
+      stopCamera();
+      await startCamera();
+      if (wasRecording) startRecording();
     }
 
     /* ── Submit review → get real reward code ── */
@@ -1390,7 +1526,7 @@
       } finally {
         if (btnDone) {
           btnDone.disabled = false;
-          btnDone.innerHTML = '<i class="ph ph-check-circle" style="margin-right:6px;"></i> Done';
+          btnDone.innerHTML = '<div class="side-action-icon"><i class="ph ph-check-bold"></i></div><span>Done</span>';
         }
       }
     }
@@ -1434,12 +1570,14 @@
       document.getElementById('recordBtnWrap').classList.remove('recording');
       document.getElementById('cameraRecBadge').classList.remove('visible');
       document.getElementById('cameraTimeBadge').textContent = '0:00';
-      document.querySelector('.camera-label').textContent = 'Tap record to start';
-      document.getElementById('btnRerecord').classList.remove('visible');
+      var lbl = document.querySelector('.camera-label');
+      if (lbl) { lbl.textContent = 'Tap to record'; lbl.style.opacity = '1'; }
+      document.getElementById('btnRerecord').style.visibility = 'hidden';
       var btnDone = document.getElementById('btnDone');
-      btnDone.classList.remove('visible');
+      btnDone.style.visibility = 'hidden';
       btnDone.disabled = false;
-      btnDone.innerHTML = '<i class="ph ph-check-circle" style="margin-right:6px;"></i> Done';
+      btnDone.innerHTML = '<div class="side-action-icon"><i class="ph ph-check-bold"></i></div><span>Done</span>';
+      resetProgressRing();
       updateTimerDisplay();
 
       for (var i = 1; i <= 4; i++) document.getElementById('recordStep' + i).classList.remove('active');
