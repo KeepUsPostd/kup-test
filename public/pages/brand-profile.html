@@ -284,15 +284,22 @@
       }
 
       function showBrand(brand) {
-        // Hero banner — use heroImageUrl if available
+        // Determine brand color for hero + button (falls back to KUP blue)
+        var colorPrimary = (brand.brandColors && brand.brandColors.primary) || brand.generatedColor || '#2ea5dd';
+        var colorSecondary = (brand.brandColors && brand.brandColors.secondary) || '#1a73b8';
+        var brandGradient = 'linear-gradient(135deg, ' + colorPrimary + ', ' + colorSecondary + ')';
+
+        // Hero banner — uploaded image takes priority; otherwise use brand colors
         if (brand.heroImageUrl) {
           heroBanner.src = brand.heroImageUrl;
           heroBanner.style.display = 'block';
-        } else if (brand.brandColors && brand.brandColors.primary) {
-          heroBg.style.background = 'linear-gradient(135deg, ' + brand.brandColors.primary + ', ' + (brand.brandColors.secondary || '#1a73b8') + ')';
-        } else if (brand.generatedColor) {
-          heroBg.style.background = 'linear-gradient(135deg, ' + brand.generatedColor + ', #1a73b8)';
+        } else {
+          heroBg.style.background = brandGradient;
         }
+
+        // Button matches brand colors
+        var joinBtn = document.getElementById('joinBtn');
+        if (joinBtn) joinBtn.style.background = brandGradient;
 
         // Avatar — circle with logo or initial
         var avatar = document.getElementById('brandAvatar');
