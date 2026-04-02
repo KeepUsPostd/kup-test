@@ -223,6 +223,33 @@ router.get('/:brandId/members', requireAuth, requireBrandRole('viewer'), async (
   }
 });
 
+// DELETE /api/brands/:brandId/members/:memberId — Remove a team member (owner/admin only)
+router.delete('/:brandId/members/:memberId', requireAuth, requireBrandRole('admin'), async (req, res) => {
+  try {
+    const member = await BrandMember.findOne({
+      _id: req.params.memberId,
+      brandId: req.params.brandId,
+    });
+
+    if (!member) {
+      return res.status(404).json({ error: 'Team member not found' });
+    }
+
+    if (member.role === 'owner') {
+      return res.status(400).json({ error: 'Cannot remove the brand owner' });
+    }
+
+    member.status = 'removed';
+    await member.save();
+
+    console.log(`🗑️ Team member ${req.params.memberId} removed from brand ${req.params.brandId}`);
+    res.json({ message: 'Team member removed' });
+  } catch (error) {
+    console.error('Remove member error:', error.message);
+    res.status(500).json({ error: 'Could not remove team member' });
+  }
+});
+
 // ── Claim Your Brand (public-facing) ──────────────────────
 // POST /api/brands/:id/claim — Submit a claim request for an admin brand
 router.post('/:id/claim', async (req, res) => {

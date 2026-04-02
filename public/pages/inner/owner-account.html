@@ -1184,59 +1184,8 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td data-label="Member">
-                  <div class="team-member-info">
-                    <div class="team-avatar bg-orange">ST</div>
-                    <span class="team-member-name">Santana Thrasybule</span>
-                  </div>
-                </td>
-                <td data-label="Email">santana@keepuspostd.com</td>
-                <td data-label="Role"><span class="role-badge role-owner">Owner</span></td>
-                <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-                <td data-label="Added">Jan 15, 2025</td>
-                <td data-label=""><button class="btn-remove" disabled title="Cannot remove owner">Remove</button></td>
-              </tr>
-              <tr>
-                <td data-label="Member">
-                  <div class="team-member-info">
-                    <div class="team-avatar bg-blue">MJ</div>
-                    <span class="team-member-name">Marcus Johnson</span>
-                  </div>
-                </td>
-                <td data-label="Email">marcus@keepuspostd.com</td>
-                <td data-label="Role"><span class="role-badge role-admin">Admin</span></td>
-                <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-                <td data-label="Added">Mar 8, 2025</td>
-                <td data-label=""><button class="btn-remove" onclick="removeMember(this, 'Marcus Johnson')">Remove</button></td>
-              </tr>
-              <tr>
-                <td data-label="Member">
-                  <div class="team-member-info">
-                    <div class="team-avatar bg-purple">JW</div>
-                    <span class="team-member-name">Jessica Williams</span>
-                  </div>
-                </td>
-                <td data-label="Email">jessica@keepuspostd.com</td>
-                <td data-label="Role"><span class="role-badge role-manager">Manager</span></td>
-                <td data-label="Status"><span class="status-badge active-status">Active</span></td>
-                <td data-label="Added">Jun 22, 2025</td>
-                <td data-label=""><button class="btn-remove" onclick="removeMember(this, 'Jessica Williams')">Remove</button></td>
-              </tr>
-              <tr>
-                <td data-label="Member">
-                  <div class="team-member-info">
-                    <div class="team-avatar bg-gray">AR</div>
-                    <span class="team-member-name">Alex Rivera</span>
-                  </div>
-                </td>
-                <td data-label="Email">alex@keepuspostd.com</td>
-                <td data-label="Role"><span class="role-badge role-viewer">Viewer</span></td>
-                <td data-label="Status"><span class="status-badge pending-status">Pending</span></td>
-                <td data-label="Added">Feb 28, 2026</td>
-                <td data-label=""><button class="btn-remove" onclick="removeMember(this, 'Alex Rivera')">Remove</button></td>
-              </tr>
+            <tbody id="teamTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:#999;">Loading team members...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1484,6 +1433,72 @@
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
+    /* ============== TEAM MEMBERS (Real API) ============== */
+    async function loadTeamMembers(brandId) {
+      var tbody = document.getElementById('teamTableBody');
+      var countEl = document.getElementById('teamMemberCount');
+      if (!tbody) return;
+
+      try {
+        var data = await kupApi.get('/api/brands/' + brandId + '/members');
+        var members = data.members || [];
+
+        if (members.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#999;">No team members yet. Invite someone above to get started.</td></tr>';
+          if (countEl) countEl.textContent = '0 members on your team';
+          return;
+        }
+
+        if (countEl) countEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '') + ' on your team';
+
+        var colors = ['bg-blue', 'bg-purple', 'bg-orange', 'bg-gray'];
+        tbody.innerHTML = members.map(function(m, i) {
+          var user = m.userId || {};
+          var firstName = user.legalFirstName || '';
+          var lastName = user.legalLastName || '';
+          var fullName = (firstName + ' ' + lastName).trim() || 'Team Member';
+          var email = user.email || '—';
+          var initials = getInitials(fullName) || '?';
+          var role = capitalize(m.role || 'viewer');
+          var status = m.status || 'active';
+          var statusClass = status === 'active' ? 'badge-success' : status === 'pending' ? 'badge-warning' : 'badge-muted';
+          var statusLabel = capitalize(status);
+          var added = m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+          var colorClass = colors[i % colors.length];
+
+          return '<tr>' +
+            '<td><div style="display:flex;align-items:center;gap:10px;">' +
+              '<div class="team-avatar ' + colorClass + '">' + initials + '</div>' +
+              '<span style="font-weight:600;">' + fullName + '</span>' +
+            '</div></td>' +
+            '<td style="color:#666;">' + email + '</td>' +
+            '<td>' + role + '</td>' +
+            '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+            '<td style="color:#888;font-size:0.85rem;">' + added + '</td>' +
+            '<td><button class="btn-text-danger" onclick="removeMember(\'' + (m._id || '') + '\')" style="background:none;border:none;color:#e74c3c;font-size:0.8rem;cursor:pointer;padding:4px 8px;">Remove</button></td>' +
+          '</tr>';
+        }).join('');
+
+      } catch (err) {
+        console.error('loadTeamMembers error:', err);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#999;">Could not load team members.</td></tr>';
+      }
+    }
+
+    async function removeMember(memberId) {
+      if (!memberId || !confirm('Remove this team member?')) return;
+      try {
+        var activeBrand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        var brandId = activeBrand ? activeBrand.mongoId : null;
+        if (!brandId) { kupToast('No active brand found', 'error'); return; }
+        await kupApi.delete('/api/brands/' + brandId + '/members/' + memberId);
+        kupToast('Team member removed', 'success');
+        if (brandId) loadTeamMembers(brandId);
+      } catch (err) {
+        kupToast('Could not remove member: ' + (err.message || 'Unknown error'), 'error');
+      }
+    }
+
     /* ============== LOAD OWNER ACCOUNT (Real API) ============== */
     async function loadOwnerAccount() {
       try {
@@ -1598,6 +1613,18 @@
         var paypalEmail = document.getElementById('paypalEmail');
         if (paypalEmail) paypalEmail.textContent = email;
 
+        // ── Team Members ──
+        var activeBrandId = activeBrand ? activeBrand.mongoId : null;
+        if (!activeBrandId && brandsData && brandsData.brands && brandsData.brands.length > 0) {
+          activeBrandId = brandsData.brands[0]._id;
+        }
+        if (activeBrandId) {
+          loadTeamMembers(activeBrandId);
+        } else {
+          var tbody = document.getElementById('teamTableBody');
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#999;">No brand found. Create a brand to manage team members.</td></tr>';
+        }
+
       } catch (err) {
         console.error('loadOwnerAccount error:', err);
         kupToast('Failed to load account data', 'error');
@@ -1706,13 +1733,10 @@
               }
               // Update avatars on page regardless
               var profileAvatar = document.getElementById('profileAvatar');
-              var headerAvatar = document.getElementById('headerAvatar');
               if (profileAvatar) {
                 profileAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
               }
-              if (headerAvatar) {
-                headerAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-              }
+              // headerAvatar (top-right nav) always shows brand logo — do not update here
               kupToast('Profile photo updated!', 'success');
             } else {
               console.error('Upload response missing urls:', result);
