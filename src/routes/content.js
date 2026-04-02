@@ -154,6 +154,93 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// ── Public Feed Endpoints ────────────────────────────────────────────────────
+
+// GET /api/content/feed — Platform-wide approved content for the "For You" feed
+// No auth required — Apple reviewers with any account (or none) see real content
+router.get('/feed', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const submissions = await ContentSubmission.find({ status: 'approved' })
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus')
+      .populate('brandId', 'name logoUrl generatedColor')
+      .sort({ approvedAt: -1, submittedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const feed = submissions.map(s => ({
+      _id:         s._id,
+      displayName: s.influencerProfileId?.displayName || 'Creator',
+      handle:      s.influencerProfileId?.handle || 'creator',
+      avatarUrl:   s.influencerProfileId?.avatarUrl || null,
+      verified:    s.influencerProfileId?.verificationStatus === 'verified',
+      caption:     s.caption || '',
+      brandName:   s.brandId?.name || 'Brand',
+      brandLogo:   s.brandId?.logoUrl || null,
+      brandColor:  s.brandId?.generatedColor || '#1A1A1A',
+      mediaUrls:   s.mediaUrls || [],
+      contentType: s.contentType,
+      likes:       s.metrics?.likes || 0,
+      comments:    s.metrics?.comments || 0,
+      shares:      s.metrics?.shares || 0,
+    }));
+
+    res.json({ feed, page, hasMore: submissions.length === limit });
+  } catch (error) {
+    console.error('[GET /content/feed]', error.message);
+    res.status(500).json({ error: 'Could not load feed' });
+  }
+});
+
+// GET /api/content/mine — Current influencer's own approved submissions (Following tab)
+router.get('/mine', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) return res.json({ submissions: [] });
+
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+    const statusFilter = req.query.status ? { status: req.query.status } : {};
+
+    const submissions = await ContentSubmission.find({
+      influencerProfileId: influencer._id,
+      ...statusFilter,
+    })
+      .populate('brandId', 'name logoUrl generatedColor')
+      .sort({ submittedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const result = submissions.map(s => ({
+      _id:         s._id,
+      displayName: influencer.displayName || req.user.firstName || 'You',
+      handle:      influencer.handle || 'me',
+      avatarUrl:   influencer.avatarUrl || null,
+      verified:    influencer.verificationStatus === 'verified',
+      caption:     s.caption || '',
+      brandName:   s.brandId?.name || 'Brand',
+      brandLogo:   s.brandId?.logoUrl || null,
+      brandColor:  s.brandId?.generatedColor || '#1A1A1A',
+      mediaUrls:   s.mediaUrls || [],
+      contentType: s.contentType,
+      likes:       s.metrics?.likes || 0,
+      comments:    s.metrics?.comments || 0,
+      shares:      s.metrics?.shares || 0,
+    }));
+
+    res.json({ submissions: result });
+  } catch (error) {
+    console.error('[GET /content/mine]', error.message);
+    res.status(500).json({ error: 'Could not load your content' });
+  }
+});
+
 // GET /api/content?brandId=xxx — List content for a brand
 // Optional filters: ?status=submitted&campaignId=xxx
 router.get('/', requireAuth, async (req, res) => {
