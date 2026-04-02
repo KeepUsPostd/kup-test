@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifications — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .verification-cards { display: flex; flex-direction: column; gap: 16px; }
+    .verification-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border: 1px solid #f0f0f0;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .verification-card.removing { opacity: 0; transform: translateY(-8px); }
+    .card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .card-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, #3b7df8, #9747ff);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 20px; font-weight: 700; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .card-name { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 2px; }
+    .card-handles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .card-handle-link {
+      font-size: 12px; font-weight: 600; color: #3b7df8;
+      background: #f0f4ff; border-radius: 20px; padding: 3px 10px;
+      text-decoration: none;
+    }
+    .card-handle-link:hover { background: #dde9ff; }
+    .card-meta { font-size: 12px; color: #888; margin-bottom: 14px; }
+    .card-meta strong { color: #444; }
+    .follower-input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .follower-input-row label { font-size: 13px; font-weight: 600; color: #444; white-space: nowrap; }
+    .follower-input-row input {
+      flex: 1; border: 1.5px solid #e5e7eb; border-radius: 8px;
+      padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .follower-input-row input:focus { border-color: #3b7df8; }
+    .card-actions { display: flex; gap: 10px; }
+    .btn-approve {
+      flex: 1; background: #34c759; color: #fff; border: none;
+      border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-approve:hover { background: #28a745; }
+    .btn-reject {
+      flex: 1; background: #fff; color: #ff3b30; border: 1.5px solid #ff3b30;
+      border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-reject:hover { background: #fff5f5; }
+    .reject-reason-row { margin-top: 10px; display: none; }
+    .reject-reason-row input {
+      width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px;
+      padding: 8px 12px; font-size: 13px; font-family: inherit; outline: none;
+      box-sizing: border-box; margin-bottom: 8px;
+    }
+    .reject-reason-row input:focus { border-color: #ff3b30; }
+    .btn-reject-confirm {
+      width: 100%; background: #ff3b30; color: #fff; border: none;
+      border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-reject-confirm:hover { background: #e0281e; }
+    .empty-state { text-align: center; padding: 64px 24px; color: #999; }
+    .empty-state .check-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; font-weight: 500; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #111; color: #fff; padding: 12px 20px;
+      border-radius: 12px; font-size: 14px; font-weight: 600;
+      z-index: 999; opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .nav-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #ff3b30; color: #fff; font-size: 10px; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px;
+      margin-left: 6px; vertical-align: middle;
+    }
+    @media (min-width: 640px) {
+      .verification-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <a href="/pages/admin/verifications.html" class="active"><span class="nav-icon">&#10003;</span> Verifications <span class="nav-badge" id="sidebarBadge" style="display:none"></span></a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Verifications <span id="pageCount" style="color:#999;font-size:14px;font-weight:400"></span></h2>
+      <div class="header-actions">
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Pending Verification Queue</h3>
+          <span style="font-size:12px;color:#999">Auto-refreshes every 60 seconds</span>
+        </div>
+        <div id="cardsContainer">
+          <p style="text-align:center;color:#999;padding:32px">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null;
+    let refreshTimer = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadVerifications();
+      loadCount();
+      refreshTimer = setInterval(() => { loadVerifications(); loadCount(); }, 60000);
+    });
+
+    async function apiFetch(path, options = {}) {
+      const res = await fetch('/api/admin-panel' + path, {
+        ...options,
+        headers: {
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      if (res.status === 403) throw new Error('Forbidden');
+      if (!res.ok) throw new Error('API error ' + res.status);
+      return res.json();
+    }
+
+    async function loadCount() {
+      try {
+        const data = await apiFetch('/verifications/count');
+        const badge = document.getElementById('sidebarBadge');
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (_) {}
+    }
+
+    async function loadVerifications() {
+      try {
+        const items = await apiFetch('/verifications/pending');
+        const container = document.getElementById('cardsContainer');
+        const countEl = document.getElementById('pageCount');
+
+        if (items.length === 0) {
+          countEl.textContent = '';
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="check-icon">&#10003;</div>
+              <p>No pending verifications</p>
+              <p style="font-size:13px;margin-top:4px">All caught up!</p>
+            </div>`;
+          return;
+        }
+
+        countEl.textContent = `(${items.length} pending)`;
+        container.innerHTML = '<div class="verification-cards" id="verificationCards"></div>';
+        const cards = document.getElementById('verificationCards');
+        items.forEach(item => cards.appendChild(buildCard(item)));
+      } catch (err) {
+        document.getElementById('cardsContainer').innerHTML =
+          `<p style="color:#ff3b30;padding:24px;text-align:center">Failed to load verifications</p>`;
+      }
+    }
+
+    function buildCard(item) {
+      const div = document.createElement('div');
+      div.className = 'verification-card';
+      div.id = 'card-' + item._id;
+
+      const handles = item.pendingVerificationData?.handles || {};
+      const followerCount = item.pendingVerificationData?.followerCount || 0;
+      const submittedAt = item.verificationPendingAt
+        ? new Date(item.verificationPendingAt).toLocaleString()
+        : 'Unknown';
+      const email = item.userId?.email || '';
+
+      // Avatar
+      const initials = (item.displayName || 'U').substring(0, 2).toUpperCase();
+      const avatarHtml = item.avatarUrl
+        ? `<img src="${escHtml(item.avatarUrl)}" alt="" onerror="this.style.display='none'">`
+        : escHtml(initials);
+
+      // Handle links
+      const handleLinks = Object.entries(handles).map(([platform, handle]) => {
+        const cleanHandle = String(handle).replace(/^@/, '');
+        let url = '#';
+        if (platform === 'instagram') url = `https://instagram.com/${cleanHandle}`;
+        else if (platform === 'tiktok') url = `https://tiktok.com/@${cleanHandle}`;
+        else if (platform === 'youtube') url = `https://youtube.com/@${cleanHandle}`;
+        else if (platform === 'twitter') url = `https://x.com/${cleanHandle}`;
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="card-handle-link">${escHtml(platform)}: @${escHtml(cleanHandle)}</a>`;
+      }).join('');
+
+      div.innerHTML = `
+        <div class="card-top">
+          <div class="card-avatar">${avatarHtml}</div>
+          <div>
+            <div class="card-name">${escHtml(item.displayName)}</div>
+            <div style="font-size:12px;color:#888">@${escHtml(item.handle)} &bull; ${escHtml(email)}</div>
+          </div>
+        </div>
+        <div class="card-handles">${handleLinks || '<span style="color:#999;font-size:12px">No handles provided</span>'}</div>
+        <div class="card-meta">
+          <strong>Self-reported followers:</strong> ${followerCount.toLocaleString()}<br>
+          <strong>Submitted:</strong> ${submittedAt}
+        </div>
+        <div class="follower-input-row">
+          <label for="followers-${item._id}">Approve with count:</label>
+          <input type="number" id="followers-${item._id}" value="${followerCount}" min="0">
+        </div>
+        <div class="card-actions">
+          <button class="btn-approve" onclick="approveCard('${item._id}')">&#10003; Approve</button>
+          <button class="btn-reject" onclick="toggleRejectReason('${item._id}')">&#10007; Reject</button>
+        </div>
+        <div class="reject-reason-row" id="reject-row-${item._id}">
+          <input type="text" id="reject-reason-${item._id}" placeholder="Optional reason (shown to user)...">
+          <button class="btn-reject-confirm" onclick="rejectCard('${item._id}')">Confirm Rejection</button>
+        </div>
+      `;
+      return div;
+    }
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function toggleRejectReason(id) {
+      const row = document.getElementById('reject-row-' + id);
+      row.style.display = row.style.display === 'block' ? 'none' : 'block';
+    }
+
+    async function approveCard(id) {
+      const input = document.getElementById('followers-' + id);
+      const followerCount = parseInt(input?.value || '0', 10);
+      if (isNaN(followerCount) || followerCount < 0) {
+        showToast('Enter a valid follower count');
+        return;
+      }
+      try {
+        const data = await apiFetch('/verifications/' + id + '/approve', {
+          method: 'POST',
+          body: JSON.stringify({ followerCount }),
+        });
+        removeCard(id);
+        showToast('Approved! Tier: ' + (data.tier || ''));
+        loadCount();
+      } catch (err) {
+        showToast('Approval failed — try again');
+      }
+    }
+
+    async function rejectCard(id) {
+      const reasonInput = document.getElementById('reject-reason-' + id);
+      const reason = reasonInput?.value?.trim() || '';
+      try {
+        await apiFetch('/verifications/' + id + '/reject', {
+          method: 'POST',
+          body: JSON.stringify({ reason }),
+        });
+        removeCard(id);
+        showToast('Verification rejected');
+        loadCount();
+      } catch (err) {
+        showToast('Rejection failed — try again');
+      }
+    }
+
+    function removeCard(id) {
+      const card = document.getElementById('card-' + id);
+      if (!card) return;
+      card.classList.add('removing');
+      setTimeout(() => {
+        card.remove();
+        // If no cards left, show empty state
+        const cards = document.getElementById('verificationCards');
+        if (cards && cards.children.length === 0) {
+          document.getElementById('cardsContainer').innerHTML = `
+            <div class="empty-state">
+              <div class="check-icon">&#10003;</div>
+              <p>No pending verifications</p>
+              <p style="font-size:13px;margin-top:4px">All caught up!</p>
+            </div>`;
+          document.getElementById('pageCount').textContent = '';
+        } else if (cards) {
+          const remaining = cards.children.length;
+          document.getElementById('pageCount').textContent = `(${remaining} pending)`;
+        }
+      }, 400);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

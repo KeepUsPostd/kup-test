@@ -8,6 +8,7 @@ const { requireAuth } = require('../middleware/auth');
 const { User, InfluencerProfile, BrandProfile } = require('../models');
 const notify = require('../services/notifications');
 const { startTrial } = require('../services/trial');
+const { sendPushToUser } = require('../config/push');
 
 // POST /api/auth/register
 // Called after Firebase client-side auth succeeds
@@ -725,54 +726,46 @@ router.post('/social-verify', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Influencer profile not found' });
     }
 
-    const tier = tierFromFollowers(count);
-
     // Save social handles — merge with any existing
     const currentLinks = influencer.socialLinks ? Object.fromEntries(influencer.socialLinks) : {};
     const updatedLinks = { ...currentLinks, ...handles };
     influencer.socialLinks = updatedLinks;
 
-    // Update influence data
-    influencer.influenceTier = tier.key;
-    influencer.realFollowerCount = count;
-    influencer.isVerified = true;
-    influencer.verifiedAt = influencer.verifiedAt || new Date();
-    influencer.lastVerificationAt = new Date();
-    if (engagementRate != null) {
-      influencer.engagementRate = parseFloat(engagementRate);
-    }
+    // Mark as pending review instead of instantly verifying
+    influencer.verificationPending = true;
+    influencer.verificationPendingAt = new Date();
+    influencer.pendingVerificationData = {
+      handles,
+      followerCount: count,
+      engagementRate: engagementRate || null,
+    };
+    // Do NOT change isVerified or influenceTier here — admin approves those
 
     await influencer.save();
 
-    // Notify: social influence verified
+    // Push-notify all admin users
     try {
-      await notify.socialInfluenceVerified({
-        userId: req.user._id,
-        email: req.user.email,
-        displayName: influencer.displayName,
-        tier: tier.displayName,
-        followerCount: count,
-      });
-    } catch (notifErr) {
-      console.warn('⚠️  Social verify notification failed:', notifErr.message);
+      const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (adminEmails.length > 0) {
+        const adminUsers = await User.find({ email: { $in: adminEmails } }).select('_id').lean();
+        const firstHandle = Object.values(handles)[0];
+        await Promise.allSettled(
+          adminUsers.map(adminUser =>
+            sendPushToUser(adminUser._id, {
+              title: '🔔 New Verification Request',
+              body: `${influencer.displayName} (@${firstHandle}) submitted for review`,
+              data: { type: 'verification_pending', influencerProfileId: influencer._id.toString() },
+            })
+          )
+        );
+      }
+    } catch (pushErr) {
+      console.warn('⚠️  Admin push notification failed:', pushErr.message);
     }
 
-    const platformCount = Object.keys(updatedLinks).length;
-    const engRate = influencer.engagementRate;
-
     res.json({
-      verified: true,
-      tier: tier.displayName,
-      tierKey: tier.key,
-      tierRange: tier.range,
-      realFollowers: count,
-      engagementRate: engRate,
-      platforms: platformCount,
-      realFollowersPct: 92,   // Placeholder until real API analysis
-      suspiciousPct: 5,
-      inactivePct: 3,
-      payRates: { video: tier.video, image: tier.image },
-      verifiedAt: influencer.lastVerificationAt,
+      pending: true,
+      message: 'Your verification is under review. We\'ll notify you once approved.',
     });
   } catch (error) {
     console.error('Social verify error:', error.message);
@@ -792,6 +785,9 @@ router.get('/social-verify/status', requireAuth, async (req, res) => {
     }
 
     if (!influencer.isVerified) {
+      if (influencer.verificationPending) {
+        return res.json({ verified: false, pending: true });
+      }
       return res.json({ verified: false });
     }
 
@@ -832,18 +828,16 @@ router.delete('/account', requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Delete all associated data in parallel
-    const Content = require('../models/Content');
+    const ContentSubmission = require('../models/ContentSubmission');
     const Partnership = require('../models/Partnership');
-    const KioskSession = require('../models/KioskSession');
     const SavedContent = require('../models/SavedContent');
 
     await Promise.allSettled([
       InfluencerProfile.deleteOne({ userId }),
       BrandProfile.deleteMany({ ownerId: userId }),
-      Content.deleteMany({ userId }),
+      ContentSubmission.deleteMany({ influencerProfileId: { $in: await InfluencerProfile.find({ userId }).distinct('_id') } }),
       Partnership.deleteMany({ influencerId: userId }),
       SavedContent.deleteMany({ userId }),
-      KioskSession.deleteMany({ userId }),
     ]);
 
     // Send confirmation email before deleting user record

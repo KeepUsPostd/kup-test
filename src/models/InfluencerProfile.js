@@ -35,6 +35,10 @@ const influencerProfileSchema = new mongoose.Schema({
   realFollowerCount: { type: Number, default: null },
   influenceScore: { type: Number, default: null, min: 0, max: 100 },
   isVerified: { type: Boolean, default: false },
+  verificationPending: { type: Boolean, default: false },
+  verificationPendingAt: { type: Date, default: null },
+  pendingVerificationData: { type: mongoose.Schema.Types.Mixed, default: null },
+  // stores: { handles: {instagram, tiktok, etc}, followerCount: number, engagementRate: number }
   verifiedAt: { type: Date, default: null },
   lastVerificationAt: { type: Date, default: null },
 

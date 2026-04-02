@@ -11,6 +11,22 @@ const {
   GuestReviewer, Notification, Reward, Withdrawal, ClaimRequest,
 } = require('../models');
 const notify = require('../services/notifications');
+const { sendPushToUser } = require('../config/push');
+
+// ── Tier Thresholds (copied from auth.js) ─────────────────
+const TIER_THRESHOLDS = [
+  { key: 'celebrity',   min: 5_000_000, displayName: 'Celebrity',  range: '5M+',         video: 45, image: 23 },
+  { key: 'premium',     min: 1_000_000, displayName: 'Mega',        range: '1M–5M',       video: 33, image: 15 },
+  { key: 'established', min: 500_000,   displayName: 'Macro',       range: '500K–1M',     video: 25, image: 12 },
+  { key: 'rising',      min: 50_000,    displayName: 'Mid',         range: '50K–500K',    video: 18, image: 9  },
+  { key: 'micro',       min: 10_000,    displayName: 'Micro',       range: '10K–50K',     video: 11, image: 6  },
+  { key: 'nano',        min: 5_000,     displayName: 'Nano',        range: '5K–10K',      video: 8,  image: 4  },
+  { key: 'unverified',  min: 0,         displayName: 'Startup',     range: '0–5K',        video: 4,  image: 2  },
+];
+
+function tierFromFollowers(count) {
+  return TIER_THRESHOLDS.find(t => count >= t.min) || TIER_THRESHOLDS[TIER_THRESHOLDS.length - 1];
+}
 
 // ── Admin Auth Middleware ──────────────────────────────────
 function requireAdmin(req, res, next) {
@@ -997,6 +1013,141 @@ router.post('/bonus', async (req, res) => {
   } catch (error) {
     console.error('Bonus payment error:', error);
     res.status(500).json({ error: 'Failed to create bonus payment' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// MODULE: SOCIAL VERIFICATION QUEUE
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/admin-panel/verifications/count — Count of pending verifications
+router.get('/verifications/count', async (req, res) => {
+  try {
+    const count = await InfluencerProfile.countDocuments({ verificationPending: true });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch verification count' });
+  }
+});
+
+// GET /api/admin-panel/verifications/pending — All pending verification requests
+router.get('/verifications/pending', async (req, res) => {
+  try {
+    const pending = await InfluencerProfile.find({ verificationPending: true })
+      .populate('userId', 'email legalFirstName legalLastName')
+      .sort({ verificationPendingAt: 1 })
+      .lean();
+
+    const results = pending.map(inf => ({
+      _id: inf._id,
+      displayName: inf.displayName,
+      handle: inf.handle,
+      avatarUrl: inf.avatarUrl || null,
+      pendingVerificationData: inf.pendingVerificationData || {},
+      verificationPendingAt: inf.verificationPendingAt,
+      userId: inf.userId,
+    }));
+
+    res.json(results);
+  } catch (error) {
+    console.error('Fetch pending verifications error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch pending verifications' });
+  }
+});
+
+// POST /api/admin-panel/verifications/:id/approve — Approve a verification
+router.post('/verifications/:id/approve', async (req, res) => {
+  try {
+    const { followerCount } = req.body;
+    const count = parseInt(followerCount, 10);
+    if (isNaN(count) || count < 0) {
+      return res.status(400).json({ error: 'Valid followerCount is required' });
+    }
+
+    const influencer = await InfluencerProfile.findById(req.params.id);
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    const tier = tierFromFollowers(count);
+
+    influencer.isVerified = true;
+    influencer.verificationPending = false;
+    influencer.influenceTier = tier.key;
+    influencer.realFollowerCount = count;
+    influencer.verifiedAt = influencer.verifiedAt || new Date();
+    influencer.lastVerificationAt = new Date();
+    influencer.pendingVerificationData = null;
+
+    // Preserve engagement rate from pending data if present
+    if (influencer.pendingVerificationData?.engagementRate != null) {
+      influencer.engagementRate = parseFloat(influencer.pendingVerificationData.engagementRate);
+    }
+
+    await influencer.save();
+
+    // Send push to influencer user
+    try {
+      await sendPushToUser(influencer.userId, {
+        title: '✅ You\'re Verified!',
+        body: `Welcome to the ${tier.displayName} tier! Brands can now see your verified status.`,
+        data: { type: 'verification_approved', tier: tier.key },
+      });
+    } catch (pushErr) {
+      console.warn('Push notify failed (approve):', pushErr.message);
+    }
+
+    // Send email notification if available
+    try {
+      const user = await User.findById(influencer.userId).select('email').lean();
+      if (user && notify.socialInfluenceVerified) {
+        await notify.socialInfluenceVerified({
+          userId: influencer.userId,
+          email: user.email,
+          displayName: influencer.displayName,
+          tier: tier.displayName,
+          followerCount: count,
+        });
+      }
+    } catch (notifErr) {
+      console.warn('Email notify failed (approve):', notifErr.message);
+    }
+
+    res.json({ success: true, tier: tier.displayName, tierKey: tier.key });
+  } catch (error) {
+    console.error('Approve verification error:', error.message);
+    res.status(500).json({ error: 'Failed to approve verification' });
+  }
+});
+
+// POST /api/admin-panel/verifications/:id/reject — Reject a verification
+router.post('/verifications/:id/reject', async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const influencer = await InfluencerProfile.findById(req.params.id);
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    influencer.verificationPending = false;
+    influencer.pendingVerificationData = null;
+
+    await influencer.save();
+
+    // Send push to influencer user
+    try {
+      await sendPushToUser(influencer.userId, {
+        title: 'Verification Update',
+        body: reason
+          ? `Your verification needs attention: ${reason}`
+          : 'Your verification request needs more information. Please resubmit.',
+        data: { type: 'verification_rejected' },
+      });
+    } catch (pushErr) {
+      console.warn('Push notify failed (reject):', pushErr.message);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reject verification error:', error.message);
+    res.status(500).json({ error: 'Failed to reject verification' });
   }
 });
 
