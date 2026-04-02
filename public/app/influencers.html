@@ -2664,12 +2664,41 @@
       var msgEdit = document.getElementById('autoMsgEdit');
       if (msgEdit && ab.name) msgEdit.value = msgEdit.value.replace('{brand name}', ab.name);
 
-      // Market link — use @handle or brand code
-      var link = ab.brandHandle
-        ? 'https://keepuspostd.com/@' + ab.brandHandle
-        : (ab.kioskBrandCode ? 'https://keepuspostd.com/brand/' + ab.kioskBrandCode : '');
+      // Market link — prefer @handle, then kiosk code, then fetch from API if both missing
+      var brandId = ab.mongoId || ab.id;
       var linkInput = document.getElementById('inviteLinkInput');
-      if (linkInput && link) linkInput.value = link;
+
+      function applyLink(handle, code) {
+        var link = handle
+          ? 'https://keepuspostd.com/@' + handle
+          : (code ? 'https://keepuspostd.com/brand/' + code : '');
+        if (linkInput && link) linkInput.value = link;
+      }
+
+      if (ab.brandHandle || ab.kioskBrandCode) {
+        applyLink(ab.brandHandle, ab.kioskBrandCode);
+      } else if (brandId) {
+        // Fields not cached — fetch full brand from API to get handle/code
+        (typeof getAuthToken === 'function' ? getAuthToken() : Promise.resolve(null))
+          .then(function(token) {
+            return fetch('/api/brands/' + brandId, {
+              headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+            });
+          })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (!data) return;
+            var brand = data.brand || data;
+            // Cache these fields so future opens are instant
+            ab.kioskBrandCode = brand.kioskBrandCode;
+            ab.brandHandle = brand.brandHandle;
+            if (typeof KUP_BRAND_CONTEXT !== 'undefined' && KUP_BRAND_CONTEXT.setActiveBrand) {
+              KUP_BRAND_CONTEXT.setActiveBrand(ab);
+            }
+            applyLink(brand.brandHandle, brand.kioskBrandCode);
+          })
+          .catch(function() {});
+      }
     }
 
     // Open from toolbar buttons (both tabs have one)
