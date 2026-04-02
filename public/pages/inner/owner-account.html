@@ -946,7 +946,7 @@
     <!-- Current Plan -->
     <div class="current-plan-bar">
       <span class="plan-label">Your Current Plan:</span>
-      <span class="plan-name" id="currentPlanName">Growth Plan</span>
+      <span class="plan-name" id="currentPlanName">Loading...</span>
     </div>
 
     <!-- Tabs -->
@@ -1018,8 +1018,8 @@
         <div class="card-title">Current Plan</div>
         <div class="plan-detail-row">
           <div class="plan-info">
-            <h3 id="billingPlanTitle">Growth Plan &mdash; $29/month</h3>
-            <p id="billingNextDate">Next billing date: April 3, 2026</p>
+            <h3 id="billingPlanTitle">Loading...</h3>
+            <p id="billingNextDate"></p>
           </div>
           <a href="pricing-upgrade.html" class="btn-upgrade-sm">Upgrade Plan</a>
         </div>
@@ -1389,6 +1389,72 @@
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
+    /* ============== BILLING DATA (Real API) ============== */
+    async function loadBillingData() {
+      try {
+        var data = await kupApi.get('/api/billing/subscription');
+
+        var planTier = (data.plan || 'starter').toLowerCase();
+        var planNames = { starter: 'Starter', growth: 'Growth', pro: 'Pro', agency: 'Agency', enterprise: 'Enterprise' };
+        var planPrices = { starter: 0, growth: 29, pro: 79, agency: 149, enterprise: null };
+        var planName = (planNames[planTier] || capitalize(planTier)) + ' Plan';
+
+        // Current plan bar
+        var currentPlanName = document.getElementById('currentPlanName');
+        if (currentPlanName) currentPlanName.textContent = planName;
+
+        // Plan title + price
+        var billingPlanTitle = document.getElementById('billingPlanTitle');
+        if (billingPlanTitle) {
+          var price = planPrices[planTier];
+          var cycle = data.subscription && data.subscription.billingCycle === 'annual' ? '/year' : '/month';
+          if (price === 0) {
+            billingPlanTitle.textContent = planName + ' \u2014 Free';
+          } else if (price === null) {
+            billingPlanTitle.textContent = planName + ' \u2014 Custom Pricing';
+          } else {
+            billingPlanTitle.textContent = planName + ' \u2014 $' + price + cycle;
+          }
+        }
+
+        // Next billing date
+        var billingNextDate = document.getElementById('billingNextDate');
+        if (billingNextDate) {
+          if (data.subscription && data.subscription.currentPeriodEnd) {
+            var d = new Date(data.subscription.currentPeriodEnd);
+            billingNextDate.textContent = 'Next billing date: ' + d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          } else if (data.trial && data.trial.active) {
+            var trialEnd = new Date(data.trial.trialEndsAt);
+            billingNextDate.textContent = 'Free trial ends: ' + trialEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          } else {
+            billingNextDate.textContent = '';
+          }
+        }
+
+        // PayPal — only show Connected if subscription has a real PayPal payer email
+        var paypalEmailEl = document.getElementById('paypalEmail');
+        var paypalStatusEl = document.getElementById('paypalStatus');
+        var paypalDisconnect = document.getElementById('paypalDisconnect');
+        var paypalEmail = data.subscription && data.subscription.paypalPayerEmail;
+        if (paypalEmail) {
+          if (paypalEmailEl) { paypalEmailEl.textContent = paypalEmail; paypalEmailEl.style.color = ''; }
+          if (paypalStatusEl) paypalStatusEl.style.display = '';
+          if (paypalDisconnect) paypalDisconnect.style.display = '';
+        } else {
+          if (paypalEmailEl) { paypalEmailEl.textContent = 'Not connected'; paypalEmailEl.style.color = '#999'; }
+          if (paypalStatusEl) paypalStatusEl.style.display = 'none';
+          if (paypalDisconnect) paypalDisconnect.style.display = 'none';
+        }
+
+      } catch (err) {
+        console.error('loadBillingData error:', err);
+        var currentPlanName = document.getElementById('currentPlanName');
+        if (currentPlanName) currentPlanName.textContent = 'Starter Plan';
+        var billingPlanTitle = document.getElementById('billingPlanTitle');
+        if (billingPlanTitle) billingPlanTitle.textContent = 'Starter Plan \u2014 Free';
+      }
+    }
+
     /* ============== TEAM MEMBERS (Real API) ============== */
     async function loadTeamMembers(brandId) {
       var tbody = document.getElementById('teamTableBody');
@@ -1553,27 +1619,8 @@
         var headerBrand = document.getElementById('headerBrand');
         if (headerBrand) headerBrand.textContent = brandName;
 
-        // Plan display
-        var planDisplayName = capitalize(planTier) + ' Plan';
-        var planPrices = { free: '$0', starter: '$9', growth: '$29', pro: '$79', enterprise: '$199' };
-        var price = planPrices[planTier.toLowerCase()] || '';
-
-        var currentPlanName = document.getElementById('currentPlanName');
-        if (currentPlanName) currentPlanName.textContent = planDisplayName;
-
-        var billingPlanTitle = document.getElementById('billingPlanTitle');
-        if (billingPlanTitle) billingPlanTitle.textContent = planDisplayName + (price ? ' \u2014 ' + price + '/month' : '');
-
-        // PayPal — show Connected + email + Disconnect only if on a paid plan
-        var paypalEmailEl = document.getElementById('paypalEmail');
-        var paypalStatusEl = document.getElementById('paypalStatus');
-        var paypalDisconnect = document.getElementById('paypalDisconnect');
-        var isPaid = planTier && planTier.toLowerCase() !== 'free';
-        if (isPaid) {
-          if (paypalEmailEl) { paypalEmailEl.textContent = email; paypalEmailEl.style.color = ''; }
-          if (paypalStatusEl) paypalStatusEl.style.display = '';
-          if (paypalDisconnect) paypalDisconnect.style.display = '';
-        }
+        // Billing + PayPal loaded separately from real subscription API
+        loadBillingData();
 
         // ── Team Members ──
         var activeBrandId = activeBrand ? activeBrand.mongoId : null;
