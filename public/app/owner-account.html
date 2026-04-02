@@ -1041,7 +1041,7 @@
               <div class="method-email" id="paypalEmail" style="color:#999;">Not connected</div>
             </div>
           </div>
-          <button class="btn-disconnect">Disconnect</button>
+          <button class="btn-disconnect" id="paypalDisconnect" style="display:none;">Disconnect</button>
         </div>
       </div>
 
@@ -1564,13 +1564,15 @@
         var billingPlanTitle = document.getElementById('billingPlanTitle');
         if (billingPlanTitle) billingPlanTitle.textContent = planDisplayName + (price ? ' \u2014 ' + price + '/month' : '');
 
-        // PayPal — show Connected + email only if on a paid plan
+        // PayPal — show Connected + email + Disconnect only if on a paid plan
         var paypalEmailEl = document.getElementById('paypalEmail');
         var paypalStatusEl = document.getElementById('paypalStatus');
+        var paypalDisconnect = document.getElementById('paypalDisconnect');
         var isPaid = planTier && planTier.toLowerCase() !== 'free';
         if (isPaid) {
           if (paypalEmailEl) { paypalEmailEl.textContent = email; paypalEmailEl.style.color = ''; }
           if (paypalStatusEl) paypalStatusEl.style.display = '';
+          if (paypalDisconnect) paypalDisconnect.style.display = '';
         }
 
         // ── Team Members ──
