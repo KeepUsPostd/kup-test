@@ -106,6 +106,7 @@ const brandSchema = new mongoose.Schema({
   kioskBrandingLogo: { type: String, default: null }, // URL to logo for kiosk display
   kioskActiveLocations: { type: Number, default: 0 }, // how many kiosks currently active
   kioskBrandCode: { type: String, default: null, unique: true, sparse: true }, // short code for kiosk URL
+  brandHandle: { type: String, default: null, unique: true, sparse: true, lowercase: true }, // @handle for public profile URL
 
   // System
   status: {

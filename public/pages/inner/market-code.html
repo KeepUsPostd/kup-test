@@ -420,13 +420,15 @@
           var brandResult = results[0];
           if (brandResult.status === 'fulfilled' && brandResult.value) {
             var brand = brandResult.value.brand || brandResult.value;
-            var code = brand.kioskBrandCode || brand._id;
-            _qrBrandUrl = 'https://keepuspostd.com/brand/' + code;
+            // Prefer @handle URL if set, otherwise fall back to kiosk code
+            var handle = brand.brandHandle;
+            var kioskCode = brand.kioskBrandCode || brand._id;
+            var shortPath = handle ? '@' + handle : 'brand/' + kioskCode;
+            _qrBrandUrl = 'https://keepuspostd.com/' + shortPath;
             var displayEl = document.getElementById('brandUrlDisplay');
-            if (displayEl) displayEl.textContent = 'keepuspostd.com/brand/' + code;
-            // Update deep link URL text
+            if (displayEl) displayEl.textContent = 'keepuspostd.com/' + shortPath;
             var deepLinkSpan = document.querySelector('.scan-upsell span[style*="color:#888"]');
-            if (deepLinkSpan) deepLinkSpan.textContent = 'URL: keepuspostd.com/brand/' + code;
+            if (deepLinkSpan) deepLinkSpan.textContent = 'URL: keepuspostd.com/' + shortPath;
           }
 
           // Plan badge

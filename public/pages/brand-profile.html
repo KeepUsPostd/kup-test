@@ -270,7 +270,11 @@
 
   <script>
     (function () {
-      var code = window.location.pathname.split('/').filter(Boolean).pop() || '';
+      // Supports /@handle and /brand/KUP-XXXXXX
+      var pathParts = window.location.pathname.split('/').filter(Boolean);
+      var identifier = pathParts[pathParts.length - 1] || '';
+      // Strip leading @ if present (/@handle path)
+      var code = identifier.replace(/^@/, '');
 
       var loadingEl = document.getElementById('loadingState');
       var contentEl = document.getElementById('brandContent');

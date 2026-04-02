@@ -172,7 +172,11 @@ app.get('/delete-account', (req, res) => {
 });
 
 // Public brand profile page — scanned from QR codes on market materials
+// Supports both /brand/KUP-XXXXXX (kiosk code) and /@handle (vanity handle)
 app.get('/brand/:code', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'brand-profile.html'));
+});
+app.get('/@:handle', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'brand-profile.html'));
 });
 

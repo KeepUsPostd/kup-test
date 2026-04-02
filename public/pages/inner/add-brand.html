@@ -472,6 +472,16 @@
           </div>
 
           <div class="form-group">
+            <label for="brandHandle">Partner Link Handle <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional)</span></label>
+            <p style="font-size:.78rem;color:#888;margin:-2px 0 8px;line-height:1.4">Your short branded URL for social bio links and QR codes. Letters, numbers, underscores only.</p>
+            <div style="display:flex;align-items:center;gap:0;border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#fff">
+              <span style="padding:10px 10px;background:#f8f9fa;color:#888;font-size:.82rem;font-weight:600;border-right:1px solid #ddd;white-space:nowrap">keepuspostd.com/@</span>
+              <input type="text" id="brandHandle" maxlength="30" placeholder="yourhandle" style="border:none;border-radius:0;flex:1;padding:10px 12px;font-size:.88rem;outline:none" oninput="onHandleInput(this)">
+            </div>
+            <div id="handleFeedback" style="font-size:.75rem;margin-top:5px;min-height:16px;color:#888;"></div>
+          </div>
+
+          <div class="form-group">
             <label>Brand Logo</label>
             <div class="logo-preview-row">
               <div class="logo-preview-circle" id="logoPreviewCircle">KP</div>
@@ -1287,6 +1297,48 @@
     }
   }
 
+  /* ── Handle availability check ─────────────── */
+  var _handleTimer = null;
+  var _handleValid = true; // blank = valid (it's optional)
+
+  function onHandleInput(input) {
+    var raw = input.value.replace(/[^a-z0-9_]/gi, '').toLowerCase();
+    input.value = raw; // strip invalid chars live
+    var fb = document.getElementById('handleFeedback');
+
+    if (!raw) {
+      fb.textContent = '';
+      _handleValid = true;
+      return;
+    }
+    if (raw.length < 3) {
+      fb.textContent = 'At least 3 characters required';
+      fb.style.color = '#e53e3e';
+      _handleValid = false;
+      return;
+    }
+
+    fb.textContent = 'Checking…';
+    fb.style.color = '#888';
+    clearTimeout(_handleTimer);
+    _handleTimer = setTimeout(function() {
+      fetch('/api/brands/check-handle/' + encodeURIComponent(raw))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.available) {
+            fb.textContent = '✓ @' + raw + ' is available';
+            fb.style.color = '#16a34a';
+            _handleValid = true;
+          } else {
+            fb.textContent = '✗ @' + raw + ' is taken or reserved';
+            fb.style.color = '#e53e3e';
+            _handleValid = false;
+          }
+        })
+        .catch(function() { fb.textContent = ''; _handleValid = true; });
+    }, 500);
+  }
+
   /* ── Collect brand form data ───────────────── */
   function collectBrandPayload(status) {
     var selectedOffers = [];
@@ -1295,6 +1347,7 @@
     });
     return {
       name: (document.getElementById('brandName').value || '').trim(),
+      brandHandle: (document.getElementById('brandHandle').value || '').trim().toLowerCase() || null,
       industry: document.getElementById('brandIndustry').value || '',
       description: (document.getElementById('brandDescription').value || '').trim(),
       location: (document.getElementById('brandLocation').value || '').trim(),
@@ -1335,10 +1388,12 @@
         return;
       }
 
-      // Generate the brand URL from the brand name field
-      var brandName = payload.name;
-      var brandSlug = brandName ? brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'yourbrand';
-      var brandUrl = 'keepuspostd.com/brand/' + brandSlug;
+      // Use @handle URL if set, otherwise fall back to kiosk code from API response
+      var handle = payload.brandHandle;
+      var kioskCode = (result && result.brand && result.brand.kioskBrandCode) || null;
+      var brandUrl = handle
+        ? 'keepuspostd.com/@' + handle
+        : (kioskCode ? 'keepuspostd.com/brand/' + kioskCode : 'keepuspostd.com');
 
       // Update the success overlay with the actual brand URL
       var urlDisplay = document.getElementById('successLinkUrl');

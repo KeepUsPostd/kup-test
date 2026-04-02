@@ -26,9 +26,20 @@ const PLAN_LIMITS = {
 };
 
 // POST /api/brands — Create a new brand
+// Reserved handles that can't be used as brand handles
+const RESERVED_HANDLES = new Set([
+  'api', 'brand', 'brands', 'pages', 'app', 'images', 'js', 'css',
+  'privacy', 'help', 'delete-account', 'auth', 'admin', 'keepuspostd',
+  'kup', 'support', 'login', 'register', 'signup', 'dashboard',
+]);
+
+function sanitizeHandle(raw) {
+  return (raw || '').toLowerCase().replace(/[^a-z0-9_]/g, '').substring(0, 30);
+}
+
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { name, category, description, websiteUrl, tags, brandColors } = req.body;
+    const { name, category, description, websiteUrl, tags, brandColors, brandHandle: rawHandle } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -80,6 +91,23 @@ router.post('/', requireAuth, async (req, res) => {
     // Generate a unique kiosk brand code (avoids duplicate null index issue)
     const kioskBrandCode = 'KUP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
+    // Validate and assign brand handle if provided
+    let brandHandle = null;
+    if (rawHandle) {
+      const handle = sanitizeHandle(rawHandle);
+      if (handle.length < 3) {
+        return res.status(400).json({ error: 'Handle must be at least 3 characters (letters, numbers, underscores only).' });
+      }
+      if (RESERVED_HANDLES.has(handle)) {
+        return res.status(400).json({ error: 'That handle is reserved. Please choose another.' });
+      }
+      const taken = await Brand.findOne({ brandHandle: handle });
+      if (taken) {
+        return res.status(400).json({ error: 'That handle is already taken. Please choose another.' });
+      }
+      brandHandle = handle;
+    }
+
     // Create the brand
     const brand = await Brand.create({
       name: name.trim(),
@@ -95,6 +123,7 @@ router.post('/', requireAuth, async (req, res) => {
       generatedColor,
       brandColors: brandColors || undefined,
       kioskBrandCode,
+      brandHandle,
     });
 
     // Create brand member with owner role (rule G2: one owner)
@@ -164,18 +193,38 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/brands/public/:code — returns brand info by kioskBrandCode (no auth — QR landing page)
+// GET /api/brands/public/:identifier — lookup by @handle OR kioskBrandCode (no auth — QR landing page)
 // MUST be before /:brandId to prevent "public" being treated as a brandId
-router.get('/public/:code', async (req, res) => {
+router.get('/public/:identifier', async (req, res) => {
   try {
-    const brand = await Brand.findOne({ kioskBrandCode: req.params.code.toUpperCase() })
-      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode')
+    const id = req.params.identifier.replace(/^@/, ''); // strip leading @ if present
+    // Try handle first (lowercase), then kiosk code (uppercase)
+    const brand = await Brand.findOne({
+      $or: [
+        { brandHandle: id.toLowerCase() },
+        { kioskBrandCode: id.toUpperCase() },
+      ],
+    })
+      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode brandHandle')
       .lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
     res.json({ brand });
   } catch (error) {
     console.error('Public brand lookup error:', error);
     res.status(500).json({ error: 'Failed to load brand' });
+  }
+});
+
+// GET /api/brands/check-handle/:handle — check handle availability (no auth)
+router.get('/check-handle/:handle', async (req, res) => {
+  try {
+    const handle = sanitizeHandle(req.params.handle);
+    if (handle.length < 3) return res.json({ available: false, reason: 'Too short' });
+    if (RESERVED_HANDLES.has(handle)) return res.json({ available: false, reason: 'Reserved' });
+    const taken = await Brand.findOne({ brandHandle: handle });
+    res.json({ available: !taken, handle });
+  } catch (error) {
+    res.status(500).json({ error: 'Check failed' });
   }
 });
 
