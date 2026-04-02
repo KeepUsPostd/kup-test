@@ -451,7 +451,16 @@
     }
   </style>
 </head>
-<body>
+<body style="visibility:hidden">
+
+  <!-- Auth check overlay — shown while Firebase resolves, prevents form flash -->
+  <div id="authCheckOverlay" style="position:fixed;inset:0;background:#fff;z-index:99999;display:flex;align-items:center;justify-content:center;visibility:visible">
+    <div style="text-align:center">
+      <div style="width:40px;height:40px;border:3px solid #eee;border-top-color:#2EA5DD;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px"></div>
+      <p style="font-size:0.82rem;color:#aaa;font-family:Montserrat,sans-serif">Checking session...</p>
+    </div>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
   <!-- ============================================
        SPLIT-SCREEN LOGIN
@@ -849,22 +858,33 @@
 
     // ---- Check if already logged in ----
     auth.onAuthStateChanged(function(user) {
+      var overlay = document.getElementById('authCheckOverlay');
       if (user) {
-        // Already logged in — honor redirect param or go to dashboard
+        // Already logged in — redirect silently, no form flash
         var redirectParam = new URLSearchParams(window.location.search).get('redirect');
         if (redirectParam) {
           window.location.href = decodeURIComponent(redirectParam);
           return;
         }
-        const kupUser = localStorage.getItem('kupUser');
+        var kupUser = localStorage.getItem('kupUser');
         if (kupUser) {
-          const parsed = JSON.parse(kupUser);
-          if (parsed.activeProfile === 'brand' && !parsed.onboardingComplete) {
-            window.location.href = '/pages/onboarding.html';
-          } else if (parsed.activeProfile === 'brand') {
-            window.location.href = '/app/manage-brands.html';
-          }
+          try {
+            var parsed = JSON.parse(kupUser);
+            if (parsed.activeProfile === 'brand' && !parsed.onboardingComplete) {
+              window.location.href = '/pages/onboarding.html';
+              return;
+            } else if (parsed.activeProfile === 'brand') {
+              window.location.href = '/app/manage-brands.html';
+              return;
+            }
+          } catch(e) {}
         }
+        // Fallback redirect if kupUser not set yet
+        window.location.href = '/app/manage-brands.html';
+      } else {
+        // Not logged in — reveal the form cleanly, no flash
+        if (overlay) overlay.style.display = 'none';
+        document.body.style.visibility = 'visible';
       }
     });
   </script>
