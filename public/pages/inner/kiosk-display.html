@@ -649,6 +649,23 @@
 
     /* camera time badge and flip btn are now in camera-top-bar */
 
+    /* ── Live camera stream video element ── */
+    #cameraStream {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 1;
+      transform: scaleX(-1); /* mirror for selfie view */
+    }
+    .camera-viewfinder-icon,
+    .camera-label {
+      position: relative;
+      z-index: 2;
+    }
+
     .recording-timer {
       display: flex;
       align-items: center;
@@ -881,8 +898,8 @@
 
     <div class="top-bar">
       <div class="brand-info">
-        <div class="brand-logo">VB</div>
-        <div class="brand-name">Vegan Bites</div>
+        <div class="brand-logo" id="displayBrandLogo">VB</div>
+        <div class="brand-name" id="displayBrandName">Vegan Bites</div>
       </div>
       <div class="live-badge">
         <span class="live-dot"></span>
@@ -901,7 +918,7 @@
           <i class="ph ph-video-camera" style="font-size:2rem; flex-shrink:0;"></i>
           <span style="text-align:left; line-height:1.3;">
             <span style="display:block;">Record Your Review</span>
-            <span style="display:block; font-size:0.9rem; font-weight:600; opacity:0.9;">Get a FREE Taco!</span>
+            <span class="kiosk-reward-val" style="display:block; font-size:0.9rem; font-weight:600; opacity:0.9;">Get a FREE Taco!</span>
           </span>
         </span>
       </button>
@@ -917,8 +934,8 @@
 
     <div class="top-bar">
       <div class="brand-info">
-        <div class="brand-logo">VB</div>
-        <div class="brand-name">Vegan Bites</div>
+        <div class="brand-logo" id="recordBrandLogo">VB</div>
+        <div class="brand-name" id="recordBrandName">Vegan Bites</div>
       </div>
     </div>
 
@@ -928,9 +945,9 @@
       <div id="recordStep1" class="record-step active">
         <div class="offer-card">
           <div class="offer-emoji">&#x1F32E;</div>
-          <div class="offer-title">Record a 30-second review</div>
-          <div class="offer-reward">Get a FREE Taco!</div>
-          <div class="offer-desc">Share what you love about Vegan Bites and we'll reward you on the spot.</div>
+          <div class="offer-title" id="offerTitle">Record a 30-second review</div>
+          <div class="offer-reward kiosk-reward-val" id="offerReward">Get a FREE Taco!</div>
+          <div class="offer-desc" id="offerDesc">Share what you love about Vegan Bites and we'll reward you on the spot.</div>
         </div>
         <button class="btn-primary" onclick="goToStep(2)">Let's Go!</button>
         <button class="btn-cancel" onclick="showDisplay()">&#x2715; Cancel</button>
@@ -956,6 +973,7 @@
       <!-- STEP 3: Recording (Full-Screen) -->
       <div id="recordStep3" class="record-step">
         <div class="camera-preview">
+          <video id="cameraStream" autoplay muted playsinline></video>
           <div class="camera-viewfinder-icon"><i class="ph ph-video-camera" style="font-size:2.4rem; color:rgba(255,255,255,0.2);"></i></div>
           <div class="camera-label">Tap record to start</div>
         </div>
@@ -971,7 +989,7 @@
 
         <div class="camera-controls-overlay">
           <div style="margin-bottom:8px;">
-            <span style="font-size:0.75rem; font-weight:600; color:rgba(255,255,255,0.5);">Recording for <strong style="color:#fff;">Vegan Bites</strong></span>
+            <span style="font-size:0.75rem; font-weight:600; color:rgba(255,255,255,0.5);">Recording for <strong style="color:#fff;" id="recordingForLabel">Vegan Bites</strong></span>
           </div>
           <div class="record-controls" style="margin:0 0 6px;">
             <div class="record-btn-wrap" id="recordBtnWrap">
@@ -983,7 +1001,7 @@
           </div>
           <div class="record-secondary-controls">
             <button class="btn-secondary" id="btnRerecord" onclick="reRecord()"><i class="ph ph-arrow-counter-clockwise" style="margin-right:6px;"></i> Re-record</button>
-            <button class="btn-secondary btn-done" id="btnDone" onclick="goToStep(4)"><i class="ph ph-check-circle" style="margin-right:6px;"></i> Done</button>
+            <button class="btn-secondary btn-done" id="btnDone" onclick="submitReview()"><i class="ph ph-check-circle" style="margin-right:6px;"></i> Done</button>
           </div>
         </div>
       </div>
@@ -996,7 +1014,7 @@
         <div class="reward-thanks" id="rewardName">Thank you!</div>
         <div class="reward-subtitle">Here's your reward:</div>
         <div class="reward-code-card">
-          <div class="reward-label">FREE TACO</div>
+          <div class="reward-label" id="rewardLabel">FREE TACO</div>
           <div class="reward-code" id="rewardCode">KUP-XXXXXX</div>
           <div class="reward-instruction">Show this to your server</div>
           <div class="reward-validity">Valid for 24 hours</div>
@@ -1021,9 +1039,76 @@
       "linear-gradient(135deg, #1a1a2e 0%, #2d1b36 50%, #0f3460 100%)",
     ];
 
+    /* ── Brand config (loaded from API) ── */
+    var kioskConfig = null;
+    var brandId = new URLSearchParams(window.location.search).get('brandId');
+    var brandCode = new URLSearchParams(window.location.search).get('brandCode');
+
+    async function loadKioskConfig() {
+      var code = brandCode;
+      if (!code) {
+        try {
+          var stored = JSON.parse(localStorage.getItem('kup_active_brand') || 'null');
+          if (stored && stored.kioskBrandCode) code = stored.kioskBrandCode;
+        } catch(e) {}
+      }
+      if (!code) return;
+      try {
+        var resp = await fetch('/api/kiosk/display/' + encodeURIComponent(code));
+        if (!resp.ok) return;
+        var data = await resp.json();
+        kioskConfig = data.kiosk;
+        if (kioskConfig) {
+          brandId = String(kioskConfig.brandId); // use authoritative brandId
+          populateBrand(kioskConfig);
+        }
+      } catch(e) {
+        console.warn('Could not load kiosk config:', e);
+      }
+    }
+
+    function populateBrand(cfg) {
+      var logoHTML = cfg.brandLogo
+        ? '<img src="' + cfg.brandLogo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display=\'none\'">'
+        : (cfg.brandInitials || '?');
+
+      ['displayBrandLogo', 'recordBrandLogo'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = logoHTML;
+        if (cfg.brandColor) el.style.background = cfg.brandColor;
+      });
+
+      ['displayBrandName', 'recordBrandName'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = cfg.brandName || 'Brand';
+      });
+
+      var rewardVal = cfg.rewardValue || '10% Off';
+      document.querySelectorAll('.kiosk-reward-val').forEach(function(el) {
+        el.textContent = 'Get ' + rewardVal + '!';
+      });
+
+      var titleEl = document.getElementById('offerTitle');
+      if (titleEl && cfg.offerTitle) titleEl.textContent = cfg.offerTitle;
+
+      var descEl = document.getElementById('offerDesc');
+      if (descEl) descEl.textContent = 'Share what you love about ' + cfg.brandName + ' and we\'ll reward you on the spot.';
+
+      var recordLabel = document.getElementById('recordingForLabel');
+      if (recordLabel) recordLabel.textContent = cfg.brandName;
+
+      var rewardLabel = document.getElementById('rewardLabel');
+      if (rewardLabel) rewardLabel.textContent = rewardVal;
+
+      if (cfg.brandColor) {
+        var ctaBtn = document.querySelector('.cta-button');
+        if (ctaBtn) ctaBtn.style.background = cfg.brandColor;
+      }
+    }
+
     /* ── Load real approved content from backend ── */
     var reviews = [];
-    var brandId = new URLSearchParams(window.location.search).get('brandId');
 
     async function loadReviews() {
       try {
@@ -1053,13 +1138,17 @@
     loadReviews();
 
     /* ── State ── */
-    let currentReview = 0;
-    let carouselInterval = null;
-    let isRecording = false;
-    let recordingTimer = null;
-    let recordSeconds = 0;
-    let rewardTimeout = null;
-    let countdownInterval = null;
+    var currentReview = 0;
+    var carouselInterval = null;
+    var isRecording = false;
+    var recordingTimer = null;
+    var recordSeconds = 0;
+    var rewardTimeout = null;
+    var countdownInterval = null;
+    // Camera state
+    var cameraStream = null;
+    var mediaRecorder = null;
+    var recordedChunks = [];
 
     /* ── Init Video Feed ── */
     function buildCarousel() {
@@ -1121,7 +1210,7 @@
 
     function startCarousel() {
       stopCarousel();
-      carouselInterval = setInterval(cycleReview, 8000);
+      if (reviews.length > 1) carouselInterval = setInterval(cycleReview, 8000);
     }
 
     function stopCarousel() {
@@ -1149,64 +1238,103 @@
     /* ── Step Navigation ── */
     function goToStep(n) {
       for (var i = 1; i <= 4; i++) {
-        var step = document.getElementById('recordStep' + i);
-        step.classList.remove('active');
+        document.getElementById('recordStep' + i).classList.remove('active');
       }
       document.getElementById('recordStep' + n).classList.add('active');
 
       if (n === 2) {
-        setTimeout(function() {
-          document.getElementById('customerName').focus();
-        }, 100);
+        stopCamera();
+        setTimeout(function() { document.getElementById('customerName').focus(); }, 100);
       }
-
-      if (n === 4) {
-        showReward();
+      if (n === 3) {
+        startCamera();
       }
     }
 
     /* ── Recording Flow ── */
     function startRecordFlow() {
       var name = document.getElementById('customerName').value.trim();
-      if (!name) {
-        document.getElementById('customerName').focus();
-        return;
-      }
+      if (!name) { document.getElementById('customerName').focus(); return; }
       goToStep(3);
     }
 
-    function toggleRecording() {
-      var btn = document.getElementById('recordBtn');
-      var dot = document.getElementById('recDot');
-      var btnRerecord = document.getElementById('btnRerecord');
-      var btnDone = document.getElementById('btnDone');
-
-      if (!isRecording) {
-        isRecording = true;
-        recordSeconds = 0;
-        btn.classList.add('recording');
-        document.getElementById('recordBtnWrap').classList.add('recording');
-        document.getElementById('cameraRecBadge').classList.add('visible');
-        document.querySelector('.camera-label').textContent = 'Recording...';
-        updateTimerDisplay();
-        recordingTimer = setInterval(function() {
-          recordSeconds++;
-          updateTimerDisplay();
-          document.getElementById('cameraTimeBadge').textContent = Math.floor(recordSeconds/60) + ':' + (recordSeconds%60<10?'0':'') + recordSeconds%60;
-          if (recordSeconds >= 30) {
-            stopRecording();
-          }
-        }, 1000);
-      } else {
-        stopRecording();
+    /* ── Camera ── */
+    async function startCamera() {
+      try {
+        var videoEl = document.getElementById('cameraStream');
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
+          audio: true
+        });
+        videoEl.srcObject = cameraStream;
+        videoEl.style.display = 'block';
+        var icon = document.querySelector('.camera-viewfinder-icon');
+        if (icon) icon.style.display = 'none';
+        document.querySelector('.camera-label').textContent = 'Tap record to start';
+      } catch(err) {
+        console.warn('Camera unavailable:', err);
+        // Viewfinder placeholder stays visible — flow still works
       }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(function(t) { t.stop(); });
+        cameraStream = null;
+      }
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder = null;
+      }
+      recordedChunks = [];
+      var videoEl = document.getElementById('cameraStream');
+      if (videoEl) { videoEl.srcObject = null; videoEl.style.display = 'none'; }
+      var icon = document.querySelector('.camera-viewfinder-icon');
+      if (icon) icon.style.display = '';
+    }
+
+    /* ── Recording ── */
+    function toggleRecording() {
+      if (!isRecording) { startRecording(); } else { stopRecording(); }
+    }
+
+    function startRecording() {
+      recordedChunks = [];
+      isRecording = true;
+      recordSeconds = 0;
+
+      if (cameraStream) {
+        try {
+          var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
+            : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
+          mediaRecorder = new MediaRecorder(cameraStream, { mimeType: mime });
+          mediaRecorder.ondataavailable = function(e) {
+            if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.start(1000);
+        } catch(e) { console.warn('MediaRecorder error:', e); }
+      }
+
+      document.getElementById('recordBtn').classList.add('recording');
+      document.getElementById('recordBtnWrap').classList.add('recording');
+      document.getElementById('cameraRecBadge').classList.add('visible');
+      document.querySelector('.camera-label').textContent = 'Recording...';
+      updateTimerDisplay();
+
+      recordingTimer = setInterval(function() {
+        recordSeconds++;
+        updateTimerDisplay();
+        var m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+        document.getElementById('cameraTimeBadge').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+        if (recordSeconds >= 30) stopRecording();
+      }, 1000);
     }
 
     function stopRecording() {
       isRecording = false;
       clearInterval(recordingTimer);
-      var btn = document.getElementById('recordBtn');
-      btn.classList.remove('recording');
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      document.getElementById('recordBtn').classList.remove('recording');
       document.getElementById('recordBtnWrap').classList.remove('recording');
       document.getElementById('cameraRecBadge').classList.remove('visible');
       document.querySelector('.camera-label').textContent = 'Review recorded!';
@@ -1216,56 +1344,89 @@
 
     function reRecord() {
       recordSeconds = 0;
+      recordedChunks = [];
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); mediaRecorder = null; }
       updateTimerDisplay();
+      document.querySelector('.camera-label').textContent = 'Tap record to start';
       document.getElementById('btnRerecord').classList.remove('visible');
       document.getElementById('btnDone').classList.remove('visible');
     }
 
     function updateTimerDisplay() {
-      var mins = Math.floor(recordSeconds / 60);
-      var secs = recordSeconds % 60;
-      var display = mins + ':' + (secs < 10 ? '0' : '') + secs + ' / 0:30';
-      document.getElementById('timerDisplay').textContent = display;
+      var m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+      document.getElementById('timerDisplay').textContent = m + ':' + (s < 10 ? '0' : '') + s + ' / 0:30';
     }
 
-    /* ── Reward ── */
-    function generateCode() {
-      var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-      var code = '';
-      for (var i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    /* ── Submit review → get real reward code ── */
+    async function submitReview() {
+      var name = document.getElementById('customerName').value.trim();
+      var phone = document.getElementById('customerPhone').value.trim();
+      if (!name) { goToStep(2); return; }
+
+      stopCamera();
+
+      var btnDone = document.getElementById('btnDone');
+      if (btnDone) { btnDone.disabled = true; btnDone.innerHTML = 'Processing…'; }
+
+      try {
+        var resp = await fetch('/api/kiosk/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandId: brandId,
+            firstName: name,
+            phone: phone || '0000000000',
+          }),
+        });
+        var data = await resp.json();
+        if (resp.ok && data.reward) {
+          showReward(data.guest.firstName, data.reward.code, data.reward.rewardValue);
+        } else {
+          showReward(name, null, null); // degrade gracefully
+        }
+      } catch(err) {
+        console.error('Session error:', err);
+        showReward(name, null, null);
+      } finally {
+        if (btnDone) {
+          btnDone.disabled = false;
+          btnDone.innerHTML = '<i class="ph ph-check-circle" style="margin-right:6px;"></i> Done';
+        }
       }
-      return 'KUP-' + code;
     }
 
-    function showReward() {
-      var name = document.getElementById('customerName').value.trim() || 'Friend';
-      document.getElementById('rewardName').textContent = 'Thank you, ' + name + '!';
-      document.getElementById('rewardCode').textContent = generateCode();
+    /* ── Reward Screen ── */
+    function showReward(name, code, rewardValue) {
+      for (var i = 1; i <= 4; i++) document.getElementById('recordStep' + i).classList.remove('active');
+      document.getElementById('recordStep4').classList.add('active');
+
+      document.getElementById('rewardName').textContent = 'Thank you, ' + (name || 'Friend') + '!';
+      document.getElementById('rewardCode').textContent = code || '—';
+
+      var labelEl = document.getElementById('rewardLabel');
+      if (labelEl) labelEl.textContent = rewardValue || (kioskConfig && kioskConfig.rewardValue) || 'Your Reward';
 
       var bar = document.getElementById('countdownBar');
       bar.style.width = '100%';
       bar.style.transition = 'none';
-
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
           bar.style.transition = 'width 20s linear';
           bar.style.width = '0%';
         });
       });
-
-      rewardTimeout = setTimeout(function() {
-        showDisplay();
-      }, 20000);
+      rewardTimeout = setTimeout(showDisplay, 20000);
     }
 
     /* ── Reset ── */
     function resetRecordMode() {
       isRecording = false;
       recordSeconds = 0;
+      recordedChunks = [];
       clearInterval(recordingTimer);
       clearTimeout(rewardTimeout);
       clearInterval(countdownInterval);
+      stopCamera();
 
       document.getElementById('customerName').value = '';
       document.getElementById('customerPhone').value = '';
@@ -1275,17 +1436,18 @@
       document.getElementById('cameraTimeBadge').textContent = '0:00';
       document.querySelector('.camera-label').textContent = 'Tap record to start';
       document.getElementById('btnRerecord').classList.remove('visible');
-      document.getElementById('btnDone').classList.remove('visible');
+      var btnDone = document.getElementById('btnDone');
+      btnDone.classList.remove('visible');
+      btnDone.disabled = false;
+      btnDone.innerHTML = '<i class="ph ph-check-circle" style="margin-right:6px;"></i> Done';
       updateTimerDisplay();
 
-      for (var i = 1; i <= 4; i++) {
-        document.getElementById('recordStep' + i).classList.remove('active');
-      }
+      for (var i = 1; i <= 4; i++) document.getElementById('recordStep' + i).classList.remove('active');
       document.getElementById('recordStep1').classList.add('active');
     }
 
     /* ── Boot ── */
-    // buildCarousel() is called by loadReviews() above after fetching real data
+    loadKioskConfig().then(function() { loadReviews(); });
     startCarousel();
   </script>
 
