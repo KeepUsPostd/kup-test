@@ -27,7 +27,7 @@ const auth = firebase.auth();
 // --- Auth Helper Functions ---
 
 // Sign up with email & password
-async function kupSignUp(email, password, firstName, lastName, profileType) {
+async function kupSignUp(email, password, firstName, lastName, profileType, referredByCode) {
   try {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     const firebaseUser = userCredential.user;
@@ -46,6 +46,7 @@ async function kupSignUp(email, password, firstName, lastName, profileType) {
         firstName,
         lastName,
         profileType, // 'influencer' or 'brand'
+        referredByCode: referredByCode || null,
       }),
     });
 

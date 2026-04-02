@@ -403,6 +403,7 @@
 
         try {
           const profileType = (accountType === 'creator') ? 'influencer' : 'brand';
+          const refVal = document.getElementById('referralCode').value || null;
 
           // Check if user is already logged into Firebase
           const existingUser = auth.currentUser;
@@ -422,14 +423,15 @@
                 firebaseUid: existingUser.uid,
                 firstName: '',
                 lastName: '',
-                profileType: profileType
+                profileType: profileType,
+                referredByCode: refVal
               })
             });
             data = await res.json();
             if (!res.ok && res.status !== 201) throw new Error(data.message || 'Failed to add profile');
           } else {
             // Not logged in — create new Firebase account + register in backend
-            data = await kupSignUp(email, password, '', '', profileType);
+            data = await kupSignUp(email, password, '', '', profileType, refVal);
           }
 
           // Store user info for downstream pages
@@ -437,7 +439,7 @@
           localStorage.setItem('kupProfile', JSON.stringify(data.profile || {}));
           localStorage.setItem('kupAccountType', accountType);
 
-          // Store referral code if present
+          // Store referral code if present (already passed to backend during signup)
           const refVal = document.getElementById('referralCode').value;
           if (refVal) {
             localStorage.setItem('kupReferral', refVal);

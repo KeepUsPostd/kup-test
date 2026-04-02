@@ -1,10 +1,65 @@
-// Referral Routes — Influencer referral program
-// GET /api/referrals — Get current user's referral stats + recent activity
+// Referral Routes — Influencer + Brand referral programs
+// GET /api/referrals — Influencer referral stats + recent activity
+// GET /api/referrals/brand — Brand referral stats + recent activity
 // POST /api/referrals/use — Apply a referral code (called at signup)
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { User, InfluencerProfile } = require('../models');
+const { User, InfluencerProfile, BrandProfile } = require('../models');
+
+// GET /api/referrals/brand — Referral stats for the logged-in brand owner
+// Returns: referralCode, stats (signedUp, qualified, totalEarned), recentActivity
+router.get('/brand', requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const myBrand = await BrandProfile.findOne({ userId: user._id }).lean();
+
+    if (!myBrand) {
+      return res.status(404).json({ error: 'Brand profile not found' });
+    }
+
+    // Find all brands referred by this brand
+    const referredBrands = await BrandProfile.find({ referredBy: myBrand._id })
+      .populate('userId', 'email createdAt')
+      .lean();
+
+    const signedUp = referredBrands.length;
+
+    // Qualified = referred brands on a paid plan
+    const PAID_PLANS = ['growth', 'pro', 'agency', 'enterprise'];
+    const qualifiedBrands = referredBrands.filter(b => PAID_PLANS.includes((b.planTier || '').toLowerCase()));
+    const qualified = qualifiedBrands.length;
+
+    // Referral rewards by plan tier (matches the UI reward table)
+    const REFERRAL_REWARD = { growth: 50, pro: 75, agency: 100, enterprise: 100 };
+    const totalEarned = qualifiedBrands.reduce((sum, b) => {
+      return sum + (REFERRAL_REWARD[(b.planTier || '').toLowerCase()] || 25);
+    }, 0);
+
+    // Recent activity (last 10 referrals)
+    const recentActivity = referredBrands.slice(0, 10).map(b => ({
+      joinedAt: b.createdAt,
+      email: b.userId ? b.userId.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+      plan: b.planTier || 'starter',
+      status: PAID_PLANS.includes((b.planTier || '').toLowerCase()) ? 'qualified' : 'signed_up',
+    }));
+
+    res.json({
+      referralCode: myBrand.referralCode,
+      referralLink: `https://keepuspostd.com/signup?ref=${myBrand.referralCode || ''}`,
+      stats: {
+        linksShared: signedUp, // proxy — we don't track clicks, only actual signups
+        signedUp,
+        qualified,
+        totalEarned,
+      },
+      recentActivity,
+    });
+  } catch (error) {
+    console.error('Get brand referral stats error:', error.message);
+    res.status(500).json({ error: 'Could not fetch brand referral stats' });
+  }
+});
 
 // GET /api/referrals — Referral stats for the logged-in influencer
 // Returns: referralCode, stats (invitesSent, friendsJoined, completedFirstReview, earnings), recentActivity

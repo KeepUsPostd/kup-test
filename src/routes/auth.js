@@ -14,7 +14,7 @@ const { startTrial } = require('../services/trial');
 // Creates the MongoDB user + optional profile
 router.post('/register', async (req, res) => {
   try {
-    const { email, firebaseUid, firstName, lastName, profileType } = req.body;
+    const { email, firebaseUid, firstName, lastName, profileType, referredByCode } = req.body;
 
     // Validate required fields
     if (!email || !firebaseUid) {
@@ -54,9 +54,15 @@ router.post('/register', async (req, res) => {
       } else if (wantsBrand) {
         // Add brand profile to existing account
         const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        let referredById = null;
+        if (referredByCode) {
+          const referrer = await BrandProfile.findOne({ referralCode: referredByCode.toUpperCase() });
+          if (referrer) referredById = referrer._id;
+        }
         const brandProfile = await BrandProfile.create({
           userId: user._id,
           referralCode,
+          referredBy: referredById,
         });
         // Start 14-day free trial (Pro-level access, no CC required)
         await startTrial(brandProfile);
@@ -96,9 +102,15 @@ router.post('/register', async (req, res) => {
         await user.save();
       } else if (profileType === 'brand') {
         const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        let referredById = null;
+        if (referredByCode) {
+          const referrer = await BrandProfile.findOne({ referralCode: referredByCode.toUpperCase() });
+          if (referrer) referredById = referrer._id;
+        }
         const brandProfile = await BrandProfile.create({
           userId: user._id,
           referralCode,
+          referredBy: referredById,
         });
         // Start 14-day free trial (Pro-level access, no CC required)
         await startTrial(brandProfile);
