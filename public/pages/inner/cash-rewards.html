@@ -2248,15 +2248,9 @@
       var tbody = document.getElementById('cashTbody');
       if (!tbody) return;
       if (!transactions || transactions.length === 0) {
-        // Show demo influencer row so the page is navigable
-        tbody.innerHTML = _buildDemoCashRow();
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2.5rem;color:#888;font-size:0.9rem;">No transactions yet. <a href="influencers.html" style="color:#2EA5DD;text-decoration:none;font-weight:600;">Invite influencers</a> to get started.</td></tr>';
         var footer = document.getElementById('cashTableShowing');
-        if (footer) footer.textContent = 'Showing 1 influencer';
-        // Bind checkbox + profile click
-        document.querySelectorAll('.check-influencer input[type="checkbox"]').forEach(function(cb) {
-          cb.addEventListener('change', updatePostdPay);
-        });
-        _bindInfluencerClicks();
+        if (footer) footer.textContent = 'Showing 0 influencers';
         return;
       }
       var html = '';
