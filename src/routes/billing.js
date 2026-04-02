@@ -428,6 +428,50 @@ router.put('/cancel', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/billing/history — Fetch subscription payment history from PayPal
+// Returns last 12 months of charges normalized for the frontend table
+router.get('/history', requireAuth, async (req, res) => {
+  try {
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (!brandProfile) return res.status(404).json({ error: 'No brand profile found' });
+
+    const subscription = await Subscription.findOne({ brandProfileId: brandProfile._id });
+    if (!subscription || !subscription.paypalSubscriptionId) {
+      return res.json({ transactions: [] });
+    }
+
+    const result = await paypal.getSubscriptionTransactions(subscription.paypalSubscriptionId);
+    const rawTxns = (result && result.transactions) || [];
+
+    const PLAN_LABELS = {
+      starter: 'Starter Plan',
+      growth: 'Growth Plan',
+      pro: 'Pro Plan',
+      agency: 'Agency Plan',
+      enterprise: 'Enterprise Plan',
+    };
+
+    const transactions = rawTxns.map(txn => ({
+      id: txn.id,
+      date: txn.time,
+      description: PLAN_LABELS[subscription.planTier] || 'KeepUsPostd Subscription',
+      amount: txn.amount_with_breakdown
+        ? parseFloat(txn.amount_with_breakdown.gross_amount.value)
+        : null,
+      currency: txn.amount_with_breakdown
+        ? txn.amount_with_breakdown.gross_amount.currency_code
+        : 'USD',
+      status: txn.status, // COMPLETED, FAILED, PENDING, REFUNDED
+    }));
+
+    res.json({ transactions });
+  } catch (error) {
+    console.error('Billing history error:', error.message);
+    // Don't fail — return empty so the page still loads
+    res.json({ transactions: [] });
+  }
+});
+
 // PUT /api/billing/reactivate — Undo pending cancellation
 router.put('/reactivate', requireAuth, async (req, res) => {
   try {

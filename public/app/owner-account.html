@@ -1399,9 +1399,11 @@
         var planPrices = { starter: 0, growth: 29, pro: 79, agency: 149, enterprise: null };
         var planName = (planNames[planTier] || capitalize(planTier)) + ' Plan';
 
+        // Current plan bar
         var currentPlanName = document.getElementById('currentPlanName');
         if (currentPlanName) currentPlanName.textContent = planName;
 
+        // Plan title + price
         var billingPlanTitle = document.getElementById('billingPlanTitle');
         if (billingPlanTitle) {
           var price = planPrices[planTier];
@@ -1415,6 +1417,7 @@
           }
         }
 
+        // Next billing date
         var billingNextDate = document.getElementById('billingNextDate');
         if (billingNextDate) {
           if (data.subscription && data.subscription.currentPeriodEnd) {
@@ -1428,6 +1431,7 @@
           }
         }
 
+        // PayPal — only show Connected if subscription has a real PayPal payer email
         var paypalEmailEl = document.getElementById('paypalEmail');
         var paypalStatusEl = document.getElementById('paypalStatus');
         var paypalDisconnect = document.getElementById('paypalDisconnect');
@@ -1442,12 +1446,41 @@
           if (paypalDisconnect) paypalDisconnect.style.display = 'none';
         }
 
+        // Billing history
+        loadBillingHistory();
+
       } catch (err) {
         console.error('loadBillingData error:', err);
         var currentPlanName = document.getElementById('currentPlanName');
         if (currentPlanName) currentPlanName.textContent = 'Starter Plan';
         var billingPlanTitle = document.getElementById('billingPlanTitle');
         if (billingPlanTitle) billingPlanTitle.textContent = 'Starter Plan \u2014 Free';
+      }
+    }
+
+    async function loadBillingHistory() {
+      try {
+        var data = await kupApi.get('/api/billing/history');
+        var tbody = document.getElementById('billingHistoryBody');
+        if (!tbody) return;
+        var txns = data.transactions || [];
+        if (txns.length === 0) return; // keep empty state
+        tbody.innerHTML = '';
+        txns.forEach(function(txn) {
+          var date = txn.date ? new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+          var amount = txn.amount != null ? '$' + txn.amount.toFixed(2) : '—';
+          var statusMap = { COMPLETED: 'Paid', FAILED: 'Failed', PENDING: 'Pending', REFUNDED: 'Refunded' };
+          var statusLabel = statusMap[txn.status] || txn.status || '—';
+          var statusColor = txn.status === 'COMPLETED' ? '#1a9e6c' : txn.status === 'FAILED' ? '#e53e3e' : '#888';
+          var row = document.createElement('tr');
+          row.innerHTML = '<td>' + date + '</td>'
+            + '<td>' + (txn.description || '—') + '</td>'
+            + '<td style="font-weight:600;">' + amount + '</td>'
+            + '<td style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</td>';
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error('loadBillingHistory error:', err);
       }
     }
 
@@ -1736,12 +1769,12 @@
                 console.error('Profile save error:', saveErr);
                 kupToast('Photo uploaded but profile save failed: ' + (saveErr.message || 'Unknown error'), 'warning');
               }
-              // Update profile card avatar only
-              // headerAvatar (top-right nav) always shows brand logo — do not update here
+              // Update avatars on page regardless
               var profileAvatar = document.getElementById('profileAvatar');
               if (profileAvatar) {
                 profileAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
               }
+              // headerAvatar (top-right nav) always shows brand logo — do not update here
               kupToast('Profile photo updated!', 'success');
             } else {
               console.error('Upload response missing urls:', result);

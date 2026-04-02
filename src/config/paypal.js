@@ -186,6 +186,17 @@ async function getSubscription(subscriptionId) {
 }
 
 /**
+ * Get transaction history for a PayPal subscription.
+ * Returns up to 12 months of payment records.
+ */
+async function getSubscriptionTransactions(subscriptionId) {
+  const endTime = new Date().toISOString();
+  const startTime = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  const qs = `?start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}`;
+  return paypalRequest('GET', `/v1/billing/subscriptions/${subscriptionId}/transactions${qs}`);
+}
+
+/**
  * Cancel a PayPal subscription.
  */
 async function cancelSubscription(subscriptionId, reason) {
@@ -311,6 +322,7 @@ module.exports = {
   createPlan,
   createSubscription,
   getSubscription,
+  getSubscriptionTransactions,
   cancelSubscription,
 
   // Orders (brand → influencer payments)
