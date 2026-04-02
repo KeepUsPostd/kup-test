@@ -866,6 +866,167 @@
     body{display:flex;flex-direction:column;min-height:100vh}
     main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
     footer{margin-top:auto;flex-shrink:0}
+
+    /* =============================================
+       MARKET ANALYTICS TAB
+       ============================================= */
+    .analytics-stat-card {
+      background: #f8f9fc;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .analytics-stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .analytics-stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+    .analytics-locked-card .analytics-stat-value {
+      color: #ccc;
+    }
+    .analytics-lock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--kup-blue);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .analytics-section-header {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 12px;
+    }
+    .analytics-chart-wrap {
+      background: #f8f9fc;
+      border: 1px solid #eee;
+      border-radius: var(--radius-md);
+      padding: 20px 16px 8px;
+      min-height: 120px;
+    }
+    .analytics-chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 100px;
+      overflow-x: auto;
+    }
+    .analytics-bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 28px;
+      gap: 4px;
+    }
+    .analytics-bar {
+      width: 100%;
+      background: var(--kup-blue);
+      border-radius: 4px 4px 0 0;
+      min-height: 3px;
+      transition: opacity 0.15s;
+    }
+    .analytics-bar:hover { opacity: 0.75; }
+    .analytics-bar-label {
+      font-size: 0.62rem;
+      color: #aaa;
+      white-space: nowrap;
+    }
+    .analytics-upsell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fffbf0;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: #92400e;
+    }
+    .analytics-upsell svg { flex-shrink: 0; color: #d97706; }
+    .analytics-upsell-link {
+      margin-left: auto;
+      font-weight: 700;
+      color: var(--kup-blue);
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+    .analytics-device-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .analytics-device-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .analytics-device-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      width: 70px;
+      flex-shrink: 0;
+      text-transform: capitalize;
+    }
+    .analytics-device-track {
+      flex: 1;
+      height: 10px;
+      background: #eef0f5;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .analytics-device-fill {
+      height: 100%;
+      background: var(--kup-blue);
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+    .analytics-device-pct {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #888;
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .analytics-geo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .analytics-geo-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      border-bottom: 1px solid #eee;
+    }
+    .analytics-geo-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f5f5f5;
+      color: #333;
+    }
+    .analytics-geo-table tr:last-child td { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -955,6 +1116,7 @@
       <button class="owner-tab" data-tab="tab-billing">Owner Billing</button>
       <button class="owner-tab" data-tab="tab-admin-roles">Admin Roles</button>
       <button class="owner-tab" data-tab="tab-notifications">Notifications</button>
+      <button class="owner-tab" data-tab="tab-analytics">Market Analytics</button>
     </div>
 
     <!-- =============================================
@@ -1238,6 +1400,113 @@
       </div>
 
     </div><!-- /tab-notifications -->
+
+    <!-- =============================================
+         TAB 5: MARKET ANALYTICS
+         ============================================= -->
+    <div id="tab-analytics" class="tab-panel">
+
+      <div class="owner-form-card" style="max-width: 960px;">
+        <div class="section-title" style="margin-bottom: 4px;">Market Analytics</div>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 24px;">
+          Track QR code and market link scans. Data window and features vary by plan.
+        </p>
+
+        <!-- Stat Cards -->
+        <div id="analyticsStatCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px;">
+          <div class="analytics-stat-card">
+            <div class="analytics-stat-label">Total Scans</div>
+            <div class="analytics-stat-value" id="analyticsTotalScans">—</div>
+          </div>
+          <div class="analytics-stat-card">
+            <div class="analytics-stat-label">This Week</div>
+            <div class="analytics-stat-value" id="analyticsThisWeek">—</div>
+          </div>
+          <div class="analytics-stat-card analytics-locked-card" id="analyticsDeviceCard">
+            <div class="analytics-stat-label">Top Device</div>
+            <div class="analytics-stat-value" id="analyticsTopDevice">—</div>
+            <div class="analytics-lock-badge" id="analyticsDeviceLock" style="display:none;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Growth+
+            </div>
+          </div>
+          <div class="analytics-stat-card analytics-locked-card" id="analyticsConvCard">
+            <div class="analytics-stat-label">Conversion Rate</div>
+            <div class="analytics-stat-value" id="analyticsConvRate">—</div>
+            <div class="analytics-lock-badge" id="analyticsConvLock" style="display:none;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Pro+
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Trend Chart (all plans) -->
+        <div class="analytics-section-header">7-Day Scan Trend</div>
+        <div class="analytics-chart-wrap" id="analyticsTrendChart">
+          <div class="analytics-chart-bars" id="analyticsTrendBars">
+            <!-- Bars injected by JS -->
+          </div>
+        </div>
+
+        <!-- Daily Breakdown Chart (Growth+) -->
+        <div id="analyticsDailySection" style="display:none;">
+          <div class="analytics-section-header" style="margin-top: 24px;">Daily Scan History</div>
+          <div class="analytics-chart-wrap">
+            <div class="analytics-chart-bars" id="analyticsDailyBars">
+              <!-- Bars injected by JS -->
+            </div>
+          </div>
+        </div>
+        <div id="analyticsDailyLock" class="analytics-upsell" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Full scan history requires the <strong>Growth plan</strong> or higher.
+          <a href="pricing-upgrade.html" class="analytics-upsell-link">Upgrade</a>
+        </div>
+
+        <!-- Device Breakdown (Growth+) -->
+        <div id="analyticsDeviceSection" style="display:none; margin-top: 24px;">
+          <div class="analytics-section-header">Device Breakdown</div>
+          <div class="analytics-device-bars" id="analyticsDeviceBars">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+        <div id="analyticsDeviceSectionLock" class="analytics-upsell" style="display:none; margin-top: 24px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Device breakdown requires the <strong>Growth plan</strong> or higher.
+          <a href="pricing-upgrade.html" class="analytics-upsell-link">Upgrade</a>
+        </div>
+
+        <!-- Geo Table (Pro+) -->
+        <div id="analyticsGeoSection" style="display:none; margin-top: 24px;">
+          <div class="analytics-section-header">Top Locations (by State)</div>
+          <table class="analytics-geo-table" id="analyticsGeoTable">
+            <thead><tr><th>State</th><th>Scans</th></tr></thead>
+            <tbody id="analyticsGeoBody"></tbody>
+          </table>
+        </div>
+        <div id="analyticsGeoLock" class="analytics-upsell" style="display:none; margin-top: 24px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Geographic data requires the <strong>Pro plan</strong> or higher.
+          <a href="pricing-upgrade.html" class="analytics-upsell-link">Upgrade</a>
+        </div>
+
+        <!-- CSV Export (Growth+) -->
+        <div style="margin-top: 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <button class="btn-save" id="btnExportScans" style="display:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <span id="btnExportLock" class="analytics-upsell" style="display:none; margin-top:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            CSV export requires <strong>Growth</strong> or higher.
+            <a href="pricing-upgrade.html" class="analytics-upsell-link">Upgrade</a>
+          </span>
+          <span id="analyticsDataWindow" style="font-size: 0.78rem; color: #999;"></span>
+        </div>
+
+      </div>
+
+    </div><!-- /tab-analytics -->
 
   </main>
 
@@ -1889,6 +2158,196 @@
           }
         });
       }
+
+      /* ============== MARKET ANALYTICS TAB ============== */
+      (function () {
+        var CAN_DEVICE = ['growth', 'pro', 'agency', 'enterprise'];
+        var CAN_GEO    = ['pro', 'agency', 'enterprise'];
+        var CAN_CONVERSION = ['pro', 'agency', 'enterprise'];
+        var CAN_EXPORT = ['growth', 'pro', 'agency', 'enterprise'];
+
+        var analyticsLoaded = false;
+
+        function renderTrendBars(containerId, data) {
+          var container = document.getElementById(containerId);
+          if (!container) return;
+          var max = Math.max.apply(null, data.map(function(d) { return d.count; })) || 1;
+          container.innerHTML = '';
+          data.forEach(function(d) {
+            var heightPct = Math.round((d.count / max) * 100);
+            var label = d.date.slice(5); // MM-DD
+            var group = document.createElement('div');
+            group.className = 'analytics-bar-group';
+            group.innerHTML =
+              '<div class="analytics-bar" style="height:' + heightPct + '%" title="' + d.date + ': ' + d.count + ' scans"></div>' +
+              '<span class="analytics-bar-label">' + label + '</span>';
+            container.appendChild(group);
+          });
+        }
+
+        function renderDeviceBars(devices, total) {
+          var container = document.getElementById('analyticsDeviceBars');
+          if (!container) return;
+          container.innerHTML = '';
+          ['mobile', 'tablet', 'desktop'].forEach(function(dev) {
+            var count = devices[dev] || 0;
+            var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            var row = document.createElement('div');
+            row.className = 'analytics-device-row';
+            row.innerHTML =
+              '<span class="analytics-device-name">' + dev + '</span>' +
+              '<div class="analytics-device-track"><div class="analytics-device-fill" style="width:' + pct + '%"></div></div>' +
+              '<span class="analytics-device-pct">' + pct + '%</span>';
+            container.appendChild(row);
+          });
+        }
+
+        function renderGeoTable(geoData) {
+          var tbody = document.getElementById('analyticsGeoBody');
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          geoData.forEach(function(g) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + (g.state || '—') + '</td><td>' + g.count + '</td>';
+            tbody.appendChild(tr);
+          });
+        }
+
+        function loadAnalytics() {
+          var brandId = localStorage.getItem('kup_active_brand');
+          if (!brandId) {
+            document.getElementById('analyticsTotalScans').textContent = 'No brand';
+            return;
+          }
+
+          kupApi.get('/api/scan-analytics/' + brandId).then(function(data) {
+            var planTier = data.planTier || 'starter';
+            var canDevice = CAN_DEVICE.includes(planTier);
+            var canGeo = CAN_GEO.includes(planTier);
+            var canConv = CAN_CONVERSION.includes(planTier);
+            var canExport = CAN_EXPORT.includes(planTier);
+
+            // Stat cards
+            document.getElementById('analyticsTotalScans').textContent = data.total || 0;
+
+            var weekTotal = (data.trend || []).reduce(function(sum, d) { return sum + d.count; }, 0);
+            document.getElementById('analyticsThisWeek').textContent = weekTotal;
+
+            // Top device card
+            var deviceCard = document.getElementById('analyticsDeviceCard');
+            var deviceLock = document.getElementById('analyticsDeviceLock');
+            var topDeviceEl = document.getElementById('analyticsTopDevice');
+            if (canDevice && data.devices) {
+              var devEntries = Object.entries(data.devices);
+              devEntries.sort(function(a, b) { return b[1] - a[1]; });
+              topDeviceEl.textContent = devEntries[0] ? (devEntries[0][0].charAt(0).toUpperCase() + devEntries[0][0].slice(1)) : '—';
+              deviceCard.classList.remove('analytics-locked-card');
+              if (deviceLock) deviceLock.style.display = 'none';
+            } else {
+              topDeviceEl.textContent = '—';
+              if (deviceLock) deviceLock.style.display = 'inline-flex';
+            }
+
+            // Conversion rate card
+            var convCard = document.getElementById('analyticsConvCard');
+            var convLock = document.getElementById('analyticsConvLock');
+            var convRateEl = document.getElementById('analyticsConvRate');
+            if (canConv && data.conversions) {
+              convRateEl.textContent = data.conversions.rate + '%';
+              convCard.classList.remove('analytics-locked-card');
+              if (convLock) convLock.style.display = 'none';
+            } else {
+              convRateEl.textContent = '—';
+              if (convLock) convLock.style.display = 'inline-flex';
+            }
+
+            // 7-day trend chart (all plans)
+            if (data.trend && data.trend.length) {
+              renderTrendBars('analyticsTrendBars', data.trend);
+            }
+
+            // Daily history (Growth+)
+            var dailySection = document.getElementById('analyticsDailySection');
+            var dailyLock = document.getElementById('analyticsDailyLock');
+            if (canDevice && data.daily && data.daily.length) {
+              dailySection.style.display = 'block';
+              if (dailyLock) dailyLock.style.display = 'none';
+              renderTrendBars('analyticsDailyBars', data.daily);
+            } else {
+              dailySection.style.display = 'none';
+              if (dailyLock) dailyLock.style.display = 'flex';
+            }
+
+            // Device breakdown (Growth+)
+            var deviceSection = document.getElementById('analyticsDeviceSection');
+            var deviceSectionLock = document.getElementById('analyticsDeviceSectionLock');
+            if (canDevice && data.devices) {
+              deviceSection.style.display = 'block';
+              if (deviceSectionLock) deviceSectionLock.style.display = 'none';
+              renderDeviceBars(data.devices, data.total);
+            } else {
+              deviceSection.style.display = 'none';
+              if (deviceSectionLock) deviceSectionLock.style.display = 'flex';
+            }
+
+            // Geo table (Pro+)
+            var geoSection = document.getElementById('analyticsGeoSection');
+            var geoLock = document.getElementById('analyticsGeoLock');
+            if (canGeo && data.geo && data.geo.length) {
+              geoSection.style.display = 'block';
+              if (geoLock) geoLock.style.display = 'none';
+              renderGeoTable(data.geo);
+            } else {
+              geoSection.style.display = 'none';
+              if (geoLock) geoLock.style.display = 'flex';
+            }
+
+            // Export button
+            var exportBtn = document.getElementById('btnExportScans');
+            var exportLock = document.getElementById('btnExportLock');
+            if (canExport) {
+              if (exportBtn) exportBtn.style.display = 'inline-flex';
+              if (exportLock) exportLock.style.display = 'none';
+            } else {
+              if (exportBtn) exportBtn.style.display = 'none';
+              if (exportLock) exportLock.style.display = 'flex';
+            }
+
+            // Data window label
+            var winEl = document.getElementById('analyticsDataWindow');
+            if (winEl) winEl.textContent = 'Showing last ' + data.days + ' days (' + planTier.charAt(0).toUpperCase() + planTier.slice(1) + ' plan)';
+
+          }).catch(function(err) {
+            console.error('Market analytics load error:', err);
+            document.getElementById('analyticsTotalScans').textContent = 'Error';
+          });
+        }
+
+        // Export CSV
+        document.addEventListener('DOMContentLoaded', function() {
+          var exportBtn = document.getElementById('btnExportScans');
+          if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+              var brandId = localStorage.getItem('kup_active_brand');
+              if (!brandId) { kupToast('No active brand selected', 'error'); return; }
+              window.location.href = '/api/scan-analytics/' + brandId + '/export';
+            });
+          }
+        });
+
+        // Load analytics when tab becomes active
+        document.addEventListener('DOMContentLoaded', function() {
+          var analyticsTab = document.querySelector('[data-tab="tab-analytics"]');
+          if (analyticsTab) {
+            analyticsTab.addEventListener('click', function() {
+              if (!analyticsLoaded) {
+                analyticsLoaded = true;
+                loadAnalytics();
+              }
+            });
+          }
+        });
+      })();
 
       /* ============== WAIT FOR FIREBASE AUTH, THEN LOAD ============== */
       if (typeof auth !== 'undefined') {

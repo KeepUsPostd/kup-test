@@ -19,4 +19,5 @@ module.exports = {
   Withdrawal: require('./Withdrawal'),
   Notification: require('./Notification'),
   ClaimRequest: require('./ClaimRequest'),
+  BrandScan: require('./BrandScan'),
 };

@@ -334,6 +334,13 @@
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
 
+        // Silent scan tracking beacon — non-blocking
+        fetch('/api/scan-analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code }),
+        }).catch(function() {}); // ignore errors
+
         // Check if user is already logged in — redirect into the app
         checkAuth(brand);
       }
