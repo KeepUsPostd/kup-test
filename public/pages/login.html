@@ -729,7 +729,7 @@
           var redirectParam = new URLSearchParams(window.location.search).get('redirect');
           if (redirectParam) {
             window.location.href = decodeURIComponent(redirectParam);
-          } else if (result.user.activeProfile === 'brand' && !result.user.onboardingComplete) {
+          } else if (result.user.activeProfile === 'brand' && !result.user.onboardingComplete && !result.user.hasBrandProfile) {
             window.location.href = '/pages/onboarding.html';
           } else if (result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
@@ -769,7 +769,7 @@
           var redirectParam = new URLSearchParams(window.location.search).get('redirect');
           if (redirectParam) {
             window.location.href = decodeURIComponent(redirectParam);
-          } else if (result.user && result.user.activeProfile === 'brand' && !result.user.onboardingComplete) {
+          } else if (result.user && result.user.activeProfile === 'brand' && !result.user.onboardingComplete && !result.user.hasBrandProfile) {
             window.location.href = '/pages/onboarding.html';
           } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
@@ -870,7 +870,7 @@
         if (kupUser) {
           try {
             var parsed = JSON.parse(kupUser);
-            if (parsed.activeProfile === 'brand' && !parsed.onboardingComplete) {
+            if (parsed.activeProfile === 'brand' && !parsed.onboardingComplete && !parsed.hasBrandProfile) {
               window.location.href = '/pages/onboarding.html';
               return;
             } else if (parsed.activeProfile === 'brand') {

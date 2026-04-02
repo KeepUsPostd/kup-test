@@ -113,6 +113,12 @@ router.post('/', requireAuth, async (req, res) => {
     }
     await brandProfile.save();
 
+    // Auto-complete onboarding when first brand is created (safety net)
+    if (!req.user.onboardingComplete) {
+      req.user.onboardingComplete = true;
+      await req.user.save();
+    }
+
     console.log(`✅ Brand created: "${brand.name}" by ${req.user.email}`);
 
     res.status(201).json({
