@@ -97,12 +97,6 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
-    // Validate influencer exists
-    const influencer = await InfluencerProfile.findById(influencerProfileId);
-    if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
-    }
-
     const partnership = await Partnership.create({
       brandId,
       influencerProfileId,
