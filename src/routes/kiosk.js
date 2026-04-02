@@ -31,9 +31,10 @@ function generateRewardCode() {
 // PUBLIC ENDPOINTS (no auth — used by kiosk device)
 // ══════════════════════════════════════════════
 
-// GET /api/kiosk/:brandCode — Load brand kiosk config for display
+// GET /api/kiosk/display/:brandCode — Load brand kiosk config for display
 // Called by kiosk-display.html to load brand data
-router.get('/:brandCode', async (req, res) => {
+// NOTE: Must use /display/ prefix — bare /:brandCode would swallow /config, /guests, etc.
+router.get('/display/:brandCode', async (req, res) => {
   try {
     const brand = await Brand.findOne({
       kioskBrandCode: req.params.brandCode,
