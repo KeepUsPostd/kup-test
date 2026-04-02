@@ -164,6 +164,21 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/brands/public/:code — returns brand info by kioskBrandCode (no auth — QR landing page)
+// MUST be before /:brandId to prevent "public" being treated as a brandId
+router.get('/public/:code', async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ kioskBrandCode: req.params.code.toUpperCase() })
+      .select('name initials generatedColor brandColors logoUrl bannerUrl description category websiteUrl kioskBrandCode')
+      .lean();
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+    res.json({ brand });
+  } catch (error) {
+    console.error('Public brand lookup error:', error);
+    res.status(500).json({ error: 'Failed to load brand' });
+  }
+});
+
 // GET /api/brands/:brandId — Get single brand details
 router.get('/:brandId', requireAuth, requireBrandRole('viewer'), async (req, res) => {
   try {

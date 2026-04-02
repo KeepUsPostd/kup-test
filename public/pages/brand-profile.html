@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KeepUsPostd — Brand Profile</title>
+  <meta name="description" content="Discover this brand on KeepUsPostd and become a partner influencer." />
+  <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kup-blue: #2ea5dd;
+      --kup-gradient: linear-gradient(135deg, #2ea5dd, #1a73b8);
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── HERO BANNER ── */
+    .hero {
+      width: 100%;
+      height: 200px;
+      background: var(--kup-gradient);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,.1), rgba(0,0,0,.35));
+    }
+
+    /* ── CARD ── */
+    .card {
+      max-width: 480px;
+      margin: -60px auto 0;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      padding: 28px 24px 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── BRAND AVATAR ── */
+    .brand-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+      margin: 0 auto 16px;
+    }
+    .brand-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .brand-category {
+      font-size: .82rem;
+      color: #777;
+      text-align: center;
+      margin-bottom: 14px;
+      text-transform: capitalize;
+    }
+    .brand-description {
+      font-size: .9rem;
+      color: #555;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* ── POWERED BY ── */
+    .powered-by {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: .75rem;
+      color: #999;
+      margin-bottom: 24px;
+    }
+    .powered-by img {
+      height: 18px;
+      opacity: .7;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 0 -24px 24px;
+    }
+
+    /* ── CTA HEADING ── */
+    .cta-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .cta-sub {
+      font-size: .82rem;
+      color: #666;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: var(--kup-gradient);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      margin-bottom: 12px;
+      letter-spacing: .3px;
+    }
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: var(--kup-blue);
+      border: 2px solid var(--kup-blue);
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    /* ── APP BADGES ── */
+    .app-badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .app-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: .78rem;
+    }
+    .app-badge svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .app-badge-text small { display: block; font-size: .65rem; opacity: .75; }
+    .app-badge-text strong { font-size: .85rem; }
+
+    /* ── LOADING / ERROR STATES ── */
+    .state-loading, .state-error {
+      text-align: center;
+      padding: 60px 24px;
+      color: #888;
+    }
+    .state-error { color: #e53e3e; }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--kup-blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .page-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: .72rem;
+      color: #bbb;
+    }
+    .page-footer a { color: #bbb; }
+  </style>
+</head>
+<body>
+
+  <div class="hero" id="heroBanner">
+    <img id="heroBannerImg" class="hero-banner-img" alt="" />
+    <div class="hero-overlay"></div>
+  </div>
+
+  <div class="card" id="mainCard">
+    <div class="state-loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Loading brand profile…</p>
+    </div>
+
+    <!-- Populated by JS -->
+    <div id="brandContent" style="display:none;">
+      <div class="brand-avatar" id="brandAvatar">KUP</div>
+      <div class="brand-name" id="brandName">Brand Name</div>
+      <div class="brand-category" id="brandCategory"></div>
+      <div class="brand-description" id="brandDescription"></div>
+
+      <div class="powered-by">
+        <img src="/images/KUP_Favicon.png" alt="KUP" />
+        <span>Powered by KeepUsPostd</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="cta-heading">Become a Partner Influencer</div>
+      <div class="cta-sub">Get paid to post content for brands you love. Join free — no followers minimum.</div>
+
+      <a href="#" class="btn-primary" id="joinBtn">Join as an Influencer →</a>
+      <a href="/pages/login.html" class="btn-secondary">Already have an account? Sign in</a>
+
+      <div class="app-badges">
+        <a href="https://apps.apple.com/us/app/keepuspostd/id6736950249" class="app-badge" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <div class="app-badge-text">
+            <small>Download on the</small>
+            <strong>App Store</strong>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="state-error" id="errorState" style="display:none;">
+      <p style="font-size:2rem;margin-bottom:12px;">🔍</p>
+      <p style="font-weight:700;margin-bottom:8px;">Brand not found</p>
+      <p style="font-size:.85rem;">This QR code may be invalid or the brand is no longer active.</p>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    &copy; 2026 KeepUsPostd &nbsp;·&nbsp;
+    <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/help">Help</a>
+  </div>
+
+  <script>
+    (function () {
+      // Extract brand code from URL path: /brand/KUP-XXXXXX
+      var code = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
+      var loadingEl = document.getElementById('loadingState');
+      var contentEl = document.getElementById('brandContent');
+      var errorEl   = document.getElementById('errorState');
+      var heroBanner = document.getElementById('heroBannerImg');
+      var heroBg = document.getElementById('heroBanner');
+
+      function showError() {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+      }
+
+      function showBrand(brand) {
+        // Banner
+        if (brand.bannerUrl) {
+          heroBanner.src = brand.bannerUrl;
+          heroBanner.style.display = 'block';
+        } else if (brand.brandColors && brand.brandColors.primary) {
+          heroBg.style.background = 'linear-gradient(135deg, ' + brand.brandColors.primary + ', ' + (brand.brandColors.secondary || '#1a73b8') + ')';
+        } else if (brand.generatedColor) {
+          heroBg.style.background = 'linear-gradient(135deg, ' + brand.generatedColor + ', #1a73b8)';
+        }
+
+        // Avatar
+        var avatar = document.getElementById('brandAvatar');
+        if (brand.logoUrl) {
+          avatar.innerHTML = '<img src="' + brand.logoUrl + '" alt="' + brand.name + '" onerror="this.style.display=\'none\'" />';
+        } else {
+          avatar.textContent = brand.initials || brand.name.charAt(0).toUpperCase();
+          if (brand.generatedColor) avatar.style.background = brand.generatedColor;
+        }
+
+        document.getElementById('brandName').textContent = brand.name;
+        document.getElementById('brandCategory').textContent = brand.category || 'Brand';
+        document.getElementById('brandDescription').textContent =
+          brand.description || 'This brand is looking for influencer partners on KeepUsPostd.';
+
+        // Join button includes referral code so the brand gets credit
+        document.getElementById('joinBtn').href =
+          '/pages/register.html?type=influencer&ref=' + encodeURIComponent(brand.kioskBrandCode || code);
+
+        document.title = brand.name + ' — KeepUsPostd';
+
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+      }
+
+      if (!code) { showError(); return; }
+
+      fetch('/api/brands/public/' + encodeURIComponent(code.toUpperCase()))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.brand) showBrand(data.brand);
+          else showError();
+        })
+        .catch(showError);
+    })();
+  </script>
+</body>
+</html>

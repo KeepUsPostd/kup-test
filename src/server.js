@@ -171,6 +171,11 @@ app.get('/delete-account', (req, res) => {
   res.redirect(301, '/pages/delete-account.html');
 });
 
+// Public brand profile page — scanned from QR codes on market materials
+app.get('/brand/:code', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'brand-profile.html'));
+});
+
 // --- API Routes ---
 
 // Health check (no auth required, no rate limit)
