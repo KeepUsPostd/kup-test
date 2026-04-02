@@ -2567,6 +2567,20 @@
         var partnerships = partnerData.partnerships || partnerData || [];
         if (!Array.isArray(partnerships)) partnerships = [];
 
+        // Frontend self-filter: exclude any partnership where the influencer handle
+        // matches the current user's email handle (safety net for backend filter)
+        try {
+          var currentUser = auth.currentUser;
+          if (currentUser && currentUser.email) {
+            var selfHandle = currentUser.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+            partnerships = partnerships.filter(function(p) {
+              var inf = p.influencerProfileId || {};
+              var handle = (inf.handle || '').replace(/^@/, '').toLowerCase();
+              return handle !== selfHandle;
+            });
+          }
+        } catch(e) {}
+
         // Cash tab
         updateCashStats(transactions);
         renderCashTable(transactions);

@@ -1171,7 +1171,7 @@
       <!-- Team Members Table -->
       <div class="team-section">
         <div class="section-label">Team Members</div>
-        <p class="section-sub" id="teamMemberCount">4 members on your team</p>
+        <p class="section-sub" id="teamMemberCount">Loading team...</p>
         <div class="billing-table-wrap data-table">
           <table class="team-table" id="teamTable">
             <thead>
@@ -1533,18 +1533,17 @@
             if (profileFullName) profileFullName.textContent = fullName;
             var ini = getInitials(fullName);
             if (profileAvatar) profileAvatar.textContent = ini;
-            // Update header with verified API data (first name + last initial format)
-            if (headerAvatar) headerAvatar.textContent = ini;
+            // headerAvatar is managed by brand-context.js (shows brand logo) — do not touch it here
             if (headerName) {
               var parts = fullName.trim().split(/\s+/);
               headerName.textContent = parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1].charAt(0) + '.' : fullName;
             }
           }
 
-          // If user has a profile photo, show it instead of initials
+          // If user has a profile photo, show it on the profile card only
+          // headerAvatar is managed by brand-context.js — do not overwrite with user photo
           if (user.avatarUrl) {
             if (profileAvatar) profileAvatar.innerHTML = '<img src="' + user.avatarUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-            if (headerAvatar) headerAvatar.innerHTML = '<img src="' + user.avatarUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
           }
 
           // Role badge
@@ -1632,7 +1631,7 @@
 
         if (profileAvatar) profileAvatar.textContent = ini;
         if (profileFullName) profileFullName.textContent = fullName;
-        if (headerAvatar) headerAvatar.textContent = ini;
+        // headerAvatar is managed by brand-context.js (brand logo) — do not overwrite
         if (headerName) headerName.textContent = firstName + (lastName ? ' ' + lastName.charAt(0) + '.' : '');
 
         kupToast('Profile changes saved successfully', 'success');
@@ -1704,14 +1703,11 @@
                 console.error('Profile save error:', saveErr);
                 kupToast('Photo uploaded but profile save failed: ' + (saveErr.message || 'Unknown error'), 'warning');
               }
-              // Update avatars on page regardless
+              // Update profile card avatar only
+              // headerAvatar (top-right nav) always shows brand logo — do not update here
               var profileAvatar = document.getElementById('profileAvatar');
-              var headerAvatar = document.getElementById('headerAvatar');
               if (profileAvatar) {
                 profileAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-              }
-              if (headerAvatar) {
-                headerAvatar.innerHTML = '<img src="' + photoUrl + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
               }
               kupToast('Profile photo updated!', 'success');
             } else {
