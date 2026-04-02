@@ -74,10 +74,12 @@ app.use(helmet({
       imgSrc: [
         "'self'",
         "data:",
+        "blob:",                     // Camera/recorded media
+        "https://*.r2.dev",          // Cloudflare R2 — brand logos & banners
+        "https://firebasestorage.googleapis.com", // Firebase Storage
         "https://i.pravatar.cc",     // Demo avatar images
         "https://images.unsplash.com", // Demo post images
         "https://randomuser.me",     // Demo profile photos
-        "blob:",                     // Camera/recorded media
       ],
       connectSrc: [
         "'self'",
@@ -85,8 +87,10 @@ app.use(helmet({
         "https://www.googleapis.com",
         "https://securetoken.googleapis.com",
         "https://identitytoolkit.googleapis.com",
+        "https://fcmregistrations.googleapis.com", // FCM push
         "https://keepuspostd.com",
         "https://www.keepuspostd.com",
+        "https://*.r2.dev",          // Cloudflare R2 uploads
       ],
       mediaSrc: [
         "'self'",
