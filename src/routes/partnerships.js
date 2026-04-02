@@ -202,18 +202,24 @@ router.get('/', requireAuth, async (req, res) => {
     if (status) filter.status = status;
     if (source) filter.source = source;
 
+    // When listing a brand's partners, exclude the brand owner's own influencer profile
+    // so they don't see themselves in their own influencer list
+    if (brandId) {
+      const ownProfile = await InfluencerProfile.findOne({ userId: req.user._id }, '_id').lean();
+      if (ownProfile) {
+        filter.influencerProfileId = { $ne: ownProfile._id };
+      }
+    }
+    // Restore explicit influencerProfileId filter if passed (overrides exclusion)
+    if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
+
     const partnerships = await Partnership.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats userId')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats')
       .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
-    // Filter out brand owner appearing as their own influencer (Option A)
-    const currentUserId = req.user._id.toString();
-    const filtered = brandId ? partnerships.filter(p => {
-      const infUserId = p.influencerProfileId?.userId?.toString();
-      return infUserId !== currentUserId;
-    }) : partnerships;
+    const filtered = partnerships;
 
     // Gather stats
     const stats = {
