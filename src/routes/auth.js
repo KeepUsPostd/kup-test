@@ -721,9 +721,17 @@ router.post('/social-verify', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'followerCount must be a non-negative number' });
     }
 
-    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    let influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
+      // Auto-create influencer profile if user only has a brand profile
+      const user = req.user;
+      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      influencer = await InfluencerProfile.create({
+        userId: user._id,
+        displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
+        handle: baseHandle,
+      });
+      await User.findByIdAndUpdate(user._id, { hasInfluencerProfile: true });
     }
 
     // Save social handles — merge with any existing
@@ -836,7 +844,7 @@ router.delete('/account', requireAuth, async (req, res) => {
       InfluencerProfile.deleteOne({ userId }),
       BrandProfile.deleteMany({ ownerId: userId }),
       ContentSubmission.deleteMany({ influencerProfileId: { $in: await InfluencerProfile.find({ userId }).distinct('_id') } }),
-      Partnership.deleteMany({ influencerId: userId }),
+      Partnership.deleteMany({ influencerProfileId: { $in: await InfluencerProfile.find({ userId }).distinct('_id') } }),
       SavedContent.deleteMany({ userId }),
     ]);
 

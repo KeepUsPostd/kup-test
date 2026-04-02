@@ -205,7 +205,7 @@ router.get('/public/:identifier', async (req, res) => {
         { kioskBrandCode: id.toUpperCase() },
       ],
     })
-      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode brandHandle')
+      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode brandHandle ownerId claimStatus brandType')
       .lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
     res.json({ brand });

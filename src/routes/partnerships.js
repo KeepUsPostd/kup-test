@@ -63,14 +63,18 @@ router.get('/discover', requireAuth, async (req, res) => {
 // Brand invites an influencer OR influencer requests to join
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { brandId, influencerProfileId, source } = req.body;
+    const { brandId, source } = req.body;
 
     if (!brandId) {
       return res.status(400).json({ error: 'brandId is required' });
     }
-    if (!influencerProfileId) {
-      return res.status(400).json({ error: 'influencerProfileId is required' });
+
+    // Look up influencer profile from the authenticated user — no need to send it in the body
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found. Please complete your profile first.' });
     }
+    const influencerProfileId = influencer._id;
 
     // Check if partnership already exists
     const existing = await Partnership.findOne({ brandId, influencerProfileId });
