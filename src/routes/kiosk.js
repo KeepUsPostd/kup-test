@@ -370,18 +370,36 @@ router.get('/config/:brandId', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    // Get kiosk stats
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Date boundaries for stats
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+    const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate() - 7);
+    const lastWeekStart = new Date(now); lastWeekStart.setDate(now.getDate() - 14);
 
-    const [totalGuests, totalRewards, todayRewards, redeemedRewards] = await Promise.all([
+    // Get plan tier from BrandProfile for the badge
+    const { BrandMember, BrandProfile } = require('../models');
+    const ownerMembership = await BrandMember.findOne({ brandId: brand._id, role: 'owner', status: 'active' });
+    let planTier = 'starter';
+    if (ownerMembership) {
+      const bp = await BrandProfile.findOne({ userId: ownerMembership.userId });
+      planTier = (bp && bp.planTier) || 'starter';
+    }
+
+    const [totalGuests, totalRewards, todayRewards, redeemedRewards, thisWeekReviews, lastWeekReviews] = await Promise.all([
       GuestReviewer.countDocuments({ brandId: brand._id }),
       KioskReward.countDocuments({ brandId: brand._id }),
       KioskReward.countDocuments({ brandId: brand._id, issuedAt: { $gte: todayStart } }),
       KioskReward.countDocuments({ brandId: brand._id, status: 'redeemed' }),
+      KioskReward.countDocuments({ brandId: brand._id, issuedAt: { $gte: thisWeekStart } }),
+      KioskReward.countDocuments({ brandId: brand._id, issuedAt: { $gte: lastWeekStart, $lt: thisWeekStart } }),
     ]);
 
+    const vsLastWeek = lastWeekReviews > 0
+      ? Math.round(((thisWeekReviews - lastWeekReviews) / lastWeekReviews) * 100)
+      : (thisWeekReviews > 0 ? 100 : 0);
+
     res.json({
+      planTier,
       kiosk: {
         kioskEnabled: brand.kioskEnabled,
         kioskOfferTitle: brand.kioskOfferTitle,
@@ -401,6 +419,9 @@ router.get('/config/:brandId', requireAuth, async (req, res) => {
         totalRewards,
         todayRewards,
         redeemedRewards,
+        thisWeekReviews,
+        lastWeekReviews,
+        vsLastWeek,
         redemptionRate: totalRewards > 0
           ? Math.round((redeemedRewards / totalRewards) * 100)
           : 0,

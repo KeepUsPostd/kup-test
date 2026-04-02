@@ -446,43 +446,43 @@
         <div class="scan-analytics">
           <div class="scan-analytics-header">
             <h5>Kiosk Performance</h5>
-            <span class="analytics-badge">Growth Plan</span>
+            <span class="analytics-badge" id="kioskPlanBadge">—</span>
           </div>
 
           <div class="scan-counter">
-            <span class="count">47</span>
+            <span class="count" id="statTotalReviews">0</span>
             <span class="label">Total Reviews Recorded</span>
           </div>
 
           <div class="scan-trend">
-            <div class="scan-trend-bars">
-              <div class="scan-trend-bar" style="height:35%"><span>Mon</span></div>
-              <div class="scan-trend-bar" style="height:55%"><span>Tue</span></div>
-              <div class="scan-trend-bar" style="height:70%"><span>Wed</span></div>
-              <div class="scan-trend-bar" style="height:45%"><span>Thu</span></div>
-              <div class="scan-trend-bar active" style="height:90%"><span>Fri</span></div>
-              <div class="scan-trend-bar" style="height:60%"><span>Sat</span></div>
-              <div class="scan-trend-bar" style="height:40%"><span>Sun</span></div>
+            <div class="scan-trend-bars" id="kioskTrendBars">
+              <div class="scan-trend-bar" style="height:4%"><span>Mon</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Tue</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Wed</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Thu</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Fri</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Sat</span></div>
+              <div class="scan-trend-bar" style="height:4%"><span>Sun</span></div>
             </div>
-            <p class="scan-trend-label">Last 7 days &mdash; <strong>47 reviews</strong></p>
+            <p class="scan-trend-label">Last 7 days &mdash; <strong><span id="statThisWeek">0</span> reviews</strong></p>
           </div>
 
           <div class="scan-details">
             <div class="scan-detail-item">
-              <span class="detail-value">32</span>
+              <span class="detail-value" id="statThisWeekCard">0</span>
               <span class="detail-label">Reviews This Week</span>
             </div>
             <div class="scan-detail-item">
-              <span class="detail-value">+24%</span>
+              <span class="detail-value" id="statVsLastWeek">—</span>
               <span class="detail-label">vs Last Week</span>
             </div>
-            <div class="scan-detail-item locked">
-              <span class="detail-value">89%</span>
+            <div class="scan-detail-item">
+              <span class="detail-value" id="statRedemptionRate">0%</span>
               <span class="detail-label">Reward Redemption</span>
             </div>
-            <div class="scan-detail-item locked">
-              <span class="detail-value">12</span>
-              <span class="detail-label">App Conversions</span>
+            <div class="scan-detail-item">
+              <span class="detail-value" id="statTodayRewardsKiosk">0</span>
+              <span class="detail-label">Rewards Today</span>
             </div>
           </div>
 
@@ -620,11 +620,34 @@
           if (colorSwatch) colorSwatch.style.background = k.kioskBrandingColor;
           if (colorPicker) colorPicker.value = k.kioskBrandingColor;
         }
+        // Plan badge
+        var planBadgeEl = document.getElementById('kioskPlanBadge');
+        if (planBadgeEl && data.planTier) planBadgeEl.textContent = data.planTier + ' Plan';
+
         if (data.stats) {
-          var totalGuestsEl = document.getElementById('statTotalGuests');
-          var todayRewardsEl = document.getElementById('statTodayRewards');
-          if (totalGuestsEl) totalGuestsEl.textContent = data.stats.totalGuests || '0';
-          if (todayRewardsEl) todayRewardsEl.textContent = data.stats.todayRewards || '0';
+          var s = data.stats;
+          var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+          set('statTotalReviews', s.totalGuests || 0);
+          set('statThisWeek', s.thisWeekReviews || 0);
+          set('statThisWeekCard', s.thisWeekReviews || 0);
+          // vs last week
+          var vsRaw = s.vsLastWeek;
+          if (vsRaw !== undefined && vsRaw !== null) {
+            set('statVsLastWeek', (vsRaw >= 0 ? '+' : '') + vsRaw + '%');
+          }
+          set('statRedemptionRate', (s.redemptionRate !== undefined ? s.redemptionRate : 0) + '%');
+          set('statTodayRewardsKiosk', s.todayRewards || 0);
+
+          // Trend bars — normalize to 7-day array if available
+          if (s.weeklyTrend && Array.isArray(s.weeklyTrend)) {
+            var bars = document.querySelectorAll('#kioskTrendBars .scan-trend-bar');
+            var max = Math.max.apply(null, s.weeklyTrend.map(function(d) { return d.count || 0; })) || 1;
+            bars.forEach(function(bar, i) {
+              var pct = Math.max(4, Math.round(((s.weeklyTrend[i] ? s.weeklyTrend[i].count : 0) / max) * 90));
+              bar.style.height = pct + '%';
+              bar.classList.toggle('active', i === s.weeklyTrend.length - 1);
+            });
+          }
         }
       }).catch(function(err) {
         console.warn('Could not load kiosk settings:', err);
