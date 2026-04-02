@@ -151,6 +151,7 @@ async function kupSignInWithGoogle() {
 async function kupSignOut() {
   await auth.signOut();
   localStorage.removeItem('kupUser');
+  localStorage.setItem('kup_signed_out', '1');
   window.location.href = '/pages/login.html';
 }
 

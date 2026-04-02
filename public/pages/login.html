@@ -860,6 +860,12 @@
     auth.onAuthStateChanged(function(user) {
       var overlay = document.getElementById('authCheckOverlay');
       if (user) {
+        // If user just signed out, the Firebase session may still be clearing — show the form
+        if (localStorage.getItem('kup_signed_out')) {
+          localStorage.removeItem('kup_signed_out');
+          if (overlay) overlay.style.display = 'none';
+          return;
+        }
         // Already logged in — redirect silently, no form flash
         var redirectParam = new URLSearchParams(window.location.search).get('redirect');
         if (redirectParam) {
