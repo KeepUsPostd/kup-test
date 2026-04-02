@@ -108,7 +108,7 @@ function buildEmailHtml({
           <!-- Logo -->
           <tr>
             <td align="center" style="padding: 32px 24px 16px;">
-              <img src="${process.env.APP_URL || 'https://keepuspostd.com'}/images/kup-logo.png" alt="KeepUsPostd" width="160" style="max-width: 160px; height: auto;" />
+              <img src="${process.env.APP_URL || 'https://keepuspostd.com'}/images/logo-dark.png" alt="KeepUsPostd" width="160" style="max-width: 160px; height: auto;" />
             </td>
           </tr>
 
@@ -140,7 +140,7 @@ function buildEmailHtml({
           <tr>
             <td style="${footerBg} padding: 24px; text-align: center;">
               <p style="margin: 0 0 8px; color: ${COLORS.white}; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${footerTagline}</p>
-              <img src="${process.env.APP_URL || 'https://keepuspostd.com'}/images/kup-logo-white.png" alt="KUP" width="80" style="max-width: 80px; height: auto;" />
+              <img src="${process.env.APP_URL || 'https://keepuspostd.com'}/images/logo-white.png" alt="KUP" width="80" style="max-width: 80px; height: auto;" />
             </td>
           </tr>
 

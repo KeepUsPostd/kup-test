@@ -203,20 +203,27 @@ router.get('/', requireAuth, async (req, res) => {
     if (source) filter.source = source;
 
     const partnerships = await Partnership.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats userId')
       .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
+    // Filter out brand owner appearing as their own influencer (Option A)
+    const currentUserId = req.user._id.toString();
+    const filtered = brandId ? partnerships.filter(p => {
+      const infUserId = p.influencerProfileId?.userId?.toString();
+      return infUserId !== currentUserId;
+    }) : partnerships;
+
     // Gather stats
     const stats = {
-      total: partnerships.length,
-      active: partnerships.filter(p => p.status === 'active').length,
-      paused: partnerships.filter(p => p.status === 'paused').length,
-      ended: partnerships.filter(p => p.status === 'ended').length,
+      total: filtered.length,
+      active: filtered.filter(p => p.status === 'active').length,
+      paused: filtered.filter(p => p.status === 'paused').length,
+      ended: filtered.filter(p => p.status === 'ended').length,
     };
 
-    res.json({ partnerships, stats });
+    res.json({ partnerships: filtered, stats });
   } catch (error) {
     console.error('List partnerships error:', error.message);
     res.status(500).json({ error: 'Could not fetch partnerships' });
