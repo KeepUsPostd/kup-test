@@ -171,6 +171,11 @@ app.get('/delete-account', (req, res) => {
   res.redirect(301, '/pages/delete-account.html');
 });
 
+// Kiosk reward redemption page — staff scans guest QR to redeem
+app.get('/redeem/:code', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'redeem.html'));
+});
+
 // Public brand profile page — scanned from QR codes on market materials
 // Supports both /brand/KUP-XXXXXX (kiosk code) and /@handle (vanity handle)
 app.get('/brand/:code', (req, res) => {

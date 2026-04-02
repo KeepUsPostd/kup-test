@@ -5,8 +5,11 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const QRCode = require('qrcode');
 const { requireAuth } = require('../middleware/auth');
 const { Brand, GuestReviewer, KioskReward, ContentSubmission } = require('../models');
+const { sendEmail } = require('../config/email');
+const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
 
 // Plan-based kiosk location limits
 const KIOSK_LIMITS = {
@@ -163,6 +166,31 @@ router.post('/session', async (req, res) => {
     });
 
     console.log(`🎬 Kiosk session: ${guest.firstName} at ${brand.name} → ${reward.code}`);
+
+    // Send reward email if guest provided one (non-blocking)
+    if (guest.email) {
+      const redeemUrl = `${APP_URL}/redeem/${reward.code}`;
+      QRCode.toDataURL(redeemUrl, { width: 200, margin: 1 })
+        .then(qrDataUrl => sendEmail({
+          to: guest.email,
+          subject: `Your ${reward.rewardValue} from ${brand.name} is ready! 🎉`,
+          preheader: `Show this at the counter to claim your reward.`,
+          headline: `Your reward is ready, ${guest.firstName}!`,
+          bodyHtml: `
+            <p style="margin:0 0 20px;">Thanks for sharing your review of <strong>${brand.name}</strong>. Here's your reward — just show this at the counter.</p>
+            <div style="background:#f9f9f9;border-radius:12px;padding:24px;margin:0 0 20px;text-align:center;">
+              <img src="${qrDataUrl}" alt="Reward QR Code" width="160" height="160" style="display:block;margin:0 auto 16px;" />
+              <div style="font-size:22px;font-weight:800;letter-spacing:4px;color:#1a1a1a;font-family:monospace;">${reward.code}</div>
+              <div style="font-size:13px;color:#888;margin-top:6px;">Valid for 24 hours · ${reward.rewardValue}</div>
+            </div>
+            <p style="margin:0;font-size:13px;color:#aaa;">Powered by KeepUsPostd</p>
+          `,
+          ctaText: 'View Reward',
+          ctaUrl: redeemUrl,
+          variant: 'brand',
+        }))
+        .catch(err => console.warn('📧 Kiosk reward email failed:', err.message));
+    }
 
     res.status(201).json({
       message: 'Review recorded! Here\'s your reward.',
@@ -469,6 +497,66 @@ router.get('/rewards/:brandId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('List kiosk rewards error:', error.message);
     res.status(500).json({ error: 'Could not fetch kiosk rewards' });
+  }
+});
+
+// ══════════════════════════════════════════════
+// REDEMPTION ENDPOINTS (no auth — staff-facing)
+// ══════════════════════════════════════════════
+
+// GET /api/kiosk/redeem/:code — Check reward validity
+router.get('/redeem/:code', async (req, res) => {
+  try {
+    const reward = await KioskReward.findOne({ code: req.params.code.toUpperCase() })
+      .populate('brandId', 'name logoUrl kioskBrandingColor')
+      .populate('guestReviewerId', 'firstName');
+
+    if (!reward) return res.status(404).json({ error: 'Reward not found', message: 'This code does not exist.' });
+    if (reward.status === 'redeemed') return res.status(409).json({
+      error: 'Already redeemed',
+      redeemedAt: reward.redeemedAt,
+      rewardValue: reward.rewardValue,
+      brandName: reward.brandId?.name,
+    });
+    if (new Date() > reward.expiresAt) return res.status(410).json({ error: 'Expired', message: 'This reward has expired.' });
+
+    res.json({
+      valid: true,
+      code: reward.code,
+      rewardValue: reward.rewardValue,
+      rewardType: reward.rewardType,
+      brandName: reward.brandId?.name,
+      brandColor: reward.brandId?.kioskBrandingColor,
+      brandLogo: reward.brandId?.logoUrl,
+      guestName: reward.guestReviewerId?.firstName,
+      issuedAt: reward.issuedAt,
+      expiresAt: reward.expiresAt,
+    });
+  } catch (err) {
+    console.error('Redeem check error:', err.message);
+    res.status(500).json({ error: 'Could not check reward' });
+  }
+});
+
+// POST /api/kiosk/redeem/:code — Mark reward as redeemed
+router.post('/redeem/:code', async (req, res) => {
+  try {
+    const reward = await KioskReward.findOne({ code: req.params.code.toUpperCase() })
+      .populate('brandId', 'name');
+
+    if (!reward) return res.status(404).json({ error: 'Reward not found' });
+    if (reward.status === 'redeemed') return res.status(409).json({ error: 'Already redeemed', redeemedAt: reward.redeemedAt });
+    if (new Date() > reward.expiresAt) return res.status(410).json({ error: 'Expired' });
+
+    reward.status = 'redeemed';
+    reward.redeemedAt = new Date();
+    await reward.save();
+
+    console.log(`✅ Reward redeemed: ${reward.code} at ${reward.brandId?.name}`);
+    res.json({ success: true, message: 'Reward redeemed successfully!', redeemedAt: reward.redeemedAt });
+  } catch (err) {
+    console.error('Redeem error:', err.message);
+    res.status(500).json({ error: 'Could not redeem reward' });
   }
 });
 

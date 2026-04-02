@@ -1119,9 +1119,10 @@
         <div class="reward-thanks" id="rewardName">Thank you!</div>
         <div class="reward-subtitle">Here's your reward:</div>
         <div class="reward-code-card">
+          <canvas id="rewardQrCanvas" style="display:none;border-radius:8px;margin:0 auto 12px;"></canvas>
           <div class="reward-label" id="rewardLabel">FREE TACO</div>
           <div class="reward-code" id="rewardCode">KUP-XXXXXX</div>
-          <div class="reward-instruction">Show this to your server</div>
+          <div class="reward-instruction">Show QR to your server to redeem</div>
           <div class="reward-validity">Valid for 24 hours</div>
         </div>
         <div class="countdown-bar-track" style="margin-top:auto;">
@@ -1542,6 +1543,15 @@
       var labelEl = document.getElementById('rewardLabel');
       if (labelEl) labelEl.textContent = rewardValue || (kioskConfig && kioskConfig.rewardValue) || 'Your Reward';
 
+      // Generate QR code pointing to the staff redemption page
+      if (code && typeof QRCode !== 'undefined') {
+        var canvas = document.getElementById('rewardQrCanvas');
+        var redeemUrl = 'https://keepuspostd.com/redeem/' + code;
+        QRCode.toCanvas(canvas, redeemUrl, { width: 180, margin: 1, color: { dark: '#1a1a1a', light: '#ffffff' } }, function(err) {
+          if (!err) canvas.style.display = 'block';
+        });
+      }
+
       var bar = document.getElementById('countdownBar');
       bar.style.width = '100%';
       bar.style.transition = 'none';
@@ -1579,6 +1589,8 @@
       btnDone.innerHTML = '<div class="side-action-icon"><i class="ph ph-check-bold"></i></div><span>Done</span>';
       resetProgressRing();
       updateTimerDisplay();
+      var qrCanvas = document.getElementById('rewardQrCanvas');
+      if (qrCanvas) qrCanvas.style.display = 'none';
 
       for (var i = 1; i <= 4; i++) document.getElementById('recordStep' + i).classList.remove('active');
       document.getElementById('recordStep1').classList.add('active');
@@ -1588,6 +1600,9 @@
     loadKioskConfig().then(function() { loadReviews(); });
     startCarousel();
   </script>
+
+  <!-- QR code library -->
+  <script src="/js/vendor-qrcode.min.js"></script>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>

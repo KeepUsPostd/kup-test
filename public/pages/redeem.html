@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redeem Reward — KeepUsPostd</title>
+  <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --kup-blue: #2ea5dd;
+      --kup-green: #22c55e;
+      --kup-red: #ef4444;
+      --kup-amber: #f59e0b;
+      --radius: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #1a1a1a;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      overflow: hidden;
+    }
+
+    /* Brand color bar at top */
+    .brand-bar {
+      height: 8px;
+      background: linear-gradient(135deg, #2ea5dd, #707bbb);
+    }
+
+    .card-body {
+      padding: 32px 28px;
+      text-align: center;
+    }
+
+    /* Loading */
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--kup-blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status icon */
+    .status-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2rem;
+    }
+    .status-icon.valid   { background: #dcfce7; color: var(--kup-green); }
+    .status-icon.used    { background: #fef9c3; color: var(--kup-amber); }
+    .status-icon.expired { background: #fee2e2; color: var(--kup-red); }
+    .status-icon.error   { background: #f1f5f9; color: #94a3b8; }
+
+    .status-icon svg { width: 36px; height: 36px; }
+
+    .brand-name {
+      font-size: .8rem;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .headline {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .subline {
+      font-size: .9rem;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* Reward value badge */
+    .reward-badge {
+      display: inline-block;
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #2ea5dd, #707bbb);
+      margin-bottom: 24px;
+      letter-spacing: .02em;
+    }
+
+    /* Code display */
+    .reward-code {
+      font-family: 'Courier New', monospace;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: .15em;
+      color: #1a1a1a;
+      background: #f5f7fa;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+
+    .expiry-note {
+      font-size: .75rem;
+      color: #aaa;
+      margin-bottom: 28px;
+    }
+
+    /* Redeem button */
+    .btn-redeem {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--kup-green);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: opacity .2s;
+    }
+    .btn-redeem:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-redeem:not(:disabled):active { opacity: .85; }
+
+    /* Success state */
+    .success-check {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--kup-green);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      animation: popIn .5s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .success-check svg { width: 40px; height: 40px; stroke: #fff; stroke-width: 3; fill: none; }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .divider { height: 1px; background: #f0f0f0; margin: 20px 0; }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .8rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    .meta-row strong { color: #444; }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: .7rem;
+      color: #ccc;
+    }
+    .footer img { height: 18px; vertical-align: middle; margin-left: 4px; opacity: .5; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="mainCard">
+    <div class="brand-bar" id="brandBar"></div>
+    <div class="card-body" id="cardBody">
+      <div class="spinner"></div>
+      <p style="color:#888;font-size:.9rem;">Checking reward…</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd" />
+  </div>
+
+  <script>
+    var code = (window.location.pathname.split('/').pop() || '').toUpperCase();
+
+    function formatExpiry(iso) {
+      var d = new Date(iso);
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function setBar(color) {
+      var bar = document.getElementById('brandBar');
+      if (color) bar.style.background = color;
+    }
+
+    // ── Valid state ──
+    function showValid(data) {
+      setBar(data.brandColor || 'linear-gradient(135deg,#2ea5dd,#707bbb)');
+      document.getElementById('cardBody').innerHTML = `
+        <div class="status-icon valid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="brand-name">${data.brandName || 'Brand'}</div>
+        <div class="headline">Valid Reward</div>
+        <div class="subline">For ${data.guestName || 'Guest'} — tap to redeem</div>
+        <div class="reward-badge">${data.rewardValue}</div>
+        <div class="reward-code">${data.code}</div>
+        <div class="expiry-note">Expires ${formatExpiry(data.expiresAt)}</div>
+        <button class="btn-redeem" id="redeemBtn" onclick="redeemNow()">
+          ✓ Mark as Redeemed
+        </button>
+      `;
+    }
+
+    // ── Already used state ──
+    function showUsed(data) {
+      setBar('#f59e0b');
+      document.getElementById('cardBody').innerHTML = `
+        <div class="status-icon used">⚠️</div>
+        <div class="brand-name">${data.brandName || 'Brand'}</div>
+        <div class="headline">Already Redeemed</div>
+        <div class="subline">This reward has already been used.</div>
+        <div class="divider"></div>
+        <div class="meta-row"><span>Reward</span><strong>${data.rewardValue}</strong></div>
+        <div class="meta-row"><span>Redeemed at</span><strong>${formatExpiry(data.redeemedAt)}</strong></div>
+      `;
+    }
+
+    // ── Expired state ──
+    function showExpired() {
+      document.getElementById('cardBody').innerHTML = `
+        <div class="status-icon expired">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="headline">Reward Expired</div>
+        <div class="subline">This reward has passed its 24-hour window.</div>
+      `;
+    }
+
+    // ── Not found state ──
+    function showError(msg) {
+      document.getElementById('cardBody').innerHTML = `
+        <div class="status-icon error">🔍</div>
+        <div class="headline">Not Found</div>
+        <div class="subline">${msg || 'This reward code does not exist.'}</div>
+      `;
+    }
+
+    // ── Success after redemption ──
+    function showSuccess(data) {
+      document.getElementById('cardBody').innerHTML = `
+        <div class="success-check">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="headline">Reward Redeemed!</div>
+        <div class="subline">Give the guest their reward. All done!</div>
+        <div class="divider"></div>
+        <div class="meta-row"><span>Code</span><strong style="font-family:monospace;letter-spacing:.1em;">${code}</strong></div>
+        <div class="meta-row"><span>Redeemed at</span><strong>${formatExpiry(data.redeemedAt)}</strong></div>
+      `;
+    }
+
+    // ── Redeem action ──
+    async function redeemNow() {
+      var btn = document.getElementById('redeemBtn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+      try {
+        var resp = await fetch('/api/kiosk/redeem/' + code, { method: 'POST' });
+        var data = await resp.json();
+        if (resp.ok && data.success) {
+          showSuccess(data);
+        } else if (resp.status === 409) {
+          showUsed(data);
+        } else {
+          showError(data.message || 'Could not redeem. Try again.');
+        }
+      } catch(e) {
+        showError('Network error. Please try again.');
+        if (btn) { btn.disabled = false; btn.textContent = '✓ Mark as Redeemed'; }
+      }
+    }
+
+    // ── Boot: check reward on load ──
+    if (!code) {
+      showError('No reward code in URL.');
+    } else {
+      fetch('/api/kiosk/redeem/' + code)
+        .then(function(r) { return r.json().then(function(d) { return { status: r.status, data: d }; }); })
+        .then(function(res) {
+          if (res.status === 200 && res.data.valid) showValid(res.data);
+          else if (res.status === 409) showUsed(res.data);
+          else if (res.status === 410) showExpired();
+          else showError(res.data.message);
+        })
+        .catch(function() { showError('Could not connect. Check your connection.'); });
+    }
+  </script>
+
+</body>
+</html>
