@@ -385,4 +385,67 @@ router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/partnerships/invite — Send email invitations to influencers by email address
+// Body: { brandId, emails: ['a@b.com', ...], message (optional) }
+router.post('/invite', requireAuth, async (req, res) => {
+  try {
+    const { brandId, emails, message } = req.body;
+
+    if (!brandId || !Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({ error: 'brandId and emails array are required' });
+    }
+
+    const { Brand } = require('../models');
+    const brand = await Brand.findById(brandId);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const notify = require('../services/notifications');
+    const sgMail = require('../config/email');
+
+    const brandName = brand.name || 'A brand on KeepUsPostd';
+    const signupUrl = `https://keepuspostd.com/pages/register-brand.html?type=creator&brandId=${brandId}`;
+    const customMessage = (message || '').trim();
+
+    const results = { sent: [], failed: [] };
+
+    for (const email of emails.slice(0, 50)) { // Cap at 50 per call
+      try {
+        await sgMail.send({
+          to: email,
+          from: { name: 'KeepUsPostd', email: 'santana@keepuspostd.com' },
+          subject: `${brandName} wants to partner with you on KeepUsPostd`,
+          html: `
+            <div style="font-family:Montserrat,Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eee;">
+              <div style="background:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);padding:32px;text-align:center;">
+                <img src="https://keepuspostd.com/assets/images/kup_white_new_logo.png" alt="KeepUsPostd" style="height:32px;">
+              </div>
+              <div style="padding:32px;">
+                <h2 style="font-size:1.3rem;font-weight:700;color:#1a1a1a;margin:0 0 12px;">${brandName} wants to partner with you!</h2>
+                <p style="color:#555;line-height:1.7;margin:0 0 16px;">You've been invited to join KeepUsPostd and partner with <strong>${brandName}</strong>. Create content, earn cash rewards, and grow your influence.</p>
+                ${customMessage ? `<blockquote style="border-left:3px solid #2EA5DD;margin:0 0 20px;padding:12px 16px;color:#444;background:#f8f9fa;border-radius:4px;">"${customMessage}"<br><small style="color:#888;">— ${brandName}</small></blockquote>` : ''}
+                <a href="${signupUrl}" style="display:inline-block;padding:14px 28px;background:#2EA5DD;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:0.9rem;">Accept Invitation</a>
+                <p style="color:#999;font-size:0.78rem;margin-top:24px;">You received this because ${brandName} invited you. If you don't want invitations, simply ignore this email.</p>
+              </div>
+            </div>
+          `,
+        });
+        results.sent.push(email);
+        console.log(`📧 Influencer invite sent to ${email} from brand ${brandId}`);
+      } catch (emailErr) {
+        console.error(`❌ Failed to send invite to ${email}:`, emailErr.message);
+        results.failed.push(email);
+      }
+    }
+
+    res.json({
+      message: `${results.sent.length} invitation${results.sent.length !== 1 ? 's' : ''} sent`,
+      sent: results.sent.length,
+      failed: results.failed.length,
+    });
+  } catch (error) {
+    console.error('Influencer invite error:', error.message);
+    res.status(500).json({ error: 'Could not send invitations' });
+  }
+});
+
 module.exports = router;

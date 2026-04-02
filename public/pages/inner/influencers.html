@@ -2786,16 +2786,38 @@
       }
     });
 
-    // Send influencer request
-    sendBtn.addEventListener('click', function() {
+    // Send influencer request — calls real API to send invite emails via SendGrid
+    sendBtn.addEventListener('click', async function() {
       if (emailTags.length === 0) return;
-      var count = emailTags.length;
-      closeModal('addModal');
-      kupToast(count + ' influencer request' + (count > 1 ? 's' : '') + ' sent successfully!', 'success');
-      // Clear tags
-      emailTags = [];
-      emailWrap.querySelectorAll('.email-tag').forEach(function(t) { t.remove(); });
-      updateSendButton();
+      var activeBrand = null;
+      try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+      var brandId = activeBrand && activeBrand.id;
+      if (!brandId) {
+        kupToast('No active brand found. Please switch to a brand first.', 'error');
+        return;
+      }
+      var customMsg = (document.getElementById('autoMsgEdit') && !document.getElementById('autoMsgEdit').style.display !== 'none')
+        ? document.getElementById('autoMsgEdit').value
+        : '';
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+      try {
+        var result = await kupApi.post('/api/partnerships/invite', {
+          brandId: brandId,
+          emails: emailTags.slice(),
+          message: customMsg,
+        });
+        closeModal('addModal');
+        kupToast((result.sent || emailTags.length) + ' invitation' + (emailTags.length !== 1 ? 's' : '') + ' sent!', 'success');
+        emailTags = [];
+        emailWrap.querySelectorAll('.email-tag').forEach(function(t) { t.remove(); });
+        updateSendButton();
+      } catch(err) {
+        kupToast('Failed to send invitations. Please try again.', 'error');
+      } finally {
+        sendBtn.disabled = emailTags.length === 0;
+        sendBtn.textContent = 'Send Request';
+      }
     });
 
     // Copy invite link

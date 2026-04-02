@@ -406,12 +406,13 @@
     // Load brand data and generate real QR with correct brand URL
     async function loadBrandQR() {
       try {
-        var kupUser = JSON.parse(localStorage.getItem('kupUser') || '{}');
-        var brandId = localStorage.getItem('activeBrandId') || (kupUser.activeBrandId || null);
-        if (brandId) {
-          var resp = await fetch('/api/brands/' + brandId);
-          if (resp.ok) {
-            var data = await resp.json();
+        // Read active brand from the same key brand-context.js uses
+        var activeBrand = null;
+        try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+        var brandId = (activeBrand && activeBrand.id) || null;
+        if (brandId && typeof kupApi !== 'undefined') {
+          var data = await kupApi.get('/api/brands/' + brandId);
+          if (data) {
             var brand = data.brand || data;
             var code = brand.kioskBrandCode || brand._id;
             _qrBrandUrl = 'https://keepuspostd.com/brand/' + code;
@@ -455,8 +456,18 @@
       }
     }
 
-    // Boot — wait for qrcode.js to load then generate
-    window.addEventListener('load', function() { loadBrandQR(); });
+    // Boot — wait for Firebase auth + qrcode.js before generating QR
+    // Using onAuthStateChanged ensures the token is available for the API call
+    window.addEventListener('load', function() {
+      if (typeof auth !== 'undefined') {
+        auth.onAuthStateChanged(function(user) {
+          if (user) loadBrandQR();
+          else generateQR(_qrBrandUrl); // Not logged in — show default QR
+        });
+      } else {
+        loadBrandQR(); // Fallback if Firebase unavailable
+      }
+    });
   </script>
 
   <!-- Toast Container -->
