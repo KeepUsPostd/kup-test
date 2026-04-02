@@ -311,7 +311,7 @@
             <div class="divider"></div>
             <a href="help-center.html">Help Center</a>
             <div class="divider"></div>
-            <a href="/pages/login.html" class="logout">Log Out</a>
+            <a href="#" class="logout" onclick="kupSignOut(); return false;">Log Out</a>
           </div>
         </div>
       </div>
@@ -732,7 +732,8 @@
   <!-- ========== WIZARD LOGIC ========== -->
   <script>
   var currentStep = 1;
-  var uploadedImageSrc = null;
+  var uploadedImageSrc = null;  // local preview (base64)
+  var uploadedImageUrl = null;  // real CDN URL from R2 after upload
 
   /* ── Toast ────────────────────────────────── */
   function kupToast(msg, type) {
@@ -918,6 +919,7 @@
       kupToast('Image must be under 5 MB', 'error');
       return;
     }
+    // Show local preview immediately
     var reader = new FileReader();
     reader.onload = function(e) {
       uploadedImageSrc = e.target.result;
@@ -926,10 +928,26 @@
       uploadZone.style.display = 'none';
     };
     reader.readAsDataURL(file);
+
+    // Upload to R2 in the background — get real CDN URL
+    uploadedImageUrl = null;
+    if (typeof kupApi !== 'undefined') {
+      kupApi.upload('/api/upload', [file], 'media').then(function(result) {
+        if (result && result.urls && result.urls.length > 0) {
+          uploadedImageUrl = result.urls[0];
+          kupToast('Image ready', 'success');
+        } else {
+          kupToast('Image upload failed — banner may not save', 'warning');
+        }
+      }).catch(function() {
+        kupToast('Image upload failed — banner may not save', 'warning');
+      });
+    }
   }
 
   document.getElementById('removeImg').addEventListener('click', function() {
     uploadedImageSrc = null;
+    uploadedImageUrl = null;
     uploadThumb.src = '';
     uploadPreview.style.display = 'none';
     uploadZone.style.display = 'block';
@@ -1067,7 +1085,7 @@
         description: description,
         brief: brief,
         category: category,
-        coverImageUrl: uploadedImageSrc || '',
+        coverImageUrl: uploadedImageUrl || '',
         maxSubmissions: maxSubmissions,
         deadline: computeDeadline(),
         hasPlatformBonus: hasPlatformBonus
@@ -1099,6 +1117,7 @@
       }
 
       var body = buildCampaignBody(brandId);
+      if (!isDraft) body.status = 'active'; // publish immediately
 
       // Disable buttons during submission
       var publishBtn = document.getElementById('publishBtn');
@@ -1123,8 +1142,9 @@
           return;
         }
 
-        if (result && (result._id || result.id)) {
-          var newId = result._id || result.id;
+        var campaignObj = (result && result.campaign) ? result.campaign : result;
+        if (campaignObj && (campaignObj._id || campaignObj.id)) {
+          var newId = campaignObj._id || campaignObj.id;
           kupToast('Campaign "' + body.title + '" published successfully!', 'success');
           setTimeout(function() {
             window.location.href = 'campaign-detail.html?id=' + newId;
