@@ -821,4 +821,57 @@ router.get('/social-verify/status', requireAuth, async (req, res) => {
   }
 });
 
+// ── Account Deletion ────────────────────────────────────
+// Required by App Store guideline 5.1.1(v) — apps with account creation must offer deletion
+
+// DELETE /api/auth/account — Permanently delete user account and all associated data
+router.delete('/account', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Delete all associated data in parallel
+    const Content = require('../models/Content');
+    const Partnership = require('../models/Partnership');
+    const KioskSession = require('../models/KioskSession');
+    const SavedContent = require('../models/SavedContent');
+
+    await Promise.allSettled([
+      InfluencerProfile.deleteOne({ userId }),
+      BrandProfile.deleteMany({ ownerId: userId }),
+      Content.deleteMany({ userId }),
+      Partnership.deleteMany({ influencerId: userId }),
+      SavedContent.deleteMany({ userId }),
+      KioskSession.deleteMany({ userId }),
+    ]);
+
+    // Send confirmation email before deleting user record
+    try {
+      await notify.sendEmail({
+        to: user.email,
+        subject: 'Your KeepUsPostd account has been deleted',
+        headline: 'Account Deleted',
+        preheader: 'Your account and data have been permanently removed.',
+        bodyHtml: `
+          <p>Hi ${user.firstName || 'there'},</p>
+          <p>Your KeepUsPostd account and all associated data have been permanently deleted as requested.</p>
+          <p>We're sorry to see you go. If you change your mind, you're always welcome to create a new account.</p>
+        `,
+        ctaText: null,
+      });
+    } catch (_) { /* Email failure should not block deletion */ }
+
+    // Delete the user record last
+    await User.deleteOne({ _id: userId });
+
+    console.log(`🗑️ Account permanently deleted: ${user.email}`);
+    res.json({ message: 'Account permanently deleted' });
+
+  } catch (error) {
+    console.error('[DELETE /account]', error.message);
+    res.status(500).json({ error: 'Account deletion failed. Please try again or contact support.' });
+  }
+});
+
 module.exports = router;
