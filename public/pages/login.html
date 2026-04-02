@@ -729,9 +729,9 @@
           var redirectParam = new URLSearchParams(window.location.search).get('redirect');
           if (redirectParam) {
             window.location.href = decodeURIComponent(redirectParam);
-          } else if (result.user.activeProfile === 'brand' && !result.user.onboardingComplete && !result.user.hasBrandProfile) {
+          } else if (result.user && result.user.activeProfile === 'brand' && !result.user.onboardingComplete && !result.user.hasBrandProfile) {
             window.location.href = '/pages/onboarding.html';
-          } else if (result.user.activeProfile === 'brand') {
+          } else if (result.user && result.user.activeProfile === 'brand') {
             window.location.href = '/app/manage-brands.html';
           } else {
             window.location.href = '/pages/download-app.html?from=auth';
