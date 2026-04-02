@@ -7,14 +7,14 @@
 // <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 // <script src="/js/firebase-client.js"></script>
 
-// Firebase config (from .env.test / Firebase Console)
+// Firebase config — production project (keepuspostd-38a88)
 const firebaseConfig = {
-  apiKey: 'AIzaSyD1l25JoVfDqsV31InLhhmTzUnBFhXVzWc',
-  authDomain: 'kup-test.firebaseapp.com',
-  projectId: 'kup-test',
-  storageBucket: 'kup-test.firebasestorage.app',
-  messagingSenderId: '641129876685',
-  appId: '1:641129876685:web:c54e9561a42793bcc2ed84',
+  apiKey: 'AIzaSyBnF-M4eJya6SfH-gqUJAgb58r_UuLqt7I',
+  authDomain: 'keepuspostd-38a88.firebaseapp.com',
+  projectId: 'keepuspostd-38a88',
+  storageBucket: 'keepuspostd-38a88.firebasestorage.app',
+  messagingSenderId: '634719210006',
+  appId: '1:634719210006:web:cedde80491b96b86604337',
 };
 
 // Initialize Firebase
