@@ -1133,8 +1133,8 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 1px solid #f0f0f0;
     }
     .add-modal-brand-avatar {
@@ -1149,6 +1149,10 @@
       font-weight: 700;
       font-size: 0.9rem;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+    .add-modal-brand-avatar img {
+      width: 100%; height: 100%; object-fit: cover;
     }
     .add-modal-header-text h3 {
       font-size: 1.05rem;
@@ -1173,7 +1177,7 @@
       min-height: 48px;
       cursor: text;
       transition: border-color 0.2s;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       background: white;
     }
     .email-tags-wrap:focus-within {
@@ -2196,16 +2200,16 @@
 
       <!-- Modal Header with Brand Avatar -->
       <div class="add-modal-header">
-        <div class="add-modal-brand-avatar">ST</div>
+        <div class="add-modal-brand-avatar" id="addModalBrandAvatar">KUP</div>
         <div class="add-modal-header-text">
           <h3 id="addModalTitle">Share your brand profile with others</h3>
-          <p>Invite influencers to partner with KeepUsPostd</p>
+          <p id="addModalBrandSubtitle">Invite influencers to partner with your brand</p>
         </div>
       </div>
 
       <!-- Email Tags Input -->
       <div class="email-tags-wrap" id="emailTagsWrap">
-        <input type="text" class="email-tags-input" id="emailTagsInput" placeholder="Type one or more emails" aria-label="Type one or more emails">
+        <input type="text" class="email-tags-input" id="emailTagsInput" placeholder="Add emails, separate multiple with commas" aria-label="Add email addresses">
       </div>
 
       <!-- Auto-Generated Message -->
@@ -2215,68 +2219,21 @@
           <button class="auto-msg-customize" id="customizeMsgBtn">Customize</button>
         </div>
         <div class="auto-msg-preview" id="autoMsgPreview">
-          Thank you for your support of <span class="brand-placeholder">{brand name}</span>.<br>
-          We appreciate your feedback and encourage you to leave brand reviews through the KeepUsPostd App. Partner with us as an influencer and win big! Scan the QR code below to download the KeepUsPostd app, and start earning based on your level of influence.
+          Thank you for your support of <span class="brand-placeholder" id="msgBrandNamePreview">{brand name}</span>.<br>
+          We appreciate your reviews through the KeepUsPostd App. Partner with us and win big! Click the link below to download the KeepUsPostd app, and start earning.
         </div>
-        <textarea class="auto-msg-edit" id="autoMsgEdit">Thank you for your support of {brand name}. We appreciate your feedback and encourage you to leave brand reviews through the KeepUsPostd App. Partner with us as an influencer and win big! Scan the QR code below to download the KeepUsPostd app, and start earning based on your level of influence.</textarea>
-      </div>
-
-      <!-- QR Code -->
-      <div class="qr-code-section">
-        <div class="qr-code-placeholder">
-          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-            <!-- Simplified QR code pattern -->
-            <rect x="4" y="4" width="20" height="20" rx="2" fill="#1a1a1a"/>
-            <rect x="8" y="8" width="12" height="12" rx="1" fill="white"/>
-            <rect x="11" y="11" width="6" height="6" fill="#1a1a1a"/>
-            <rect x="56" y="4" width="20" height="20" rx="2" fill="#1a1a1a"/>
-            <rect x="60" y="8" width="12" height="12" rx="1" fill="white"/>
-            <rect x="63" y="11" width="6" height="6" fill="#1a1a1a"/>
-            <rect x="4" y="56" width="20" height="20" rx="2" fill="#1a1a1a"/>
-            <rect x="8" y="60" width="12" height="12" rx="1" fill="white"/>
-            <rect x="11" y="63" width="6" height="6" fill="#1a1a1a"/>
-            <rect x="28" y="4" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="36" y="4" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="44" y="4" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="28" y="12" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="40" y="12" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="48" y="12" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="28" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="36" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="44" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="4" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="12" y="36" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="4" y="44" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="28" y="36" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="36" y="36" width="8" height="8" fill="#1a1a1a"/>
-            <rect x="48" y="36" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="56" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="64" y="36" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="72" y="28" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="56" y="48" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="64" y="56" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="72" y="48" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="56" y="64" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="72" y="64" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="64" y="72" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="48" y="56" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="28" y="48" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="36" y="56" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="28" y="64" width="4" height="4" fill="#1a1a1a"/>
-            <rect x="36" y="72" width="4" height="4" fill="#1a1a1a"/>
-          </svg>
-        </div>
+        <textarea class="auto-msg-edit" id="autoMsgEdit">Thank you for your support of {brand name}. We appreciate your reviews through the KeepUsPostd App. Partner with us and win big! Click the link below to download the KeepUsPostd app, and start earning.</textarea>
       </div>
 
       <!-- Send Button -->
-      <button class="btn-send-request" id="sendRequestBtn" disabled>Send influencer request</button>
+      <button class="btn-send-request" id="sendRequestBtn" disabled>Send Influencer Request</button>
 
       <!-- Invite Link Section -->
       <div class="invite-link-section">
-        <p class="invite-link-label">Add influencer link</p>
-        <p class="invite-link-desc">Anyone with the link can become an instant influencer to your brand when they download the KeepUsPostd Marketplace app.</p>
+        <p class="invite-link-label">Your partner link</p>
+        <p class="invite-link-desc">Included in the email. Anyone who clicks it can sign up and start partnering with your brand instantly.</p>
         <div class="invite-link-row">
-          <input type="text" class="invite-link-input" id="inviteLinkInput" value="https://www.keepuspostd.com/keepuspostd/xk9r2m4t" readonly>
+          <input type="text" class="invite-link-input" id="inviteLinkInput" value="https://keepuspostd.com/brand/..." readonly>
           <button class="btn-copy-link" id="copyLinkBtn">Copy</button>
         </div>
       </div>
@@ -2677,14 +2634,54 @@
       updateSendButton();
     }
 
+    // Populate brand avatar, name and market link when modal opens
+    function populateAddModal() {
+      var ab = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      if (!ab) return;
+
+      // Avatar
+      var avatarEl = document.getElementById('addModalBrandAvatar');
+      if (avatarEl) {
+        if (ab.logoUrl) {
+          avatarEl.innerHTML = '<img src="' + ab.logoUrl + '" alt="">';
+          avatarEl.style.background = '#fff';
+        } else {
+          var initials = ab.name ? ab.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().substring(0,2) : 'KP';
+          avatarEl.textContent = initials;
+          avatarEl.style.background = '';
+        }
+      }
+
+      // Subtitle
+      var subtitleEl = document.getElementById('addModalBrandSubtitle');
+      if (subtitleEl && ab.name) subtitleEl.textContent = 'Invite influencers to partner with ' + ab.name;
+
+      // Brand name in message preview
+      var msgNameEl = document.getElementById('msgBrandNamePreview');
+      if (msgNameEl && ab.name) msgNameEl.textContent = ab.name;
+
+      // Replace {brand name} in textarea too
+      var msgEdit = document.getElementById('autoMsgEdit');
+      if (msgEdit && ab.name) msgEdit.value = msgEdit.value.replace('{brand name}', ab.name);
+
+      // Market link — use @handle or brand code
+      var link = ab.brandHandle
+        ? 'https://keepuspostd.com/@' + ab.brandHandle
+        : (ab.kioskBrandCode ? 'https://keepuspostd.com/brand/' + ab.kioskBrandCode : '');
+      var linkInput = document.getElementById('inviteLinkInput');
+      if (linkInput && link) linkInput.value = link;
+    }
+
     // Open from toolbar buttons (both tabs have one)
     document.getElementById('addInfluencerBtn').addEventListener('click', function() {
       resetAddModal();
+      populateAddModal();
       openModal('addModal');
     });
     if (document.getElementById('addInfluencerBtn2')) {
       document.getElementById('addInfluencerBtn2').addEventListener('click', function() {
         resetAddModal();
+        populateAddModal();
         openModal('addModal');
       });
     }
@@ -2699,7 +2696,9 @@
     var sendBtn = document.getElementById('sendRequestBtn');
 
     function updateSendButton() {
-      sendBtn.disabled = emailTags.length === 0;
+      var typedVal = emailInput.value.trim().replace(/,/g, '');
+      var hasTyped = typedVal.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(typedVal);
+      sendBtn.disabled = emailTags.length === 0 && !hasTyped;
     }
 
     function addEmailTag(email) {
@@ -2759,6 +2758,7 @@
         }
       }, 50);
     });
+    emailInput.addEventListener('input', updateSendButton);
     emailWrap.addEventListener('click', function() {
       emailInput.focus();
     });
@@ -2788,6 +2788,9 @@
 
     // Send influencer request — calls real API to send invite emails via SendGrid
     sendBtn.addEventListener('click', async function() {
+      // Convert any typed-but-not-tagged email first
+      var typed = emailInput.value.trim().replace(/,/g, '');
+      if (typed) addEmailTag(typed);
       if (emailTags.length === 0) return;
       var activeBrand = null;
       try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
@@ -2806,6 +2809,7 @@
           brandId: brandId,
           emails: emailTags.slice(),
           message: customMsg,
+          partnerLink: document.getElementById('inviteLinkInput').value || '',
         });
         closeModal('addModal');
         kupToast((result.sent || emailTags.length) + ' invitation' + (emailTags.length !== 1 ? 's' : '') + ' sent!', 'success');
