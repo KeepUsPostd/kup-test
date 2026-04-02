@@ -666,15 +666,17 @@
       });
     }
 
-    // Load settings only after Firebase auth confirms the user is signed in
-    // Prevents kupApi.get() firing without a token → 401 → redirect chain
-    if (typeof auth !== 'undefined') {
-      auth.onAuthStateChanged(function(user) {
-        if (user) loadKioskSettings();
-      });
-    } else {
-      document.addEventListener('DOMContentLoaded', loadKioskSettings);
-    }
+    // Wait for Firebase auth to be available before registering the listener.
+    // Firebase scripts load AFTER this block, so we poll until auth is defined.
+    (function bootKiosk() {
+      if (typeof auth !== 'undefined' && typeof kupApi !== 'undefined') {
+        auth.onAuthStateChanged(function(user) {
+          if (user) loadKioskSettings();
+        });
+      } else {
+        setTimeout(bootKiosk, 80);
+      }
+    })();
 
     // ========== Color Picker Sync ==========
     var colorPicker = document.getElementById('colorPickerInput');
