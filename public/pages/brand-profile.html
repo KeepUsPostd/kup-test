@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KeepUsPostd — Brand Profile</title>
-  <meta name="description" content="Discover this brand on KeepUsPostd and become a partner influencer." />
+  <meta name="description" content="Discover this brand on KeepUsPostd and become a partner." />
   <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,11 +55,11 @@
       z-index: 1;
     }
 
-    /* ── BRAND AVATAR ── */
+    /* ── BRAND AVATAR — circle ── */
     .brand-avatar {
       width: 80px;
       height: 80px;
-      border-radius: 16px;
+      border-radius: 50%;
       border: 4px solid #fff;
       box-shadow: 0 4px 16px rgba(0,0,0,.15);
       background: var(--kup-gradient);
@@ -110,8 +110,8 @@
       margin-bottom: 24px;
     }
     .powered-by img {
-      height: 18px;
-      opacity: .7;
+      height: 16px;
+      width: auto;
     }
 
     /* ── DIVIDER ── */
@@ -133,6 +133,7 @@
       color: #666;
       text-align: center;
       margin-bottom: 20px;
+      line-height: 1.5;
     }
 
     /* ── BUTTONS ── */
@@ -151,21 +152,6 @@
       cursor: pointer;
       margin-bottom: 12px;
       letter-spacing: .3px;
-    }
-    .btn-secondary {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: #fff;
-      color: var(--kup-blue);
-      border: 2px solid var(--kup-blue);
-      border-radius: var(--radius-sm);
-      font-size: .95rem;
-      font-weight: 700;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-      margin-bottom: 12px;
     }
 
     /* ── APP BADGES ── */
@@ -242,17 +228,16 @@
       <div class="brand-description" id="brandDescription"></div>
 
       <div class="powered-by">
-        <img src="/images/KUP_Favicon.png" alt="KUP" />
-        <span>Powered by KeepUsPostd</span>
+        <span>Powered by</span>
+        <img src="/images/kup_gradient_new_logo.png" alt="KeepUsPostd" />
       </div>
 
       <div class="divider"></div>
 
-      <div class="cta-heading">Become a Partner Influencer</div>
-      <div class="cta-sub">Get paid to post content for brands you love. Join free — no followers minimum.</div>
+      <div class="cta-heading">Become a Partner</div>
+      <div class="cta-sub" id="ctaSub">Get rewarded to share reviews on the KeepUsPostd app. Join free.</div>
 
-      <a href="#" class="btn-primary" id="joinBtn">Join as an Influencer →</a>
-      <a href="/pages/login.html" class="btn-secondary">Already have an account? Sign in</a>
+      <a href="#" class="btn-primary" id="joinBtn">Join as a Partner</a>
 
       <div class="app-badges">
         <a href="https://apps.apple.com/us/app/keepuspostd/id6736950249" class="app-badge" target="_blank" rel="noopener">
@@ -278,9 +263,13 @@
     <a href="/help">Help</a>
   </div>
 
+  <!-- Firebase: detect logged-in users and redirect them into the app -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
   <script>
     (function () {
-      // Extract brand code from URL path: /brand/KUP-XXXXXX
       var code = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
       var loadingEl = document.getElementById('loadingState');
@@ -295,9 +284,9 @@
       }
 
       function showBrand(brand) {
-        // Banner
-        if (brand.bannerUrl) {
-          heroBanner.src = brand.bannerUrl;
+        // Hero banner — use heroImageUrl if available
+        if (brand.heroImageUrl) {
+          heroBanner.src = brand.heroImageUrl;
           heroBanner.style.display = 'block';
         } else if (brand.brandColors && brand.brandColors.primary) {
           heroBg.style.background = 'linear-gradient(135deg, ' + brand.brandColors.primary + ', ' + (brand.brandColors.secondary || '#1a73b8') + ')';
@@ -305,7 +294,7 @@
           heroBg.style.background = 'linear-gradient(135deg, ' + brand.generatedColor + ', #1a73b8)';
         }
 
-        // Avatar
+        // Avatar — circle with logo or initial
         var avatar = document.getElementById('brandAvatar');
         if (brand.logoUrl) {
           avatar.innerHTML = '<img src="' + brand.logoUrl + '" alt="' + brand.name + '" onerror="this.style.display=\'none\'" />';
@@ -317,9 +306,13 @@
         document.getElementById('brandName').textContent = brand.name;
         document.getElementById('brandCategory').textContent = brand.category || 'Brand';
         document.getElementById('brandDescription').textContent =
-          brand.description || 'This brand is looking for influencer partners on KeepUsPostd.';
+          brand.description || 'This brand is looking for partner influencers on KeepUsPostd.';
 
-        // Join button includes referral code so the brand gets credit
+        // Dynamic CTA copy with brand name
+        document.getElementById('ctaSub').textContent =
+          'Get rewarded to share reviews about ' + brand.name + ' on the KeepUsPostd app. Join free.';
+
+        // Join button passes referral code so brand gets credit
         document.getElementById('joinBtn').href =
           '/pages/register.html?type=influencer&ref=' + encodeURIComponent(brand.kioskBrandCode || code);
 
@@ -327,6 +320,19 @@
 
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
+
+        // Check if user is already logged in — redirect into the app
+        checkAuth(brand);
+      }
+
+      function checkAuth(brand) {
+        if (typeof auth === 'undefined') return;
+        auth.onAuthStateChanged(function(user) {
+          if (!user) return; // Not logged in — stay on landing page
+          // User is already a KUP member — send them into the app dashboard
+          // They can find and follow this brand from there
+          window.location.href = '/pages/inner/discover.html?brand=' + encodeURIComponent(brand.kioskBrandCode || code);
+        });
       }
 
       if (!code) { showError(); return; }

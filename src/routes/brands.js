@@ -169,7 +169,7 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/public/:code', async (req, res) => {
   try {
     const brand = await Brand.findOne({ kioskBrandCode: req.params.code.toUpperCase() })
-      .select('name initials generatedColor brandColors logoUrl bannerUrl description category websiteUrl kioskBrandCode')
+      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode')
       .lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
     res.json({ brand });
