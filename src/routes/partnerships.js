@@ -402,9 +402,11 @@ router.post('/invite', requireAuth, async (req, res) => {
     const { sendEmail } = require('../config/email');
 
     const brandName = brand.name || 'A brand on KeepUsPostd';
-    // Use passed partnerLink, or fall back to brand handle/code
-    const link = partnerLink
-      || (brand.brandHandle ? `https://keepuspostd.com/@${brand.brandHandle}` : `https://keepuspostd.com/brand/${brand.kioskBrandCode || brandId}`);
+    // Use passed partnerLink only if it looks like a real URL (not a placeholder or empty)
+    const isValidLink = partnerLink && partnerLink.startsWith('https://') && !partnerLink.includes('...');
+    const link = isValidLink
+      ? partnerLink
+      : (brand.brandHandle ? `https://keepuspostd.com/@${brand.brandHandle}` : `https://keepuspostd.com/brand/${brand.kioskBrandCode || brandId}`);
     const customMessage = (message || '').trim()
       .replace('{brand name}', brandName); // resolve placeholder if present
 

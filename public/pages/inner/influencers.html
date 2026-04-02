@@ -2233,7 +2233,7 @@
         <p class="invite-link-label">Your partner link</p>
         <p class="invite-link-desc">Included in the email. Anyone who clicks it can sign up and start partnering with your brand instantly.</p>
         <div class="invite-link-row">
-          <input type="text" class="invite-link-input" id="inviteLinkInput" value="https://keepuspostd.com/brand/..." readonly>
+          <input type="text" class="invite-link-input" id="inviteLinkInput" value="" placeholder="Loading your partner link…" readonly>
           <button class="btn-copy-link" id="copyLinkBtn">Copy</button>
         </div>
       </div>
@@ -2631,6 +2631,9 @@
       emailTags = [];
       emailWrap.querySelectorAll('.email-tag').forEach(function(t) { t.remove(); });
       emailInput.value = '';
+      // Clear partner link (will be repopulated by populateAddModal)
+      var li = document.getElementById('inviteLinkInput');
+      if (li) li.value = '';
       updateSendButton();
     }
 
