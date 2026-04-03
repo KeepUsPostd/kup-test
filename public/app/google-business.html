@@ -649,8 +649,19 @@
     /* ========== CONNECT ========== */
     function connectGBP() {
       if (!brandId) { kupToast('No active brand selected.', 'error'); return; }
-      // Full-page redirect to OAuth — backend handles callback
-      window.location.href = '/api/google-business/auth-url?brandId=' + brandId;
+      // Fetch OAuth URL via authenticated request, then redirect browser
+      kupApi.get('/api/google-business/auth-url?brandId=' + brandId)
+        .then(function(data) {
+          if (data && data.url) {
+            window.location.href = data.url;
+          } else {
+            kupToast('Could not start Google connection. Please try again.', 'error');
+          }
+        })
+        .catch(function(err) {
+          console.error('[GBP] connectGBP error:', err);
+          kupToast('Could not start Google connection. Please try again.', 'error');
+        });
     }
 
     /* ========== LOCATION PICKER ========== */

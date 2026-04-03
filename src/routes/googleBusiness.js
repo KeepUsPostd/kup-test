@@ -105,7 +105,7 @@ router.get('/auth-url', requireAuth, async (req, res) => {
       state,
     });
 
-    res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+    res.json({ url: `https://accounts.google.com/o/oauth2/v2/auth?${params}` });
   } catch (err) {
     console.error('[GBP] auth-url error:', err.message);
     res.status(500).json({ error: 'Could not generate auth URL' });
