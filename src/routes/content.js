@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand } = require('../models');
+const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, User } = require('../models');
 const notify = require('../services/notifications');
 
 // ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
@@ -78,13 +78,34 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
-    // Look up the influencer profile for this user
-    const influencerProfile = await InfluencerProfile.findOne({ userId: req.user._id });
+    // Look up the influencer profile for this user — auto-create if brand account submitting as creator
+    let influencerProfile = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencerProfile) {
-      return res.status(403).json({
-        error: 'No influencer profile',
-        message: 'You need a creator account to submit content.',
-      });
+      const user = req.user;
+      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 18) || `user${Date.now()}`;
+      const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const displayName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || baseHandle;
+      let finalHandle = baseHandle;
+      const existingHandle = await InfluencerProfile.findOne({ handle: baseHandle }).select('_id').lean();
+      if (existingHandle) {
+        finalHandle = baseHandle.substring(0, 15) + '_' + Math.random().toString(36).substring(2, 5);
+      }
+      try {
+        influencerProfile = await InfluencerProfile.create({
+          userId: user._id,
+          displayName,
+          handle: finalHandle,
+          referralCode,
+        });
+        await User.findByIdAndUpdate(user._id, { hasInfluencerProfile: true });
+        console.log(`✅ Auto-created influencer profile for ${user.email} during content submit`);
+      } catch (createErr) {
+        console.error('Could not auto-create influencer profile:', createErr.message);
+        return res.status(403).json({
+          error: 'No influencer profile',
+          message: 'You need a creator account to submit content.',
+        });
+      }
     }
 
     // RULE: No "Unknown" influencers. If profile is missing displayName or handle,

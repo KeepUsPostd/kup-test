@@ -731,13 +731,25 @@ router.post('/social-verify', requireAuth, async (req, res) => {
     if (!influencer) {
       // Auto-create influencer profile if user only has a brand profile
       const user = req.user;
-      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 18) || `user${Date.now()}`;
+      const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const displayName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || baseHandle;
+
+      // Handle uniqueness: try base handle, fall back to base+random suffix
+      let finalHandle = baseHandle;
+      const existingHandle = await InfluencerProfile.findOne({ handle: baseHandle }).select('_id').lean();
+      if (existingHandle) {
+        finalHandle = baseHandle.substring(0, 15) + '_' + Math.random().toString(36).substring(2, 5);
+      }
+
       influencer = await InfluencerProfile.create({
         userId: user._id,
-        displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
-        handle: baseHandle,
+        displayName,
+        handle: finalHandle,
+        referralCode,
       });
       await User.findByIdAndUpdate(user._id, { hasInfluencerProfile: true });
+      console.log(`✅ Auto-created influencer profile for ${user.email} during social verify`);
     }
 
     // Save social handles — merge with any existing
