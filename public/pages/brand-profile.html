@@ -325,9 +325,26 @@
         document.getElementById('ctaSub').textContent =
           'Get rewarded to share reviews about ' + brand.name + ' on the KeepUsPostd app. Join free.';
 
-        // Join button passes referral code so brand gets credit
-        document.getElementById('joinBtn').href =
-          '/pages/register.html?type=influencer&ref=' + encodeURIComponent(brand.kioskBrandCode || code);
+        // Join button — tries to open brand profile in app (Universal Link / custom scheme).
+        // If app is not installed, falls back to App Store after 2 seconds.
+        var brandMongoId = brand._id || brand.id || '';
+        var appDeepLink = 'https://keepuspostd.com/brands/' + brandMongoId;
+        var appStoreUrl = 'https://apps.apple.com/us/app/keepuspostd/id6736950249';
+
+        document.getElementById('joinBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          // Attempt to open app via Universal Link
+          var fallbackTimer = setTimeout(function() {
+            // App not installed — send to App Store
+            window.location.href = appStoreUrl;
+          }, 2000);
+          // Cancel App Store redirect if app opened (page loses focus)
+          window.addEventListener('blur', function onBlur() {
+            clearTimeout(fallbackTimer);
+            window.removeEventListener('blur', onBlur);
+          });
+          window.location.href = appDeepLink;
+        });
 
         document.title = brand.name + ' — KeepUsPostd';
 

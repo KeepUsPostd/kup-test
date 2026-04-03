@@ -412,9 +412,11 @@ router.post('/invite', requireAuth, async (req, res) => {
     const brandName = brand.name || 'A brand on KeepUsPostd';
     // Use passed partnerLink only if it looks like a real URL (not a placeholder or empty)
     const isValidLink = partnerLink && partnerLink.startsWith('https://') && !partnerLink.includes('...');
+    // Use /brands/{mongoId} — this matches the AASA Universal Link pattern so iOS opens the app directly.
+    // Fallback chain: passed link → mongo ID path → handle → kiosk code
     const link = isValidLink
       ? partnerLink
-      : (brand.brandHandle ? `https://keepuspostd.com/@${brand.brandHandle}` : `https://keepuspostd.com/brand/${brand.kioskBrandCode || brandId}`);
+      : `https://keepuspostd.com/brands/${brand._id}`;
     const customMessage = (message || '').trim()
       .replace('{brand name}', brandName); // resolve placeholder if present
 
