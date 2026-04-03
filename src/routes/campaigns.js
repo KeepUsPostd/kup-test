@@ -6,6 +6,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Campaign, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
+const { checkTrialStatus } = require('../services/trial');
 
 // Plan limits (campaigns per brand) from PLATFORM_ARCHITECTURE.md
 const PLAN_LIMITS = {
@@ -43,9 +44,11 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Title must be 60 characters or less' });
     }
 
-    // Check plan limit for campaigns (rule G9)
+    // Check plan limit for campaigns using effective tier (respects active trial)
     const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
-    const planTier = brandProfile ? brandProfile.planTier : 'starter';
+    const { effectiveTier: planTier } = brandProfile
+      ? checkTrialStatus(brandProfile)
+      : { effectiveTier: 'starter' };
     const limit = PLAN_LIMITS[planTier] || PLAN_LIMITS.starter;
 
     const currentCount = await Campaign.countDocuments({

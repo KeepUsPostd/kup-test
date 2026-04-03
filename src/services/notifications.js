@@ -1571,6 +1571,45 @@ async function trialEndingSoon({ brand, trialEndDate }) {
   }
 }
 
+// PAY-016: Trial started — welcome email sent when first brand is created
+async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
+  const brandEmail = brand.ownerEmail || brand.email;
+  if (!brandEmail) return;
+
+  const endDate = new Date(trialEndsAt).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  });
+
+  await sendEmail({
+    to: brandEmail,
+    subject: '🎉 Your 14-Day Free Trial Is Active — KeepUsPostd',
+    headline: 'Your Free Trial Is Live!',
+    preheader: `Full Pro access for 14 days. No credit card required.`,
+    bodyHtml: `
+      <p>Welcome to KeepUsPostd! Your 14-day free trial is active and you have full <strong>Pro plan</strong> access — no credit card required.</p>
+      <p>Your trial ends on <strong>${endDate}</strong>. After that, your account moves to the free Starter plan unless you subscribe.</p>
+      <p>With your Pro trial you can:</p>
+      <ul>
+        <li>Manage up to <strong>10 brands</strong></li>
+        <li>Run up to <strong>20 campaigns</strong> per brand</li>
+        <li>Partner with up to <strong>500 influencers</strong></li>
+        <li>Access <strong>advanced analytics</strong></li>
+      </ul>
+    `,
+    ctaText: 'Go to Dashboard',
+    ctaUrl: `${APP_URL}/pages/inner/manage-brands.html`,
+    variant: 'brand',
+  });
+
+  if (brand.ownerId) {
+    push(brand.ownerId, {
+      title: '🎉 14-Day Free Trial Started',
+      body: `You have full Pro access until ${endDate}. No credit card needed.`,
+      link: '/pages/inner/manage-brands.html',
+    });
+  }
+}
+
 // PAY-015: Trial expired
 async function trialExpired({ brand }) {
   const brandEmail = brand.ownerEmail || brand.email;
@@ -1987,6 +2026,7 @@ module.exports = {
   subscriptionRenewed,
   paypalDisconnected,
   cashoutRequested,
+  trialStarted,
   trialEndingSoon,
   trialExpired,
 

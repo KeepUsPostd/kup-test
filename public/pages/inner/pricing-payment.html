@@ -393,10 +393,14 @@ var planData = {
   enterprise: { name:'Enterprise Plan', monthly:0,   yearly:0,    savings:'',            desc:'Unlimited everything. Dedicated account manager, API access, SSO/SAML, custom integrations, and SLA guarantee.' }
 };
 
-/* ── Read plan from URL (?plan=growth) ────────── */
+/* ── Read plan from URL or fall back to user's current plan ────────── */
 var urlParams = new URLSearchParams(window.location.search);
-var selectedPlanKey = urlParams.get('plan') || 'growth';
-if (!planData[selectedPlanKey]) selectedPlanKey = 'growth';
+var _kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
+var _currentPlan = (_kupProfile.planTier || 'starter').toLowerCase();
+// Default to one tier above current so the page feels like an upgrade, not a re-buy
+var _defaultPlan = { starter: 'growth', growth: 'pro', pro: 'agency', agency: 'agency', enterprise: 'enterprise' }[_currentPlan] || 'growth';
+var selectedPlanKey = urlParams.get('plan') || _defaultPlan;
+if (!planData[selectedPlanKey]) selectedPlanKey = _defaultPlan;
 var activePlan = planData[selectedPlanKey];
 
 var cB = "monthly";

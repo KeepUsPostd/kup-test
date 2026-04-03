@@ -340,7 +340,7 @@ router.post('/activate', requireAuth, async (req, res) => {
       subscription.paypalCustomerId = ppSub.subscriber?.payer_id || null;
       await subscription.save();
 
-      // Update brand profile
+      // Update brand profile — deactivate trial if still running
       const brandProfile = await BrandProfile.findById(subscription.brandProfileId);
       if (brandProfile) {
         brandProfile.planTier = subscription.planTier;
@@ -349,6 +349,9 @@ router.post('/activate', requireAuth, async (req, res) => {
         brandProfile.paypalSubscriptionId = paypalSubscriptionId;
         brandProfile.planStartedAt = subscription.currentPeriodStart;
         brandProfile.planExpiresAt = subscription.currentPeriodEnd;
+        if (brandProfile.trialActive) {
+          brandProfile.trialActive = false; // Paid plan supersedes trial
+        }
         await brandProfile.save();
       }
 

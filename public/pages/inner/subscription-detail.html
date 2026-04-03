@@ -428,6 +428,12 @@
       <p class="subtitle">Compare all features across every tier. Start free — scale when you're ready.</p>
     </div>
 
+    <!-- Trial banner (shown by fetchSubscription when trial is active) -->
+    <div id="subTrialBanner" style="display:none; background:linear-gradient(135deg,#2ea5dd,#1a73b8); color:#fff; border-radius:10px; padding:12px 18px; margin:0 0 16px; font-size:0.85rem;"></div>
+
+    <!-- Billing details (shown by fetchSubscription when paid sub exists) -->
+    <div id="subBillingDetails" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 16px; margin:0 0 16px; font-size:0.8rem; color:#555;"></div>
+
     <section class="kup-pricing-page" style="padding-top:0;">
       <div class="container" style="max-width:100%;padding:0;">
         <!-- PRICING CARDS ROW — 5 Tiers: Starter, Growth, Pro, Agency, Enterprise -->
@@ -701,12 +707,14 @@
       fetchSubscription();
     });
 
-    function highlightCurrentPlan() {
+    function highlightCurrentPlan(overridePlan) {
       var brand = null;
       if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
         brand = KUP_BRAND_CONTEXT.getActiveBrand();
       }
-      var currentPlan = (brand && brand.plan) ? brand.plan.toLowerCase() : 'starter';
+      // Use API-sourced plan if provided; fall back to brand.planTier then brand.plan
+      var currentPlan = overridePlan
+        || (brand && (brand.planTier || brand.plan) ? (brand.planTier || brand.plan).toLowerCase() : 'starter');
 
       // Update header brand name
       var brandEl = document.querySelector('.profile-info .brand');
@@ -757,9 +765,38 @@
       if (typeof kupApi !== 'undefined') {
         kupApi.get('/api/billing/subscription?brandId=' + brand.mongoId)
           .then(function(data) {
-            if (data && data.subscription) {
-              console.log('[subscription-detail] Subscription loaded:', data.subscription);
-              // Future: populate billing cycle, next payment date, etc.
+            if (!data) return;
+
+            // Re-highlight plan cards using live effective tier from API
+            var livePlan = (data.plan || 'starter').toLowerCase();
+            highlightCurrentPlan(livePlan);
+
+            // Show trial banner if active
+            var trial = data.trial;
+            var bannerEl = document.getElementById('subTrialBanner');
+            if (bannerEl && trial && trial.active) {
+              var days = trial.daysRemaining;
+              var endStr = new Date(trial.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+              bannerEl.innerHTML = '⚡ <strong>Pro Trial Active</strong> — '
+                + (days > 1 ? days + ' days remaining (ends ' + endStr + ')' : days === 1 ? 'Ends tomorrow!' : 'Expires today!')
+                + ' &nbsp;<a href="pricing-payment.html?plan=pro" style="color:#fff;font-weight:700;text-decoration:underline;">Upgrade to keep Pro</a>';
+              bannerEl.style.display = 'block';
+            }
+
+            // Show billing details if paid subscription
+            if (data.subscription) {
+              var sub = data.subscription;
+              var billingEl = document.getElementById('subBillingDetails');
+              if (billingEl) {
+                var nextDate = sub.currentPeriodEnd
+                  ? new Date(sub.currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                  : '—';
+                billingEl.innerHTML =
+                  '<span>Billing cycle: <strong>' + (sub.billingCycle || '—') + '</strong></span>' +
+                  '<span style="margin-left:16px;">Next renewal: <strong>' + nextDate + '</strong></span>' +
+                  (sub.paypalPayerEmail ? '<span style="margin-left:16px;">PayPal: <strong>' + sub.paypalPayerEmail + '</strong></span>' : '');
+                billingEl.style.display = 'block';
+              }
             }
           })
           .catch(function(err) {

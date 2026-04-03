@@ -1213,16 +1213,23 @@
         <a href="pricing-upgrade.html" class="btn-upgrade">Upgrade Plan</a>
       </div>
 
+      <!-- Trial countdown banner (shown only when trial is active) -->
+      <div id="trialBanner" style="display:none; background:linear-gradient(135deg,#2ea5dd,#1a73b8); color:#fff; border-radius:10px; padding:12px 14px; margin-bottom:12px; font-size:0.8rem;">
+        <div style="font-weight:700; font-size:0.85rem; margin-bottom:4px;">⚡ Pro Trial Active</div>
+        <div id="trialBannerDays" style="opacity:0.9; margin-bottom:8px;"></div>
+        <a href="subscription-detail.html" style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; font-size:0.75rem; font-weight:600; padding:5px 12px; border-radius:6px; text-decoration:none;">Upgrade to Keep Pro →</a>
+      </div>
+
       <!-- Plan info card -->
-      <div class="sidebar-info" id="planLimit" data-limit="3">
-        <h5>Current Plan: Growth</h5>
-        <p>Your account manages <strong>2 of 3</strong> brand slots on your Growth plan.</p>
+      <div class="sidebar-info" id="planLimit" data-limit="1">
+        <h5>Current Plan: Loading…</h5>
+        <p>Checking your plan…</p>
         <div style="margin-top:10px; font-size:0.72rem; color:#999;">
-          <span style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>Account brand slots</span><strong style="color:#1a1a1a;">2 / 3</strong></span>
+          <span style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>Account brand slots</span><strong style="color:#1a1a1a;">— / —</strong></span>
           <div style="height:4px; background:#eee; border-radius:4px; overflow:hidden;">
-            <div style="width:66%; height:100%; background:var(--kup-orange); border-radius:4px;"></div>
+            <div style="width:0%; height:100%; background:var(--kup-orange); border-radius:4px;"></div>
           </div>
-          <span style="display:block; margin-top:6px; font-size:0.7rem; color:#16a34a; font-weight:600;">&#10003; Within plan limit</span>
+          <span style="display:block; margin-top:6px; font-size:0.7rem; color:#999; font-weight:600;">Loading…</span>
         </div>
       </div>
 
@@ -2389,14 +2396,10 @@
       rebindCardActions();
     }
 
-    // ---- Update sidebar with real plan info ----
+    // ---- Update sidebar with real plan info (fetches live from API) ----
     function updateSidebar(brands) {
       const planInfo = document.getElementById('planLimit');
       if (!planInfo) return;
-
-      // Get user's plan tier from localStorage
-      const kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
-      const planTier = kupProfile.planTier || 'starter';
 
       const PLAN_LIMITS = {
         starter: { brands: 1, label: 'Starter (Free)' },
@@ -2406,27 +2409,62 @@
         enterprise: { brands: 999, label: 'Enterprise' }
       };
 
-      const plan = PLAN_LIMITS[planTier] || PLAN_LIMITS.starter;
-      const count = brands.length;
-      const pct = Math.min(100, Math.round((count / plan.brands) * 100));
+      function renderPlanCard(planTier, trialInfo) {
+        const plan = PLAN_LIMITS[planTier] || PLAN_LIMITS.starter;
+        const count = brands.length;
+        const pct = Math.min(100, Math.round((count / plan.brands) * 100));
+        const label = trialInfo && trialInfo.active ? plan.label + ' (Trial)' : plan.label;
 
-      planInfo.setAttribute('data-limit', plan.brands);
-      planInfo.innerHTML = `
-        <h5>Current Plan: ${plan.label}</h5>
-        <p>Your account manages <strong>${count} of ${plan.brands}</strong> brand slots on your ${plan.label} plan.</p>
-        <div style="margin-top:10px; font-size:0.72rem; color:#999;">
-          <span style="display:flex; justify-content:space-between; margin-bottom:3px;">
-            <span>Account brand slots</span>
-            <strong style="color:#1a1a1a;">${count} / ${plan.brands}</strong>
-          </span>
-          <div style="height:4px; background:#eee; border-radius:4px; overflow:hidden;">
-            <div style="width:${pct}%; height:100%; background:${count >= plan.brands ? '#ef4444' : 'var(--kup-orange)'}; border-radius:4px;"></div>
+        planInfo.setAttribute('data-limit', plan.brands);
+        planInfo.innerHTML = `
+          <h5>Current Plan: ${label}</h5>
+          <p>Your account manages <strong>${count} of ${plan.brands}</strong> brand slots on your ${label} plan.</p>
+          <div style="margin-top:10px; font-size:0.72rem; color:#999;">
+            <span style="display:flex; justify-content:space-between; margin-bottom:3px;">
+              <span>Account brand slots</span>
+              <strong style="color:#1a1a1a;">${count} / ${plan.brands}</strong>
+            </span>
+            <div style="height:4px; background:#eee; border-radius:4px; overflow:hidden;">
+              <div style="width:${pct}%; height:100%; background:${count >= plan.brands ? '#ef4444' : 'var(--kup-orange)'}; border-radius:4px;"></div>
+            </div>
+            <span style="display:block; margin-top:6px; font-size:0.7rem; color:${count >= plan.brands ? '#ef4444' : '#16a34a'}; font-weight:600;">
+              ${count >= plan.brands ? '&#10007; Plan limit reached — upgrade to add more' : '&#10003; Within plan limit'}
+            </span>
           </div>
-          <span style="display:block; margin-top:6px; font-size:0.7rem; color:${count >= plan.brands ? '#ef4444' : '#16a34a'}; font-weight:600;">
-            ${count >= plan.brands ? '&#10007; Plan limit reached — upgrade to add more' : '&#10003; Within plan limit'}
-          </span>
-        </div>
-      `;
+        `;
+
+        // Show/update trial banner
+        const banner = document.getElementById('trialBanner');
+        const bannerDays = document.getElementById('trialBannerDays');
+        if (banner && trialInfo && trialInfo.active) {
+          const days = trialInfo.daysRemaining;
+          bannerDays.textContent = days > 1
+            ? `${days} days remaining — trial ends ${new Date(trialInfo.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+            : days === 1 ? 'Trial ends tomorrow!' : 'Trial expires today!';
+          banner.style.display = 'block';
+        } else if (banner) {
+          banner.style.display = 'none';
+        }
+      }
+
+      // Try to fetch live subscription data (uses effectiveTier from backend)
+      if (typeof kupApi !== 'undefined') {
+        kupApi.get('/api/billing/subscription')
+          .then(function(data) {
+            const planTier = (data && data.plan) ? data.plan.toLowerCase() : 'starter';
+            const trialInfo = (data && data.trial) ? data.trial : null;
+            renderPlanCard(planTier, trialInfo);
+          })
+          .catch(function() {
+            // Fallback to localStorage if API call fails
+            const kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
+            renderPlanCard(kupProfile.planTier || 'starter', null);
+          });
+      } else {
+        // No kupApi yet — fall back to localStorage
+        const kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
+        renderPlanCard(kupProfile.planTier || 'starter', null);
+      }
     }
 
     // ---- Re-bind event handlers for dynamically created cards ----

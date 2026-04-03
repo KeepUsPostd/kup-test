@@ -5,7 +5,8 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { requireBrandRole } = require('../middleware/brandAccess');
 const { Brand, BrandProfile, BrandMember } = require('../models');
-const { startTrial } = require('../services/trial');
+const { startTrial, checkTrialStatus } = require('../services/trial');
+const notify = require('../services/notifications');
 
 // Generate consistent brand initials: single word → first letter, multi-word → first letter of each (max 3)
 function computeInitials(name) {
@@ -49,6 +50,7 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // Get or create brand profile
+    let trialJustStarted = false;
     let brandProfile = await BrandProfile.findOne({ userId: req.user._id });
     if (!brandProfile) {
       const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -58,13 +60,14 @@ router.post('/', requireAuth, async (req, res) => {
       });
       // Start 14-day free trial (Pro-level access, no CC required)
       await startTrial(brandProfile);
+      trialJustStarted = true;
       req.user.hasBrandProfile = true;
       req.user.activeProfile = req.user.activeProfile || 'brand';
       await req.user.save();
     }
 
-    // Check plan limit (rule G9)
-    const planTier = brandProfile.planTier || 'starter';
+    // Check plan limit using effective tier (respects active trial)
+    const { effectiveTier: planTier } = checkTrialStatus(brandProfile);
     const limit = PLAN_LIMITS[planTier].brands;
     const currentCount = brandProfile.ownedBrandIds.length;
 
@@ -149,6 +152,15 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     console.log(`✅ Brand created: "${brand.name}" by ${req.user.email}`);
+
+    // Fire trial-started welcome notification for first brand (non-blocking)
+    if (trialJustStarted) {
+      notify.trialStarted({
+        brand: { ...brand.toObject(), ownerEmail: req.user.email, ownerId: req.user._id },
+        trialEndsAt: brandProfile.trialEndsAt,
+        trialTier: brandProfile.trialTier,
+      }).catch(err => console.error('[brands] notify.trialStarted error:', err.message));
+    }
 
     res.status(201).json({
       message: 'Brand created successfully',

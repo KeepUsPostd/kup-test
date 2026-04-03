@@ -5,7 +5,17 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { Partnership, InfluencerProfile, ContentSubmission } = require('../models');
+const { Partnership, InfluencerProfile, ContentSubmission, BrandProfile, Brand } = require('../models');
+const { checkTrialStatus } = require('../services/trial');
+
+// Influencer slot limits per plan tier
+const INFLUENCER_SLOT_LIMITS = {
+  starter: 10,
+  growth: 100,
+  pro: 500,
+  agency: 2000,
+  enterprise: Infinity,
+};
 
 // GET /api/partnerships/discover — Browse influencers for brand discovery tab
 // Query params: q (search), niche, tier, sort, page, limit
@@ -81,6 +91,31 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
     const influencerProfileId = influencer._id;
+
+    // Enforce influencer slot limit based on brand owner's plan tier
+    const brandDoc = await Brand.findById(brandId).lean();
+    if (brandDoc) {
+      const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandDoc._id });
+      if (brandProfile) {
+        const { effectiveTier } = checkTrialStatus(brandProfile);
+        const slotLimit = INFLUENCER_SLOT_LIMITS[effectiveTier] ?? 10;
+        if (slotLimit !== Infinity) {
+          const activeCount = await Partnership.countDocuments({
+            brandId,
+            status: { $in: ['active', 'paused'] },
+          });
+          if (activeCount >= slotLimit) {
+            return res.status(403).json({
+              error: 'Partnership limit reached',
+              message: `This brand has reached its ${slotLimit}-influencer limit on the ${effectiveTier} plan. Upgrade to add more partners.`,
+              currentPlan: effectiveTier,
+              limit: slotLimit,
+              current: activeCount,
+            });
+          }
+        }
+      }
+    }
 
     // Check if partnership already exists
     const existing = await Partnership.findOne({ brandId, influencerProfileId });
