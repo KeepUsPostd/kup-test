@@ -29,7 +29,12 @@ const brandInviteSchema = new mongoose.Schema({
     ref: 'User',
     default: null,
   },
-  // Auto-expire after 30 days
+  // Set when influencer clicks invite link and creates a partnership
+  acceptedAt: {
+    type: Date,
+    default: null,
+  },
+  // Auto-expire after 30 days (pending only — accepted invites kept as record)
   expiresAt: {
     type: Date,
     default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),

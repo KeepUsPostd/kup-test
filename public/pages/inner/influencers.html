@@ -3490,14 +3490,21 @@
 
       var html = '';
 
-      // Pending email invites (not yet signed up)
+      // Email invites — pending (awaiting response) and accepted (clicked and partnered)
       for (var j = 0; j < pending.length; j++) {
         var inv = pending[j];
+        var isAccepted = inv.status === 'accepted';
+        var statusBadge = isAccepted
+          ? '<span class="invited-status accepted">✓ Partnered</span>'
+          : '<span class="invited-status sent">Pending</span>';
+        var resendBtn = isAccepted
+          ? ''
+          : '<button class="btn-resend" style="margin-left:8px;font-size:0.75rem;padding:3px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555">Resend</button>';
         html += '<tr>' +
           '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem;color:#555">' + inv.email + '</td>' +
-          '<td data-label="Invited" class="time-cell">' + timeAgo(inv.createdAt) + '</td>' +
+          '<td data-label="Invited" class="time-cell">' + (isAccepted ? timeAgo(inv.acceptedAt || inv.updatedAt) + ' ago' : timeAgo(inv.createdAt)) + '</td>' +
           '<td data-label="Source"><span style="font-size:0.78rem;color:#888">email invite</span></td>' +
-          '<td data-label="Status"><span class="invited-status sent">Pending</span></td>' +
+          '<td data-label="Status">' + statusBadge + resendBtn + '</td>' +
           '</tr>';
       }
 

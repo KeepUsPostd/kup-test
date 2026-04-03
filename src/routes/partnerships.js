@@ -116,6 +116,22 @@ router.post('/', requireAuth, async (req, res) => {
 
     console.log(`🤝 Partnership created: brand ${brandId} + @${influencer.handle}`);
 
+    // Update BrandInvite record to 'accepted' so the Invited tab reflects the response.
+    // This links the partnership back to the email invite that brought the influencer in.
+    try {
+      const { BrandInvite } = require('../models');
+      const user = req.user;
+      if (user.email) {
+        await BrandInvite.findOneAndUpdate(
+          { brandId, email: user.email.toLowerCase(), status: 'pending' },
+          { status: 'accepted', acceptedAt: new Date() },
+        );
+      }
+    } catch (inviteErr) {
+      // Non-critical — log but don't fail the partnership creation
+      console.warn('Could not update BrandInvite status:', inviteErr.message);
+    }
+
     res.status(201).json({
       message: 'Partnership created',
       partnership,
@@ -475,14 +491,18 @@ router.post('/invite', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/partnerships/pending-invites — Pending email invites for a brand's Invited tab
+// GET /api/partnerships/pending-invites — All email invites for a brand's Invited tab
+// Returns both pending (awaiting response) and accepted (partnered via invite link)
 router.get('/pending-invites', requireAuth, async (req, res) => {
   try {
     const { brandId } = req.query;
     if (!brandId) return res.status(400).json({ error: 'brandId is required' });
 
     const { BrandInvite } = require('../models');
-    const invites = await BrandInvite.find({ brandId, status: 'pending' })
+    const invites = await BrandInvite.find({
+      brandId,
+      status: { $in: ['pending', 'accepted'] },
+    })
       .sort({ createdAt: -1 })
       .lean();
 
