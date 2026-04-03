@@ -395,21 +395,23 @@
         <div class="tab-pane" id="pane-purchase">
           <div class="reward-offer">
             <div class="reward-icon">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </div>
-            <h3>Purchase Points</h3>
-            <p>Buy points to send to Jessica Davis as a cash incentive</p>
+            <h3>Award Purchase Points</h3>
+            <p id="purchaseTabDesc">Enter the customer's purchase total — points are awarded based on your tier configuration.</p>
           </div>
           <div class="points-form">
             <div class="input-group-custom">
               <div class="input-prefix">$</div>
               <input type="number" id="purchaseAmount" placeholder="0.00" min="0" step="0.01">
             </div>
-            <p class="helper">Enter the dollar amount you would like to convert to points.</p>
+            <p class="helper">Customer's total purchase amount (before tax). Points awarded based on your tier config.</p>
             <div class="btn-row">
-              <button class="btn-clear" onclick="document.getElementById('purchaseAmount').value=''">Clear</button>
-              <button class="btn-apply" onclick="applyPurchase()">Apply</button>
+              <button class="btn-clear" onclick="document.getElementById('purchaseAmount').value=''; document.getElementById('purchaseResult').style.display='none';">Clear</button>
+              <button class="btn-apply" id="btnApplyPurchase" onclick="applyPurchase()">Award Points</button>
             </div>
+            <!-- Result display -->
+            <div id="purchaseResult" style="display:none;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
           </div>
         </div>
 
@@ -574,17 +576,103 @@
       }
     }
 
-    /* ============== PURCHASE POINTS ============== */
-    function applyPurchase() {
-      var amount = document.getElementById('purchaseAmount').value;
-      if (!amount || parseFloat(amount) <= 0) {
-        kupToast('Please enter a valid dollar amount', 'warning');
+    /* ============== PURCHASE POINTS — wired to /api/purchase-points/award ============== */
+    async function applyPurchase() {
+      var amountVal = document.getElementById('purchaseAmount').value;
+      var spendAmount = parseFloat(amountVal);
+      var resultEl = document.getElementById('purchaseResult');
+      var btn = document.getElementById('btnApplyPurchase');
+
+      if (!amountVal || isNaN(spendAmount) || spendAmount <= 0) {
+        kupToast('Please enter a valid purchase amount', 'warning');
         document.getElementById('purchaseAmount').focus();
         return;
       }
-      var infName = _currentInfluencer ? (_currentInfluencer.influencerName || _currentInfluencer.name || 'Influencer') : 'Influencer';
-      kupToast('$' + parseFloat(amount).toFixed(2) + ' in points purchased for ' + infName, 'success');
-      document.getElementById('purchaseAmount').value = '';
+
+      if (!_currentInfluencer) {
+        kupToast('Scan a customer QR code first', 'warning');
+        return;
+      }
+
+      // Get brand ID
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+      if (!brandId) { kupToast('No active brand selected', 'error'); return; }
+
+      // Get influencer profile ID from partnership object
+      var influencerProfileId = _currentInfluencer.influencerId
+        || _currentInfluencer.influencerProfileId
+        || _currentInfluencer._id
+        || null;
+
+      btn.disabled = true;
+      btn.textContent = 'Awarding…';
+      if (resultEl) resultEl.style.display = 'none';
+
+      try {
+        var token = await firebase.auth().currentUser.getIdToken();
+        var resp = await fetch('/api/purchase-points/award', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandId,
+            influencerProfileId,
+            spendAmount,
+            channel: 'instore',
+            processedBy: firebase.auth().currentUser.email || 'staff',
+          }),
+        });
+
+        var data = await resp.json();
+
+        if (!resp.ok) {
+          if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);color:#991b1b;';
+            resultEl.innerHTML = '❌ ' + (data.error || 'Could not award points — please try again.');
+          }
+          kupToast(data.error || 'Could not award points', 'error');
+          return;
+        }
+
+        var infName = _currentInfluencer.influencerName || _currentInfluencer.name || 'Customer';
+
+        if (data.awarded) {
+          // ✅ Points awarded
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.25);color:#166534;';
+            resultEl.innerHTML =
+              '✅ <strong>' + data.pointsAwarded + ' pts awarded</strong> to ' + infName +
+              ' for $' + spendAmount.toFixed(2) + ' purchase (Level ' + data.levelIndex + ')<br>' +
+              (data.newBalance !== null ? '<span style="font-size:0.78rem;opacity:0.8;">New balance: ' + data.newBalance + ' pts</span>' : '');
+          }
+          kupToast(data.pointsAwarded + ' pts awarded to ' + infName, 'success');
+          document.getElementById('purchaseAmount').value = '';
+        } else if (!data.accountFound) {
+          // ℹ️ No KUP account found — forward-earning message
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.3);color:#92400e;';
+            resultEl.innerHTML =
+              '⚠️ No KUP account found for this customer.<br>' +
+              '<span style="font-size:0.78rem;opacity:0.85;">They would have earned <strong>' + (data.pointsWouldEarn || 0) + ' pts</strong> — share your brand QR so they can join KUP and start earning.</span>';
+          }
+          kupToast('No KUP account found — ' + (data.pointsWouldEarn || 0) + ' pts missed', 'warning');
+          document.getElementById('purchaseAmount').value = '';
+        } else {
+          // Below tier floor
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:#f8f9fa;border:1px solid #e8e8e8;color:#666;';
+            resultEl.innerHTML = 'ℹ️ ' + (data.message || 'Purchase below minimum spend threshold — no points earned.');
+          }
+        }
+      } catch(e) {
+        console.error('applyPurchase error:', e);
+        kupToast('Could not award points — please check connection', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Award Points';
+      }
     }
 
     /* ============== GIFT POINTS ============== */
@@ -720,6 +808,10 @@
       // Update confirm text
       var confirmEl = document.querySelector('.confirm-text');
       if (confirmEl) confirmEl.textContent = 'Clicking here confirms that your brand reward has been sent to ' + name + '.';
+
+      // Update purchase points tab description with real customer name
+      var purchaseDesc = document.getElementById('purchaseTabDesc');
+      if (purchaseDesc) purchaseDesc.textContent = 'Enter ' + name + '\'s purchase total — points are awarded based on your tier configuration.';
       var successP = document.querySelector('.success-message p');
       if (successP && _currentReward) successP.textContent = name + ' has been sent the "' + (_currentReward.name || 'Reward') + '" reward.';
     }
