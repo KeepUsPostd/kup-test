@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KeepUsPostd — Open in App</title>
+  <meta name="description" content="Open this brand profile in the KeepUsPostd app." />
+  <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
+
+  <!-- Open Graph — social share preview (used when this link is shared in iMessage, Twitter, etc.) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="KeepUsPostd" />
+  <meta property="og:title" content="KeepUsPostd — Everyone Has Influence" />
+  <meta property="og:description" content="Discover this brand on KeepUsPostd and become a partner." />
+  <meta property="og:image" content="https://keepuspostd.com/images/OG_Design.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="KeepUsPostd — Everyone Has Influence" />
+  <meta name="twitter:description" content="Discover this brand on KeepUsPostd and become a partner." />
+  <meta name="twitter:image" content="https://keepuspostd.com/images/OG_Design.jpg" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kup-blue: #2ea5dd;
+      --kup-gradient: linear-gradient(135deg, #2ea5dd, #1a73b8);
+      --radius: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      width: 100%;
+      background: var(--kup-gradient);
+      padding: 48px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .kup-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.15);
+      padding: 6px;
+    }
+
+    .kup-wordmark {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── BRAND CARD ── */
+    .card {
+      width: calc(100% - 32px);
+      max-width: 420px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      padding: 28px 24px 32px;
+      margin-top: -48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+      margin: 0 auto 14px;
+    }
+
+    .brand-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .brand-category {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .brand-description {
+      font-size: 0.875rem;
+      color: #444;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 0 -24px 20px;
+    }
+
+    .invite-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #999;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      background: var(--kup-gradient);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: opacity 0.2s;
+    }
+    .btn-open:active { opacity: 0.85; }
+
+    .btn-store {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn-store:active { opacity: 0.85; }
+
+    .btn-store .store-sub { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+    .btn-store .store-label { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+
+    /* ── LOADING / ERROR STATES ── */
+    .skeleton { background: #e8ecf0; border-radius: 8px; }
+    .skeleton-name { height: 22px; width: 60%; margin: 0 auto 6px; }
+    .skeleton-cat { height: 14px; width: 40%; margin: 0 auto 8px; }
+    .skeleton-desc { height: 12px; width: 90%; margin: 0 auto 4px; }
+    .skeleton-desc-2 { height: 12px; width: 70%; margin: 0 auto 20px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 24px;
+      padding-bottom: 40px;
+      font-size: 0.78rem;
+      color: #999;
+      text-align: center;
+    }
+    .footer a { color: #2ea5dd; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img class="kup-logo" src="/images/kup_new_app_logo_3.png" alt="KeepUsPostd" onerror="this.style.display='none'" />
+    <span class="kup-wordmark">KeepUsPostd</span>
+  </div>
+
+  <div class="card">
+    <!-- Brand Avatar -->
+    <div class="brand-avatar" id="brandAvatar">
+      <span id="brandInitials">KP</span>
+    </div>
+
+    <!-- Brand Info (populated by JS) -->
+    <div id="brandLoading">
+      <div class="skeleton skeleton-name"></div>
+      <div class="skeleton skeleton-cat"></div>
+      <div class="skeleton skeleton-desc"></div>
+      <div class="skeleton skeleton-desc-2"></div>
+    </div>
+
+    <div id="brandInfo" style="display:none;">
+      <div class="brand-name" id="brandName">Brand</div>
+      <div class="brand-category" id="brandCategory"></div>
+      <div class="brand-description" id="brandDesc"></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="invite-label">View partnership opportunities</div>
+
+    <!-- Open in App -->
+    <a class="btn-open" id="btnOpen" href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+      </svg>
+      Open in KeepUsPostd
+    </a>
+
+    <!-- App Store Download -->
+    <a class="btn-store" id="btnStore" href="https://apps.apple.com/search?term=keepuspostd" target="_blank">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/>
+      </svg>
+      <div>
+        <div class="store-sub">Download on the</div>
+        <div class="store-label">App Store</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    The influencer-brand partnership platform<br/>
+    <a href="https://keepuspostd.com">keepuspostd.com</a>
+  </div>
+
+  <script>
+    (function () {
+      // Parse brand ID from URL path: /brands/:id
+      var pathParts = window.location.pathname.split('/').filter(Boolean);
+      var brandId = pathParts[1] || '';
+
+      // Build the custom-scheme deep link
+      var deepLink = 'keepuspostd://brands/' + encodeURIComponent(brandId);
+      document.getElementById('btnOpen').href = deepLink;
+
+      // Load brand data
+      if (brandId) {
+        fetch('/api/brands/public/' + encodeURIComponent(brandId))
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            document.getElementById('brandLoading').style.display = 'none';
+            document.getElementById('brandInfo').style.display = 'block';
+
+            if (data && data.brand) {
+              var b = data.brand;
+              var name = b.name || 'Brand';
+              var initials = name.trim().split(/\s+/).map(function (w) { return w[0]; }).join('').toUpperCase().substring(0, 2);
+
+              document.getElementById('brandName').textContent = name;
+              document.getElementById('brandInitials').textContent = initials;
+              document.getElementById('brandCategory').textContent = b.category ? '🏢 ' + b.category : '';
+              document.getElementById('brandDesc').textContent = b.description || 'Partner with this brand on KeepUsPostd to earn rewards for your content.';
+              document.title = name + ' — KeepUsPostd';
+
+              // Brand logo
+              if (b.logoUrl) {
+                var img = document.createElement('img');
+                img.src = b.logoUrl;
+                img.alt = name;
+                img.onerror = null;
+                document.getElementById('brandAvatar').innerHTML = '';
+                document.getElementById('brandAvatar').appendChild(img);
+              }
+
+              // Brand color
+              if (b.brandColors && b.brandColors.primary) {
+                var primary = b.brandColors.primary;
+                var secondary = b.brandColors.secondary || primary;
+                document.getElementById('brandAvatar').style.background = 'linear-gradient(135deg, ' + primary + ', ' + secondary + ')';
+              }
+            } else {
+              // Brand not found — show generic CTA
+              document.getElementById('brandName').textContent = 'KeepUsPostd Brand';
+              document.getElementById('brandInitials').textContent = 'KP';
+              document.getElementById('brandDesc').textContent = 'Open KeepUsPostd to discover brands and earn rewards for your content.';
+            }
+          })
+          .catch(function () {
+            document.getElementById('brandLoading').style.display = 'none';
+            document.getElementById('brandInfo').style.display = 'block';
+            document.getElementById('brandName').textContent = 'KeepUsPostd';
+            document.getElementById('brandInitials').textContent = 'KP';
+            document.getElementById('brandDesc').textContent = 'Open KeepUsPostd to discover brands and earn rewards for your content.';
+          });
+      } else {
+        document.getElementById('brandLoading').style.display = 'none';
+        document.getElementById('brandInfo').style.display = 'block';
+        document.getElementById('brandName').textContent = 'KeepUsPostd';
+        document.getElementById('brandDesc').textContent = 'Discover brands and earn rewards for your content.';
+      }
+
+      // Auto-attempt to open the app after a short delay
+      // If app is installed, this opens it. If not, it silently fails and the user sees the download button.
+      var attempted = false;
+      document.getElementById('btnOpen').addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!attempted) {
+          attempted = true;
+          window.location.href = deepLink;
+          // After 2.5s, if still on page, scroll to download button
+          setTimeout(function () {
+            document.getElementById('btnStore').scrollIntoView({ behavior: 'smooth' });
+          }, 2500);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

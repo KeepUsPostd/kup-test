@@ -198,15 +198,25 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/public/:identifier', async (req, res) => {
   try {
     const id = req.params.identifier.replace(/^@/, ''); // strip leading @ if present
-    // Try handle first (lowercase), then kiosk code (uppercase)
-    const brand = await Brand.findOne({
-      $or: [
-        { brandHandle: id.toLowerCase() },
-        { kioskBrandCode: id.toUpperCase() },
-      ],
-    })
-      .select('name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode brandHandle ownerId claimStatus brandType')
-      .lean();
+    const selectFields = 'name initials generatedColor brandColors logoUrl heroImageUrl description category websiteUrl kioskBrandCode brandHandle ownerId claimStatus brandType';
+
+    let brand;
+
+    // If identifier looks like a MongoDB ObjectId (24-char hex), try _id first
+    if (/^[a-f0-9]{24}$/i.test(id)) {
+      brand = await Brand.findById(id).select(selectFields).lean();
+    }
+
+    // Fall back to handle or kiosk code lookup
+    if (!brand) {
+      brand = await Brand.findOne({
+        $or: [
+          { brandHandle: id.toLowerCase() },
+          { kioskBrandCode: id.toUpperCase() },
+        ],
+      }).select(selectFields).lean();
+    }
+
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
     res.json({ brand });
   } catch (error) {

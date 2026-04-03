@@ -185,6 +185,30 @@ app.get('/@:handle', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'brand-profile.html'));
 });
 
+// Deep link share page — shared from the KUP app (brand share button)
+// URL: keepuspostd.com/brands/:id — handles Universal Link handoff from iOS
+app.get('/brands/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'deep-link.html'));
+});
+
+// Apple App Site Association — required for iOS Universal Links
+// Must be served as application/json WITHOUT redirect
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({
+    applinks: {
+      details: [
+        {
+          appIDs: ['793733237X.com.keepuspostd.reviews'],
+          components: [
+            { '/': '/brands/*', comment: 'Brand deep links shared from KUP app' },
+          ],
+        },
+      ],
+    },
+  });
+});
+
 // --- API Routes ---
 
 // Health check (no auth required, no rate limit)
