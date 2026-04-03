@@ -555,4 +555,253 @@ router.post('/webhook/:platform/:webhookToken', async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// STAFF PIN MODE — No Firebase auth required. PIN replaces identity for staff.
+// Brand owner sets a 4-digit PIN from purchase-points-setup.html.
+// Any staffer who knows the PIN can award purchase points from their personal phone.
+// URL: keepuspostd.com/staff/:brandCode
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── GET /api/purchase-points/staff-brand?brandCode= ───────────────────────────
+// Public — minimal brand info for the staff scan landing page.
+// Returns brandId, name, logo, and whether a PIN has been set.
+router.get('/staff-brand', async (req, res) => {
+  try {
+    const { brandCode } = req.query;
+    if (!brandCode) return res.status(400).json({ error: 'brandCode is required' });
+
+    const brand = await Brand.findOne({ kioskBrandCode: brandCode, status: 'active' })
+      .select('name logo _id kioskBrandCode');
+    if (!brand) return res.status(404).json({ error: 'Brand not found or not active' });
+
+    // Check if purchase points configured + PIN is set (without revealing the PIN)
+    const config = await PurchasePointsConfig.findOne({ brandId: brand._id })
+      .select('+staffPin');
+    const hasPin      = !!(config?.staffPin);
+    const inStoreEnabled = !!(config?.inStore?.enabled);
+
+    res.json({
+      brandId:         brand._id,
+      brandName:       brand.name,
+      brandLogo:       brand.logo || null,
+      brandCode,
+      hasPin,
+      inStoreEnabled,
+    });
+  } catch (err) {
+    console.error('GET /purchase-points/staff-brand error:', err.message);
+    res.status(500).json({ error: 'Could not load brand info' });
+  }
+});
+
+// ── POST /api/purchase-points/staff-verify ────────────────────────────────────
+// Validates the 4-digit staff PIN for a brand. Returns { verified: true } or 401.
+// Called each time the staff scan app is opened — PIN must match to proceed.
+router.post('/staff-verify', async (req, res) => {
+  try {
+    const { brandId, pin } = req.body;
+    if (!brandId)         return res.status(400).json({ error: 'brandId is required' });
+    if (!pin || !/^\d{4}$/.test(String(pin))) {
+      return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+    }
+
+    const config = await PurchasePointsConfig.findOne({ brandId }).select('+staffPin');
+    if (!config) return res.status(404).json({ error: 'Brand not configured for purchase points' });
+    if (!config.staffPin) {
+      return res.status(400).json({ error: 'No staff PIN set — ask the brand owner to configure one' });
+    }
+
+    // Constant-time comparison to prevent timing attacks on 4-digit space
+    const pinBuf    = Buffer.from(String(pin));
+    const storedBuf = Buffer.from(config.staffPin);
+    const match = pinBuf.length === storedBuf.length &&
+                  crypto.timingSafeEqual(pinBuf, storedBuf);
+
+    if (!match) return res.status(401).json({ error: 'Incorrect PIN' });
+
+    res.json({ verified: true, brandId });
+  } catch (err) {
+    console.error('POST /purchase-points/staff-verify error:', err.message);
+    res.status(500).json({ error: 'Could not verify PIN' });
+  }
+});
+
+// ── POST /api/purchase-points/staff-lookup ────────────────────────────────────
+// Resolves a customer by QR scan (influencerProfileId), email, or @handle.
+// PIN-authenticated — no Firebase token required.
+router.post('/staff-lookup', async (req, res) => {
+  try {
+    const { brandId, pin, identifier } = req.body;
+    if (!brandId || !pin || !identifier) {
+      return res.status(400).json({ error: 'brandId, pin, and identifier are required' });
+    }
+
+    // Verify PIN before any lookup
+    const config = await PurchasePointsConfig.findOne({ brandId }).select('+staffPin');
+    if (!config?.staffPin) return res.status(400).json({ error: 'No staff PIN configured' });
+
+    const pinBuf    = Buffer.from(String(pin));
+    const storedBuf = Buffer.from(config.staffPin);
+    const match = pinBuf.length === storedBuf.length &&
+                  crypto.timingSafeEqual(pinBuf, storedBuf);
+    if (!match) return res.status(401).json({ error: 'Incorrect PIN' });
+
+    // Resolve customer — QR codes embed the influencerProfileId (MongoDB ObjectId)
+    let influencer = null;
+    const id = String(identifier).trim();
+
+    if (/^[a-f0-9]{24}$/i.test(id)) {
+      // QR scan: the market code QR encodes the influencerProfileId directly
+      influencer = await InfluencerProfile.findById(id);
+    } else if (id.startsWith('@')) {
+      const handle = id.slice(1).toLowerCase();
+      const user = await User.findOne({ handle });
+      if (user) influencer = await InfluencerProfile.findOne({ userId: user._id });
+    } else if (id.includes('@')) {
+      const user = await User.findOne({ email: id.toLowerCase() });
+      if (user) influencer = await InfluencerProfile.findOne({ userId: user._id });
+    }
+
+    if (!influencer) {
+      return res.json({
+        found: false,
+        message: 'No KUP account found — points available once customer joins KUP',
+      });
+    }
+
+    res.json({
+      found:                 true,
+      influencerProfileId:   influencer._id,
+      displayName:           influencer.displayName,
+      purchasePointsBalance: influencer.purchasePointsBalance || 0,
+    });
+  } catch (err) {
+    console.error('POST /purchase-points/staff-lookup error:', err.message);
+    res.status(500).json({ error: 'Could not look up customer' });
+  }
+});
+
+// ── POST /api/purchase-points/staff-award ─────────────────────────────────────
+// Awards purchase points using PIN auth (no Firebase required).
+// This is the final step in the staff scan flow — PIN must be sent with every award.
+router.post('/staff-award', async (req, res) => {
+  try {
+    const { brandId, pin, influencerProfileId, spendAmount } = req.body;
+    if (!brandId || !pin) return res.status(400).json({ error: 'brandId and pin are required' });
+    if (!spendAmount || parseFloat(spendAmount) <= 0) {
+      return res.status(400).json({ error: 'spendAmount must be greater than 0' });
+    }
+
+    // Verify PIN
+    const config = await PurchasePointsConfig.findOne({ brandId }).select('+staffPin');
+    if (!config) return res.status(404).json({ error: 'Brand not configured for purchase points' });
+    if (!config.staffPin) return res.status(400).json({ error: 'No staff PIN configured' });
+
+    const pinBuf    = Buffer.from(String(pin));
+    const storedBuf = Buffer.from(config.staffPin);
+    const match = pinBuf.length === storedBuf.length &&
+                  crypto.timingSafeEqual(pinBuf, storedBuf);
+    if (!match) return res.status(401).json({ error: 'Incorrect PIN' });
+
+    if (!config.inStore?.enabled) {
+      return res.status(400).json({ error: 'In-store purchase points are not enabled for this brand' });
+    }
+
+    const spend = parseFloat(spendAmount);
+    const { points, levelIndex } = calculatePoints(spend, config.inStore.levels);
+    if (points === 0) {
+      const floor = config.inStore.levels.length > 0
+        ? Math.min(...config.inStore.levels.map(l => l.minSpend))
+        : 0;
+      return res.json({
+        awarded: false,
+        pointsAwarded: 0,
+        message: `Spend $${floor} or more to earn points. Current spend: $${spend}.`,
+      });
+    }
+
+    // Resolve influencer (optional — guest transactions are still logged)
+    let influencer = null;
+    if (influencerProfileId) {
+      influencer = await InfluencerProfile.findById(influencerProfileId);
+    }
+
+    const logData = {
+      brandId,
+      channel:       'instore',
+      spendAmount:   spend,
+      pointsAwarded: influencer ? points : 0,
+      levelIndex:    influencer ? levelIndex : 0,
+      processedBy:   'staff-pin',
+      awardedAt:     new Date(),
+    };
+
+    if (influencer) {
+      logData.influencerProfileId = influencer._id;
+      logData.customerName        = influencer.displayName;
+
+      await InfluencerProfile.findByIdAndUpdate(influencer._id, {
+        $inc: {
+          purchasePointsBalance:     points,
+          totalPurchasePointsEarned: points,
+        },
+      });
+      console.log(`✅ Staff PIN: ${points}pts → ${influencer.displayName} (brand ${brandId}, $${spend}, Level ${levelIndex})`);
+    } else {
+      logData.customerName = 'Guest';
+      console.log(`ℹ️ Staff PIN: guest $${spend} (brand ${brandId}) — no KUP account, would earn ${points}pts`);
+    }
+
+    const log = await PurchasePointsLog.create(logData);
+
+    res.json({
+      awarded:         !!influencer,
+      pointsAwarded:   influencer ? points : 0,
+      pointsWouldEarn: influencer ? null : points,
+      levelIndex:      influencer ? levelIndex : 0,
+      spendAmount:     spend,
+      message: influencer
+        ? `${points} points awarded to ${influencer.displayName} (Level ${levelIndex})`
+        : `No KUP account — ${points} points waiting once they join KUP`,
+      newBalance: influencer
+        ? (influencer.purchasePointsBalance || 0) + points
+        : null,
+      logId: log._id,
+    });
+  } catch (err) {
+    console.error('POST /purchase-points/staff-award error:', err.message);
+    res.status(500).json({ error: 'Could not award points' });
+  }
+});
+
+// ── PUT /api/purchase-points/staff-pin ────────────────────────────────────────
+// Brand owner sets or rotates the 4-digit staff PIN. requireAuth — owner only.
+router.put('/staff-pin', requireAuth, async (req, res) => {
+  try {
+    const { brandId, pin } = req.body;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+    if (!pin || !/^\d{4}$/.test(String(pin))) {
+      return res.status(400).json({ error: 'PIN must be exactly 4 digits (0–9)' });
+    }
+
+    // Verify requester owns the brand
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (!brandProfile || !brandProfile.ownedBrandIds.some(id => id.toString() === brandId)) {
+      return res.status(403).json({ error: 'You do not own this brand' });
+    }
+
+    await PurchasePointsConfig.findOneAndUpdate(
+      { brandId },
+      { $set: { staffPin: String(pin) } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    console.log(`✅ Staff PIN set/rotated for brand ${brandId}`);
+    res.json({ message: 'Staff PIN saved. Share it only with trusted staff.' });
+  } catch (err) {
+    console.error('PUT /purchase-points/staff-pin error:', err.message);
+    res.status(500).json({ error: 'Could not save staff PIN' });
+  }
+});
+
 module.exports = router;

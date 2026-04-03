@@ -191,6 +191,14 @@ app.get('/brands/:id', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'deep-link.html'));
 });
 
+// Staff PIN scan page — mobile-first, PIN-protected purchase points scanner
+// URL: keepuspostd.com/staff/:brandCode
+// No Firebase auth — only the 4-digit staff PIN is required.
+// Multiple staffers can use this on their personal phones at events / food trucks.
+app.get('/staff/:brandCode', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'staff-scan.html'));
+});
+
 // Apple App Site Association — required for iOS Universal Links
 // Must be served as application/json WITHOUT redirect
 app.get('/.well-known/apple-app-site-association', (req, res) => {

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Staff Scan — KeepUsPostd</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--kup-font);
+      background: var(--kup-bg);
+      color: #1a1a1a;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* ── Screens ──────────────────────────────────────────────────────────── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px calc(24px + var(--safe-bottom));
+      background: var(--kup-bg);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      overflow-y: auto;
+    }
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+    }
+
+    /* ── Logo / Brand Header ─────────────────────────────────────────────── */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .brand-logo-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .brand-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .brand-logo-initials {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .brand-name-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      text-align: center;
+    }
+    .staff-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      background: rgba(46, 165, 221, 0.1);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Cards ───────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--kup-white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .card-sub {
+      font-size: 0.82rem;
+      color: #888;
+      text-align: center;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* ── PIN Input ───────────────────────────────────────────────────────── */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .pin-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .pin-dot.filled {
+      background: var(--kup-blue);
+      border-color: var(--kup-blue);
+      transform: scale(1.1);
+    }
+    .pin-dot.error-shake {
+      border-color: #e74c3c;
+      background: #e74c3c;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .key-btn {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: 50%;
+      background: #F0F2F5;
+      font-family: var(--kup-font);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .key-btn:active { transform: scale(0.92); background: #e0e3e8; }
+    .key-btn.delete-key { font-size: 1.1rem; color: #888; }
+    .key-btn.empty-key  { background: transparent; cursor: default; }
+    .key-btn.empty-key:active { transform: none; background: transparent; }
+
+    .pin-error-msg {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #e74c3c;
+      font-weight: 600;
+      margin-top: 14px;
+      min-height: 18px;
+    }
+
+    /* ── Scan Screen ─────────────────────────────────────────────────────── */
+    #screenScan {
+      padding: 0;
+      justify-content: flex-start;
+    }
+    .scan-top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--kup-white);
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+    .scan-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .scan-brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .scan-brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .scan-brand-logo-initials { font-size: 0.75rem; font-weight: 800; color: #fff; }
+    .scan-brand-name { font-size: 0.85rem; font-weight: 700; }
+    .scan-brand-sub  { font-size: 0.7rem; color: #888; }
+    .btn-lock {
+      background: none;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: var(--kup-font);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .scan-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 20px 20px calc(20px + var(--safe-bottom));
+      overflow-y: auto;
+    }
+
+    /* Camera view */
+    .camera-wrap {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .scan-frame {
+      width: 56%;
+      aspect-ratio: 1;
+      border: 3px solid rgba(255,255,255,0.85);
+      border-radius: 18px;
+      position: relative;
+    }
+    .scan-frame::before,
+    .scan-frame::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-color: var(--kup-blue);
+      border-style: solid;
+    }
+    .scan-frame::before {
+      top: -3px; left: -3px;
+      border-width: 3px 0 0 3px;
+      border-radius: 18px 0 0 0;
+    }
+    .scan-frame::after {
+      bottom: -3px; right: -3px;
+      border-width: 0 3px 3px 0;
+      border-radius: 0 0 18px 0;
+    }
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--kup-blue), transparent);
+      animation: scanLine 2s ease-in-out infinite;
+    }
+    @keyframes scanLine {
+      0%   { top: 10%; }
+      50%  { top: 85%; }
+      100% { top: 10%; }
+    }
+    .camera-status {
+      font-size: 0.75rem;
+      color: #888;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* Manual entry tabs */
+    .scan-tabs {
+      display: flex;
+      width: 100%;
+      max-width: 360px;
+      background: #F0F2F5;
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .scan-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: var(--kup-font);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #888;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .scan-tab.active {
+      background: var(--kup-white);
+      color: var(--kup-blue);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .manual-input-wrap {
+      width: 100%;
+      max-width: 360px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .manual-input-wrap.visible { display: flex; }
+    .manual-input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+      background: var(--kup-white);
+    }
+    .manual-input:focus { border-color: var(--kup-blue); }
+    .manual-input::placeholder { color: #bbb; }
+
+    /* ── Customer Found Card ─────────────────────────────────────────────── */
+    .customer-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--kup-white);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .customer-found-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .customer-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .customer-info { flex: 1; min-width: 0; }
+    .customer-name {
+      font-size: 1rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .customer-balance {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 2px;
+    }
+    .customer-no-account {
+      text-align: center;
+      padding: 14px;
+    }
+    .customer-no-account .no-acct-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .customer-no-account .no-acct-title { font-size: 0.88rem; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+    .customer-no-account .no-acct-sub   { font-size: 0.75rem; color: #888; line-height: 1.4; }
+
+    /* ── Amount Screen ───────────────────────────────────────────────────── */
+    .amount-display {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      text-align: center;
+      letter-spacing: -0.02em;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .amount-display .currency-sym {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #aaa;
+      margin-right: 4px;
+      align-self: flex-start;
+      margin-top: 14px;
+    }
+    .amount-hint {
+      font-size: 0.78rem;
+      color: #bbb;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto 20px;
+    }
+    .num-btn {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: 50%;
+      background: #F0F2F5;
+      font-family: var(--kup-font);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .num-btn:active { transform: scale(0.92); background: #e0e3e8; }
+    .num-btn.delete-btn { font-size: 1.1rem; color: #888; }
+    .num-btn.empty-btn  { background: transparent; cursor: default; }
+    .num-btn.empty-btn:active { transform: none; background: transparent; }
+
+    /* ── Result Screen ───────────────────────────────────────────────────── */
+    .result-icon {
+      font-size: 4rem;
+      margin-bottom: 12px;
+    }
+    .result-pts {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--kup-blue);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .result-pts-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .result-detail {
+      width: 100%;
+      max-width: 340px;
+      background: var(--kup-white);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      margin-bottom: 28px;
+    }
+    .result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 0.84rem;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .label { color: #888; }
+    .result-row .value { font-weight: 700; }
+    .result-row .value.positive { color: #16a34a; }
+    .result-row .value.neutral  { color: #888; }
+
+    .result-cta {
+      font-size: 0.78rem;
+      color: var(--kup-orange);
+      font-weight: 700;
+      text-align: center;
+      background: rgba(237, 132, 68, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      width: 100%;
+      max-width: 340px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      max-width: 340px;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--kup-gradient);
+      font-family: var(--kup-font);
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+    .btn-secondary {
+      width: 100%;
+      max-width: 340px;
+      padding: 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: var(--radius);
+      background: transparent;
+      font-family: var(--kup-font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      margin-top: 10px;
+    }
+    .btn-secondary:active { background: #f5f5f5; }
+
+    /* ── Loading spinner ─────────────────────────────────────────────────── */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(46, 165, 221, 0.15);
+      border-top-color: var(--kup-blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error banner ────────────────────────────────────────────────────── */
+    .error-banner {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: #991b1b;
+      text-align: center;
+      width: 100%;
+      max-width: 340px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .error-banner.hidden { display: none; }
+
+    /* Amount screen back link */
+    .back-link-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--kup-blue);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Powered by footer */
+    .powered-by {
+      position: fixed;
+      bottom: calc(12px + var(--safe-bottom));
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 0.65rem;
+      color: #ccc;
+      pointer-events: none;
+    }
+    .powered-by span { color: var(--kup-blue); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 1: LOADING
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screenLoading">
+    <div class="spinner"></div>
+    <p style="font-size:0.85rem;color:#888;">Loading brand info…</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 2: PIN ENTRY
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen hidden" id="screenPin">
+    <div class="brand-header" id="pinBrandHeader">
+      <div class="brand-logo-wrap" id="pinLogoWrap">
+        <span class="brand-logo-initials" id="pinLogoInitials">KP</span>
+      </div>
+      <div class="brand-name-text" id="pinBrandName">Brand</div>
+      <span class="staff-badge">Staff Access</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Enter Staff PIN</div>
+      <div class="card-sub">Your brand owner set a 4-digit PIN for staff access. Enter it to begin awarding purchase points.</div>
+
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="dot0"></div>
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+      </div>
+
+      <div class="keypad">
+        <button class="key-btn" onclick="pinKey('1')">1</button>
+        <button class="key-btn" onclick="pinKey('2')">2</button>
+        <button class="key-btn" onclick="pinKey('3')">3</button>
+        <button class="key-btn" onclick="pinKey('4')">4</button>
+        <button class="key-btn" onclick="pinKey('5')">5</button>
+        <button class="key-btn" onclick="pinKey('6')">6</button>
+        <button class="key-btn" onclick="pinKey('7')">7</button>
+        <button class="key-btn" onclick="pinKey('8')">8</button>
+        <button class="key-btn" onclick="pinKey('9')">9</button>
+        <button class="key-btn empty-key"></button>
+        <button class="key-btn" onclick="pinKey('0')">0</button>
+        <button class="key-btn delete-key" onclick="pinDelete()">⌫</button>
+      </div>
+
+      <div class="pin-error-msg" id="pinError"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 3: SCAN / IDENTIFY CUSTOMER
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen hidden" id="screenScan">
+    <!-- Top bar with brand info + lock button -->
+    <div class="scan-top-bar">
+      <div class="scan-brand-row">
+        <div class="scan-brand-logo" id="scanLogoWrap">
+          <span class="scan-brand-logo-initials" id="scanLogoInitials">KP</span>
+        </div>
+        <div>
+          <div class="scan-brand-name" id="scanBrandName">Brand</div>
+          <div class="scan-brand-sub">Purchase Points</div>
+        </div>
+      </div>
+      <button class="btn-lock" onclick="lockApp()">🔒 Lock</button>
+    </div>
+
+    <div class="scan-body">
+      <!-- Camera view -->
+      <div class="camera-wrap">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="scan-overlay">
+          <div class="scan-frame">
+            <div class="scan-line"></div>
+          </div>
+        </div>
+      </div>
+      <div class="camera-status" id="cameraStatus">Point camera at customer's KUP QR code</div>
+
+      <!-- Input method tabs -->
+      <div class="scan-tabs">
+        <button class="scan-tab active" id="tabCamera" onclick="switchScanTab('camera')">📷 Scan QR</button>
+        <button class="scan-tab" id="tabEmail" onclick="switchScanTab('email')">✉️ Email</button>
+        <button class="scan-tab" id="tabHandle" onclick="switchScanTab('handle')">@ Handle</button>
+      </div>
+
+      <!-- Manual input (shown for email/handle tabs) -->
+      <div class="manual-input-wrap" id="manualInputWrap">
+        <input type="text" class="manual-input" id="manualInput"
+               placeholder="customer@email.com"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <button class="btn-primary" onclick="lookupManual()">Find Customer</button>
+      </div>
+
+      <!-- Customer card (shown after lookup) -->
+      <div class="customer-card" id="customerCard" style="display:none;">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Error banner -->
+      <div class="error-banner hidden" id="scanError"></div>
+
+      <!-- Next: enter amount -->
+      <button class="btn-primary" id="btnGoToAmount" style="display:none;" onclick="goToAmount()">
+        Enter Purchase Amount
+      </button>
+      <button class="btn-secondary" id="btnSkipToAmount" onclick="goToAmountGuest()">
+        Skip — Guest (no KUP account)
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 4: ENTER AMOUNT
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen hidden" id="screenAmount">
+    <div class="back-link-row" onclick="goBackToScan()">
+      ← Back
+    </div>
+
+    <!-- Customer recap -->
+    <div class="card" id="amountCustomerRecap" style="margin-bottom:16px;padding:14px 20px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="customer-avatar" id="amountAvatar">?</div>
+        <div>
+          <div style="font-size:0.9rem;font-weight:700;" id="amountCustomerName">Guest</div>
+          <div style="font-size:0.75rem;color:#888;" id="amountCustomerSub">No KUP account</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="amount-display">
+      <span class="currency-sym">$</span>
+      <span id="amountDisplay">0</span>
+    </div>
+    <div class="amount-hint">Enter the customer's purchase total</div>
+
+    <div class="numpad">
+      <button class="num-btn" onclick="numKey('1')">1</button>
+      <button class="num-btn" onclick="numKey('2')">2</button>
+      <button class="num-btn" onclick="numKey('3')">3</button>
+      <button class="num-btn" onclick="numKey('4')">4</button>
+      <button class="num-btn" onclick="numKey('5')">5</button>
+      <button class="num-btn" onclick="numKey('6')">6</button>
+      <button class="num-btn" onclick="numKey('7')">7</button>
+      <button class="num-btn" onclick="numKey('8')">8</button>
+      <button class="num-btn" onclick="numKey('9')">9</button>
+      <button class="num-btn" onclick="numKey('.')">.</button>
+      <button class="num-btn" onclick="numKey('0')">0</button>
+      <button class="num-btn delete-btn" onclick="numDelete()">⌫</button>
+    </div>
+
+    <button class="btn-primary" id="btnAwardPoints" onclick="awardPoints()" disabled>
+      Award Points
+    </button>
+    <div class="error-banner hidden" id="amountError" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN 5: RESULT
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen hidden" id="screenResult">
+    <div class="result-icon" id="resultIcon">✅</div>
+    <div class="result-pts" id="resultPts">150</div>
+    <div class="result-pts-label" id="resultPtsLabel">points awarded</div>
+
+    <div class="result-detail">
+      <div class="result-row">
+        <span class="label">Customer</span>
+        <span class="value" id="resultCustomerName">—</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Purchase total</span>
+        <span class="value" id="resultSpend">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Points level</span>
+        <span class="value" id="resultLevel">Level 1</span>
+      </div>
+      <div class="result-row">
+        <span class="label">New balance</span>
+        <span class="value positive" id="resultBalance">—</span>
+      </div>
+    </div>
+
+    <div class="result-cta hidden" id="resultCta"></div>
+
+    <button class="btn-primary" onclick="newTransaction()">Next Customer</button>
+    <button class="btn-secondary" onclick="lockApp()">🔒 Lock &amp; Exit</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCREEN: ERROR (no PIN set / brand not found)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen hidden" id="screenError">
+    <div style="font-size:3rem;margin-bottom:12px;">⚠️</div>
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px;text-align:center;" id="errorTitle">Something went wrong</div>
+    <div style="font-size:0.84rem;color:#888;text-align:center;max-width:300px;line-height:1.5;" id="errorBody">Please check the link and try again.</div>
+  </div>
+
+  <div class="powered-by">Powered by <span>KeepUsPostd</span></div>
+
+  <!-- jsQR — camera QR scanning library (no native app required) -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script>
+    // ── App State ─────────────────────────────────────────────────────────────
+    var APP = {
+      brandCode:           '',
+      brandId:             '',
+      brandName:           '',
+      brandLogo:           null,
+      verifiedPin:         '',         // held in memory only, never stored
+      currentInfluencer:   null,       // { influencerProfileId, displayName, balance } or null
+      currentSpend:        '0',
+      scanActive:          false,
+      cameraStream:        null,
+      scanTab:             'camera',   // 'camera' | 'email' | 'handle'
+    };
+
+    // ── Screen Manager ────────────────────────────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(function(s) {
+        s.classList.toggle('hidden', s.id !== id);
+      });
+    }
+
+    // ── Init: extract brandCode from URL ──────────────────────────────────────
+    (function init() {
+      var parts = window.location.pathname.split('/');
+      APP.brandCode = parts[parts.length - 1] || '';
+      if (!APP.brandCode) { return showError('Invalid Link', 'No brand code found in URL. Please check your link.'); }
+      loadBrand();
+    })();
+
+    async function loadBrand() {
+      showScreen('screenLoading');
+      try {
+        var res = await fetch('/api/purchase-points/staff-brand?brandCode=' + encodeURIComponent(APP.brandCode));
+        var data = await res.json();
+        if (!res.ok) return showError('Brand Not Found', data.error || 'This staff link is not valid.');
+        if (!data.hasPin) return showError('No Staff PIN Set', 'The brand owner hasn\'t set a staff PIN yet. Ask them to set one in Purchase Points Setup.');
+        if (!data.inStoreEnabled) return showError('Purchase Points Disabled', 'In-store purchase points are not enabled for this brand. The brand owner can enable them in Purchase Points Setup.');
+
+        APP.brandId   = data.brandId;
+        APP.brandName = data.brandName;
+        APP.brandLogo = data.brandLogo;
+
+        renderBrandUI();
+        showScreen('screenPin');
+      } catch(e) {
+        showError('Connection Error', 'Could not load brand info. Please check your connection and try again.');
+      }
+    }
+
+    function renderBrandUI() {
+      // PIN screen
+      document.getElementById('pinBrandName').textContent = APP.brandName;
+      setBrandLogo('pinLogoWrap', 'pinLogoInitials', APP.brandName, APP.brandLogo);
+
+      // Scan screen
+      document.getElementById('scanBrandName').textContent = APP.brandName;
+      setBrandLogo('scanLogoWrap', 'scanLogoInitials', APP.brandName, APP.brandLogo);
+    }
+
+    function setBrandLogo(wrapId, initialsId, name, logo) {
+      var wrap = document.getElementById(wrapId);
+      var init = document.getElementById(initialsId);
+      if (!wrap) return;
+      if (logo) {
+        wrap.innerHTML = '<img src="' + logo + '" alt="' + name + '" onerror="this.style.display=\'none\'">';
+      }
+      if (init) init.textContent = (name || 'B').substring(0, 2).toUpperCase();
+    }
+
+    function showError(title, body) {
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorBody').textContent = body;
+      showScreen('screenError');
+    }
+
+    // ── PIN Screen ────────────────────────────────────────────────────────────
+    var pinBuffer = '';
+
+    function pinKey(digit) {
+      if (pinBuffer.length >= 4) return;
+      pinBuffer += digit;
+      renderPinDots();
+      if (pinBuffer.length === 4) {
+        setTimeout(verifyPin, 120); // brief pause so last dot fills visually
+      }
+    }
+
+    function pinDelete() {
+      pinBuffer = pinBuffer.slice(0, -1);
+      renderPinDots();
+      document.getElementById('pinError').textContent = '';
+    }
+
+    function renderPinDots() {
+      for (var i = 0; i < 4; i++) {
+        var dot = document.getElementById('dot' + i);
+        dot.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+      }
+    }
+
+    async function verifyPin() {
+      var pin = pinBuffer;
+      try {
+        var res = await fetch('/api/purchase-points/staff-verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandId: APP.brandId, pin }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          // Wrong PIN — shake dots red, clear
+          document.querySelectorAll('.pin-dot').forEach(function(d) { d.classList.add('error-shake'); });
+          setTimeout(function() {
+            document.querySelectorAll('.pin-dot').forEach(function(d) { d.classList.remove('error-shake'); });
+            pinBuffer = '';
+            renderPinDots();
+          }, 600);
+          document.getElementById('pinError').textContent = data.error || 'Incorrect PIN';
+          return;
+        }
+        // PIN verified — store in memory and proceed
+        APP.verifiedPin = pin;
+        pinBuffer = '';
+        renderPinDots();
+        document.getElementById('pinError').textContent = '';
+        startScanScreen();
+      } catch(e) {
+        document.getElementById('pinError').textContent = 'Connection error — try again';
+        pinBuffer = '';
+        renderPinDots();
+      }
+    }
+
+    // ── Scan Screen ───────────────────────────────────────────────────────────
+    function startScanScreen() {
+      showScreen('screenScan');
+      resetScanUI();
+      if (APP.scanTab === 'camera') startCamera();
+    }
+
+    function resetScanUI() {
+      APP.currentInfluencer = null;
+      document.getElementById('customerCard').style.display = 'none';
+      document.getElementById('btnGoToAmount').style.display = 'none';
+      document.getElementById('btnSkipToAmount').style.display = '';
+      document.getElementById('scanError').classList.add('hidden');
+      document.getElementById('manualInput').value = '';
+    }
+
+    // Camera
+    async function startCamera() {
+      stopCamera();
+      var video = document.getElementById('cameraVideo');
+      document.getElementById('cameraStatus').textContent = 'Starting camera…';
+      try {
+        APP.cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+        video.srcObject = APP.cameraStream;
+        await video.play();
+        document.getElementById('cameraStatus').textContent = 'Point camera at customer\'s KUP QR code';
+        APP.scanActive = true;
+        requestAnimationFrame(scanFrame);
+      } catch(e) {
+        document.getElementById('cameraStatus').textContent = 'Camera unavailable — use Email or Handle tab instead';
+      }
+    }
+
+    function stopCamera() {
+      APP.scanActive = false;
+      if (APP.cameraStream) {
+        APP.cameraStream.getTracks().forEach(function(t) { t.stop(); });
+        APP.cameraStream = null;
+      }
+    }
+
+    function scanFrame() {
+      if (!APP.scanActive) return;
+      var video = document.getElementById('cameraVideo');
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        requestAnimationFrame(scanFrame);
+        return;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        handleQrResult(code.data);
+        return; // pause scanning until result handled
+      }
+      requestAnimationFrame(scanFrame);
+    }
+
+    function handleQrResult(data) {
+      APP.scanActive = false; // pause scanner
+      document.getElementById('cameraStatus').textContent = '✓ QR code detected — looking up customer…';
+      lookupCustomer(data.trim());
+    }
+
+    // Tab switching
+    function switchScanTab(tab) {
+      APP.scanTab = tab;
+      document.querySelectorAll('.scan-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+
+      var manualWrap = document.getElementById('manualInputWrap');
+      var manualInput = document.getElementById('manualInput');
+
+      if (tab === 'camera') {
+        manualWrap.classList.remove('visible');
+        startCamera();
+      } else {
+        stopCamera();
+        manualWrap.classList.add('visible');
+        if (tab === 'email') {
+          manualInput.type        = 'email';
+          manualInput.placeholder = 'customer@email.com';
+          manualInput.inputMode   = 'email';
+        } else {
+          manualInput.type        = 'text';
+          manualInput.placeholder = '@kuphandle';
+          manualInput.inputMode   = 'text';
+        }
+        setTimeout(function() { manualInput.focus(); }, 200);
+      }
+
+      resetScanUI();
+      if (tab !== 'camera') stopCamera();
+    }
+
+    function lookupManual() {
+      var val = document.getElementById('manualInput').value.trim();
+      if (!val) return;
+      lookupCustomer(val);
+    }
+
+    async function lookupCustomer(identifier) {
+      showScanError('');
+      try {
+        var res = await fetch('/api/purchase-points/staff-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandId: APP.brandId, pin: APP.verifiedPin, identifier }),
+        });
+        var data = await res.json();
+
+        if (res.status === 401) {
+          // PIN rejected mid-session (shouldn't happen but handle it)
+          APP.verifiedPin = '';
+          showScreen('screenPin');
+          return;
+        }
+        if (!res.ok) { showScanError(data.error || 'Lookup failed'); resumeScanner(); return; }
+
+        if (data.found) {
+          APP.currentInfluencer = data;
+          showCustomerFound(data);
+        } else {
+          APP.currentInfluencer = null;
+          showCustomerNotFound(data.message);
+        }
+      } catch(e) {
+        showScanError('Connection error — try again');
+        resumeScanner();
+      }
+    }
+
+    function showCustomerFound(data) {
+      var card = document.getElementById('customerCard');
+      var initials = (data.displayName || 'U').substring(0, 2).toUpperCase();
+      card.innerHTML =
+        '<div class="customer-found-row">' +
+          '<div class="customer-avatar">' + initials + '</div>' +
+          '<div class="customer-info">' +
+            '<div class="customer-name">' + escHtml(data.displayName) + '</div>' +
+            '<div class="customer-balance">' + (data.purchasePointsBalance || 0).toLocaleString() + ' pts balance</div>' +
+          '</div>' +
+          '<span style="color:#16a34a;font-size:1.3rem;">✓</span>' +
+        '</div>';
+      card.style.display = '';
+      document.getElementById('btnGoToAmount').style.display = '';
+      document.getElementById('btnSkipToAmount').style.display = 'none';
+      stopCamera();
+    }
+
+    function showCustomerNotFound(msg) {
+      var card = document.getElementById('customerCard');
+      card.innerHTML =
+        '<div class="customer-no-account">' +
+          '<div class="no-acct-icon">👤</div>' +
+          '<div class="no-acct-title">No KUP Account Found</div>' +
+          '<div class="no-acct-sub">' + escHtml(msg || 'Customer will earn points going forward once they join KUP.') + '</div>' +
+        '</div>';
+      card.style.display = '';
+      document.getElementById('btnGoToAmount').style.display = '';
+      document.getElementById('btnSkipToAmount').style.display = 'none';
+      stopCamera();
+    }
+
+    function resumeScanner() {
+      if (APP.scanTab === 'camera') {
+        APP.scanActive = true;
+        requestAnimationFrame(scanFrame);
+        document.getElementById('cameraStatus').textContent = 'Point camera at customer\'s KUP QR code';
+      }
+    }
+
+    function showScanError(msg) {
+      var el = document.getElementById('scanError');
+      if (!msg) { el.classList.add('hidden'); return; }
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function goToAmount() {
+      stopCamera();
+      populateAmountScreen();
+      showScreen('screenAmount');
+    }
+
+    function goToAmountGuest() {
+      APP.currentInfluencer = null;
+      stopCamera();
+      populateAmountScreen();
+      showScreen('screenAmount');
+    }
+
+    function populateAmountScreen() {
+      APP.currentSpend = '0';
+      updateAmountDisplay();
+      document.getElementById('btnAwardPoints').disabled = true;
+      document.getElementById('amountError').classList.add('hidden');
+
+      if (APP.currentInfluencer) {
+        var initials = (APP.currentInfluencer.displayName || 'U').substring(0, 2).toUpperCase();
+        document.getElementById('amountAvatar').textContent = initials;
+        document.getElementById('amountCustomerName').textContent = APP.currentInfluencer.displayName;
+        document.getElementById('amountCustomerSub').textContent =
+          (APP.currentInfluencer.purchasePointsBalance || 0).toLocaleString() + ' pts balance';
+      } else {
+        document.getElementById('amountAvatar').textContent = '👤';
+        document.getElementById('amountCustomerName').textContent = 'Guest';
+        document.getElementById('amountCustomerSub').textContent = 'No KUP account';
+      }
+    }
+
+    function goBackToScan() {
+      stopCamera();
+      resetScanUI();
+      showScreen('screenScan');
+      if (APP.scanTab === 'camera') startCamera();
+    }
+
+    // ── Amount Screen ─────────────────────────────────────────────────────────
+    function numKey(digit) {
+      var cur = APP.currentSpend;
+      if (digit === '.') {
+        if (cur.includes('.')) return;
+        if (cur === '0' || cur === '') { APP.currentSpend = '0.'; }
+        else APP.currentSpend = cur + '.';
+      } else {
+        if (cur === '0') APP.currentSpend = digit;
+        else {
+          // Max 2 decimal places
+          var parts = cur.split('.');
+          if (parts.length === 2 && parts[1].length >= 2) return;
+          APP.currentSpend = cur + digit;
+        }
+      }
+      updateAmountDisplay();
+    }
+
+    function numDelete() {
+      if (APP.currentSpend.length <= 1) { APP.currentSpend = '0'; }
+      else APP.currentSpend = APP.currentSpend.slice(0, -1);
+      updateAmountDisplay();
+    }
+
+    function updateAmountDisplay() {
+      document.getElementById('amountDisplay').textContent = APP.currentSpend || '0';
+      var val = parseFloat(APP.currentSpend);
+      document.getElementById('btnAwardPoints').disabled = !(val > 0);
+    }
+
+    async function awardPoints() {
+      var spend = parseFloat(APP.currentSpend);
+      if (!spend || spend <= 0) return;
+
+      var btn = document.getElementById('btnAwardPoints');
+      btn.disabled = true;
+      btn.textContent = 'Awarding…';
+      document.getElementById('amountError').classList.add('hidden');
+
+      try {
+        var body = {
+          brandId:    APP.brandId,
+          pin:        APP.verifiedPin,
+          spendAmount: spend,
+        };
+        if (APP.currentInfluencer?.influencerProfileId) {
+          body.influencerProfileId = APP.currentInfluencer.influencerProfileId;
+        }
+
+        var res = await fetch('/api/purchase-points/staff-award', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        var data = await res.json();
+
+        if (res.status === 401) {
+          APP.verifiedPin = '';
+          showScreen('screenPin');
+          return;
+        }
+        if (!res.ok) {
+          var errEl = document.getElementById('amountError');
+          errEl.textContent = data.error || 'Could not award points';
+          errEl.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = 'Award Points';
+          return;
+        }
+
+        showResultScreen(data, spend);
+      } catch(e) {
+        var errEl = document.getElementById('amountError');
+        errEl.textContent = 'Connection error — please try again';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Award Points';
+      }
+    }
+
+    // ── Result Screen ─────────────────────────────────────────────────────────
+    function showResultScreen(data, spend) {
+      if (data.awarded) {
+        document.getElementById('resultIcon').textContent = '✅';
+        document.getElementById('resultPts').textContent  = data.pointsAwarded.toLocaleString();
+        document.getElementById('resultPtsLabel').textContent = 'points awarded';
+        document.getElementById('resultLevel').textContent = data.levelIndex ? 'Level ' + data.levelIndex : '—';
+        document.getElementById('resultBalance').textContent =
+          data.newBalance !== null ? data.newBalance.toLocaleString() + ' pts' : '—';
+        document.getElementById('resultCustomerName').textContent =
+          APP.currentInfluencer?.displayName || 'Customer';
+        document.getElementById('resultCta').classList.add('hidden');
+      } else if (data.pointsWouldEarn) {
+        // Transaction logged, no KUP account
+        document.getElementById('resultIcon').textContent = '📋';
+        document.getElementById('resultPts').textContent  = data.pointsWouldEarn.toLocaleString();
+        document.getElementById('resultPtsLabel').textContent = 'points available — no KUP account yet';
+        document.getElementById('resultLevel').textContent = data.levelIndex ? 'Level ' + data.levelIndex : '—';
+        document.getElementById('resultBalance').textContent = '—';
+        document.getElementById('resultCustomerName').textContent = 'Guest';
+        var cta = document.getElementById('resultCta');
+        cta.textContent = '💡 Let them know: download the KeepUsPostd app and partner with ' + APP.brandName + ' to start earning ' + data.pointsWouldEarn + ' pts per qualifying purchase.';
+        cta.classList.remove('hidden');
+      } else {
+        // Below minimum spend
+        document.getElementById('resultIcon').textContent = '⚡';
+        document.getElementById('resultPts').textContent  = '0';
+        document.getElementById('resultPtsLabel').textContent = 'points — below minimum spend';
+        document.getElementById('resultLevel').textContent = '—';
+        document.getElementById('resultBalance').textContent = '—';
+        document.getElementById('resultCustomerName').textContent = APP.currentInfluencer?.displayName || 'Guest';
+        document.getElementById('resultCta').classList.add('hidden');
+      }
+
+      document.getElementById('resultSpend').textContent = '$' + parseFloat(spend).toFixed(2);
+      showScreen('screenResult');
+    }
+
+    function newTransaction() {
+      APP.currentInfluencer = null;
+      APP.currentSpend = '0';
+      startScanScreen();
+    }
+
+    function lockApp() {
+      stopCamera();
+      APP.verifiedPin = '';
+      APP.currentInfluencer = null;
+      showScreen('screenPin');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Stop camera when page is hidden (tab switch, sleep)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) stopCamera();
+    });
+  </script>
+
+</body>
+</html>

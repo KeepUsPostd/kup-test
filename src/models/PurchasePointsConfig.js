@@ -46,6 +46,14 @@ const purchasePointsConfigSchema = new mongoose.Schema({
     sparse: true,
     default: null,
   },
+
+  // Staff PIN — 4-digit code for staff mobile scan page (no Firebase auth required).
+  // select:false means it's never returned in normal queries — must use .select('+staffPin')
+  staffPin: {
+    type: String,
+    default: null,
+    select: false,
+  },
 }, { timestamps: true });
 
 purchasePointsConfigSchema.index({ brandId: 1 });
