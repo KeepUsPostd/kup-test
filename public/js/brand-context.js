@@ -473,6 +473,16 @@ var KUP_BRAND_CONTEXT = (function() {
     var color = ab.color || '#2EA5DD';
     var logoUrl = ab.logoUrl || null; // Set by API sync
 
+    // --- Live-update the operating-as bar pill + brand name ---
+    var planPill = document.querySelector('.kup-bcb-plan');
+    if (planPill) {
+      planPill.textContent = ab.trialActive
+        ? (ab.plan || 'pro') + ' (Trial)'
+        : (ab.plan || 'Starter');
+    }
+    var barNameEl = document.querySelector('.kup-bcb-label strong');
+    if (barNameEl) barNameEl.textContent = name;
+
     // --- Sidebar brand identity (logo + name) ---
     // Covers: brand-home, brand-reward-settings, market-code,
     //         purchase-points-setup, google-business, brand-profile
