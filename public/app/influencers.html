@@ -2848,7 +2848,7 @@
       if (emailTags.length === 0) return;
       var activeBrand = null;
       try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
-      var brandId = activeBrand && activeBrand.id;
+      var brandId = activeBrand && (activeBrand.mongoId || activeBrand.id);
       if (!brandId) {
         kupToast('No active brand found. Please switch to a brand first.', 'error');
         return;
