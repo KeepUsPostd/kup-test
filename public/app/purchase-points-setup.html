@@ -1523,7 +1523,40 @@
 
     async function loadPageData() {
       try {
-        _activeBrandId = localStorage.getItem('activeBrandId');
+        // Resolve MongoDB brandId via brand-context system (same pattern as all other brand pages)
+        var _activeBrand = (typeof KUP_BRAND_CONTEXT !== 'undefined')
+          ? KUP_BRAND_CONTEXT.getActiveBrand()
+          : null;
+        _activeBrandId = _activeBrand ? (_activeBrand.mongoId || null) : null;
+
+        // mongoId may not be synced yet on very first load — fetch from API as fallback
+        if (!_activeBrandId) {
+          try {
+            var _fbToken = await firebase.auth().currentUser.getIdToken();
+            var _brandsRes = await fetch('/api/brands', {
+              headers: { 'Authorization': 'Bearer ' + _fbToken },
+            });
+            if (_brandsRes.ok) {
+              var _brandsData = await _brandsRes.json();
+              var _brandMatch = (_brandsData.brands || []).find(function(b) {
+                return _activeBrand
+                  ? b.name.toLowerCase() === (_activeBrand.name || '').toLowerCase()
+                  : true; // first brand if no local context at all
+              }) || (_brandsData.brands || [])[0];
+              if (_brandMatch) {
+                _activeBrandId = _brandMatch._id;
+                // Cache mongoId so next load is instant
+                if (_activeBrand && typeof KUP_BRAND_CONTEXT !== 'undefined') {
+                  _activeBrand.mongoId = _brandMatch._id;
+                  KUP_BRAND_CONTEXT.setActiveBrand(_activeBrand);
+                }
+              }
+            }
+          } catch(e) {
+            console.warn('Brand ID fallback fetch failed:', e);
+          }
+        }
+
         if (!_activeBrandId) {
           kupToast('No active brand selected — go to Manage Brands first', 'warning');
           return;
