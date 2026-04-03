@@ -265,8 +265,9 @@
       var pathParts = window.location.pathname.split('/').filter(Boolean);
       var brandId = pathParts[1] || '';
 
-      // Build the custom-scheme deep link
-      var deepLink = 'keepuspostd://brands/' + encodeURIComponent(brandId);
+      // Use Universal Link — iOS intercepts this and opens the app if installed (via AASA).
+      // Falls back gracefully on desktop (just reloads the page, no broken state).
+      var deepLink = 'https://keepuspostd.com/brands/' + encodeURIComponent(brandId);
       document.getElementById('btnOpen').href = deepLink;
 
       // Load brand data
