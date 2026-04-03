@@ -653,12 +653,17 @@ var KUP_BRAND_CONTEXT = (function() {
         if (changed) {
           localStorage.setItem(BRANDS_KEY, JSON.stringify(stored));
 
-          // Also update the active brand if it got a mongoId
+          // Update the active brand — match by id, mongoId, or name (most robust)
           var active = getActiveBrand();
           var updatedActive = null;
           for (var i = 0; i < stored.length; i++) {
-            if (stored[i].id === active.id) {
-              updatedActive = stored[i];
+            var s = stored[i];
+            if (
+              s.id === active.id ||
+              (active.mongoId && s.mongoId && s.mongoId === active.mongoId) ||
+              (s.name && active.name && s.name.toLowerCase() === active.name.toLowerCase())
+            ) {
+              updatedActive = s;
               break;
             }
           }
@@ -672,6 +677,56 @@ var KUP_BRAND_CONTEXT = (function() {
         }
       }).catch(function(err) {
         console.warn('Brand sync skipped:', err.message || err);
+      });
+    });
+  }
+
+  // ================================================================
+  //  SYNC PLAN FROM BILLING — Directly fetch plan/trial status from
+  //  /api/billing/subscription (the authoritative source of truth).
+  //  Updates the active brand in localStorage and the operating-as
+  //  pill in the DOM — independent of the brands list sync.
+  // ================================================================
+  var _planSyncRetries = 0;
+  function syncPlanFromBilling() {
+    if (typeof kupApi === 'undefined' || typeof auth === 'undefined') {
+      if (_planSyncRetries < 10) {
+        _planSyncRetries++;
+        setTimeout(syncPlanFromBilling, 300 * _planSyncRetries);
+      }
+      return;
+    }
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) return;
+
+      kupApi.get('/api/billing/subscription').then(function(data) {
+        if (!data) return;
+
+        var planName  = data.plan || 'starter';
+        var isTrialing = !!(data.trial && data.trial.active);
+        var daysLeft   = isTrialing ? (data.trial.daysRemaining || 0) : 0;
+
+        // Persist to active brand in localStorage
+        var active = getActiveBrand();
+        if (active) {
+          active.plan               = planName;
+          active.trialActive        = isTrialing;
+          active.trialDaysRemaining = daysLeft;
+          setActiveBrand(active);
+        }
+
+        // Live-update the pill immediately
+        var planPill = document.querySelector('.kup-bcb-plan');
+        if (planPill) {
+          planPill.textContent = isTrialing
+            ? planName + ' (Trial)'
+            : planName.charAt(0).toUpperCase() + planName.slice(1);
+        }
+
+        console.log('💳 Plan synced from billing: ' + planName + (isTrialing ? ' (Trial, ' + daysLeft + 'd left)' : ''));
+      }).catch(function(err) {
+        console.warn('Plan sync skipped:', err.message || err);
       });
     });
   }
@@ -695,6 +750,7 @@ var KUP_BRAND_CONTEXT = (function() {
     initMultiTabSync();
     initMobileNav();
     syncBrandsWithApi();
+    syncPlanFromBilling();   // Direct billing lookup — updates plan pill from source of truth
     loadCreatorSwitch();
   }
 
@@ -714,7 +770,8 @@ var KUP_BRAND_CONTEXT = (function() {
     getAllBrands: getAllBrands,
     switchBrand: switchBrand,
     setActiveBrand: setActiveBrand,
-    syncBrandsWithApi: syncBrandsWithApi
+    syncBrandsWithApi: syncBrandsWithApi,
+    syncPlanFromBilling: syncPlanFromBilling
   };
 
 })();
