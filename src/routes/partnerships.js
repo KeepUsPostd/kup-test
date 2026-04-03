@@ -260,6 +260,31 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/partnerships/pending-invites — All email invites for a brand's Invited tab
+// Returns both pending (awaiting response) and accepted (partnered via invite link)
+// MUST be before /:partnershipId or Express will match 'pending-invites' as a partnershipId
+router.get('/pending-invites', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    console.log(`📬 pending-invites called — brandId: ${brandId}`);
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const { BrandInvite } = require('../models');
+    const invites = await BrandInvite.find({
+      brandId,
+      status: { $in: ['pending', 'accepted'] },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    console.log(`📬 pending-invites result — ${invites.length} invite(s) found for brand ${brandId}`);
+    res.json({ invites });
+  } catch (error) {
+    console.error('Pending invites error:', error.message);
+    res.status(500).json({ error: 'Could not load pending invites' });
+  }
+});
+
 // GET /api/partnerships/:partnershipId — Get single partnership with details
 router.get('/:partnershipId', requireAuth, async (req, res) => {
   try {
@@ -488,30 +513,6 @@ router.post('/invite', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Influencer invite error:', error.message);
     res.status(500).json({ error: 'Could not send invitations' });
-  }
-});
-
-// GET /api/partnerships/pending-invites — All email invites for a brand's Invited tab
-// Returns both pending (awaiting response) and accepted (partnered via invite link)
-router.get('/pending-invites', requireAuth, async (req, res) => {
-  try {
-    const { brandId } = req.query;
-    console.log(`📬 pending-invites called — brandId: ${brandId}`);
-    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
-
-    const { BrandInvite } = require('../models');
-    const invites = await BrandInvite.find({
-      brandId,
-      status: { $in: ['pending', 'accepted'] },
-    })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    console.log(`📬 pending-invites result — ${invites.length} invite(s) found for brand ${brandId}`);
-    res.json({ invites });
-  } catch (error) {
-    console.error('Pending invites error:', error.message);
-    res.status(500).json({ error: 'Could not load pending invites' });
   }
 });
 
