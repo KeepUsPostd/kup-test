@@ -2563,16 +2563,35 @@
             resetNoticeForm();
             openModal('noticeComposerModal');
           }
-        } else if (action === 'remove') {
+        } else if (action === 'pause' || action === 'reactivate' || action === 'end') {
+          var partnershipId = this.getAttribute('data-partnership');
           var name = this.getAttribute('data-name');
           var row = this.closest('tr');
-          if (row) {
-            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(20px)';
-            setTimeout(function() { row.remove(); }, 300);
-            kupToast(name + ' has been removed from your brand', 'warning');
-          }
+          var newStatus = action === 'pause' ? 'paused' : (action === 'reactivate' ? 'active' : 'ended');
+          var toastMsg = action === 'pause'
+            ? name + ' paused — they won\'t receive new campaign opportunities'
+            : (action === 'reactivate' ? name + ' reactivated as a partner' : name + ' partnership ended');
+          var toastType = action === 'end' ? 'warning' : 'success';
+
+          kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: newStatus })
+            .then(function() {
+              kupToast(toastMsg, toastType);
+              if (action === 'end') {
+                // Remove the row entirely for ended partnerships
+                if (row) {
+                  row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                  row.style.opacity = '0';
+                  row.style.transform = 'translateX(20px)';
+                  setTimeout(function() { loadPartnerships(); }, 300);
+                }
+              } else {
+                // Reload to show updated status badge and correct menu option
+                loadPartnerships();
+              }
+            })
+            .catch(function(err) {
+              kupToast('Could not update partnership. Please try again.', 'error');
+            });
         }
       });
     });
@@ -3404,7 +3423,10 @@
           '<div class="row-actions-menu">' +
             '<button class="row-action-item" data-influencer="' + handle + '" data-action="profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> View Profile</button>' +
             '<button class="row-action-item" data-msg="' + handle + '" data-action="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Send Notice</button>' +
-            '<button class="row-action-item danger" data-action="remove" data-partnership="' + p._id + '" data-name="@' + handle + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> End Partnership</button>' +
+            (p.status === 'paused'
+              ? '<button class="row-action-item" data-action="reactivate" data-partnership="' + p._id + '" data-name="@' + handle + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Reactivate</button>'
+              : '<button class="row-action-item" data-action="pause" data-partnership="' + p._id + '" data-name="@' + handle + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause</button>') +
+            '<button class="row-action-item danger" data-action="end" data-partnership="' + p._id + '" data-name="@' + handle + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg> End Partnership</button>' +
           '</div></div></td></tr>';
     }
 
