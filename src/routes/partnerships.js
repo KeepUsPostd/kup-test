@@ -496,6 +496,7 @@ router.post('/invite', requireAuth, async (req, res) => {
 router.get('/pending-invites', requireAuth, async (req, res) => {
   try {
     const { brandId } = req.query;
+    console.log(`📬 pending-invites called — brandId: ${brandId}`);
     if (!brandId) return res.status(400).json({ error: 'brandId is required' });
 
     const { BrandInvite } = require('../models');
@@ -506,6 +507,7 @@ router.get('/pending-invites', requireAuth, async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    console.log(`📬 pending-invites result — ${invites.length} invite(s) found for brand ${brandId}`);
     res.json({ invites });
   } catch (error) {
     console.error('Pending invites error:', error.message);
