@@ -69,10 +69,16 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'brandId is required' });
     }
 
-    // Look up influencer profile from the authenticated user — no need to send it in the body
-    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    // Look up or auto-create influencer profile — brand-only users get one on first partner tap
+    let influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found. Please complete your profile first.' });
+      const user = req.user;
+      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      influencer = await InfluencerProfile.create({
+        userId: user._id,
+        displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
+        handle: baseHandle,
+      });
     }
     const influencerProfileId = influencer._id;
 

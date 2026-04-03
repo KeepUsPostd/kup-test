@@ -252,10 +252,16 @@ router.put('/me', requireAuth, async (req, res) => {
       await user.save();
     }
 
-    // Find and update the influencer profile
+    // Find or auto-create the influencer profile (brand-only accounts need one too)
     let influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
     if (!influencerProfile) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
+      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      influencerProfile = await InfluencerProfile.create({
+        userId: user._id,
+        displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
+        handle: baseHandle,
+      });
+      await User.findByIdAndUpdate(user._id, { hasInfluencerProfile: true });
     }
 
     if (displayName !== undefined) influencerProfile.displayName = displayName;
