@@ -187,14 +187,26 @@ router.get('/', requireAuth, async (req, res) => {
       status: { $ne: 'deleted' },
     });
 
-    // Attach role info + recompute initials for consistency
+    // Resolve plan + trial status from the user's BrandProfile (single lookup)
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    const trialStatus = brandProfile ? checkTrialStatus(brandProfile) : null;
+    const effectiveTier  = trialStatus ? trialStatus.effectiveTier : 'starter';
+    const trialActive    = !!(trialStatus && trialStatus.trial && trialStatus.trial.active);
+    const trialTier      = trialActive ? trialStatus.trial.tier : null;
+    const trialDaysLeft  = trialActive ? (trialStatus.trial.daysRemaining || 0) : 0;
+
+    // Attach role, initials, and plan info to every brand
     const brandsWithRoles = brands.map(brand => {
       const membership = memberships.find(m => m.brandId.equals(brand._id));
       const obj = brand.toObject();
       obj.initials = computeInitials(obj.name);
       return {
         ...obj,
-        userRole: membership ? membership.role : null,
+        userRole:            membership ? membership.role : null,
+        planTier:            effectiveTier,
+        trialActive:         trialActive,
+        trialTier:           trialTier,
+        trialDaysRemaining:  trialDaysLeft,
       };
     });
 

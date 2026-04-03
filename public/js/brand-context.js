@@ -71,7 +71,7 @@ var KUP_BRAND_CONTEXT = (function() {
               if (!active.color && b.color) active.color = b.color;
               if (!active.mongoId && b.mongoId) active.mongoId = b.mongoId;
               if (!active.logoUrl && b.logoUrl) active.logoUrl = b.logoUrl;
-              if (!active.plan && b.plan) active.plan = b.plan;
+              if (b.plan) { active.plan = b.plan; active.trialActive = b.trialActive; active.trialDaysRemaining = b.trialDaysRemaining; }
               // Save the enriched version back
               setActiveBrand(active);
               break;
@@ -234,7 +234,7 @@ var KUP_BRAND_CONTEXT = (function() {
           '<div class="kup-bcb-left">' +
             '<span class="kup-bcb-dot" style="background:' + activeBrand.color + ';"></span>' +
             '<span class="kup-bcb-label">Operating as: <strong>' + activeBrand.name + '</strong></span>' +
-            '<span class="kup-bcb-plan">' + (activeBrand.plan || 'Growth') + '</span>' +
+            '<span class="kup-bcb-plan">' + (activeBrand.trialActive ? (activeBrand.plan || 'pro') + ' (Trial)' : (activeBrand.plan || 'Starter')) + '</span>' +
           '</div>' +
           '<div class="kup-bcb-right">' +
             '<button class="kup-bcb-switch" id="kupBcbSwitch">Switch Brand <span style="font-size:0.65rem;">&#9662;</span></button>' +
@@ -614,6 +614,13 @@ var KUP_BRAND_CONTEXT = (function() {
               match.abbreviation = words.length === 1 ? words[0].charAt(0).toUpperCase() : words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
               changed = true;
             }
+            // Always sync plan + trial status from API (overrides any stale cached value)
+            if (apiBrand.planTier) {
+              match.plan = apiBrand.planTier;
+              match.trialActive = !!apiBrand.trialActive;
+              match.trialDaysRemaining = apiBrand.trialDaysRemaining || 0;
+              changed = true;
+            }
           } else {
             // Brand exists in API but not locally — add it
             stored.push({
@@ -622,6 +629,8 @@ var KUP_BRAND_CONTEXT = (function() {
               abbreviation: apiBrand.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3),
               color: '#2EA5DD',
               plan: apiBrand.planTier || 'starter',
+              trialActive: !!apiBrand.trialActive,
+              trialDaysRemaining: apiBrand.trialDaysRemaining || 0,
               isAnchor: false,
               state: apiBrand.status || 'active',
               mongoId: apiBrand._id,
