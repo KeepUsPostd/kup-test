@@ -612,6 +612,118 @@
       pointer-events: none;
     }
     .powered-by span { color: var(--kup-blue); font-weight: 600; }
+
+    /* ── Help Overlay ────────────────────────────────────────────────────── */
+    .btn-help {
+      background: none;
+      border: 1px solid #eee;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #aaa;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: flex-end;
+      z-index: 500;
+      padding-bottom: var(--safe-bottom);
+      transition: opacity 0.2s ease;
+    }
+    .help-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .help-sheet {
+      background: var(--kup-white);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 0 0 calc(24px + var(--safe-bottom));
+      transform: translateY(0);
+      transition: transform 0.3s ease;
+    }
+    .help-overlay.hidden .help-sheet { transform: translateY(40px); }
+
+    .help-handle {
+      width: 40px;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin: 14px auto 0;
+    }
+
+    .help-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px 8px;
+    }
+    .help-header h4 { font-size: 1rem; font-weight: 800; }
+    .btn-close-help {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      color: #aaa;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .help-steps {
+      padding: 8px 24px 0;
+      list-style: none;
+    }
+    .help-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .help-step:last-child { border-bottom: none; }
+    .help-step-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .help-step-text { flex: 1; padding-top: 2px; }
+    .help-step-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; }
+    .help-step-desc  { font-size: 0.78rem; color: #888; line-height: 1.45; }
+
+    .help-tips {
+      margin: 4px 24px 0;
+      background: #F5F6FA;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .help-tips-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; }
+    .help-tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.76rem;
+      color: #666;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .help-tip:last-child { margin-bottom: 0; }
+    .help-tip-bullet { flex-shrink: 0; font-size: 0.7rem; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -681,7 +793,10 @@
           <div class="scan-brand-sub">Purchase Points</div>
         </div>
       </div>
-      <button class="btn-lock" onclick="lockApp()">🔒 Lock</button>
+      <div style="display:flex;align-items:center;gap:0;">
+        <button class="btn-help" onclick="showHelp()" aria-label="Help">?</button>
+        <button class="btn-lock" onclick="lockApp()">🔒 Lock</button>
+      </div>
     </div>
 
     <div class="scan-body">
@@ -815,6 +930,70 @@
     <div style="font-size:3rem;margin-bottom:12px;">⚠️</div>
     <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px;text-align:center;" id="errorTitle">Something went wrong</div>
     <div style="font-size:0.84rem;color:#888;text-align:center;max-width:300px;line-height:1.5;" id="errorBody">Please check the link and try again.</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HELP OVERLAY — Quick guide for staffers
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="help-overlay hidden" id="helpOverlay" onclick="hideHelp(event)">
+    <div class="help-sheet" id="helpSheet">
+      <div class="help-handle"></div>
+      <div class="help-header">
+        <h4>Quick Guide — Staff Scanner</h4>
+        <button class="btn-close-help" onclick="hideHelp()" aria-label="Close">✕</button>
+      </div>
+
+      <ol class="help-steps">
+        <li class="help-step">
+          <div class="help-step-icon" style="background:rgba(46,165,221,0.1);">🔐</div>
+          <div class="help-step-text">
+            <div class="help-step-title">Enter the Staff PIN</div>
+            <div class="help-step-desc">Your brand owner set a 4-digit PIN. Type it on the keypad — the screen unlocks automatically once it matches. Ask your manager if you don't have the PIN.</div>
+          </div>
+        </li>
+        <li class="help-step">
+          <div class="help-step-icon" style="background:rgba(22,163,74,0.1);">📱</div>
+          <div class="help-step-text">
+            <div class="help-step-title">Identify the Customer</div>
+            <div class="help-step-desc">Ask the customer to open their KeepUsPostd app and show their QR code. Point the camera at it — it scans automatically. No QR? Tap the <strong>Email</strong> or <strong>@ Handle</strong> tab and type their info manually.</div>
+          </div>
+        </li>
+        <li class="help-step">
+          <div class="help-step-icon" style="background:rgba(237,132,68,0.1);">💰</div>
+          <div class="help-step-text">
+            <div class="help-step-title">Enter the Purchase Total</div>
+            <div class="help-step-desc">Type in the total amount the customer spent using the number pad. Tap <strong>Award Points</strong> to confirm.</div>
+          </div>
+        </li>
+        <li class="help-step">
+          <div class="help-step-icon" style="background:rgba(112,123,187,0.1);">✅</div>
+          <div class="help-step-text">
+            <div class="help-step-title">Done — Points Hit Instantly</div>
+            <div class="help-step-desc">The confirmation screen shows how many points were awarded and the customer's new balance. Tap <strong>Next Customer</strong> to start over for the next transaction.</div>
+          </div>
+        </li>
+      </ol>
+
+      <div class="help-tips">
+        <div class="help-tips-title">💡 Good to Know</div>
+        <div class="help-tip">
+          <span class="help-tip-bullet">•</span>
+          <span><strong>No KUP account?</strong> Tap <em>Skip — Guest</em>. The transaction is still recorded so the brand can see it. Tell the customer they can download KeepUsPostd and partner with the brand to start earning on future purchases.</span>
+        </div>
+        <div class="help-tip">
+          <span class="help-tip-bullet">•</span>
+          <span><strong>Below minimum spend?</strong> If the total is too low to earn points, the result screen will show $0 and the minimum required. No points are deducted — just let the customer know.</span>
+        </div>
+        <div class="help-tip">
+          <span class="help-tip-bullet">•</span>
+          <span><strong>Locking the app:</strong> Tap <em>🔒 Lock</em> anytime to clear your session. The PIN is never saved — you'll need to re-enter it next time. Do this between shifts or if you hand your phone to someone else.</span>
+        </div>
+        <div class="help-tip">
+          <span class="help-tip-bullet">•</span>
+          <span><strong>Add to home screen:</strong> Tap the share button in your browser → <em>Add to Home Screen</em> — the scanner opens like a regular app with one tap.</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="powered-by">Powered by <span>KeepUsPostd</span></div>
@@ -1311,6 +1490,31 @@
       APP.currentInfluencer = null;
       showScreen('screenPin');
     }
+
+    // ── Help Overlay ──────────────────────────────────────────────────────────
+    function showHelp() {
+      var overlay = document.getElementById('helpOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+    }
+
+    function hideHelp(e) {
+      // Close if clicking the backdrop (not the sheet itself)
+      if (e && e.target !== document.getElementById('helpOverlay')) return;
+      var overlay = document.getElementById('helpOverlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    // Swipe-down to dismiss help sheet
+    (function() {
+      var sheet = document.getElementById('helpSheet');
+      if (!sheet) return;
+      var startY = 0;
+      sheet.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; }, { passive: true });
+      sheet.addEventListener('touchend', function(e) {
+        var delta = e.changedTouches[0].clientY - startY;
+        if (delta > 80) hideHelp({ target: document.getElementById('helpOverlay') });
+      }, { passive: true });
+    })();
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function escHtml(str) {

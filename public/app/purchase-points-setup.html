@@ -1466,9 +1466,20 @@
                 <div id="staffLinkWrap" style="display:none;">
                   <div class="webhook-url-row" style="margin-bottom:8px;">
                     <span class="webhook-url-text" id="staffLinkUrl">Generate by saving your Purchase Points config first</span>
-                    <button class="btn-copy-url" onclick="copyStaffLink()">Copy</button>
+                    <button class="btn-copy-url" onclick="copyStaffLink()">Copy Link</button>
                   </div>
-                  <p style="font-size:0.72rem;color:#aaa;line-height:1.4;">Bookmarkable on any phone. The PIN is not in the URL — it must be entered each session.</p>
+                  <p style="font-size:0.72rem;color:#aaa;line-height:1.4;margin-bottom:14px;">Bookmarkable on any phone. The PIN is not in the URL — it must be entered each session.</p>
+
+                  <!-- Copy Staff Instructions (ready-to-paste team message) -->
+                  <div style="background:rgba(46,165,221,0.05);border:1px solid rgba(46,165,221,0.15);border-radius:8px;padding:14px 16px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                      <div>
+                        <div style="font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:3px;">📋 Send to Your Staff</div>
+                        <div style="font-size:0.75rem;color:#888;line-height:1.4;">Copies a ready-to-paste message for your group chat or text thread. Share the PIN separately — it's not included for security.</div>
+                      </div>
+                      <button class="btn-copy-url" id="btnCopyStaffInstructions" onclick="copyStaffInstructions()" style="flex-shrink:0;white-space:nowrap;">Copy Message</button>
+                    </div>
+                  </div>
                 </div>
                 <div id="staffLinkNoCode" style="font-size:0.78rem;color:#aaa;background:#f8f9fa;border-radius:6px;padding:10px 14px;line-height:1.5;">
                   To get your staff link, first enable Kiosk Mode in <a href="kiosk-mode.html" style="color:var(--kup-blue);font-weight:600;">Kiosk Mode settings</a> — this generates your brand's unique URL code.
@@ -2165,6 +2176,34 @@
         kupToast('Staff link copied to clipboard', 'success');
       }).catch(function() {
         kupToast('Could not copy — please select and copy manually', 'error');
+      });
+    }
+
+    function copyStaffInstructions() {
+      if (!_kioskBrandCode) { kupToast('Enable Kiosk Mode first to get your staff link', 'warning'); return; }
+      var brandName = (document.getElementById('headerBrand') || {}).textContent || 'our brand';
+      var url = 'https://keepuspostd.com/staff/' + _kioskBrandCode;
+      var msg =
+        'Hey team! Here\'s how to award purchase points to customers for ' + brandName + ':\n\n' +
+        '🔗 Staff Scanner Link:\n' + url + '\n\n' +
+        '📌 Add it to your phone\'s home screen for quick access.\n\n' +
+        '📋 Quick Steps:\n' +
+        '1. Open the link on your phone\n' +
+        '2. Enter the 4-digit staff PIN (ask me for the PIN separately)\n' +
+        '3. Scan the customer\'s KUP QR code from their phone — or type their email / @handle\n' +
+        '4. Type in their purchase total and tap Award Points\n' +
+        '5. Done! Points hit their account instantly\n\n' +
+        '💡 Tips:\n' +
+        '• If the customer doesn\'t have a KUP account yet, tap Skip — their transaction is still logged\n' +
+        '• The app locks when you close it — re-enter the PIN to start a new session\n' +
+        '• Questions? Ask ' + brandName + ' on KeepUsPostd';
+
+      var btn = document.getElementById('btnCopyStaffInstructions');
+      navigator.clipboard.writeText(msg).then(function() {
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy Message'; }, 2500); }
+        kupToast('Staff instructions copied — paste into your group chat or text thread', 'success');
+      }).catch(function() {
+        kupToast('Could not copy — please try again', 'error');
       });
     }
 
