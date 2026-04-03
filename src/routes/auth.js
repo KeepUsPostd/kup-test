@@ -149,6 +149,74 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error.message);
+
+    // MongoDB duplicate key — handle gracefully instead of returning 500
+    if (error.code === 11000) {
+      const keyStr = JSON.stringify(error.keyPattern || error.keyValue || {});
+
+      // Duplicate email with different Firebase UID (e.g. Apple re-auth after iOS cache clear)
+      if (keyStr.includes('email')) {
+        try {
+          const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+          if (existingUser) {
+            // Link the new Firebase UID to the existing account so sign-in works going forward
+            existingUser.firebaseUid = firebaseUid;
+            await existingUser.save();
+            const profile = existingUser.hasInfluencerProfile
+              ? await InfluencerProfile.findOne({ userId: existingUser._id })
+              : null;
+            console.log(`🔗 Apple re-auth: linked new Firebase UID to existing user ${existingUser.email}`);
+            return res.status(201).json({
+              message: 'Account linked successfully',
+              user: {
+                id: existingUser._id,
+                email: existingUser.email,
+                activeProfile: existingUser.activeProfile,
+                hasInfluencerProfile: existingUser.hasInfluencerProfile,
+                hasBrandProfile: existingUser.hasBrandProfile,
+              },
+              influencerProfile: profile || null,
+            });
+          }
+        } catch (linkErr) {
+          console.error('Registration duplicate-email link failed:', linkErr.message);
+        }
+      }
+
+      // Duplicate handle — append random suffix and retry once
+      if (keyStr.includes('handle')) {
+        try {
+          const baseHandle = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 15);
+          const uniqueHandle = `${baseHandle}_${Math.random().toString(36).substring(2, 6)}`;
+          const newUser = await User.findOne({ firebaseUid });
+          if (newUser) {
+            await InfluencerProfile.create({
+              userId: newUser._id,
+              displayName: `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0],
+              handle: uniqueHandle,
+              referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+            });
+            newUser.hasInfluencerProfile = true;
+            newUser.activeProfile = 'influencer';
+            await newUser.save();
+            console.log(`🔧 Handle conflict resolved — assigned ${uniqueHandle} to ${newUser.email}`);
+            return res.status(201).json({
+              message: 'Account created successfully',
+              user: {
+                id: newUser._id,
+                email: newUser.email,
+                activeProfile: newUser.activeProfile,
+                hasInfluencerProfile: newUser.hasInfluencerProfile,
+                hasBrandProfile: newUser.hasBrandProfile,
+              },
+            });
+          }
+        } catch (retryErr) {
+          console.error('Registration handle-retry failed:', retryErr.message);
+        }
+      }
+    }
+
     res.status(500).json({
       error: 'Registration failed',
       message: 'Something went wrong. Please try again.',
