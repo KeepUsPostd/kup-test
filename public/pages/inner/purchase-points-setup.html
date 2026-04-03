@@ -1072,7 +1072,96 @@
         </div>
       </div>
 
+      <!-- ============== SHARED PURCHASE POINT LEVELS ============== -->
+      <div class="section-label purchase-pts-label">
+        <span class="label-icon"><i class="ph ph-chart-bar"></i></span> Purchase Point Levels
+      </div>
+
+      <div class="reward-settings-list">
+        <div class="reward-setting-card" id="tiersCard">
+          <div class="reward-card-main">
+            <div class="reward-card-icon purchase-instore"><i class="ph ph-steps"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                Spend Tiers
+                <span class="status-pill" id="tiersPill"><span class="status-dot"></span><span id="tiersPillText">No tiers set</span></span>
+              </div>
+              <p class="reward-card-subtitle">One set of tiers for both in-store and online purchases &mdash; same levels, two delivery methods. Customers earn flat points for the highest tier their purchase reaches. No stacking.</p>
+              <div class="reward-card-tags">
+                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+                <span class="per-approval-badge">In-Store &amp; Online</span>
+                <span class="per-approval-badge" id="sharedTierSummary">No tiers set</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('tiersCard')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Expandable Detail Panel -->
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <!-- Tier Editor -->
+              <div class="detail-group">
+                <h6>Purchase Point Tiers</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. These levels apply to <strong>both</strong> in-store QR scans and online store purchases &mdash; one consistent program. Customers earn flat points for the highest tier their purchase reaches.</p>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="sharedL1Spend" min="0" step="1" placeholder="25" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="sharedL1Points" min="1" step="1" placeholder="75" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
+                </div>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 2</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="sharedL2Spend" min="0" step="1" placeholder="50" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="sharedL2Points" min="1" step="1" placeholder="150" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
+                </div>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 3</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="sharedL3Spend" min="0" step="1" placeholder="100" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="sharedL3Points" min="1" step="1" placeholder="250" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
+                </div>
+                <p style="font-size:0.73rem;color:#aaa;margin:8px 0 0;">Leave a level blank to use fewer than 3 tiers. No daily cap &mdash; each qualifying transaction awards points independently.</p>
+              </div>
+              <!-- How Tiers Work -->
+              <div class="detail-group">
+                <h6>How Tiers Work</h6>
+                <div class="how-it-works-steps">
+                  <div class="step-item"><span class="step-num">1</span><span>A customer makes a purchase &mdash; in-store via QR scan or online through your connected store</span></div>
+                  <div class="step-item"><span class="step-num">2</span><span>KUP checks the purchase total against your tiers &mdash; the highest matching tier wins</span></div>
+                  <div class="step-item"><span class="step-num">3</span><span>The flat point amount for that tier is instantly credited to the customer's KUP account</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>In-store and online can be toggled on/off independently &mdash; these tiers always stay in sync between both channels</span></div>
+                </div>
+                <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Example:</strong> L1 = $25 → 75 pts, L2 = $50 → 150 pts. A $60 purchase earns 150 pts (L2). Tiers don't stack.</p>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('tiersCard')">Cancel</button>
+              <button class="btn-edit-save" onclick="saveEdit('tiersCard')">Save Tiers</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ============== IN-STORE PURCHASE POINTS ============== -->
+      <div style="margin-top: 32px;"></div>
       <div class="section-label purchase-pts-label">
         <span class="label-icon"><i class="ph ph-shopping-cart"></i></span> In-Store Purchase Points
       </div>
@@ -1118,45 +1207,14 @@
                 </div>
                 <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Note:</strong> If a returning customer who already has the KeepUsPostd app scans your printed Market Code, they'll be taken directly to your brand's Learn More page &mdash; no re-download required.</p>
               </div>
-              <!-- Configuration: 3-Tier Editor -->
+              <!-- Channel Settings -->
               <div class="detail-group">
-                <h6>Purchase Point Tiers</h6>
-                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. Customers earn flat points for the highest tier their purchase reaches or exceeds. No stacking.</p>
+                <h6>Channel Settings</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Enable or disable in-store QR scan points. Point tiers are set in the <strong>Purchase Point Levels</strong> section above &mdash; they apply to both channels automatically.</p>
                 <div class="detail-row">
                   <span class="label">Enable in-store points</span>
                   <span class="value"><label class="edit-toggle"><input type="checkbox" id="inStoreEnabled" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
                 </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="inStoreL1Spend" min="0" step="1" placeholder="25" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="inStoreL1Points" min="1" step="1" placeholder="75" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 2</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="inStoreL2Spend" min="0" step="1" placeholder="50" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="inStoreL2Points" min="1" step="1" placeholder="150" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 3</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="inStoreL3Spend" min="0" step="1" placeholder="100" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="inStoreL3Points" min="1" step="1" placeholder="250" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <p style="font-size:0.73rem;color:#aaa;margin:8px 0 0;">Leave a level blank to use fewer than 3 tiers. No daily cap — each qualifying transaction awards points independently.</p>
               </div>
               <!-- QR Code Preview -->
               <div class="detail-group full-width">
@@ -1342,44 +1400,14 @@
           <!-- Expandable Detail Panel -->
           <div class="reward-card-details">
             <div class="detail-grid">
+              <!-- Channel Settings -->
               <div class="detail-group">
-                <h6>Purchase Point Tiers</h6>
-                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. Customers earn flat points for the highest tier their order total reaches or exceeds.</p>
+                <h6>Channel Settings</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Enable or disable online purchase points. Point tiers are set in the <strong>Purchase Point Levels</strong> section above &mdash; they apply to both channels automatically.</p>
                 <div class="detail-row">
                   <span class="label">Enable online points</span>
                   <span class="value"><label class="edit-toggle"><input type="checkbox" id="onlineEnabled" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
                 </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="onlineL1Spend" min="0" step="1" placeholder="25" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="onlineL1Points" min="1" step="1" placeholder="75" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 2</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="onlineL2Spend" min="0" step="1" placeholder="50" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="onlineL2Points" min="1" step="1" placeholder="150" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 3</span>
-                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
-                    <input type="number" class="edit-input" id="onlineL3Spend" min="0" step="1" placeholder="100" style="width:64px;">
-                    <span style="font-size:0.74rem;color:#aaa;">→</span>
-                    <input type="number" class="edit-input" id="onlineL3Points" min="1" step="1" placeholder="250" style="width:64px;">
-                    <span class="edit-suffix">pts</span>
-                  </span>
-                </div>
-                <p style="font-size:0.73rem;color:#aaa;margin:8px 0 0;">Leave a level blank to use fewer than 3 tiers. No daily cap — every qualifying order awards points independently.</p>
               </div>
               <div class="detail-group">
                 <h6>How It Works</h6>
@@ -1626,35 +1654,48 @@
         _currentWebhookToken = config.webhookToken;
       }
 
-      // In-store
       var inStore = config.inStore || {};
+      var online  = config.online  || {};
+
+      // Shared tiers — use inStore.levels as canonical source (they stay in sync)
+      var sharedLevels = (inStore.levels && inStore.levels.length)
+        ? inStore.levels
+        : (online.levels || []);
+
+      for (var i = 0; i < 3; i++) {
+        var l = sharedLevels[i] || {};
+        var spendEl = document.getElementById('sharedL' + (i+1) + 'Spend');
+        var ptsEl   = document.getElementById('sharedL' + (i+1) + 'Points');
+        if (spendEl) spendEl.value = l.minSpend !== undefined ? l.minSpend : '';
+        if (ptsEl)   ptsEl.value   = l.points   !== undefined ? l.points   : '';
+      }
+
+      // Update shared tiers card pill + summary badge
+      updateTierSummary('sharedTierSummary', sharedLevels);
+      updateTierSummary('inStoreTierSummary', sharedLevels);
+      updateTierSummary('onlineTierSummary', sharedLevels);
+      var validTiers = sharedLevels.filter(function(l) { return l.minSpend > 0 && l.points > 0; });
+      var tiersPill = document.getElementById('tiersPill');
+      var tiersTxt  = document.getElementById('tiersPillText');
+      if (tiersPill && tiersTxt) {
+        if (validTiers.length) {
+          tiersPill.className = 'status-pill active';
+          tiersTxt.textContent = validTiers.length + ' tier' + (validTiers.length > 1 ? 's' : '') + ' set';
+        } else {
+          tiersPill.className = 'status-pill paused';
+          tiersTxt.textContent = 'No tiers set';
+        }
+      }
+
+      // In-store enable toggle + pill
       var inEnabled = document.getElementById('inStoreEnabled');
       if (inEnabled) inEnabled.checked = !!inStore.enabled;
-      var inLevels = inStore.levels || [];
-      for (var i = 0; i < 3; i++) {
-        var l = inLevels[i] || {};
-        var spendEl = document.getElementById('inStoreL' + (i+1) + 'Spend');
-        var ptsEl   = document.getElementById('inStoreL' + (i+1) + 'Points');
-        if (spendEl) spendEl.value  = l.minSpend !== undefined ? l.minSpend : '';
-        if (ptsEl)   ptsEl.value    = l.points   !== undefined ? l.points   : '';
-      }
       updatePill('inStorePill', 'inStorePillText', inStore.enabled);
-      updateTierSummary('inStoreTierSummary', inLevels);
 
-      // Online
-      var online = config.online || {};
+      // Online enable toggle + pill
       var onEnabled = document.getElementById('onlineEnabled');
       if (onEnabled) onEnabled.checked = !!online.enabled;
-      var onLevels = online.levels || [];
-      for (var j = 0; j < 3; j++) {
-        var ol = onLevels[j] || {};
-        var osEl = document.getElementById('onlineL' + (j+1) + 'Spend');
-        var opEl = document.getElementById('onlineL' + (j+1) + 'Points');
-        if (osEl) osEl.value = ol.minSpend !== undefined ? ol.minSpend : '';
-        if (opEl) opEl.value = ol.points   !== undefined ? ol.points   : '';
-      }
       updatePill('onlinePill', 'onlinePillText', online.enabled);
-      updateTierSummary('onlineTierSummary', onLevels);
     }
 
     function updatePill(pillId, textId, enabled) {
@@ -1684,11 +1725,12 @@
         if (!_activeBrandId) { kupToast('No brand selected', 'error'); return false; }
         var token = await firebase.auth().currentUser.getIdToken();
 
-        var buildLevels = function(prefix) {
+        // Always read tiers from the shared inputs — single source of truth
+        var buildSharedLevels = function() {
           var levels = [];
           for (var i = 1; i <= 3; i++) {
-            var spendVal  = parseFloat(document.getElementById(prefix + 'L' + i + 'Spend').value);
-            var pointsVal = parseInt(document.getElementById(prefix + 'L' + i + 'Points').value, 10);
+            var spendVal  = parseFloat(document.getElementById('sharedL' + i + 'Spend').value);
+            var pointsVal = parseInt(document.getElementById('sharedL' + i + 'Points').value, 10);
             if (!isNaN(spendVal) && !isNaN(pointsVal) && spendVal >= 0 && pointsVal >= 1) {
               levels.push({ minSpend: spendVal, points: pointsVal });
             }
@@ -1696,18 +1738,30 @@
           return levels;
         };
 
+        var sharedLevels = buildSharedLevels();
         var body = { brandId: _activeBrandId };
 
-        if (channel === 'instore' || channel === 'both') {
+        if (channel === 'tiers') {
+          // Save shared tiers to both channels — preserve their current enabled state
           body.inStore = {
             enabled: document.getElementById('inStoreEnabled').checked,
-            levels: buildLevels('inStore'),
+            levels: sharedLevels,
           };
-        }
-        if (channel === 'online' || channel === 'both') {
           body.online = {
             enabled: document.getElementById('onlineEnabled').checked,
-            levels: buildLevels('online'),
+            levels: sharedLevels,
+          };
+        } else if (channel === 'instore') {
+          // Just toggling in-store on/off — send shared levels too so backend stays consistent
+          body.inStore = {
+            enabled: document.getElementById('inStoreEnabled').checked,
+            levels: sharedLevels,
+          };
+        } else if (channel === 'online') {
+          // Just toggling online on/off — send shared levels too
+          body.online = {
+            enabled: document.getElementById('onlineEnabled').checked,
+            levels: sharedLevels,
           };
         }
 
@@ -1870,14 +1924,17 @@
       if (!card) return;
 
       // Determine which channel to save
-      var channel = cardId === 'inStoreCard' ? 'instore' : 'online';
+      var channel = cardId === 'tiersCard'      ? 'tiers'
+                  : cardId === 'inStoreCard'    ? 'instore'
+                  : 'online';
 
       var saveBtn = card.querySelector('.btn-edit-save');
+      var origText = saveBtn ? saveBtn.textContent : 'Save';
       if (saveBtn) { saveBtn.textContent = 'Saving…'; saveBtn.disabled = true; }
 
       var ok = await savePurchasePointsConfig(channel);
 
-      if (saveBtn) { saveBtn.textContent = 'Save Changes'; saveBtn.disabled = false; }
+      if (saveBtn) { saveBtn.textContent = origText; saveBtn.disabled = false; }
 
       if (!ok) return; // stay open if save failed
 
@@ -1891,7 +1948,10 @@
       }
 
       delete originalValues[cardId];
-      kupToast((channel === 'instore' ? 'In-Store' : 'Online') + ' purchase point tiers saved', 'success');
+      var toastMsg = channel === 'tiers'   ? 'Purchase point tiers saved — applied to in-store &amp; online'
+                   : channel === 'instore' ? 'In-store points updated'
+                   : 'Online points updated';
+      kupToast(toastMsg, 'success');
     }
 
     /* ============== PURCHASE POINTS SPECIFIC ============== */

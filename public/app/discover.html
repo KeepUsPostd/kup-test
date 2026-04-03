@@ -410,7 +410,7 @@
         btn.disabled = true;
         btn.textContent = 'Partnering...';
         try {
-          await kupApi.post('/api/partnerships', { brandId: brandData._id, source: 'invitation' });
+          await kupApi.post('/api/partnerships', { brandId: brandData._id, source: 'request' });
           document.getElementById('partnerCTA').style.display = 'none';
           document.getElementById('alreadyPartnered').style.display = 'flex';
         } catch (err) {
