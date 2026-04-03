@@ -348,10 +348,58 @@
       function checkAuth(brand) {
         if (typeof auth === 'undefined') return;
         auth.onAuthStateChanged(function(user) {
-          if (!user) return; // Not logged in — stay on landing page
-          // User is already a KUP member — send them into the app dashboard
-          // They can find and follow this brand from there
-          window.location.href = '/pages/inner/discover.html?brand=' + encodeURIComponent(brand.kioskBrandCode || code);
+          if (!user) return; // Not logged in — stay on landing page, use Join button
+
+          // Logged-in user — check if they are an influencer
+          user.getIdToken().then(function(token) {
+            fetch('/api/auth/me', {
+              headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(me) {
+              var profileType = (me && me.user && me.user.profileType) || '';
+              if (profileType !== 'influencer') return; // Brand owner — just view the page, no redirect
+
+              // Influencer is logged in — create partnership instantly
+              var joinBtn = document.getElementById('joinBtn');
+              if (joinBtn) {
+                joinBtn.textContent = 'Partnering…';
+                joinBtn.style.opacity = '0.7';
+                joinBtn.style.pointerEvents = 'none';
+              }
+
+              fetch('/api/partnerships', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ brandId: brand._id, source: 'request' })
+              })
+              .then(function(r) { return r.json(); })
+              .then(function(result) {
+                // Show success state
+                var ctaHeading = document.querySelector('.cta-heading');
+                var ctaSub = document.getElementById('ctaSub');
+                if (ctaHeading) ctaHeading.textContent = '🎉 You\'re now a Partner!';
+                if (ctaSub) ctaSub.textContent = 'You\'ve been added as a partner for ' + brand.name + '. Open the app to start sharing reviews and earning rewards.';
+                if (joinBtn) {
+                  joinBtn.textContent = '✓ Partnership Active';
+                  joinBtn.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
+                  joinBtn.style.opacity = '1';
+                  joinBtn.style.pointerEvents = 'none';
+                }
+              })
+              .catch(function() {
+                if (joinBtn) {
+                  joinBtn.textContent = 'Join as a Partner';
+                  joinBtn.style.opacity = '1';
+                  joinBtn.style.pointerEvents = '';
+                }
+              });
+            })
+            .catch(function() {}); // Silently fail — user stays on page
+          }).catch(function() {});
         });
       }
 

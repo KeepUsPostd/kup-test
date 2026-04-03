@@ -283,7 +283,6 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
     }
 
     const validTransitions = {
-      pending: ['active', 'ended'], // brand approves (active) or declines (ended)
       active: ['paused', 'ended'],
       paused: ['active', 'ended'],
       ended: [], // terminal
