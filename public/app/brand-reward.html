@@ -469,17 +469,67 @@
             </div>
           </div>
 
-          <!-- B. Purchase Points — managed on dedicated setup page, not in this wizard -->
+          <!-- B. Purchase Points — inline spend levels setup, no page navigation needed -->
           <div class="point-category" id="catPurchase" style="border:1.5px dashed #e0e0e0;background:#fafafa;">
             <div class="point-category-header" style="cursor:default;">
               <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">In-store &amp; online spend rewards</span></h6>
               <span id="purchasePtsStatusBadge" style="font-size:0.7rem;font-weight:600;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;">Loading…</span>
             </div>
             <div class="point-category-body" style="display:block !important;">
-              <p style="font-size:0.8rem;color:#666;line-height:1.5;margin:0 0 12px;">Purchase Points have their own dedicated setup — set spend tiers, enable in-store QR scanning, connect your online store webhook, and manage staff access all in one place.</p>
-              <a href="purchase-points-setup.html" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;font-size:0.8rem;font-weight:700;padding:9px 18px;border-radius:8px;text-decoration:none;font-family:inherit;">
-                <i class="ph ph-arrow-square-out"></i> Configure Purchase Points
-              </a>
+              <!-- Collapsed state: summary + open button -->
+              <div id="purchasePtsCollapsed">
+                <p style="font-size:0.8rem;color:#666;line-height:1.5;margin:0 0 12px;">Reward customers for every purchase — same spend levels apply to both in-store QR scans and your online store automatically.</p>
+                <button onclick="togglePurchaseLevelsPanel(true)" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;font-size:0.8rem;font-weight:700;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;">
+                  <i class="ph ph-chart-bar"></i> Set Spend Levels
+                </button>
+              </div>
+              <!-- Expanded inline panel -->
+              <div id="purchasePtsPanel" style="display:none;margin-top:4px;">
+                <div style="background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.18);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+                  <div style="font-size:0.74rem;font-weight:700;color:var(--kup-blue);margin-bottom:3px;">One set of levels — two delivery methods</div>
+                  <div style="font-size:0.73rem;color:#666;line-height:1.5;">These levels apply to both <strong>in-store QR scans</strong> and your <strong>online store</strong>. Toggle each channel on separately in the Purchase Points page.</div>
+                </div>
+                <!-- Level 1 -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                  <span style="font-size:0.78rem;font-weight:700;color:var(--kup-blue);min-width:52px;">Level 1</span>
+                  <span style="font-size:0.73rem;color:#888;">Spend $</span>
+                  <input type="number" id="wzSharedL1Spend" min="0" step="1" placeholder="25" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#bbb;">→</span>
+                  <input type="number" id="wzSharedL1Points" min="1" step="1" placeholder="75" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#888;">pts</span>
+                </div>
+                <!-- Level 2 -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                  <span style="font-size:0.78rem;font-weight:700;color:var(--kup-blue);min-width:52px;">Level 2</span>
+                  <span style="font-size:0.73rem;color:#888;">Spend $</span>
+                  <input type="number" id="wzSharedL2Spend" min="0" step="1" placeholder="50" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#bbb;">→</span>
+                  <input type="number" id="wzSharedL2Points" min="1" step="1" placeholder="150" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#888;">pts</span>
+                </div>
+                <!-- Level 3 -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                  <span style="font-size:0.78rem;font-weight:700;color:var(--kup-blue);min-width:52px;">Level 3</span>
+                  <span style="font-size:0.73rem;color:#888;">Spend $</span>
+                  <input type="number" id="wzSharedL3Spend" min="0" step="1" placeholder="100" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#bbb;">→</span>
+                  <input type="number" id="wzSharedL3Points" min="1" step="1" placeholder="250" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
+                  <span style="font-size:0.73rem;color:#888;">pts</span>
+                </div>
+                <p style="font-size:0.71rem;color:#aaa;margin:0 0 12px;line-height:1.4;">Leave a level blank to use fewer than 3. Customers earn points for the highest level their purchase reaches — no stacking.</p>
+                <!-- Action row -->
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <button id="wzSaveLevelsBtn" onclick="saveWizardPurchaseLevels()" style="background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">
+                    Save Levels
+                  </button>
+                  <button onclick="togglePurchaseLevelsPanel(false)" style="background:none;border:none;font-size:0.8rem;color:#888;cursor:pointer;font-family:inherit;padding:0;">
+                    Cancel
+                  </button>
+                  <a href="purchase-points-setup.html" style="font-size:0.75rem;color:var(--kup-blue);font-weight:600;margin-left:auto;text-decoration:none;">
+                    Full Setup <i class="ph ph-arrow-square-out" style="font-size:0.75rem;"></i>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1579,10 +1629,10 @@
               }).then(function(r) { return r.json(); }).then(function(data) {
                 var cfg = data.config || {};
                 var inLevels = ((cfg.inStore || {}).levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
-                var onLevels = ((cfg.online || {}).levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
-                var total = inLevels.length + onLevels.length;
+                // inStore and online share the same levels — count only once
+                var total = inLevels.length;
                 if (total > 0) {
-                  badge.textContent = total + ' tier' + (total > 1 ? 's' : '') + ' active';
+                  badge.textContent = total + ' level' + (total > 1 ? 's' : '') + ' set';
                   badge.style.cssText = 'font-size:0.7rem;font-weight:600;color:#16a34a;background:rgba(22,163,74,0.1);padding:3px 10px;border-radius:20px;';
                 } else {
                   badge.textContent = 'Not configured';
@@ -1605,6 +1655,94 @@
           }
         } catch(e) {}
       })();
+
+    /* ── Purchase Points inline wizard panel ─────────────────────────── */
+    function togglePurchaseLevelsPanel(open) {
+      var collapsed = document.getElementById('purchasePtsCollapsed');
+      var panel     = document.getElementById('purchasePtsPanel');
+      if (!collapsed || !panel) return;
+      if (open) {
+        collapsed.style.display = 'none';
+        panel.style.display = 'block';
+        loadWizardPurchaseLevels();
+      } else {
+        panel.style.display = 'none';
+        collapsed.style.display = '';
+      }
+    }
+
+    async function loadWizardPurchaseLevels() {
+      try {
+        var brand   = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        var brandId = brand ? (brand.mongoId || null) : null;
+        if (!brandId || !auth.currentUser) return;
+        var token = await auth.currentUser.getIdToken();
+        var resp  = await fetch('/api/purchase-points/config?brandId=' + brandId, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!resp.ok) return;
+        var data   = await resp.json();
+        var levels = (((data.config || {}).inStore || {}).levels) || [];
+        for (var i = 0; i < 3; i++) {
+          var l  = levels[i] || {};
+          var sEl = document.getElementById('wzSharedL' + (i+1) + 'Spend');
+          var pEl = document.getElementById('wzSharedL' + (i+1) + 'Points');
+          if (sEl) sEl.value = l.minSpend !== undefined ? l.minSpend : '';
+          if (pEl) pEl.value = l.points   !== undefined ? l.points   : '';
+        }
+      } catch(e) { /* non-critical — inputs stay blank */ }
+    }
+
+    async function saveWizardPurchaseLevels() {
+      var brand   = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || null) : null;
+      if (!brandId) { kupToast('No active brand — go to Manage Brands first', 'error'); return; }
+
+      var btn = document.getElementById('wzSaveLevelsBtn');
+      if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+      try {
+        var levels = [];
+        for (var i = 1; i <= 3; i++) {
+          var spend = parseFloat((document.getElementById('wzSharedL' + i + 'Spend') || {}).value);
+          var pts   = parseInt((document.getElementById('wzSharedL' + i + 'Points') || {}).value, 10);
+          if (!isNaN(spend) && !isNaN(pts) && spend >= 0 && pts >= 1) {
+            levels.push({ minSpend: spend, points: pts });
+          }
+        }
+        if (levels.length === 0) {
+          kupToast('Enter at least one spend level to save', 'warning');
+          return;
+        }
+
+        var token = await auth.currentUser.getIdToken();
+        var resp  = await fetch('/api/purchase-points/config', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandId: brandId,
+            inStore: { levels: levels },
+            online:  { levels: levels },
+          })
+        });
+        var data = await resp.json();
+        if (!resp.ok) { kupToast(data.error || 'Could not save levels', 'error'); return; }
+
+        // Update badge
+        var badge = document.getElementById('purchasePtsStatusBadge');
+        if (badge) {
+          badge.textContent = levels.length + ' level' + (levels.length > 1 ? 's' : '') + ' set';
+          badge.style.cssText = 'font-size:0.7rem;font-weight:600;color:#16a34a;background:rgba(22,163,74,0.1);padding:3px 10px;border-radius:20px;';
+        }
+
+        togglePurchaseLevelsPanel(false);
+        kupToast('Spend levels saved — applies to in-store & online', 'success');
+      } catch(e) {
+        kupToast('Save failed — please try again', 'error');
+      } finally {
+        if (btn) { btn.textContent = 'Save Levels'; btn.disabled = false; }
+      }
+    }
     </script>
     <script src="/js/onboarding.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

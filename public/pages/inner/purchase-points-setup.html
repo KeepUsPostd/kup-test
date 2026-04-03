@@ -1083,14 +1083,14 @@
             <div class="reward-card-icon purchase-instore"><i class="ph ph-steps"></i></div>
             <div class="reward-card-body">
               <div class="reward-card-title">
-                Spend Tiers
-                <span class="status-pill" id="tiersPill"><span class="status-dot"></span><span id="tiersPillText">No tiers set</span></span>
+                Spend Levels
+                <span class="status-pill" id="tiersPill"><span class="status-dot"></span><span id="tiersPillText">No levels set</span></span>
               </div>
               <p class="reward-card-subtitle">One set of tiers for both in-store and online purchases &mdash; same levels, two delivery methods. Customers earn flat points for the highest tier their purchase reaches. No stacking.</p>
               <div class="reward-card-tags">
                 <span class="point-cat-tag purchase-pts">Purchase Pts</span>
                 <span class="per-approval-badge">In-Store &amp; Online</span>
-                <span class="per-approval-badge" id="sharedTierSummary">No tiers set</span>
+                <span class="per-approval-badge" id="sharedTierSummary">No levels set</span>
               </div>
             </div>
             <div class="reward-card-right">
@@ -1106,7 +1106,7 @@
             <div class="detail-grid">
               <!-- Tier Editor -->
               <div class="detail-group">
-                <h6>Purchase Point Tiers</h6>
+                <h6>Spend Levels</h6>
                 <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. These levels apply to <strong>both</strong> in-store QR scans and online store purchases &mdash; one consistent program. Customers earn flat points for the highest tier their purchase reaches.</p>
                 <div class="detail-row" style="align-items:center;">
                   <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
@@ -1154,7 +1154,7 @@
             </div>
             <div class="edit-actions">
               <button class="btn-edit-cancel" onclick="cancelEdit('tiersCard')">Cancel</button>
-              <button class="btn-edit-save" onclick="saveEdit('tiersCard')">Save Tiers</button>
+              <button class="btn-edit-save" onclick="saveEdit('tiersCard')">Save Levels</button>
             </div>
           </div>
         </div>
@@ -1178,7 +1178,7 @@
               <p class="reward-card-subtitle">Your brand's <a href="market-code.html" style="color:var(--kup-blue);font-weight:600;">Market Code</a> lives inside each customer's KeepUsPostd app &mdash; at checkout, the store clerk scans it from their phone to award purchase points</p>
               <div class="reward-card-tags">
                 <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="per-approval-badge" id="inStoreTierSummary">No tiers set</span>
+                <span class="per-approval-badge" id="inStoreTierSummary">No levels set</span>
               </div>
             </div>
             <div class="reward-card-right">
@@ -1203,7 +1203,7 @@
                   <div class="step-item"><span class="step-num">1</span><span>Customer opens the KeepUsPostd app and pulls up your brand's Market Code from their profile</span></div>
                   <div class="step-item"><span class="step-num">2</span><span>Store clerk scans the code from the customer's phone screen at checkout</span></div>
                   <div class="step-item"><span class="step-num">3</span><span>The purchase total is entered and linked to the customer's account</span></div>
-                  <div class="step-item"><span class="step-num">4</span><span>Points are automatically awarded based on the highest tier the customer's purchase reaches — no daily cap, every qualifying transaction counts</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>Points are automatically awarded based on the highest level the customer's purchase reaches — no daily cap, every qualifying transaction counts</span></div>
                 </div>
                 <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Note:</strong> If a returning customer who already has the KeepUsPostd app scans your printed Market Code, they'll be taken directly to your brand's Learn More page &mdash; no re-download required.</p>
               </div>
@@ -1243,9 +1243,95 @@
         </div>
       </div>
 
+      <!-- Staff PIN Mode — in-store tool, grouped with in-store section -->
+      <div class="reward-settings-list" style="margin-top:12px;">
+        <div class="reward-setting-card" id="staffAccessCard">
+          <div class="reward-card-main">
+            <div class="reward-card-icon" style="background:linear-gradient(135deg,#707BBB,#2EA5DD);"><i class="ph ph-device-mobile" style="color:#fff;font-size:1.2rem;"></i></div>
+            <div class="reward-card-body">
+              <div class="reward-card-title">
+                Staff PIN Mode
+                <span class="status-pill" id="staffPinPill"><span class="status-dot"></span><span id="staffPinPillText">Not Set</span></span>
+              </div>
+              <p class="reward-card-subtitle">Give your staff a 4-digit PIN and a shareable link — they can award purchase points from their personal phones at events, food trucks, or any in-store location. No KUP account required.</p>
+              <div class="reward-card-tags">
+                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+                <span class="per-approval-badge">In-Store Only</span>
+                <span class="per-approval-badge" style="background:rgba(112,123,187,0.1);color:var(--kup-purple);">Multi-Staff</span>
+              </div>
+            </div>
+            <div class="reward-card-right">
+              <div class="reward-card-actions">
+                <button class="btn-reward-action edit" onclick="toggleDetails('staffAccessCard')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Expandable Detail Panel -->
+          <div class="reward-card-details">
+            <div class="detail-grid">
+              <!-- How It Works -->
+              <div class="detail-group">
+                <h6>How It Works</h6>
+                <div class="how-it-works-steps">
+                  <div class="step-item"><span class="step-num">1</span><span>Set a 4-digit PIN below — all staff share the same PIN per brand</span></div>
+                  <div class="step-item"><span class="step-num">2</span><span>Share the staff link with your team (see below) — they open it on any phone browser, no app download needed</span></div>
+                  <div class="step-item"><span class="step-num">3</span><span>Staff enters the PIN, scans the customer's KUP QR code or enters their email, then types the purchase total</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>Points are awarded instantly — or logged as a guest transaction if the customer doesn't have a KUP account yet</span></div>
+                </div>
+                <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Tip:</strong> Add the staff link to your home screen as a shortcut so staff can open it with one tap. The PIN locks automatically when they close the app.</p>
+              </div>
+              <!-- Configuration -->
+              <div class="detail-group">
+                <h6>Set Staff PIN</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Choose any 4-digit code. Share it only with trusted staff. You can change it anytime to revoke access.</p>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="font-weight:700;">4-Digit PIN</span>
+                  <span class="value" style="display:flex;align-items:center;gap:8px;">
+                    <input type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
+                           class="edit-input" id="staffPinInput"
+                           placeholder="••••" style="width:80px;letter-spacing:4px;text-align:center;font-size:1.1rem;">
+                    <button type="button"
+                            style="background:none;border:none;color:var(--kup-blue);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:var(--kup-font);"
+                            onclick="togglePinVisibility()">Show</button>
+                  </span>
+                </div>
+                <!-- Staff Link (shown only when kioskBrandCode is available) -->
+                <h6 style="margin-top:20px;">Staff Link</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 10px;line-height:1.5;">Share this link with your staff. Works in any mobile browser — no app required.</p>
+                <div id="staffLinkWrap" style="display:none;">
+                  <div class="webhook-url-row" style="margin-bottom:8px;">
+                    <span class="webhook-url-text" id="staffLinkUrl">Generate by saving your Purchase Points config first</span>
+                    <button class="btn-copy-url" onclick="copyStaffLink()">Copy Link</button>
+                  </div>
+                  <p style="font-size:0.72rem;color:#aaa;line-height:1.4;margin-bottom:14px;">Bookmarkable on any phone. The PIN is not in the URL — it must be entered each session.</p>
+                  <!-- Copy Staff Instructions (ready-to-paste team message) -->
+                  <div style="background:rgba(46,165,221,0.05);border:1px solid rgba(46,165,221,0.15);border-radius:8px;padding:14px 16px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                      <div>
+                        <div style="font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:3px;">📋 Send to Your Staff</div>
+                        <div style="font-size:0.75rem;color:#888;line-height:1.4;">Copies a ready-to-paste message for your group chat or text thread. Share the PIN separately — it's not included for security.</div>
+                      </div>
+                      <button class="btn-copy-url" id="btnCopyStaffInstructions" onclick="copyStaffInstructions()" style="flex-shrink:0;white-space:nowrap;">Copy Message</button>
+                    </div>
+                  </div>
+                </div>
+                <div id="staffLinkNoCode" style="font-size:0.78rem;color:#aaa;background:#f8f9fa;border-radius:6px;padding:10px 14px;line-height:1.5;">
+                  To get your staff link, first enable Kiosk Mode in <a href="kiosk-mode.html" style="color:var(--kup-blue);font-weight:600;">Kiosk Mode settings</a> — this generates your brand's unique URL code.
+                </div>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-edit-cancel" onclick="cancelEdit('staffAccessCard')">Cancel</button>
+              <button class="btn-edit-save" id="btnSaveStaffPin" onclick="saveStaffPin()">Save PIN</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ============== ONLINE STORE PURCHASE POINTS ============== -->
-      <!-- Section spacer -->
-      <div style="margin-top: 32px;"></div>
+      <div style="margin-top: 40px;"></div>
 
       <div class="section-label purchase-pts-label">
         <span class="label-icon"><i class="ph ph-laptop"></i></span> Online Store Purchase Points
@@ -1382,7 +1468,7 @@
               <p class="reward-card-subtitle">Configure how online purchases earn points. Use the Custom Script above to start tracking purchases from any store.</p>
               <div class="reward-card-tags">
                 <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="per-approval-badge" id="onlineTierSummary">No tiers set</span>
+                <span class="per-approval-badge" id="onlineTierSummary">No levels set</span>
               </div>
             </div>
             <div class="reward-card-right">
@@ -1415,7 +1501,7 @@
                   <div class="step-item"><span class="step-num">1</span><span>Customer completes a purchase on your online store</span></div>
                   <div class="step-item"><span class="step-num">2</span><span>The KUP tracking script on your checkout confirmation page captures the order total and customer email</span></div>
                   <div class="step-item"><span class="step-num">3</span><span>Points are matched to the customer's KUP account by email address</span></div>
-                  <div class="step-item"><span class="step-num">4</span><span>Points are awarded based on the highest tier their order total reaches — no daily cap</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>Points are awarded based on the highest level their order total reaches — no daily cap</span></div>
                 </div>
               </div>
             </div>
@@ -1427,100 +1513,6 @@
         </div>
       </div>
 
-      <!-- ============== STAFF ACCESS ============== -->
-      <div style="margin-top: 40px;"></div>
-
-      <div class="section-label purchase-pts-label">
-        <span class="label-icon"><i class="ph ph-users"></i></span> Staff Access
-      </div>
-
-      <div class="reward-settings-list">
-        <div class="reward-setting-card" id="staffAccessCard">
-          <div class="reward-card-main">
-            <div class="reward-card-icon" style="background:linear-gradient(135deg,#707BBB,#2EA5DD);"><i class="ph ph-device-mobile" style="color:#fff;font-size:1.2rem;"></i></div>
-            <div class="reward-card-body">
-              <div class="reward-card-title">
-                Staff PIN Mode
-                <span class="status-pill" id="staffPinPill"><span class="status-dot"></span><span id="staffPinPillText">Not Set</span></span>
-              </div>
-              <p class="reward-card-subtitle">Give your staff a 4-digit PIN and a shareable link — they can award purchase points from their personal phones at events, food trucks, or any in-store location. No KUP account required.</p>
-              <div class="reward-card-tags">
-                <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="per-approval-badge">In-Store Only</span>
-                <span class="per-approval-badge" style="background:rgba(112,123,187,0.1);color:var(--kup-purple);">Multi-Staff</span>
-              </div>
-            </div>
-            <div class="reward-card-right">
-              <div class="reward-card-actions">
-                <button class="btn-reward-action edit" onclick="toggleDetails('staffAccessCard')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit
-                </button>
-              </div>
-            </div>
-          </div>
-          <!-- Expandable Detail Panel -->
-          <div class="reward-card-details">
-            <div class="detail-grid">
-              <!-- How It Works -->
-              <div class="detail-group">
-                <h6>How It Works</h6>
-                <div class="how-it-works-steps">
-                  <div class="step-item"><span class="step-num">1</span><span>Set a 4-digit PIN below — all staff share the same PIN per brand</span></div>
-                  <div class="step-item"><span class="step-num">2</span><span>Share the staff link with your team (see below) — they open it on any phone browser, no app download needed</span></div>
-                  <div class="step-item"><span class="step-num">3</span><span>Staff enters the PIN, scans the customer's KUP QR code or enters their email, then types the purchase total</span></div>
-                  <div class="step-item"><span class="step-num">4</span><span>Points are awarded instantly — or logged as a guest transaction if the customer doesn't have a KUP account yet</span></div>
-                </div>
-                <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Tip:</strong> Add the staff link to your home screen as a shortcut so staff can open it with one tap. The PIN locks automatically when they close the app.</p>
-              </div>
-              <!-- Configuration -->
-              <div class="detail-group">
-                <h6>Set Staff PIN</h6>
-                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Choose any 4-digit code. Share it only with trusted staff. You can change it anytime to revoke access.</p>
-                <div class="detail-row" style="align-items:center;">
-                  <span class="label" style="font-weight:700;">4-Digit PIN</span>
-                  <span class="value" style="display:flex;align-items:center;gap:8px;">
-                    <input type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
-                           class="edit-input" id="staffPinInput"
-                           placeholder="••••" style="width:80px;letter-spacing:4px;text-align:center;font-size:1.1rem;">
-                    <button type="button"
-                            style="background:none;border:none;color:var(--kup-blue);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:var(--kup-font);"
-                            onclick="togglePinVisibility()">Show</button>
-                  </span>
-                </div>
-
-                <!-- Staff Link (shown only when kioskBrandCode is available) -->
-                <h6 style="margin-top:20px;">Staff Link</h6>
-                <p style="font-size:0.78rem;color:#666;margin:0 0 10px;line-height:1.5;">Share this link with your staff. Works in any mobile browser — no app required.</p>
-                <div id="staffLinkWrap" style="display:none;">
-                  <div class="webhook-url-row" style="margin-bottom:8px;">
-                    <span class="webhook-url-text" id="staffLinkUrl">Generate by saving your Purchase Points config first</span>
-                    <button class="btn-copy-url" onclick="copyStaffLink()">Copy Link</button>
-                  </div>
-                  <p style="font-size:0.72rem;color:#aaa;line-height:1.4;margin-bottom:14px;">Bookmarkable on any phone. The PIN is not in the URL — it must be entered each session.</p>
-
-                  <!-- Copy Staff Instructions (ready-to-paste team message) -->
-                  <div style="background:rgba(46,165,221,0.05);border:1px solid rgba(46,165,221,0.15);border-radius:8px;padding:14px 16px;">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-                      <div>
-                        <div style="font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:3px;">📋 Send to Your Staff</div>
-                        <div style="font-size:0.75rem;color:#888;line-height:1.4;">Copies a ready-to-paste message for your group chat or text thread. Share the PIN separately — it's not included for security.</div>
-                      </div>
-                      <button class="btn-copy-url" id="btnCopyStaffInstructions" onclick="copyStaffInstructions()" style="flex-shrink:0;white-space:nowrap;">Copy Message</button>
-                    </div>
-                  </div>
-                </div>
-                <div id="staffLinkNoCode" style="font-size:0.78rem;color:#aaa;background:#f8f9fa;border-radius:6px;padding:10px 14px;line-height:1.5;">
-                  To get your staff link, first enable Kiosk Mode in <a href="kiosk-mode.html" style="color:var(--kup-blue);font-weight:600;">Kiosk Mode settings</a> — this generates your brand's unique URL code.
-                </div>
-              </div>
-            </div>
-            <div class="edit-actions">
-              <button class="btn-edit-cancel" onclick="cancelEdit('staffAccessCard')">Cancel</button>
-              <button class="btn-edit-save" id="btnSaveStaffPin" onclick="saveStaffPin()">Save PIN</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </main>
   </div>
@@ -1680,10 +1672,10 @@
       if (tiersPill && tiersTxt) {
         if (validTiers.length) {
           tiersPill.className = 'status-pill active';
-          tiersTxt.textContent = validTiers.length + ' tier' + (validTiers.length > 1 ? 's' : '') + ' set';
+          tiersTxt.textContent = validTiers.length + ' level' + (validTiers.length > 1 ? 's' : '') + ' set';
         } else {
           tiersPill.className = 'status-pill paused';
-          tiersTxt.textContent = 'No tiers set';
+          tiersTxt.textContent = 'No levels set';
         }
       }
 
@@ -1715,8 +1707,8 @@
       var el = document.getElementById(summaryId);
       if (!el) return;
       var valid = (levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
-      if (!valid.length) { el.textContent = 'No tiers set'; return; }
-      el.textContent = valid.length + ' tier' + (valid.length > 1 ? 's' : '') + ' — up to ' + valid[valid.length-1].points + ' pts';
+      if (!valid.length) { el.textContent = 'No levels set'; return; }
+      el.textContent = valid.length + ' level' + (valid.length > 1 ? 's' : '') + ' — up to ' + valid[valid.length-1].points + ' pts';
     }
 
     /* ============== SAVE CONFIG TO API ============== */
@@ -1948,7 +1940,7 @@
       }
 
       delete originalValues[cardId];
-      var toastMsg = channel === 'tiers'   ? 'Purchase point tiers saved — applied to in-store &amp; online'
+      var toastMsg = channel === 'tiers'   ? 'Spend levels saved — applied to in-store &amp; online'
                    : channel === 'instore' ? 'In-store points updated'
                    : 'Online points updated';
       kupToast(toastMsg, 'success');
