@@ -2584,25 +2584,47 @@
 
     /* ============== REQUEST APPROVE / DECLINE ============== */
     document.querySelectorAll('.btn-approve').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-name');
+      btn.addEventListener('click', async function() {
+        var partnershipId = this.getAttribute('data-partnership');
         var card = this.closest('.request-card');
-        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(20px)';
-        setTimeout(function() { card.remove(); }, 300);
-        kupToast(name + ' approved as a brand partner!', 'success');
+        var handle = card.querySelector('.request-name') ? card.querySelector('.request-name').textContent : 'Influencer';
+        var approveBtn = this;
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Approving...';
+        try {
+          await kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: 'active' });
+          card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'translateX(20px)';
+          setTimeout(function() { card.remove(); }, 300);
+          kupToast(handle + ' approved as a brand partner!', 'success');
+        } catch (err) {
+          approveBtn.disabled = false;
+          approveBtn.textContent = 'Approve';
+          kupToast('Could not approve request. Please try again.', 'error');
+        }
       });
     });
     document.querySelectorAll('.btn-decline').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-name');
+      btn.addEventListener('click', async function() {
+        var partnershipId = this.getAttribute('data-partnership');
         var card = this.closest('.request-card');
-        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(-20px)';
-        setTimeout(function() { card.remove(); }, 300);
-        kupToast(name + ' request declined', 'info');
+        var handle = card.querySelector('.request-name') ? card.querySelector('.request-name').textContent : 'Influencer';
+        var declineBtn = this;
+        declineBtn.disabled = true;
+        declineBtn.textContent = 'Declining...';
+        try {
+          await kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: 'ended', endedBy: 'brand' });
+          card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'translateX(-20px)';
+          setTimeout(function() { card.remove(); }, 300);
+          kupToast(handle + ' request declined', 'info');
+        } catch (err) {
+          declineBtn.disabled = false;
+          declineBtn.textContent = 'Decline';
+          kupToast('Could not decline request. Please try again.', 'error');
+        }
       });
     });
 

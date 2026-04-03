@@ -103,12 +103,17 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
+    const resolvedSource = source || 'invitation';
+    // Influencer-initiated requests start as pending (brand must approve)
+    // Brand-initiated invitations go straight to active
+    const initialStatus = resolvedSource === 'request' ? 'pending' : 'active';
+
     const partnership = await Partnership.create({
       brandId,
       influencerProfileId,
-      status: 'active',
-      source: source || 'invitation',
-      startedAt: new Date(),
+      status: initialStatus,
+      source: resolvedSource,
+      startedAt: initialStatus === 'active' ? new Date() : undefined,
     });
 
     console.log(`🤝 Partnership created: brand ${brandId} + @${influencer.handle}`);
@@ -280,6 +285,7 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
     }
 
     const validTransitions = {
+      pending: ['active', 'ended'], // brand approves (active) or declines (ended)
       active: ['paused', 'ended'],
       paused: ['active', 'ended'],
       ended: [], // terminal
