@@ -846,6 +846,35 @@
     }
     .btn-close-guide:hover { border-color: #bbb; color: #555; }
 
+    .btn-test-webhook {
+      padding: 8px 18px;
+      border: 1px solid #16a34a;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: #16a34a;
+      font-family: var(--kup-font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-test-webhook:hover { background: rgba(22,163,74,0.06); }
+    .btn-test-webhook:disabled { opacity: 0.5; cursor: default; }
+
+    .test-result-box {
+      margin-top: 14px;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      display: none;
+    }
+    .test-result-box.success { background: rgba(22,163,74,0.06); border: 1px solid rgba(22,163,74,0.2); color: #166534; }
+    .test-result-box.error   { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.2); color: #991b1b; }
+    .test-result-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .test-result-row:last-child { margin-bottom: 0; }
+    .test-result-check { font-size: 1rem; }
+
     /* Footer */
     .auth-footer {
       text-align: center;
@@ -1258,6 +1287,15 @@
         <ol class="webhook-steps" id="guideSteps"></ol>
 
         <div class="webhook-note" id="guideNote"></div>
+
+        <!-- Test Connection -->
+        <div style="display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;">
+          <button class="btn-test-webhook" id="btnTestWebhook" onclick="testWebhookConnection()">
+            ✓ Test Connection
+          </button>
+          <span style="font-size:0.78rem;color:#999;">Verifies your config is saved and previews what a $50 purchase would earn</span>
+        </div>
+        <div class="test-result-box" id="testResultBox"></div>
       </div>
 
       <!-- Tracking Script Panel (hidden) -->
@@ -1791,10 +1829,11 @@
           'Add an action: <strong>Send an HTTP request</strong>',
           'Set <strong>Method</strong> to <code>POST</code> and paste your KUP webhook URL',
           'Set <strong>Content Type</strong> to <code>application/json</code>',
-          'In the <strong>Body</strong> field, map: <code>{"buyerInfo":{"email":"{{order.buyerInfo.email}}"},"totals":{"total":"{{order.totals.total}}"},"orderId":"{{order._id}}"}</code>',
+          'In the <strong>Body</strong> field, paste this exactly — Wix will substitute the real values per order:<br><br><code>{"buyerInfo":{"email":"{{order.buyerInfo.email}}"},"totals":{"total":"{{order.totals.total}}"},"orderId":"{{order._id}}"}</code>',
           'Click <strong>Activate</strong> to go live',
+          '<strong>Easier alternative:</strong> Skip Automations entirely — go to <span class="webhook-step-nav">Settings → Tracking &amp; Analytics → + New Tool → Custom</span> and paste the KUP tracking script instead. Works on all Wix checkout confirmation pages with no body mapping required.',
         ],
-        note: 'Wix Automations requires a Premium or Business plan. The body mapping in Step 6 tells Wix to include the buyer email and order total in the request KUP receives.',
+        note: 'Wix Automations requires a Core plan or higher. If the body mapping in Step 6 feels too technical, use the Custom Script option in Step 8 — it\'s simpler and works just as reliably.',
       },
     };
 
@@ -1853,6 +1892,72 @@
       }).catch(function() {
         kupToast('Could not copy — please select and copy manually', 'error');
       });
+    }
+
+    /* ── Test Connection ────────────────────────────────────────────────────── */
+    async function testWebhookConnection() {
+      var btn = document.getElementById('btnTestWebhook');
+      var resultBox = document.getElementById('testResultBox');
+      if (!btn || !resultBox) return;
+
+      if (!_activeBrandId) {
+        kupToast('No active brand selected', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Testing…';
+      resultBox.style.display = 'none';
+
+      try {
+        var token = await firebase.auth().currentUser.getIdToken();
+        var resp = await fetch('/api/purchase-points/webhook/test?brandId=' + _activeBrandId, {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+        var data = await resp.json();
+
+        resultBox.className = 'test-result-box ' + (data.connected ? 'success' : 'error');
+        resultBox.style.display = 'block';
+
+        if (data.connected) {
+          var rows = [
+            '<div class="test-result-row"><span class="test-result-check">✅</span><strong>Webhook URL is valid and your config is saved.</strong></div>',
+            '<div class="test-result-row"><span class="test-result-check">📦</span>Test purchase of <strong>$' + data.testAmount + '</strong>:</div>',
+          ];
+
+          if (data.inStore.enabled) {
+            var isLabel = data.inStore.wouldEarn > 0
+              ? 'Level ' + data.inStore.level + ' → <strong>' + data.inStore.wouldEarn + ' pts</strong>'
+              : 'Below minimum spend threshold (0 pts) — increase test amount or lower Level 1';
+            rows.push('<div class="test-result-row" style="padding-left:24px;">🏪 In-Store: ' + isLabel + '</div>');
+          } else {
+            rows.push('<div class="test-result-row" style="padding-left:24px;">🏪 In-Store: <em style="color:#999;">disabled</em></div>');
+          }
+
+          if (data.online.enabled) {
+            var olLabel = data.online.wouldEarn > 0
+              ? 'Level ' + data.online.level + ' → <strong>' + data.online.wouldEarn + ' pts</strong>'
+              : 'Below minimum spend threshold (0 pts) — increase test amount or lower Level 1';
+            rows.push('<div class="test-result-row" style="padding-left:24px;">🛒 Online: ' + olLabel + '</div>');
+          } else {
+            rows.push('<div class="test-result-row" style="padding-left:24px;">🛒 Online: <em style="color:#999;">disabled</em></div>');
+          }
+
+          resultBox.innerHTML = rows.join('');
+        } else {
+          resultBox.innerHTML =
+            '<div class="test-result-row"><span class="test-result-check">⚠️</span>' +
+            (data.reason || 'Could not verify connection') + '</div>' +
+            '<div class="test-result-row" style="padding-left:24px;color:#777;">Save your tier configuration using the Edit buttons above, then test again.</div>';
+        }
+      } catch (e) {
+        resultBox.className = 'test-result-box error';
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = '<div class="test-result-row"><span class="test-result-check">❌</span>Test failed — please refresh and try again.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Test Connection';
+      }
     }
 
     // Store current webhook token (populated by loadPageData)

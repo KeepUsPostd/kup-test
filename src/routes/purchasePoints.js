@@ -245,24 +245,25 @@ router.post('/award', requireAuth, async (req, res) => {
       });
     }
 
-    // Build log entry
+    // Build log entry — pointsAwarded is 0 if no KUP account found (no escrow)
+    const accountFound = !!influencer;
     const logData = {
       brandId,
       channel,
       spendAmount,
-      pointsAwarded: points,
-      levelIndex,
+      pointsAwarded: accountFound ? points : 0,  // 0 = unmatched transaction, not escrowed
+      levelIndex:    accountFound ? levelIndex : 0,
       processedBy: processedBy || null,
       orderRef: orderRef || null,
       awardedAt: new Date(),
     };
 
-    if (influencer) {
+    if (accountFound) {
       logData.influencerProfileId = influencer._id;
       logData.customerName  = influencer.displayName;
       logData.customerEmail = customerEmail || null;
 
-      // Update influencer's balance
+      // Credit the influencer's balance
       await InfluencerProfile.findByIdAndUpdate(influencer._id, {
         $inc: {
           purchasePointsBalance:     points,
@@ -270,23 +271,32 @@ router.post('/award', requireAuth, async (req, res) => {
         },
       });
     } else {
-      // No account found — log the transaction anyway (points held in escrow for when they sign up)
+      // No KUP account — log for brand's visibility but award nothing.
+      // Customer earns going forward once they join KUP and partner with this brand.
       logData.customerEmail = customerEmail || null;
       logData.customerName  = customerEmail ? customerEmail.split('@')[0] : 'Guest';
     }
 
     const log = await PurchasePointsLog.create(logData);
 
-    console.log(`✅ Purchase points awarded: ${points}pts to ${influencer ? influencer.displayName : customerEmail} (brand ${brandId}, $${spendAmount} spent, Level ${levelIndex})`);
+    if (accountFound) {
+      console.log(`✅ Purchase points awarded: ${points}pts to ${influencer.displayName} (brand ${brandId}, $${spendAmount} spent, Level ${levelIndex})`);
+    } else {
+      console.log(`ℹ️ Purchase points: no KUP account for ${customerEmail} (brand ${brandId}, $${spendAmount} — would have earned ${points}pts)`);
+    }
 
     res.json({
-      awarded: true,
-      pointsAwarded: points,
-      levelIndex,
+      awarded:       accountFound,
+      accountFound,
+      pointsAwarded: accountFound ? points : 0,
+      pointsWouldEarn: accountFound ? null : points, // what they'd earn once they join
+      levelIndex:    accountFound ? levelIndex : 0,
       spendAmount,
-      message: `${points} points awarded for $${spendAmount} purchase (Level ${levelIndex})`,
+      message: accountFound
+        ? `${points} points awarded for $${spendAmount} purchase (Level ${levelIndex})`
+        : `No KUP account found — ${points} points available once customer joins KUP`,
       logId: log._id,
-      newBalance: influencer
+      newBalance: accountFound
         ? (influencer.purchasePointsBalance || 0) + points
         : null,
     });
@@ -352,6 +362,50 @@ router.get('/preview', async (req, res) => {
   } catch (err) {
     console.error('GET /purchase-points/preview error:', err.message);
     res.status(500).json({ error: 'Could not preview points' });
+  }
+});
+
+// ── GET /api/purchase-points/webhook/test?brandId= ────────────────────────────
+// Authenticated dry-run: verifies the brand's config is set up and shows what
+// a $50 test purchase would earn across both channels. No log entry created.
+router.get('/webhook/test', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const config = await PurchasePointsConfig.findOne({ brandId });
+    if (!config) {
+      return res.json({ connected: false, reason: 'No config found — save your tier configuration first' });
+    }
+    if (!config.webhookToken) {
+      return res.json({ connected: false, reason: 'No webhook token yet — save your tier configuration first' });
+    }
+
+    // Dry-run: show what a $50 purchase would earn on each channel
+    const TEST_AMOUNT = 50;
+    const inStoreResult = calculatePoints(TEST_AMOUNT, config.inStore?.levels || []);
+    const onlineResult  = calculatePoints(TEST_AMOUNT, config.online?.levels  || []);
+
+    return res.json({
+      connected:    true,
+      webhookToken: config.webhookToken,
+      testAmount:   TEST_AMOUNT,
+      inStore: {
+        enabled:    !!config.inStore?.enabled,
+        levels:     config.inStore?.levels?.length || 0,
+        wouldEarn:  inStoreResult.points,
+        level:      inStoreResult.levelIndex,
+      },
+      online: {
+        enabled:    !!config.online?.enabled,
+        levels:     config.online?.levels?.length || 0,
+        wouldEarn:  onlineResult.points,
+        level:      onlineResult.levelIndex,
+      },
+    });
+  } catch (err) {
+    console.error('GET /purchase-points/webhook/test error:', err.message);
+    res.status(500).json({ error: 'Could not run test' });
   }
 });
 
@@ -443,23 +497,25 @@ router.post('/webhook/:platform/:webhookToken', async (req, res) => {
       influencer = await InfluencerProfile.findOne({ userId: user._id });
     }
 
-    // Build log entry
+    // Build log entry — pointsAwarded is 0 if no KUP account found (no escrow)
+    const accountFound = !!influencer;
     const logData = {
-      brandId:      config.brandId,
-      channel:      'online',
+      brandId:       config.brandId,
+      channel:       'online',
       spendAmount,
-      pointsAwarded: points,
-      levelIndex,
-      orderRef:     orderRef || null,
-      processedBy:  `webhook:${platform}`,
-      awardedAt:    new Date(),
+      pointsAwarded: accountFound ? points : 0,  // 0 = unmatched, not escrowed
+      levelIndex:    accountFound ? levelIndex : 0,
+      orderRef:      orderRef || null,
+      processedBy:   `webhook:${platform}`,
+      awardedAt:     new Date(),
     };
 
-    if (influencer) {
+    if (accountFound) {
       logData.influencerProfileId = influencer._id;
       logData.customerName        = influencer.displayName;
       logData.customerEmail       = customerEmail.toLowerCase();
 
+      // Credit the influencer's balance
       await InfluencerProfile.findByIdAndUpdate(influencer._id, {
         $inc: {
           purchasePointsBalance:     points,
@@ -467,23 +523,29 @@ router.post('/webhook/:platform/:webhookToken', async (req, res) => {
         },
       });
     } else {
-      // No account yet — escrow the points in the log (linked when they sign up)
+      // No KUP account — log the transaction for brand visibility, award nothing.
+      // Customer earns going forward once they join KUP and partner with this brand.
       logData.customerEmail = customerEmail.toLowerCase();
       logData.customerName  = customerEmail.split('@')[0];
     }
 
     const log = await PurchasePointsLog.create(logData);
 
-    console.log(`✅ Webhook ${platform}: ${points}pts → ${customerEmail} (brand ${config.brandId}, $${spendAmount} spent, Level ${levelIndex})`);
+    if (accountFound) {
+      console.log(`✅ Webhook ${platform}: ${points}pts → ${customerEmail} (brand ${config.brandId}, $${spendAmount}, Level ${levelIndex})`);
+    } else {
+      console.log(`ℹ️ Webhook ${platform}: no KUP account for ${customerEmail} (brand ${config.brandId}, $${spendAmount} — would have earned ${points}pts)`);
+    }
 
     return res.status(200).json({
-      received:     true,
-      awarded:      true,
-      pointsAwarded: points,
-      levelIndex,
+      received:        true,
+      awarded:         accountFound,
+      accountFound,
+      pointsAwarded:   accountFound ? points : 0,
+      pointsWouldEarn: accountFound ? null : points,
+      levelIndex:      accountFound ? levelIndex : 0,
       spendAmount,
-      logId:        log._id,
-      accountFound: !!influencer,
+      logId:           log._id,
     });
 
   } catch (err) {
