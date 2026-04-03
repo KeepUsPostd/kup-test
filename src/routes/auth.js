@@ -795,7 +795,7 @@ router.get('/social-verify/status', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
+      return res.json({ verified: false });
     }
 
     if (!influencer.isVerified) {

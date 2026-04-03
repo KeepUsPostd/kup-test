@@ -136,7 +136,7 @@ router.get('/my-brands', requireAuth, async (req, res) => {
     const user = req.user;
     const influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
     if (!influencerProfile) {
-      return res.status(404).json({ error: 'Influencer profile not found' });
+      return res.json({ brands: [] });
     }
 
     const { status } = req.query;
@@ -182,6 +182,7 @@ router.get('/check', requireAuth, async (req, res) => {
 
     res.json({
       isPartner: !!partnership && partnership.status === 'active',
+      partnered: !!partnership && partnership.status === 'active', // Flutter compat alias
       partnership: partnership || null,
     });
   } catch (error) {
