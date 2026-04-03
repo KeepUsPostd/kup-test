@@ -138,12 +138,17 @@ router.get('/callback', async (req, res) => {
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code);
 
-    // Get the Google account ID
-    const accountsResp = await gbpFetch(
-      'https://mybusinessaccountmanagement.googleapis.com/v1/accounts',
-      tokens.access_token
-    );
-    const googleAccountId = accountsResp.accounts?.[0]?.name || null; // e.g. "accounts/123456789"
+    // Get the Google account ID (best-effort — API may have restricted quota)
+    let googleAccountId = null;
+    try {
+      const accountsResp = await gbpFetch(
+        'https://mybusinessaccountmanagement.googleapis.com/v1/accounts',
+        tokens.access_token
+      );
+      googleAccountId = accountsResp.accounts?.[0]?.name || null; // e.g. "accounts/123456789"
+    } catch (accountErr) {
+      console.warn('[GBP] Could not fetch account ID (quota/access issue):', accountErr.message);
+    }
 
     // Upsert config
     await GoogleBusinessConfig.findOneAndUpdate(
