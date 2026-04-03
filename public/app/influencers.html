@@ -2584,25 +2584,47 @@
 
     /* ============== REQUEST APPROVE / DECLINE ============== */
     document.querySelectorAll('.btn-approve').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-name');
+      btn.addEventListener('click', async function() {
+        var partnershipId = this.getAttribute('data-partnership');
         var card = this.closest('.request-card');
-        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(20px)';
-        setTimeout(function() { card.remove(); }, 300);
-        kupToast(name + ' approved as a brand partner!', 'success');
+        var handle = card.querySelector('.request-name') ? card.querySelector('.request-name').textContent : 'Influencer';
+        var approveBtn = this;
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Approving...';
+        try {
+          await kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: 'active' });
+          card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'translateX(20px)';
+          setTimeout(function() { card.remove(); }, 300);
+          kupToast(handle + ' approved as a brand partner!', 'success');
+        } catch (err) {
+          approveBtn.disabled = false;
+          approveBtn.textContent = 'Approve';
+          kupToast('Could not approve request. Please try again.', 'error');
+        }
       });
     });
     document.querySelectorAll('.btn-decline').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-name');
+      btn.addEventListener('click', async function() {
+        var partnershipId = this.getAttribute('data-partnership');
         var card = this.closest('.request-card');
-        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(-20px)';
-        setTimeout(function() { card.remove(); }, 300);
-        kupToast(name + ' request declined', 'info');
+        var handle = card.querySelector('.request-name') ? card.querySelector('.request-name').textContent : 'Influencer';
+        var declineBtn = this;
+        declineBtn.disabled = true;
+        declineBtn.textContent = 'Declining...';
+        try {
+          await kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: 'ended', endedBy: 'brand' });
+          card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'translateX(-20px)';
+          setTimeout(function() { card.remove(); }, 300);
+          kupToast(handle + ' request declined', 'info');
+        } catch (err) {
+          declineBtn.disabled = false;
+          declineBtn.textContent = 'Decline';
+          kupToast('Could not decline request. Please try again.', 'error');
+        }
       });
     });
 
@@ -3411,10 +3433,10 @@
     /* ---- Render requests (source=request, not yet active) ---- */
     function renderRequests(partnerships) {
       var container = document.getElementById('requestCards');
-      // Requests are partnerships with source "request" — for now we show paused as "pending requests"
-      // In reality, a "request" workflow may need a separate model. For MVP, show all partnerships.
-      // Show empty state
-      var requestPartners = partnerships.filter(function(p) { return p.source === 'request'; });
+      // Partnerships are instant-active. This tab is reserved for future "Invite Only" mode
+      // where brands can gate who partners with them. For now it will always be empty.
+      // Only show pending (non-active) request-sourced partnerships — future Invite Only mode.
+      var requestPartners = partnerships.filter(function(p) { return p.source === 'request' && p.status !== 'active'; });
 
       var countEl = document.getElementById('requestCount');
       var badgeEl = document.getElementById('badgeRequests');
@@ -3422,7 +3444,7 @@
       badgeEl.textContent = requestPartners.length;
 
       if (requestPartners.length === 0) {
-        container.innerHTML = '<div class="requests-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No pending partnership requests</p></div>';
+        container.innerHTML = '<div class="requests-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No pending requests — partnerships activate instantly.<br><span style="font-size:0.8rem;opacity:0.6">Invite Only mode coming soon for Pro plans.</span></p></div>';
         return;
       }
 
@@ -3468,14 +3490,21 @@
 
       var html = '';
 
-      // Pending email invites (not yet signed up)
+      // Email invites — pending (awaiting response) and accepted (clicked and partnered)
       for (var j = 0; j < pending.length; j++) {
         var inv = pending[j];
+        var isAccepted = inv.status === 'accepted';
+        var statusBadge = isAccepted
+          ? '<span class="invited-status accepted">✓ Partnered</span>'
+          : '<span class="invited-status sent">Pending</span>';
+        var resendBtn = isAccepted
+          ? ''
+          : '<button class="btn-resend" style="margin-left:8px;font-size:0.75rem;padding:3px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555">Resend</button>';
         html += '<tr>' +
           '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem;color:#555">' + inv.email + '</td>' +
-          '<td data-label="Invited" class="time-cell">' + timeAgo(inv.createdAt) + '</td>' +
+          '<td data-label="Invited" class="time-cell">' + (isAccepted ? timeAgo(inv.acceptedAt || inv.updatedAt) + ' ago' : timeAgo(inv.createdAt)) + '</td>' +
           '<td data-label="Source"><span style="font-size:0.78rem;color:#888">email invite</span></td>' +
-          '<td data-label="Status"><span class="invited-status sent">Pending</span></td>' +
+          '<td data-label="Status">' + statusBadge + resendBtn + '</td>' +
           '</tr>';
       }
 
