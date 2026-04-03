@@ -3198,7 +3198,7 @@
           var profileId = this.getAttribute('data-profile-id');
           var card = this.closest('.disc-card');
           var name = card ? (card.getAttribute('data-name') || card.getAttribute('data-handle') || 'influencer') : 'influencer';
-          var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+          var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
           if (!brand || !brand.mongoId) {
             kupToast('Select a brand first', 'error');
             return;
@@ -3532,7 +3532,7 @@
       document.getElementById('toolbarInfluencerCount').textContent = stats.total || 0;
 
       // Slot counter
-      var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
       var plan = brand ? (brand.plan || 'starter') : 'starter';
       var limit = PLAN_INFLUENCER_LIMITS[plan] || 10;
       var limitText = limit === Infinity ? 'Unlimited' : limit;
@@ -3569,7 +3569,7 @@
 
     /* ---- LOAD PARTNERSHIPS FROM API ---- */
     async function loadPartnerships() {
-      var brand = (typeof getActiveBrand === 'function') ? getActiveBrand() : null;
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
       if (!brand || !brand.mongoId) {
         document.getElementById('influencersTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:#aaa">Select a brand to view influencer partnerships</td></tr>';
         return;
