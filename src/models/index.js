@@ -23,4 +23,5 @@ module.exports = {
   BrandInvite: require('./BrandInvite'),
   PurchasePointsConfig: require('./PurchasePointsConfig'),
   PurchasePointsLog: require('./PurchasePointsLog'),
+  GoogleBusinessConfig: require('./GoogleBusinessConfig'),
 };
