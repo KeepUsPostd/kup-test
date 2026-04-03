@@ -2648,16 +2648,42 @@
     });
 
     /* ============== RESEND INVITATION ============== */
-    document.querySelectorAll('.btn-resend').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var email = this.closest('tr').querySelector('td').textContent;
-        this.textContent = 'Sent!';
-        this.style.color = '#16a34a';
-        this.style.borderColor = '#16a34a';
-        var b = this;
-        setTimeout(function() { b.textContent = 'Resend'; b.style.color = ''; b.style.borderColor = ''; }, 2000);
+    // Resend invite — use event delegation so dynamically rendered buttons are caught
+    document.getElementById('invitedTbody').addEventListener('click', async function(e) {
+      var btn = e.target.closest('.btn-resend');
+      if (!btn) return;
+
+      var email = btn.getAttribute('data-email');
+      if (!email) return;
+
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand && (brand.mongoId || brand.id);
+      if (!brandId) { kupToast('No active brand found', 'error'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        await kupApi.post('/api/partnerships/invite', {
+          brandId: brandId,
+          emails: [email],
+          message: '',
+          partnerLink: '',
+        });
+        btn.textContent = '✓ Sent!';
+        btn.style.color = '#16a34a';
+        btn.style.borderColor = '#16a34a';
         kupToast('Invitation resent to ' + email, 'success');
-      });
+        setTimeout(function() {
+          btn.textContent = 'Resend';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+          btn.disabled = false;
+        }, 3000);
+      } catch (err) {
+        btn.textContent = 'Resend';
+        btn.disabled = false;
+        kupToast('Could not resend invite. Try again.', 'error');
+      }
     });
 
     /* ============== ADD INFLUENCER MODAL ============== */
@@ -3521,7 +3547,7 @@
           : '<span class="invited-status sent">Pending</span>';
         var resendBtn = isAccepted
           ? ''
-          : '<button class="btn-resend" style="margin-left:8px;font-size:0.75rem;padding:3px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555">Resend</button>';
+          : '<button class="btn-resend" data-email="' + inv.email + '" style="margin-left:8px;font-size:0.75rem;padding:3px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555">Resend</button>';
         var timeDisplay = isAccepted
           ? 'Partnered ' + timeAgo(inv.acceptedAt || inv.updatedAt)
           : 'Invited ' + timeAgo(inv.createdAt);
