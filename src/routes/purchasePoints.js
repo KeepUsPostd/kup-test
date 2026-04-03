@@ -15,7 +15,7 @@ const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
 const {
   Brand, BrandProfile, InfluencerProfile,
-  PurchasePointsConfig, PurchasePointsLog,
+  PurchasePointsConfig, PurchasePointsLog, Reward,
 } = require('../models');
 const User = require('../models/User');
 
@@ -134,6 +134,39 @@ router.put('/config', requireAuth, async (req, res) => {
     );
 
     console.log(`✅ Purchase points config saved for brand ${brandId}`);
+
+    // ── Sync purchase tiers → Reward model so native app stays current ────────
+    // The brand's points-type Reward stores purchaseTiers for display in the app.
+    // Whenever the brand updates tiers here, we push the latest data into that
+    // Reward record so the native app never reads stale tier info.
+    try {
+      const allTiers = [
+        ...((config.inStore?.levels || [])
+          .filter(l => l.minSpend > 0 && l.points > 0)
+          .map(l => ({ spendThreshold: l.minSpend, pointsEarned: l.points }))),
+        // Note: we only sync in-store tiers to the reward display since online
+        // tiers are webhook-driven and separate from the in-app reward program.
+      ];
+      const hasAnyTiers = allTiers.length > 0 || (config.online?.levels || []).some(l => l.minSpend > 0 && l.points > 0);
+
+      const rewardSync = await Reward.findOneAndUpdate(
+        { brandId, rewardType: 'points', status: { $ne: 'deleted' } },
+        {
+          $set: {
+            'pointConfig.purchaseEnabled': hasAnyTiers,
+            'pointConfig.purchaseTiers':   allTiers,
+          },
+        },
+        { sort: { createdAt: -1 } } // most recent points reward if multiple
+      );
+      if (rewardSync) {
+        console.log(`🔄 Synced purchase tiers → Reward ${rewardSync._id} for brand ${brandId}`);
+      }
+    } catch (syncErr) {
+      // Non-fatal — config is already saved, sync failure shouldn't block the response
+      console.warn(`⚠️ Could not sync purchase tiers to Reward model: ${syncErr.message}`);
+    }
+
     res.json({ message: 'Purchase points config saved', config });
   } catch (err) {
     console.error('PUT /purchase-points/config error:', err.message);

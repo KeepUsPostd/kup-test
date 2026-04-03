@@ -469,16 +469,17 @@
             </div>
           </div>
 
-          <!-- B. Purchase Points -->
-          <div class="point-category" id="catPurchase">
-            <div class="point-category-header" onclick="toggleCategory('purchase')">
-              <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">Replaces traditional punch cards</span></h6>
-              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleCategory('purchase')"><span class="kup-toggle-slider"></span></label>
+          <!-- B. Purchase Points — managed on dedicated setup page, not in this wizard -->
+          <div class="point-category" id="catPurchase" style="border:1.5px dashed #e0e0e0;background:#fafafa;">
+            <div class="point-category-header" style="cursor:default;">
+              <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">In-store &amp; online spend rewards</span></h6>
+              <span id="purchasePtsStatusBadge" style="font-size:0.7rem;font-weight:600;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;">Loading…</span>
             </div>
-            <div class="point-category-body">
-              <div class="purchase-tier"><span class="tier-label">Level 1</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend1" placeholder="25" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn1" placeholder="50" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="purchase-tier"><span class="tier-label">Level 2</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend2" placeholder="50" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn2" placeholder="120" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="purchase-tier"><span class="tier-label">Level 3</span><div class="tier-spend"><span class="tier-prefix">$</span><input type="number" id="ptPurchaseSpend3" placeholder="100" min="0"></div><span class="tier-arrow"><i class="ph ph-arrow-right"></i></span><div class="tier-earn"><input type="number" id="ptPurchaseEarn3" placeholder="300" min="0"><span class="pts-suffix">pts</span></div></div>
+            <div class="point-category-body" style="display:block !important;">
+              <p style="font-size:0.8rem;color:#666;line-height:1.5;margin:0 0 12px;">Purchase Points have their own dedicated setup — set spend tiers, enable in-store QR scanning, connect your online store webhook, and manage staff access all in one place.</p>
+              <a href="purchase-points-setup.html" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;font-size:0.8rem;font-weight:700;padding:9px 18px;border-radius:8px;text-decoration:none;font-family:inherit;">
+                <i class="ph ph-arrow-square-out"></i> Configure Purchase Points
+              </a>
             </div>
           </div>
 
@@ -968,7 +969,7 @@
 
     /* ============ TOGGLE POINT CATEGORY ============ */
     function toggleCategory(catName) {
-      var catMap = { 'content':'catContent', 'purchase':'catPurchase', 'gratitude':'catGratitude' };
+      var catMap = { 'content':'catContent', 'gratitude':'catGratitude' }; // purchase: managed on purchase-points-setup.html
       var catEl = document.getElementById(catMap[catName]);
       if (!catEl) return;
       var checkbox = catEl.querySelector('.kup-toggle input');
@@ -1002,20 +1003,9 @@
           }
         });
       }
-      // Purchase
-      if (document.getElementById('catPurchase').classList.contains('enabled')) {
-        config.categories.push({
-          name: 'Purchase Pts',
-          cssClass: 'purchase-pts',
-          values: {
-            tiers: [
-              { spend: document.getElementById('ptPurchaseSpend1').value, earn: document.getElementById('ptPurchaseEarn1').value },
-              { spend: document.getElementById('ptPurchaseSpend2').value, earn: document.getElementById('ptPurchaseEarn2').value },
-              { spend: document.getElementById('ptPurchaseSpend3').value, earn: document.getElementById('ptPurchaseEarn3').value }
-            ]
-          }
-        });
-      }
+      // Purchase Points: tiers are managed on purchase-points-setup.html / PurchasePointsConfig.
+      // The backend syncs them into Reward.pointConfig on every /api/purchase-points/config save.
+      // We don't read them from DOM here — they're not editable in this wizard anymore.
       // Gratitude
       if (document.getElementById('catGratitude').classList.contains('enabled')) {
         config.categories.push({
@@ -1244,10 +1234,6 @@
               rows.push({l:'Content: Approve', v:cat.values.approved + ' pts'});
               rows.push({l:'Content: Publish', v:cat.values.published + ' pts'});
               rows.push({l:'Content: Bonus', v:cat.values.bonus + ' pts'});
-            } else if (cat.name === 'Purchase Pts') {
-              cat.values.tiers.forEach(function(t, i) {
-                if (t.spend || t.earn) rows.push({l:'Purchase L' + (i+1), v:'$' + (t.spend||'0') + ' \u2192 ' + (t.earn||'0') + ' pts'});
-              });
             } else if (cat.name === 'Gratitude') {
               rows.push({l:'Grat: Join', v:cat.values.join + ' pts'});
               rows.push({l:'Grat: Birthday', v:cat.values.birthday + ' pts'});
@@ -1347,20 +1333,19 @@
         payload.title = (document.getElementById('ptTitle') || {}).value || '';
         payload.description = (document.getElementById('ptDesc') || {}).value || '';
         if (earningMethod === 'point-based') {
-          var contentEnabled = true; // content points section is always shown for points type
-          var purchaseEnabled = !!(document.getElementById('ptPurchaseSpend1') || {}).value;
           var gratEnabled = !!(document.getElementById('ptGratJoin') || {}).value;
 
           payload.pointConfig = {
-            contentEnabled: contentEnabled,
+            contentEnabled: true, // content points always part of points-type reward
             contentPoints: {
               submitted: parseInt((document.getElementById('ptContentSubmit') || {}).value) || 10,
               approved: parseInt((document.getElementById('ptContentApprove') || {}).value) || 25,
               published: parseInt((document.getElementById('ptContentPublish') || {}).value) || 40,
               bonus: parseInt((document.getElementById('ptContentBonus') || {}).value) || 15
             },
-            purchaseEnabled: purchaseEnabled,
-            purchaseTiers: [],
+            // purchaseEnabled + purchaseTiers are NOT set here.
+            // They are managed on purchase-points-setup.html and synced to this
+            // reward's pointConfig automatically by PUT /api/purchase-points/config.
             gratitudeEnabled: gratEnabled,
             gratitudePoints: {
               join: parseInt((document.getElementById('ptGratJoin') || {}).value) || 0,
@@ -1369,13 +1354,6 @@
             },
             unlockThreshold: parseInt((document.getElementById('unlockThreshold') || {}).value) || 100
           };
-
-          // Purchase tiers
-          for (var t = 1; t <= 3; t++) {
-            var spend = parseInt((document.getElementById('ptPurchaseSpend' + t) || {}).value);
-            var earn = parseInt((document.getElementById('ptPurchaseEarn' + t) || {}).value);
-            if (spend && earn) payload.pointConfig.purchaseTiers.push({ spendThreshold: spend, pointsEarned: earn });
-          }
         }
       } else if (selectedType === 'free-product') {
         payload.title = (document.getElementById('fpTitle') || {}).value || '';
@@ -1483,13 +1461,7 @@
               if (document.getElementById('ptContentPublish')) document.getElementById('ptContentPublish').value = pc.contentPoints.published || 40;
               if (document.getElementById('ptContentBonus')) document.getElementById('ptContentBonus').value = pc.contentPoints.bonus || 15;
             }
-            if (pc.purchaseTiers && pc.purchaseTiers.length > 0) {
-              pc.purchaseTiers.forEach(function(tier, i) {
-                var idx = i + 1;
-                if (document.getElementById('ptPurchaseSpend' + idx)) document.getElementById('ptPurchaseSpend' + idx).value = tier.spendThreshold;
-                if (document.getElementById('ptPurchaseEarn' + idx)) document.getElementById('ptPurchaseEarn' + idx).value = tier.pointsEarned;
-              });
-            }
+            // purchaseTiers are no longer editable here — managed on purchase-points-setup.html
             if (pc.gratitudePoints) {
               if (document.getElementById('ptGratJoin')) document.getElementById('ptGratJoin').value = pc.gratitudePoints.join || 0;
               if (document.getElementById('ptGratBday')) document.getElementById('ptGratBday').value = pc.gratitudePoints.birthday || 0;
@@ -1559,7 +1531,6 @@
     document.addEventListener('input', function(e) {
       if (['ptTitle','ptValue','ptDesc','fpTitle','fpDesc','fpValue','dcTitle','dcValue','cpaMemo','unlockThreshold',
            'ptContentSubmit','ptContentApprove','ptContentPublish','ptContentBonus',
-           'ptPurchaseSpend1','ptPurchaseEarn1','ptPurchaseSpend2','ptPurchaseEarn2','ptPurchaseSpend3','ptPurchaseEarn3',
            'ptGratJoin','ptGratBday','ptGratAnniv'].indexOf(e.target.id) >= 0) { updatePreview(); }
     });
   </script>
@@ -1590,6 +1561,40 @@
   </script>
     <script src="/js/brand-context.js"></script>
     <script>
+      // Load purchase points status badge on Step 3
+      // Shows "X tiers active" or "Not configured" in the reference card
+      (function loadPurchasePtsBadge() {
+        function tryLoad() {
+          if (typeof auth === 'undefined') { setTimeout(tryLoad, 300); return; }
+          auth.onAuthStateChanged(function(user) {
+            if (!user) return;
+            var badge = document.getElementById('purchasePtsStatusBadge');
+            if (!badge) return;
+            var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+            var brandId = brand ? (brand.mongoId || null) : null;
+            if (!brandId) { badge.textContent = 'Not configured'; return; }
+            user.getIdToken().then(function(token) {
+              fetch('/api/purchase-points/config?brandId=' + brandId, {
+                headers: { 'Authorization': 'Bearer ' + token }
+              }).then(function(r) { return r.json(); }).then(function(data) {
+                var cfg = data.config || {};
+                var inLevels = ((cfg.inStore || {}).levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
+                var onLevels = ((cfg.online || {}).levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
+                var total = inLevels.length + onLevels.length;
+                if (total > 0) {
+                  badge.textContent = total + ' tier' + (total > 1 ? 's' : '') + ' active';
+                  badge.style.cssText = 'font-size:0.7rem;font-weight:600;color:#16a34a;background:rgba(22,163,74,0.1);padding:3px 10px;border-radius:20px;';
+                } else {
+                  badge.textContent = 'Not configured';
+                  badge.style.cssText = 'font-size:0.7rem;font-weight:600;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;';
+                }
+              }).catch(function() { badge.textContent = 'Not configured'; });
+            });
+          });
+        }
+        tryLoad();
+      })();
+
       // Hydrate header profile from brand context
       (function() {
         try {
