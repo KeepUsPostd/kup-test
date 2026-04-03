@@ -3449,24 +3449,39 @@
       container.innerHTML = html;
     }
 
-    /* ---- Render invited (source=invitation) ---- */
-    function renderInvited(partnerships) {
-      var invited = partnerships.filter(function(p) { return p.source === 'invitation'; });
+    /* ---- Render invited — shows confirmed partnerships (source=invitation) + pending email invites ---- */
+    function renderInvited(partnerships, pendingInvites) {
+      var confirmedInvites = partnerships.filter(function(p) { return p.source === 'invitation'; });
+      var pending = pendingInvites || [];
       var tbody = document.getElementById('invitedTbody');
       var countEl = document.getElementById('invitedCount');
       var badgeEl = document.getElementById('badgeInvited');
 
-      countEl.textContent = invited.length;
-      badgeEl.textContent = invited.length;
+      var total = confirmedInvites.length + pending.length;
+      countEl.textContent = total;
+      badgeEl.textContent = total;
 
-      if (invited.length === 0) {
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#aaa">No invitations sent yet</td></tr>';
         return;
       }
 
       var html = '';
-      for (var i = 0; i < invited.length; i++) {
-        var p = invited[i];
+
+      // Pending email invites (not yet signed up)
+      for (var j = 0; j < pending.length; j++) {
+        var inv = pending[j];
+        html += '<tr>' +
+          '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem;color:#555">' + inv.email + '</td>' +
+          '<td data-label="Invited" class="time-cell">' + timeAgo(inv.createdAt) + '</td>' +
+          '<td data-label="Source"><span style="font-size:0.78rem;color:#888">email invite</span></td>' +
+          '<td data-label="Status"><span class="invited-status sent">Pending</span></td>' +
+          '</tr>';
+      }
+
+      // Confirmed partnerships from invite link
+      for (var i = 0; i < confirmedInvites.length; i++) {
+        var p = confirmedInvites[i];
         var inf = p.influencerProfileId || {};
         var handle = inf.handle || 'unknown';
         var statusClass = p.status === 'active' ? 'accepted' : (p.status === 'ended' ? 'expired' : 'sent');
@@ -3479,6 +3494,7 @@
           '<td data-label="Status"><span class="invited-status ' + statusClass + '">' + statusLabel + '</span></td>' +
           '</tr>';
       }
+
       tbody.innerHTML = html;
     }
 
@@ -3544,7 +3560,15 @@
       }
 
       try {
-        var data = await kupApi.get('/api/partnerships?brandId=' + brand.mongoId);
+        // Fetch partnerships and pending email invites in parallel
+        var results = await Promise.all([
+          kupApi.get('/api/partnerships?brandId=' + brand.mongoId),
+          kupApi.get('/api/partnerships/pending-invites?brandId=' + brand.mongoId).catch(function() { return { invites: [] }; }),
+        ]);
+
+        var data = results[0];
+        var inviteData = results[1];
+
         if (!data || data.error) {
           kupToast(data ? data.error : 'Could not load partnerships', 'error');
           document.getElementById('influencersTbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#e74c3c">Error loading partnerships</td></tr>';
@@ -3552,12 +3576,13 @@
         }
 
         allPartnerships = data.partnerships || [];
+        var pendingInvites = inviteData.invites || [];
         var stats = data.stats || { total: 0, active: 0, paused: 0, ended: 0 };
 
         updateInfluencerStats(stats, allPartnerships);
         renderInfluencersTable(allPartnerships);
         renderRequests(allPartnerships);
-        renderInvited(allPartnerships);
+        renderInvited(allPartnerships, pendingInvites);
 
       } catch (err) {
         kupToast('Failed to load partnerships', 'error');

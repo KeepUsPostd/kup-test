@@ -400,7 +400,7 @@ router.post('/invite', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'brandId and emails array are required' });
     }
 
-    const { Brand } = require('../models');
+    const { Brand, BrandInvite } = require('../models');
     const brand = await Brand.findById(brandId);
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
@@ -438,6 +438,21 @@ router.post('/invite', requireAuth, async (req, res) => {
         });
         results.sent.push(email);
         console.log(`📧 Influencer invite sent to ${email} from brand ${brandId}`);
+
+        // Save invite record so it appears in the Invited tab dashboard
+        // upsert: re-sending to same email refreshes the expiry instead of erroring
+        await BrandInvite.findOneAndUpdate(
+          { brandId, email: email.toLowerCase() },
+          {
+            brandId,
+            email: email.toLowerCase(),
+            status: 'pending',
+            message: customMessage || null,
+            sentBy: req.user?._id || null,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
       } catch (emailErr) {
         console.error(`❌ Failed to send invite to ${email}:`, emailErr.message);
         results.failed.push(email);
@@ -452,6 +467,24 @@ router.post('/invite', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Influencer invite error:', error.message);
     res.status(500).json({ error: 'Could not send invitations' });
+  }
+});
+
+// GET /api/partnerships/pending-invites — Pending email invites for a brand's Invited tab
+router.get('/pending-invites', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const { BrandInvite } = require('../models');
+    const invites = await BrandInvite.find({ brandId, status: 'pending' })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ invites });
+  } catch (error) {
+    console.error('Pending invites error:', error.message);
+    res.status(500).json({ error: 'Could not load pending invites' });
   }
 });
 

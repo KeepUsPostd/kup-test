@@ -20,4 +20,5 @@ module.exports = {
   Notification: require('./Notification'),
   ClaimRequest: require('./ClaimRequest'),
   BrandScan: require('./BrandScan'),
+  BrandInvite: require('./BrandInvite'),
 };
