@@ -36,6 +36,16 @@ const purchasePointsConfigSchema = new mongoose.Schema({
   },
   inStore: { type: channelSchema, default: () => ({ enabled: true, levels: [] }) },
   online:  { type: channelSchema, default: () => ({ enabled: false, levels: [] }) },
+
+  // Webhook token — used as the secret in platform webhook URLs.
+  // Generated once on first config save. Never changes unless manually rotated.
+  // URL pattern: POST /api/purchase-points/webhook/:platform/:webhookToken
+  webhookToken: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null,
+  },
 }, { timestamps: true });
 
 purchasePointsConfigSchema.index({ brandId: 1 });

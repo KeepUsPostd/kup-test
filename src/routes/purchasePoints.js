@@ -11,11 +11,13 @@
 
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth');
 const {
   Brand, BrandProfile, InfluencerProfile,
   PurchasePointsConfig, PurchasePointsLog,
 } = require('../models');
+const User = require('../models/User');
 
 // ── Shared helper ─────────────────────────────────────────────────────────────
 function calculatePoints(spendAmount, levels) {
@@ -43,6 +45,7 @@ router.get('/config', requireAuth, async (req, res) => {
       return res.json({
         config: {
           brandId,
+          webhookToken: null,
           inStore: {
             enabled: true,
             levels: [
@@ -116,6 +119,12 @@ router.put('/config', requireAuth, async (req, res) => {
         enabled: online.enabled === true,
         levels: sortLevels(online.levels || []),
       };
+    }
+
+    // Ensure a webhook token exists — generate once, never overwrite
+    const existing = await PurchasePointsConfig.findOne({ brandId }).select('webhookToken');
+    if (!existing?.webhookToken) {
+      update.webhookToken = crypto.randomBytes(28).toString('hex');
     }
 
     const config = await PurchasePointsConfig.findOneAndUpdate(
@@ -343,6 +352,144 @@ router.get('/preview', async (req, res) => {
   } catch (err) {
     console.error('GET /purchase-points/preview error:', err.message);
     res.status(500).json({ error: 'Could not preview points' });
+  }
+});
+
+// ── POST /api/purchase-points/webhook/:platform/:webhookToken ─────────────────
+// Server-to-server webhook receiver — no Firebase auth required.
+// Platforms call this endpoint when an order is placed/paid.
+// The webhookToken in the URL acts as the shared secret.
+//
+// Supported platforms: shopify | woocommerce | squarespace | wix
+//
+// Each platform sends a different JSON payload format. We normalize them all
+// into { customerEmail, spendAmount, orderRef } then run the same award logic.
+router.post('/webhook/:platform/:webhookToken', async (req, res) => {
+  try {
+    const { platform, webhookToken } = req.params;
+    const VALID_PLATFORMS = ['shopify', 'woocommerce', 'squarespace', 'wix'];
+
+    if (!VALID_PLATFORMS.includes(platform)) {
+      return res.status(400).json({ error: 'Unknown platform' });
+    }
+
+    // Validate token → look up brand config
+    const config = await PurchasePointsConfig.findOne({ webhookToken });
+    if (!config) {
+      console.warn(`⚠️ Purchase points webhook: invalid token for platform ${platform}`);
+      return res.status(401).json({ error: 'Invalid webhook token' });
+    }
+
+    // ── Parse platform-specific payload ──────────────────────────────────────
+    const body = req.body;
+    let customerEmail = null;
+    let spendAmount = null;
+    let orderRef = null;
+
+    switch (platform) {
+      case 'shopify':
+        // Shopify orders/paid webhook payload
+        customerEmail = body.email || body.customer?.email;
+        spendAmount   = parseFloat(body.total_price || body.subtotal_price);
+        orderRef      = body.order_number?.toString() || body.id?.toString();
+        break;
+
+      case 'woocommerce':
+        // WooCommerce order.completed webhook payload
+        customerEmail = body.billing?.email;
+        spendAmount   = parseFloat(body.total);
+        orderRef      = body.id?.toString();
+        break;
+
+      case 'squarespace':
+        // Squarespace order.create webhook payload (nested under data.order)
+        customerEmail = body.data?.order?.customerEmail;
+        spendAmount   = parseFloat(body.data?.order?.grandTotal?.value ?? body.data?.order?.subtotal?.value);
+        orderRef      = body.data?.order?.id;
+        break;
+
+      case 'wix':
+        // Wix Automations HTTP request body (Wix Stores order placed)
+        customerEmail = body.buyerInfo?.email || body.customer?.email;
+        spendAmount   = parseFloat(body.totals?.total ?? body.total ?? body.price);
+        orderRef      = body.orderId || body.id?.toString();
+        break;
+    }
+
+    // Validate parsed values — always return 200 so platform doesn't retry on business logic misses
+    if (!customerEmail || isNaN(spendAmount) || spendAmount <= 0) {
+      console.warn(`⚠️ Webhook ${platform}: could not parse email/amount`, { customerEmail, spendAmount, body });
+      return res.status(200).json({ received: true, awarded: false, reason: 'Could not parse customer email or spend amount from payload' });
+    }
+
+    // Check online channel enabled
+    if (!config.online?.enabled) {
+      return res.status(200).json({ received: true, awarded: false, reason: 'Online purchase points are disabled for this brand' });
+    }
+
+    // Calculate points
+    const { points, levelIndex } = calculatePoints(spendAmount, config.online.levels);
+    if (points === 0) {
+      const floor = config.online.levels.length > 0
+        ? Math.min(...config.online.levels.map(l => l.minSpend))
+        : 0;
+      return res.status(200).json({ received: true, awarded: false, reason: `Spend $${floor} or more to earn points (got $${spendAmount})` });
+    }
+
+    // Resolve influencer account by email
+    let influencer = null;
+    const user = await User.findOne({ email: customerEmail.toLowerCase() });
+    if (user) {
+      influencer = await InfluencerProfile.findOne({ userId: user._id });
+    }
+
+    // Build log entry
+    const logData = {
+      brandId:      config.brandId,
+      channel:      'online',
+      spendAmount,
+      pointsAwarded: points,
+      levelIndex,
+      orderRef:     orderRef || null,
+      processedBy:  `webhook:${platform}`,
+      awardedAt:    new Date(),
+    };
+
+    if (influencer) {
+      logData.influencerProfileId = influencer._id;
+      logData.customerName        = influencer.displayName;
+      logData.customerEmail       = customerEmail.toLowerCase();
+
+      await InfluencerProfile.findByIdAndUpdate(influencer._id, {
+        $inc: {
+          purchasePointsBalance:     points,
+          totalPurchasePointsEarned: points,
+        },
+      });
+    } else {
+      // No account yet — escrow the points in the log (linked when they sign up)
+      logData.customerEmail = customerEmail.toLowerCase();
+      logData.customerName  = customerEmail.split('@')[0];
+    }
+
+    const log = await PurchasePointsLog.create(logData);
+
+    console.log(`✅ Webhook ${platform}: ${points}pts → ${customerEmail} (brand ${config.brandId}, $${spendAmount} spent, Level ${levelIndex})`);
+
+    return res.status(200).json({
+      received:     true,
+      awarded:      true,
+      pointsAwarded: points,
+      levelIndex,
+      spendAmount,
+      logId:        log._id,
+      accountFound: !!influencer,
+    });
+
+  } catch (err) {
+    console.error(`POST /purchase-points/webhook error:`, err.message);
+    // Always return 200 to prevent platform from retrying indefinitely
+    return res.status(200).json({ received: true, awarded: false, error: 'Internal error — contact support' });
   }
 });
 
