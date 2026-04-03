@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discover Brand — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
+
+  <style>
+    :root {
+      --kup-blue:       #2EA5DD;
+      --kup-purple:     #707BBB;
+      --kup-gradient:   linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-body-bg:    #F5F6FA;
+      --kup-font:       'Montserrat', sans-serif;
+      --radius-md:      12px;
+      --radius-lg:      20px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: var(--kup-font);
+      background: var(--kup-body-bg);
+      color: #1a1a1a;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ── */
+    .auth-header {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .auth-header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #1a1a1a;
+      text-decoration: none;
+    }
+    .auth-header-logo img { height: 28px; }
+
+    /* ── MAIN CONTENT ── */
+    .page-wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 32px 16px 100px;
+    }
+
+    /* ── BRAND CARD ── */
+    .brand-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .brand-card-hero {
+      height: 120px;
+      background: var(--kup-gradient);
+      position: relative;
+    }
+    .brand-card-hero img.hero-img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    .brand-card-body {
+      padding: 0 24px 28px;
+    }
+
+    .brand-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+      margin-top: -36px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    }
+    .brand-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .brand-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .brand-category {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .brand-desc {
+      font-size: 0.875rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0 0;
+    }
+    .stat-pill {
+      flex: 1;
+      background: #f5f7fa;
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .stat-pill .val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--kup-blue);
+      display: block;
+    }
+    .stat-pill .lbl {
+      font-size: 0.7rem;
+      color: #999;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── ACTION CARD ── */
+    .action-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .action-card h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #1a1a1a;
+    }
+    .action-card p {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .btn-partner {
+      width: 100%;
+      padding: 15px;
+      background: var(--kup-gradient);
+      color: #fff;
+      font-family: var(--kup-font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-partner:hover { opacity: 0.9; }
+    .btn-partner:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-secondary-link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #999;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .btn-secondary-link:hover { color: var(--kup-blue); }
+
+    /* ── ALREADY PARTNERED STATE ── */
+    .partnered-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #2e7d32;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* ── LOADING / ERROR ── */
+    .loading-wrap {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+    }
+    .loading-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #e8ecf0;
+      border-top-color: var(--kup-blue);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MOBILE NAV ── */
+    .kup-mobile-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #eee;
+      display: flex;
+      z-index: 200;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .kup-mobile-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #aaa;
+      text-decoration: none;
+      gap: 3px;
+    }
+    .kup-mobile-nav-item svg { width: 22px; height: 22px; }
+    .kup-mobile-nav-item.active { color: var(--kup-blue); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="auth-header">
+    <a href="activity.html" class="auth-header-logo">
+      <img src="/images/kup_new_app_logo_3.png" alt="KUP" onerror="this.style.display='none'">
+      KeepUsPostd
+    </a>
+  </header>
+
+  <div class="page-wrap">
+
+    <!-- Loading state -->
+    <div id="loadingWrap" class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <p>Loading brand...</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="errorWrap" class="loading-wrap" style="display:none">
+      <p style="font-size:1.5rem;margin-bottom:8px">🤷</p>
+      <p style="font-weight:700;color:#333;margin-bottom:4px">Brand not found</p>
+      <p style="font-size:0.85rem">This brand may no longer be active.</p>
+      <a href="activity.html" style="display:inline-block;margin-top:16px;color:#2EA5DD;font-weight:700;font-size:0.9rem">Back to Dashboard</a>
+    </div>
+
+    <!-- Brand content (populated by JS) -->
+    <div id="brandContent" style="display:none">
+
+      <!-- Brand Card -->
+      <div class="brand-card">
+        <div class="brand-card-hero" id="brandHero">
+          <img class="hero-img" id="heroBannerImg" src="" alt="" style="display:none">
+        </div>
+        <div class="brand-card-body">
+          <div class="brand-avatar" id="brandAvatar">
+            <span id="brandInitials">KP</span>
+          </div>
+          <div class="brand-name" id="brandName">Brand</div>
+          <div class="brand-category" id="brandCategory"></div>
+          <p class="brand-desc" id="brandDesc"></p>
+          <div class="stats-row" id="statsRow" style="display:none">
+            <div class="stat-pill">
+              <span class="val" id="statPartners">—</span>
+              <span class="lbl">Partners</span>
+            </div>
+            <div class="stat-pill">
+              <span class="val" id="statRewards">—</span>
+              <span class="lbl">Active Rewards</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Card -->
+      <div class="action-card">
+        <div id="alreadyPartnered" class="partnered-badge" style="display:none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          You're already a partner with this brand!
+        </div>
+
+        <div id="partnerCTA">
+          <h3 id="ctaTitle">Become a Partner</h3>
+          <p id="ctaDesc">Partner with this brand to earn cash rewards when you share reviews on the KeepUsPostd app.</p>
+          <button class="btn-partner" id="partnerBtn">Partner with this Brand</button>
+        </div>
+
+        <a href="activity.html" class="btn-secondary-link">Go to Dashboard</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/api.js"></script>
+
+  <script>
+    (function () {
+      // Parse brand code from ?brand= query param
+      var params = new URLSearchParams(window.location.search);
+      var brandCode = params.get('brand') || '';
+
+      var brandData = null;
+
+      function showError() {
+        document.getElementById('loadingWrap').style.display = 'none';
+        document.getElementById('errorWrap').style.display = 'block';
+      }
+
+      function showBrand(brand, isPartnered) {
+        document.getElementById('loadingWrap').style.display = 'none';
+        document.getElementById('brandContent').style.display = 'block';
+
+        var name = brand.name || 'Brand';
+        var words = name.trim().split(/\s+/);
+        var initials = words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 2);
+
+        document.getElementById('brandName').textContent = name;
+        document.getElementById('brandInitials').textContent = initials;
+        document.getElementById('brandCategory').textContent = brand.category ? '🏢 ' + brand.category : '';
+        document.getElementById('brandDesc').textContent = brand.description || 'Partner with ' + name + ' to earn cash rewards for your content.';
+        document.title = name + ' — KeepUsPostd';
+
+        // Logo
+        if (brand.logoUrl) {
+          var img = document.createElement('img');
+          img.src = brand.logoUrl;
+          img.alt = name;
+          document.getElementById('brandAvatar').innerHTML = '';
+          document.getElementById('brandAvatar').appendChild(img);
+        }
+
+        // Brand color
+        if (brand.brandColors && brand.brandColors.primary) {
+          var p = brand.brandColors.primary;
+          var s = brand.brandColors.secondary || p;
+          document.getElementById('brandAvatar').style.background = 'linear-gradient(135deg, ' + p + ', ' + s + ')';
+          document.getElementById('brandHero').style.background = 'linear-gradient(135deg, ' + p + ', ' + s + ')';
+        }
+
+        // Hero banner
+        if (brand.heroImageUrl) {
+          var heroImg = document.getElementById('heroBannerImg');
+          heroImg.src = brand.heroImageUrl;
+          heroImg.alt = name;
+          heroImg.style.display = 'block';
+        }
+
+        // CTA copy
+        document.getElementById('ctaTitle').textContent = 'Partner with ' + name;
+        document.getElementById('ctaDesc').textContent =
+          'Earn cash rewards when you share reviews about ' + name + ' on the KeepUsPostd app.';
+
+        // Already partnered?
+        if (isPartnered) {
+          document.getElementById('partnerCTA').style.display = 'none';
+          document.getElementById('alreadyPartnered').style.display = 'flex';
+        }
+      }
+
+      // Partner button handler
+      document.getElementById('partnerBtn').addEventListener('click', async function () {
+        if (!brandData) return;
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Partnering...';
+        try {
+          await kupApi.post('/api/partnerships', { brandId: brandData._id, source: 'invitation' });
+          document.getElementById('partnerCTA').style.display = 'none';
+          document.getElementById('alreadyPartnered').style.display = 'flex';
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = 'Partner with this Brand';
+          alert(err.message || 'Could not complete partnership. Please try again.');
+        }
+      });
+
+      // Load brand data
+      if (!brandCode) { showError(); return; }
+
+      fetch('/api/brands/public/' + encodeURIComponent(brandCode))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.brand) { showError(); return; }
+          brandData = data.brand;
+
+          // Check partnership status if logged in
+          if (typeof kupApi !== 'undefined' && brandData._id) {
+            kupApi.get('/api/partnerships/check?brandId=' + brandData._id)
+              .then(function (res) { showBrand(brandData, res && res.isPartnered); })
+              .catch(function () { showBrand(brandData, false); });
+          } else {
+            showBrand(brandData, false);
+          }
+        })
+        .catch(showError);
+    })();
+  </script>
+</body>
+</html>
