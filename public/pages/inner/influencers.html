@@ -3433,10 +3433,10 @@
     /* ---- Render requests (source=request, not yet active) ---- */
     function renderRequests(partnerships) {
       var container = document.getElementById('requestCards');
-      // Requests are partnerships with source "request" — for now we show paused as "pending requests"
-      // In reality, a "request" workflow may need a separate model. For MVP, show all partnerships.
-      // Show empty state
-      var requestPartners = partnerships.filter(function(p) { return p.source === 'request'; });
+      // Partnerships are instant-active. This tab is reserved for future "Invite Only" mode
+      // where brands can gate who partners with them. For now it will always be empty.
+      // Only show pending (non-active) request-sourced partnerships — future Invite Only mode.
+      var requestPartners = partnerships.filter(function(p) { return p.source === 'request' && p.status !== 'active'; });
 
       var countEl = document.getElementById('requestCount');
       var badgeEl = document.getElementById('badgeRequests');
@@ -3444,7 +3444,7 @@
       badgeEl.textContent = requestPartners.length;
 
       if (requestPartners.length === 0) {
-        container.innerHTML = '<div class="requests-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No pending partnership requests</p></div>';
+        container.innerHTML = '<div class="requests-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No pending requests — partnerships activate instantly.<br><span style="font-size:0.8rem;opacity:0.6">Invite Only mode coming soon for Pro plans.</span></p></div>';
         return;
       }
 

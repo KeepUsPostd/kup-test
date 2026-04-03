@@ -104,16 +104,14 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     const resolvedSource = source || 'invitation';
-    // Influencer-initiated requests start as pending (brand must approve)
-    // Brand-initiated invitations go straight to active
-    const initialStatus = resolvedSource === 'request' ? 'pending' : 'active';
-
+    // All partnerships activate instantly — no approval gate.
+    // Brand control is handled via plan slot limits, remove, pause, and future Invite Only mode.
     const partnership = await Partnership.create({
       brandId,
       influencerProfileId,
-      status: initialStatus,
+      status: 'active',
       source: resolvedSource,
-      startedAt: initialStatus === 'active' ? new Date() : undefined,
+      startedAt: new Date(),
     });
 
     console.log(`🤝 Partnership created: brand ${brandId} + @${influencer.handle}`);
