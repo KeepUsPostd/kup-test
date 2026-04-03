@@ -899,23 +899,23 @@
         <h3>Purchase Points Setup <span>| KeepUsPostd</span></h3>
       </div>
 
-      <!-- Summary Stats -->
+      <!-- Summary Stats (live from API) -->
       <div class="reward-stats-row">
         <div class="reward-stat-card">
-          <div class="stat-value" style="color: var(--kup-blue);">3,240</div>
+          <div class="stat-value" style="color: var(--kup-blue);" id="statTotalPts">—</div>
           <div class="stat-label">Total Purchase Pts</div>
         </div>
         <div class="reward-stat-card">
-          <div class="stat-value">1,890</div>
+          <div class="stat-value" id="statInStorePts">—</div>
           <div class="stat-label">In-Store Points</div>
         </div>
         <div class="reward-stat-card">
-          <div class="stat-value">1,350</div>
+          <div class="stat-value" id="statOnlinePts">—</div>
           <div class="stat-label">Online Points</div>
         </div>
         <div class="reward-stat-card">
-          <div class="stat-value">1</div>
-          <div class="stat-label">Connected Stores</div>
+          <div class="stat-value" id="statTransactions">—</div>
+          <div class="stat-label">Total Transactions</div>
         </div>
       </div>
 
@@ -931,18 +931,18 @@
             <div class="reward-card-body">
               <div class="reward-card-title">
                 In-Store QR Scan
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+                <span class="status-pill" id="inStorePill"><span class="status-dot"></span><span id="inStorePillText">Loading…</span></span>
               </div>
               <p class="reward-card-subtitle">Your brand's <a href="market-code.html" style="color:var(--kup-blue);font-weight:600;">Market Code</a> lives inside each customer's KeepUsPostd app &mdash; at checkout, the store clerk scans it from their phone to award purchase points</p>
               <div class="reward-card-tags">
                 <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-                <span class="per-approval-badge">1 pt per $1 spent</span>
+                <span class="per-approval-badge" id="inStoreTierSummary">No tiers set</span>
               </div>
             </div>
             <div class="reward-card-right">
               <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>412</strong><span>scans</span></div>
-                <div class="reward-metric"><strong>1,890</strong><span>pts awarded</span></div>
+                <div class="reward-metric"><strong id="inStoreScans">—</strong><span>transactions</span></div>
+                <div class="reward-metric"><strong id="inStorePtsAwarded">—</strong><span>pts awarded</span></div>
               </div>
               <div class="reward-card-actions">
                 <button class="btn-reward-action edit" onclick="toggleDetails('inStoreCard')">
@@ -961,29 +961,49 @@
                   <div class="step-item"><span class="step-num">1</span><span>Customer opens the KeepUsPostd app and pulls up your brand's Market Code from their profile</span></div>
                   <div class="step-item"><span class="step-num">2</span><span>Store clerk scans the code from the customer's phone screen at checkout</span></div>
                   <div class="step-item"><span class="step-num">3</span><span>The purchase total is entered and linked to the customer's account</span></div>
-                  <div class="step-item"><span class="step-num">4</span><span>Points are automatically awarded based on your earn rate</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>Points are automatically awarded based on the highest tier the customer's purchase reaches — no daily cap, every qualifying transaction counts</span></div>
                 </div>
                 <p style="font-size:0.78rem;color:#888;margin:10px 0 0;line-height:1.45;"><strong>Note:</strong> If a returning customer who already has the KeepUsPostd app scans your printed Market Code, they'll be taken directly to your brand's Learn More page &mdash; no re-download required.</p>
               </div>
-              <!-- Configuration -->
+              <!-- Configuration: 3-Tier Editor -->
               <div class="detail-group">
-                <h6>Configuration</h6>
+                <h6>Purchase Point Tiers</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. Customers earn flat points for the highest tier their purchase reaches or exceeds. No stacking.</p>
                 <div class="detail-row">
-                  <span class="label">Earn rate</span>
-                  <span class="value"><input type="number" class="edit-input" value="1" min="1"><span class="edit-suffix">pt per $1 spent</span></span>
+                  <span class="label">Enable in-store points</span>
+                  <span class="value"><label class="edit-toggle"><input type="checkbox" id="inStoreEnabled" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
                 </div>
-                <div class="detail-row">
-                  <span class="label">Minimum purchase</span>
-                  <span class="value"><input type="text" class="edit-input wide" value="$5.00"></span>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="inStoreL1Spend" min="0" step="1" placeholder="25" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="inStoreL1Points" min="1" step="1" placeholder="75" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
                 </div>
-                <div class="detail-row">
-                  <span class="label">Daily cap per customer</span>
-                  <span class="value"><input type="text" class="edit-input wide" value="No limit"></span>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 2</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="inStoreL2Spend" min="0" step="1" placeholder="50" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="inStoreL2Points" min="1" step="1" placeholder="150" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
                 </div>
-                <div class="detail-row">
-                  <span class="label">Enable in-store scan</span>
-                  <span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 3</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="inStoreL3Spend" min="0" step="1" placeholder="100" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="inStoreL3Points" min="1" step="1" placeholder="250" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
                 </div>
+                <p style="font-size:0.73rem;color:#aaa;margin:8px 0 0;">Leave a level blank to use fewer than 3 tiers. No daily cap — each qualifying transaction awards points independently.</p>
               </div>
               <!-- QR Code Preview -->
               <div class="detail-group full-width">
@@ -1022,75 +1042,70 @@
 
       <!-- Platform Connection Cards -->
       <div class="platform-cards-grid">
-        <!-- Shopify (Connected) -->
-        <div class="platform-card connected" id="platformShopify">
+        <!-- Shopify — Coming Soon -->
+        <div class="platform-card" id="platformShopify">
           <div class="platform-card-header">
             <div class="platform-logo shopify">Shopify</div>
-            <span class="connection-pill connected"><span class="status-dot"></span> Connected</span>
+            <span class="connection-pill not-connected" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Coming Soon</span>
           </div>
           <div class="platform-card-body">
-            <div class="platform-store-name">mystore.myshopify.com</div>
-            <div class="platform-stats-row">
-              <div class="platform-stat"><strong>847</strong><span>orders tracked</span></div>
-              <div class="platform-stat"><strong>1,350</strong><span>pts awarded</span></div>
-            </div>
+            <p class="platform-desc">Direct Shopify integration — install the KUP app from the Shopify App Store to automatically track orders</p>
           </div>
           <div class="platform-card-footer">
-            <button class="btn-platform settings" onclick="kupToast('Platform settings would open here','info')">Settings</button>
-            <button class="btn-platform disconnect" onclick="disconnectPlatform('platformShopify')">Disconnect</button>
+            <button class="btn-platform connect" style="opacity:0.5;cursor:not-allowed;" disabled>Coming Soon</button>
           </div>
         </div>
 
-        <!-- WooCommerce -->
+        <!-- WooCommerce — Coming Soon -->
         <div class="platform-card" id="platformWoo">
           <div class="platform-card-header">
             <div class="platform-logo woocommerce">WooCommerce</div>
-            <span class="connection-pill not-connected">Not Connected</span>
+            <span class="connection-pill not-connected" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Coming Soon</span>
           </div>
           <div class="platform-card-body">
-            <p class="platform-desc">WordPress plugin — connect your WooCommerce store</p>
+            <p class="platform-desc">WordPress plugin — automatically sync WooCommerce orders and award purchase points</p>
           </div>
           <div class="platform-card-footer">
-            <button class="btn-platform connect" onclick="connectPlatform('platformWoo')">Connect Store</button>
+            <button class="btn-platform connect" style="opacity:0.5;cursor:not-allowed;" disabled>Coming Soon</button>
           </div>
         </div>
 
-        <!-- Wix -->
+        <!-- Wix — Coming Soon -->
         <div class="platform-card" id="platformWix">
           <div class="platform-card-header">
             <div class="platform-logo wix">Wix</div>
-            <span class="connection-pill not-connected">Not Connected</span>
+            <span class="connection-pill not-connected" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Coming Soon</span>
           </div>
           <div class="platform-card-body">
-            <p class="platform-desc">Connect your Wix eCommerce store</p>
+            <p class="platform-desc">Native Wix eCommerce integration — connect your store with one click</p>
           </div>
           <div class="platform-card-footer">
-            <button class="btn-platform connect" onclick="connectPlatform('platformWix')">Connect Store</button>
+            <button class="btn-platform connect" style="opacity:0.5;cursor:not-allowed;" disabled>Coming Soon</button>
           </div>
         </div>
 
-        <!-- Squarespace -->
+        <!-- Squarespace — Coming Soon -->
         <div class="platform-card" id="platformSquarespace">
           <div class="platform-card-header">
             <div class="platform-logo squarespace">Squarespace</div>
-            <span class="connection-pill not-connected">Not Connected</span>
+            <span class="connection-pill not-connected" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Coming Soon</span>
           </div>
           <div class="platform-card-body">
-            <p class="platform-desc">Connect your Squarespace Commerce store</p>
+            <p class="platform-desc">Native Squarespace Commerce integration — automatic order syncing</p>
           </div>
           <div class="platform-card-footer">
-            <button class="btn-platform connect" onclick="connectPlatform('platformSquarespace')">Connect Store</button>
+            <button class="btn-platform connect" style="opacity:0.5;cursor:not-allowed;" disabled>Coming Soon</button>
           </div>
         </div>
 
-        <!-- Custom / Other -->
+        <!-- Custom / Other — LIVE (tracking script) -->
         <div class="platform-card" id="platformCustom">
           <div class="platform-card-header">
             <div class="platform-logo custom">Custom / Other</div>
-            <span class="connection-pill not-connected">Not Connected</span>
+            <span class="connection-pill connected"><span class="status-dot"></span> Available Now</span>
           </div>
           <div class="platform-card-body">
-            <p class="platform-desc">Any store — install our lightweight tracking script on your checkout page</p>
+            <p class="platform-desc">Any platform — paste our lightweight tracking script on your checkout confirmation page</p>
           </div>
           <div class="platform-card-footer">
             <button class="btn-platform connect" onclick="showTrackingScript()">Install Script</button>
@@ -1119,17 +1134,18 @@
             <div class="reward-card-body">
               <div class="reward-card-title">
                 Online Purchase Settings
-                <span class="status-pill active"><span class="status-dot"></span>Active</span>
+                <span class="status-pill" id="onlinePill"><span class="status-dot"></span><span id="onlinePillText">Loading…</span></span>
               </div>
-              <p class="reward-card-subtitle">Configure how online purchases earn points across all connected stores</p>
+              <p class="reward-card-subtitle">Configure how online purchases earn points. Use the Custom Script above to start tracking purchases from any store.</p>
               <div class="reward-card-tags">
                 <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+                <span class="per-approval-badge" id="onlineTierSummary">No tiers set</span>
               </div>
             </div>
             <div class="reward-card-right">
               <div class="reward-card-metrics">
-                <div class="reward-metric"><strong>847</strong><span>orders</span></div>
-                <div class="reward-metric"><strong>1,350</strong><span>pts awarded</span></div>
+                <div class="reward-metric"><strong id="onlineOrders">—</strong><span>transactions</span></div>
+                <div class="reward-metric"><strong id="onlinePtsAwarded">—</strong><span>pts awarded</span></div>
               </div>
               <div class="reward-card-actions">
                 <button class="btn-reward-action edit" onclick="toggleDetails('onlineConfigCard')">
@@ -1142,43 +1158,51 @@
           <div class="reward-card-details">
             <div class="detail-grid">
               <div class="detail-group">
-                <h6>Earn Rate</h6>
+                <h6>Purchase Point Tiers</h6>
+                <p style="font-size:0.78rem;color:#666;margin:0 0 12px;line-height:1.5;">Set up to 3 spend tiers. Customers earn flat points for the highest tier their order total reaches or exceeds.</p>
                 <div class="detail-row">
-                  <span class="label">Points per dollar spent</span>
-                  <span class="value"><input type="number" class="edit-input" value="1" min="1"><span class="edit-suffix">pt / $1</span></span>
+                  <span class="label">Enable online points</span>
+                  <span class="value"><label class="edit-toggle"><input type="checkbox" id="onlineEnabled" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
                 </div>
-                <div class="detail-row">
-                  <span class="label">Minimum order</span>
-                  <span class="value"><input type="text" class="edit-input wide" value="$10.00"></span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Attribution window</span>
-                  <span class="value">
-                    <select class="edit-select">
-                      <option>24 hours</option>
-                      <option selected>7 days</option>
-                      <option>30 days</option>
-                    </select>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 1</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="onlineL1Spend" min="0" step="1" placeholder="25" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="onlineL1Points" min="1" step="1" placeholder="75" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
                   </span>
                 </div>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 2</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="onlineL2Spend" min="0" step="1" placeholder="50" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="onlineL2Points" min="1" step="1" placeholder="150" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
+                </div>
+                <div class="detail-row" style="align-items:center;">
+                  <span class="label" style="color:var(--kup-blue);font-weight:700;">Level 3</span>
+                  <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:0.74rem;color:#888;">Spend $</span>
+                    <input type="number" class="edit-input" id="onlineL3Spend" min="0" step="1" placeholder="100" style="width:64px;">
+                    <span style="font-size:0.74rem;color:#aaa;">→</span>
+                    <input type="number" class="edit-input" id="onlineL3Points" min="1" step="1" placeholder="250" style="width:64px;">
+                    <span class="edit-suffix">pts</span>
+                  </span>
+                </div>
+                <p style="font-size:0.73rem;color:#aaa;margin:8px 0 0;">Leave a level blank to use fewer than 3 tiers. No daily cap — every qualifying order awards points independently.</p>
               </div>
               <div class="detail-group">
-                <h6>Eligibility</h6>
-                <div class="detail-row">
-                  <span class="label">Include shipping in total</span>
-                  <span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Include tax in total</span>
-                  <span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check"><span class="edit-toggle-slider"></span></label></span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Reverse points on refund</span>
-                  <span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Enable online tracking</span>
-                  <span class="value"><label class="edit-toggle"><input type="checkbox" class="edit-check" checked><span class="edit-toggle-slider"></span></label></span>
+                <h6>How It Works</h6>
+                <div class="how-it-works-steps">
+                  <div class="step-item"><span class="step-num">1</span><span>Customer completes a purchase on your online store</span></div>
+                  <div class="step-item"><span class="step-num">2</span><span>The KUP tracking script on your checkout confirmation page captures the order total and customer email</span></div>
+                  <div class="step-item"><span class="step-num">3</span><span>Points are matched to the customer's KUP account by email address</span></div>
+                  <div class="step-item"><span class="step-num">4</span><span>Points are awarded based on the highest tier their order total reaches — no daily cap</span></div>
                 </div>
               </div>
             </div>
@@ -1212,6 +1236,180 @@
       toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
       container.appendChild(toast);
       setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    /* ============== PAGE DATA — Load config + stats from API ============== */
+    var _activeBrandId = null;
+
+    async function loadPageData() {
+      try {
+        _activeBrandId = localStorage.getItem('activeBrandId');
+        if (!_activeBrandId) {
+          kupToast('No active brand selected — go to Manage Brands first', 'warning');
+          return;
+        }
+
+        // Load config + stats in parallel
+        var token = await firebase.auth().currentUser.getIdToken();
+        var headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+
+        var [configRes, statsRes] = await Promise.all([
+          fetch('/api/purchase-points/config?brandId=' + _activeBrandId, { headers }),
+          fetch('/api/purchase-points/stats?brandId=' + _activeBrandId, { headers }),
+        ]);
+
+        if (configRes.ok) {
+          var configData = await configRes.json();
+          populateConfig(configData.config);
+        }
+
+        if (statsRes.ok) {
+          var statsData = await statsRes.json();
+          populateStats(statsData.stats);
+        }
+
+        // Populate sidebar brand name
+        var kupProfile = JSON.parse(localStorage.getItem('kupProfile') || '{}');
+        if (kupProfile && kupProfile.displayName) {
+          var brandEl = document.querySelector('.brand-name');
+          var logoEl = document.querySelector('.brand-identity .logo');
+          if (brandEl) brandEl.textContent = kupProfile.displayName;
+          if (logoEl) logoEl.textContent = kupProfile.displayName.substring(0,2).toUpperCase();
+          var headerBrand = document.getElementById('headerBrand');
+          if (headerBrand) headerBrand.textContent = kupProfile.displayName;
+        }
+      } catch(e) {
+        console.error('loadPageData error:', e);
+        kupToast('Could not load purchase points data', 'error');
+      }
+    }
+
+    function populateStats(stats) {
+      if (!stats) return;
+      var fmt = function(n) { return (n || 0).toLocaleString(); };
+      var el = document.getElementById('statTotalPts');
+      if (el) el.textContent = fmt(stats.totalPoints);
+      el = document.getElementById('statInStorePts');
+      if (el) el.textContent = fmt(stats.inStorePoints);
+      el = document.getElementById('statOnlinePts');
+      if (el) el.textContent = fmt(stats.onlinePoints);
+      el = document.getElementById('statTransactions');
+      if (el) el.textContent = fmt(stats.totalTransactions);
+      el = document.getElementById('inStoreScans');
+      if (el) el.textContent = fmt(stats.inStoreTransactions);
+      el = document.getElementById('inStorePtsAwarded');
+      if (el) el.textContent = fmt(stats.inStorePoints);
+      el = document.getElementById('onlineOrders');
+      if (el) el.textContent = fmt(stats.onlineTransactions);
+      el = document.getElementById('onlinePtsAwarded');
+      if (el) el.textContent = fmt(stats.onlinePoints);
+    }
+
+    function populateConfig(config) {
+      if (!config) return;
+
+      // In-store
+      var inStore = config.inStore || {};
+      var inEnabled = document.getElementById('inStoreEnabled');
+      if (inEnabled) inEnabled.checked = !!inStore.enabled;
+      var inLevels = inStore.levels || [];
+      for (var i = 0; i < 3; i++) {
+        var l = inLevels[i] || {};
+        var spendEl = document.getElementById('inStoreL' + (i+1) + 'Spend');
+        var ptsEl   = document.getElementById('inStoreL' + (i+1) + 'Points');
+        if (spendEl) spendEl.value  = l.minSpend !== undefined ? l.minSpend : '';
+        if (ptsEl)   ptsEl.value    = l.points   !== undefined ? l.points   : '';
+      }
+      updatePill('inStorePill', 'inStorePillText', inStore.enabled);
+      updateTierSummary('inStoreTierSummary', inLevels);
+
+      // Online
+      var online = config.online || {};
+      var onEnabled = document.getElementById('onlineEnabled');
+      if (onEnabled) onEnabled.checked = !!online.enabled;
+      var onLevels = online.levels || [];
+      for (var j = 0; j < 3; j++) {
+        var ol = onLevels[j] || {};
+        var osEl = document.getElementById('onlineL' + (j+1) + 'Spend');
+        var opEl = document.getElementById('onlineL' + (j+1) + 'Points');
+        if (osEl) osEl.value = ol.minSpend !== undefined ? ol.minSpend : '';
+        if (opEl) opEl.value = ol.points   !== undefined ? ol.points   : '';
+      }
+      updatePill('onlinePill', 'onlinePillText', online.enabled);
+      updateTierSummary('onlineTierSummary', onLevels);
+    }
+
+    function updatePill(pillId, textId, enabled) {
+      var pill = document.getElementById(pillId);
+      var txt  = document.getElementById(textId);
+      if (!pill || !txt) return;
+      if (enabled) {
+        pill.className = 'status-pill active';
+        txt.textContent = 'Active';
+      } else {
+        pill.className = 'status-pill paused';
+        txt.textContent = 'Disabled';
+      }
+    }
+
+    function updateTierSummary(summaryId, levels) {
+      var el = document.getElementById(summaryId);
+      if (!el) return;
+      var valid = (levels || []).filter(function(l) { return l.minSpend > 0 && l.points > 0; });
+      if (!valid.length) { el.textContent = 'No tiers set'; return; }
+      el.textContent = valid.length + ' tier' + (valid.length > 1 ? 's' : '') + ' — up to ' + valid[valid.length-1].points + ' pts';
+    }
+
+    /* ============== SAVE CONFIG TO API ============== */
+    async function savePurchasePointsConfig(channel) {
+      try {
+        if (!_activeBrandId) { kupToast('No brand selected', 'error'); return false; }
+        var token = await firebase.auth().currentUser.getIdToken();
+
+        var buildLevels = function(prefix) {
+          var levels = [];
+          for (var i = 1; i <= 3; i++) {
+            var spendVal  = parseFloat(document.getElementById(prefix + 'L' + i + 'Spend').value);
+            var pointsVal = parseInt(document.getElementById(prefix + 'L' + i + 'Points').value, 10);
+            if (!isNaN(spendVal) && !isNaN(pointsVal) && spendVal >= 0 && pointsVal >= 1) {
+              levels.push({ minSpend: spendVal, points: pointsVal });
+            }
+          }
+          return levels;
+        };
+
+        var body = { brandId: _activeBrandId };
+
+        if (channel === 'instore' || channel === 'both') {
+          body.inStore = {
+            enabled: document.getElementById('inStoreEnabled').checked,
+            levels: buildLevels('inStore'),
+          };
+        }
+        if (channel === 'online' || channel === 'both') {
+          body.online = {
+            enabled: document.getElementById('onlineEnabled').checked,
+            levels: buildLevels('online'),
+          };
+        }
+
+        var resp = await fetch('/api/purchase-points/config', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        var data = await resp.json();
+        if (!resp.ok) { kupToast(data.error || 'Could not save config', 'error'); return false; }
+
+        // Update UI with saved config
+        if (data.config) populateConfig(data.config);
+        return true;
+      } catch(e) {
+        console.error('savePurchasePointsConfig error:', e);
+        kupToast('Save failed — please try again', 'error');
+        return false;
+      }
     }
 
     /* ============== NOTIFICATION CENTER ============== */
@@ -1348,10 +1546,22 @@
       }
     }
 
-    // Save: keep values and collapse
-    function saveEdit(cardId) {
+    // Save: call API then collapse
+    async function saveEdit(cardId) {
       var card = document.getElementById(cardId);
       if (!card) return;
+
+      // Determine which channel to save
+      var channel = cardId === 'inStoreCard' ? 'instore' : 'online';
+
+      var saveBtn = card.querySelector('.btn-edit-save');
+      if (saveBtn) { saveBtn.textContent = 'Saving…'; saveBtn.disabled = true; }
+
+      var ok = await savePurchasePointsConfig(channel);
+
+      if (saveBtn) { saveBtn.textContent = 'Save Changes'; saveBtn.disabled = false; }
+
+      if (!ok) return; // stay open if save failed
 
       card.classList.remove('editing');
       card.classList.remove('expanded');
@@ -1362,42 +1572,11 @@
         editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit';
       }
 
-      // Clear snapshot (values are now "saved")
       delete originalValues[cardId];
-
-      // Get reward name from card title
-      var titleEl = card.querySelector('.reward-card-title');
-      var rewardName = titleEl ? titleEl.textContent.trim().split('\n')[0].trim() : 'Settings';
-
-      kupToast(rewardName + ' settings saved', 'success');
+      kupToast((channel === 'instore' ? 'In-Store' : 'Online') + ' purchase point tiers saved', 'success');
     }
 
     /* ============== PURCHASE POINTS SPECIFIC ============== */
-
-    /* Connect platform (simulated OAuth) */
-    function connectPlatform(platformId) {
-      var card = document.getElementById(platformId);
-      if (!card) return;
-      var platformName = card.querySelector('.platform-logo').textContent.trim();
-      kupToast('Connecting to ' + platformName + '... In production, this opens the OAuth authorization flow.', 'info');
-    }
-
-    /* Disconnect platform */
-    function disconnectPlatform(platformId) {
-      var card = document.getElementById(platformId);
-      if (!card) return;
-      var platformName = card.querySelector('.platform-logo').textContent.trim();
-      if (confirm('Disconnect ' + platformName + '? This will stop tracking purchases from this store.')) {
-        card.classList.remove('connected');
-        var pill = card.querySelector('.connection-pill');
-        if (pill) { pill.className = 'connection-pill not-connected'; pill.innerHTML = 'Not Connected'; }
-        var body = card.querySelector('.platform-card-body');
-        if (body) body.innerHTML = '<p class="platform-desc">Disconnected — click Connect to re-link your store</p>';
-        var footer = card.querySelector('.platform-card-footer');
-        if (footer) footer.innerHTML = '<button class="btn-platform connect" onclick="connectPlatform(\'' + platformId + '\')">Connect Store</button>';
-        kupToast(platformName + ' disconnected', 'warning');
-      }
-    }
 
     /* Show/hide tracking script panel */
     function showTrackingScript() {
@@ -1488,12 +1667,14 @@
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
   <script>
-    // Auth gate
+    // Auth gate + page data load
     auth.onAuthStateChanged(function(user) {
       if (!user) {
         window.location.href = '/pages/login.html';
         return;
       }
+      // Load live config + stats once authenticated
+      loadPageData();
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

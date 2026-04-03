@@ -56,6 +56,10 @@ const influencerProfileSchema = new mongoose.Schema({
   totalBrandsPartnered: { type: Number, default: 0 },
   totalPointsEarned: { type: Number, default: 0 },
   totalCashEarned: { type: Number, default: 0 },
+
+  // Purchase points balance — awarded by brands when influencer makes qualifying purchases
+  purchasePointsBalance: { type: Number, default: 0, min: 0 },
+  totalPurchasePointsEarned: { type: Number, default: 0, min: 0 }, // lifetime total (never decremented)
   averageRating: { type: Number, default: null },
   ratingCount: { type: Number, default: 0 },
 

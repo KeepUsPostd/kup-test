@@ -21,4 +21,6 @@ module.exports = {
   ClaimRequest: require('./ClaimRequest'),
   BrandScan: require('./BrandScan'),
   BrandInvite: require('./BrandInvite'),
+  PurchasePointsConfig: require('./PurchasePointsConfig'),
+  PurchasePointsLog: require('./PurchasePointsLog'),
 };

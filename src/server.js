@@ -279,6 +279,9 @@ app.use('/api/webhooks', require('./routes/webhooks'));
 // Scan Analytics routes (QR code / market link tracking)
 app.use('/api/scan-analytics', require('./routes/scan-analytics'));
 
+// Purchase Points routes (brand config, award, stats, history)
+app.use('/api/purchase-points', require('./routes/purchasePoints'));
+
 // --- Error Handling Middleware ---
 app.use((err, req, res, next) => {
   console.error('Server error:', err.message);
