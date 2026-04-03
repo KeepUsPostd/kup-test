@@ -3471,28 +3471,28 @@
       container.innerHTML = html;
     }
 
-    /* ---- Render invited — shows confirmed partnerships (source=invitation) + pending email invites ---- */
+    /* ---- Render invited — tracks email invites via BrandInvite records ----
+       Pending  = invite sent, influencer hasn't responded yet
+       Partnered = influencer clicked the link and created a partnership        */
     function renderInvited(partnerships, pendingInvites) {
-      var confirmedInvites = partnerships.filter(function(p) { return p.source === 'invitation'; });
-      var pending = pendingInvites || [];
+      var invites = pendingInvites || [];
       var tbody = document.getElementById('invitedTbody');
       var countEl = document.getElementById('invitedCount');
       var badgeEl = document.getElementById('badgeInvited');
 
-      var total = confirmedInvites.length + pending.length;
-      countEl.textContent = total;
-      badgeEl.textContent = total;
+      // Badge shows only unresponded (pending) count so brand knows what needs attention
+      var pendingCount = invites.filter(function(inv) { return inv.status === 'pending'; }).length;
+      countEl.textContent = invites.length;
+      badgeEl.textContent = pendingCount > 0 ? pendingCount : (invites.length > 0 ? invites.length : '—');
 
-      if (total === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#aaa">No invitations sent yet</td></tr>';
+      if (invites.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#aaa">No invitations sent yet. Use + Add Influencer to invite people.</td></tr>';
         return;
       }
 
       var html = '';
-
-      // Email invites — pending (awaiting response) and accepted (clicked and partnered)
-      for (var j = 0; j < pending.length; j++) {
-        var inv = pending[j];
+      for (var j = 0; j < invites.length; j++) {
+        var inv = invites[j];
         var isAccepted = inv.status === 'accepted';
         var statusBadge = isAccepted
           ? '<span class="invited-status accepted">✓ Partnered</span>'
@@ -3500,30 +3500,17 @@
         var resendBtn = isAccepted
           ? ''
           : '<button class="btn-resend" style="margin-left:8px;font-size:0.75rem;padding:3px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#555">Resend</button>';
+        var timeDisplay = isAccepted
+          ? 'Partnered ' + timeAgo(inv.acceptedAt || inv.updatedAt)
+          : 'Invited ' + timeAgo(inv.createdAt);
+
         html += '<tr>' +
           '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem;color:#555">' + inv.email + '</td>' +
-          '<td data-label="Invited" class="time-cell">' + (isAccepted ? timeAgo(inv.acceptedAt || inv.updatedAt) + ' ago' : timeAgo(inv.createdAt)) + '</td>' +
+          '<td data-label="Invited" class="time-cell">' + timeDisplay + '</td>' +
           '<td data-label="Source"><span style="font-size:0.78rem;color:#888">email invite</span></td>' +
           '<td data-label="Status">' + statusBadge + resendBtn + '</td>' +
           '</tr>';
       }
-
-      // Confirmed partnerships from invite link
-      for (var i = 0; i < confirmedInvites.length; i++) {
-        var p = confirmedInvites[i];
-        var inf = p.influencerProfileId || {};
-        var handle = inf.handle || 'unknown';
-        var statusClass = p.status === 'active' ? 'accepted' : (p.status === 'ended' ? 'expired' : 'sent');
-        var statusLabel = p.status === 'active' ? 'Accepted' : (p.status === 'ended' ? 'Ended' : 'Pending');
-
-        html += '<tr>' +
-          '<td data-label="Influencer" style="font-weight:600;font-size:0.85rem">@' + handle + '</td>' +
-          '<td data-label="Invited" class="time-cell">' + timeAgo(p.createdAt) + '</td>' +
-          '<td data-label="Source"><span style="font-size:0.78rem;color:#888">' + (p.source || 'invitation') + '</span></td>' +
-          '<td data-label="Status"><span class="invited-status ' + statusClass + '">' + statusLabel + '</span></td>' +
-          '</tr>';
-      }
-
       tbody.innerHTML = html;
     }
 
