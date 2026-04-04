@@ -9,9 +9,10 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { execFile: execFileCb } = require('child_process');
+const { execFile: execFileCb, spawn } = require('child_process');
 const { promisify } = require('util');
 const execFile = promisify(execFileCb);
+const ffmpegPath = require('ffmpeg-static');
 const { requireAuth } = require('../middleware/auth');
 const { ContentSubmission } = require('../models');
 
@@ -112,7 +113,7 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
             const posterFilename = filename.replace(/\.[^.]+$/, '-poster.jpg');
             const posterLocalPath = path.join(os.tmpdir(), posterFilename);
             await new Promise((resolve, reject) => {
-              const proc = require('child_process').spawn('ffmpeg', [
+              const proc = spawn(ffmpegPath, [
                 '-i', f.path,
                 '-ss', '00:00:00',   // grab very first frame — safe for all video lengths
                 '-vframes', '1',
@@ -269,7 +270,7 @@ router.post('/trim', requireAuth, async (req, res) => {
     console.log(`✂️ Trimming video: ${path.basename(sourcePath)} (${startTime} to ${endTime}, ${durationSec}s)`);
 
     try {
-      await execFile('ffmpeg', args, { timeout: 30000 });
+      await execFile(ffmpegPath, args, { timeout: 30000 });
     } catch (ffmpegErr) {
       console.error('FFmpeg trim error:', ffmpegErr.message);
       return res.status(500).json({ error: 'Failed to trim video' });
@@ -574,7 +575,7 @@ router.post('/render-with-overlays', requireAuth, async (req, res) => {
       const sigFilename = `signed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.mp4`;
       const sigOutputPath = path.join(uploadsDir, sigFilename);
       try {
-        await execFile('ffmpeg', [
+        await execFile(ffmpegPath, [
           '-y', '-i', sourcePath,
           '-c', 'copy',
           '-metadata', `comment=${signaturePayload}`,
@@ -801,7 +802,7 @@ router.post('/render-with-overlays', requireAuth, async (req, res) => {
     console.log(`🎨 Rendering video with PNG overlay: ${path.basename(videoUrl)} → ${outputFilename}`);
 
     try {
-      await execFile('ffmpeg', args, { timeout: 120000 });
+      await execFile(ffmpegPath, args, { timeout: 120000 });
     } catch (ffErr) {
       console.error('FFmpeg overlay render error:', ffErr.message);
       // Clean up overlay file
