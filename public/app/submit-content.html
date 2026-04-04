@@ -860,6 +860,7 @@
           campaignId: campaignId,
           contentType: selectedContentType,
           mediaUrls: uploadData.urls,
+          posterUrl: uploadData.posterUrl || (uploadData.posterUrls && uploadData.posterUrls[0]) || null,
           caption: caption || null,
           hashtags: hashtagsArr,
         };

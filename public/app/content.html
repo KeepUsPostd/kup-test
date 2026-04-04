@@ -2376,14 +2376,19 @@
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
         const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
 
-        // Build thumbnail — show actual media if available, fall back to icon
+        // Build thumbnail — use poster image if available, otherwise icon placeholder
+        // (Videos use server-generated poster; images load directly)
         let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
         if (sub.mediaUrls && sub.mediaUrls.length > 0) {
           const firstUrl = sub.mediaUrls[0];
           if (sub.contentType === 'video') {
-            thumbHtml = `<video src="${firstUrl}#t=0.5" preload="metadata" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted playsinline></video>`;
+            // Use poster thumbnail if generated, otherwise show icon placeholder
+            if (sub.posterUrl) {
+              thumbHtml = `<img src="${sub.posterUrl}" alt="Video thumbnail" class="thumb-img video" style="object-fit:cover;">`;
+            }
+            // else: keep icon placeholder (posterUrl generated server-side on upload)
           } else {
-            thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
+            thumbHtml = `<img src="${firstUrl}" alt="Content" class="thumb-img image" style="object-fit:cover;">`;
           }
         }
 

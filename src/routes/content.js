@@ -47,7 +47,7 @@ const VIRAL_THRESHOLDS = [
 // Called by influencers when they submit content for a brand
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { brandId, campaignId, contentType, caption, mediaUrls,
+    const { brandId, campaignId, contentType, caption, mediaUrls, posterUrl,
             platform, platformPostUrl, partnershipId } = req.body;
 
     if (!brandId) {
@@ -131,6 +131,7 @@ router.post('/', requireAuth, async (req, res) => {
       contentType,
       caption: caption || null,
       mediaUrls: mediaUrls || [],
+      posterUrl: posterUrl || null,
       platform: platform || null,
       platformPostUrl: platformPostUrl || null,
       status: 'submitted',
@@ -204,6 +205,7 @@ router.get('/feed', async (req, res) => {
       brandLogo:   s.brandId?.logoUrl || null,
       brandColor:  s.brandId?.generatedColor || '#1A1A1A',
       mediaUrls:   s.mediaUrls || [],
+      posterUrl:   s.posterUrl || null,
       contentType: s.contentType,
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
@@ -249,6 +251,7 @@ router.get('/mine', requireAuth, async (req, res) => {
       brandLogo:   s.brandId?.logoUrl || null,
       brandColor:  s.brandId?.generatedColor || '#1A1A1A',
       mediaUrls:   s.mediaUrls || [],
+      posterUrl:   s.posterUrl || null,
       contentType: s.contentType,
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,

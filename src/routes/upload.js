@@ -96,12 +96,39 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
   try {
     let urls;
 
+    const posterUrls = [];
+
     if (R2_CONFIGURED) {
       // Upload each file from disk to R2, then clean up the temp file
       urls = await Promise.all(req.files.map(async (f) => {
         const ext = path.extname(f.originalname);
         const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
         const url = await uploadFileToR2(f.path, filename, f.mimetype);
+
+        // Generate poster thumbnail for videos
+        if (f.mimetype.startsWith('video/') || /\.(mp4|mov|webm|avi|m4v)$/i.test(f.originalname)) {
+          try {
+            const posterFilename = filename.replace(/\.[^.]+$/, '-poster.jpg');
+            const posterLocalPath = path.join(tmpDir || require('os').tmpdir(), posterFilename);
+            await new Promise((resolve, reject) => {
+              const ffmpeg = require('child_process').spawn('ffmpeg', [
+                '-i', f.path, '-ss', '00:00:01', '-vframes', '1',
+                '-vf', 'scale=200:200:force_original_aspect_ratio=increase,crop=200:200',
+                '-q:v', '3', posterLocalPath, '-y'
+              ]);
+              ffmpeg.on('close', (code) => code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}`)));
+            });
+            const posterUrl = await uploadFileToR2(posterLocalPath, posterFilename, 'image/jpeg');
+            posterUrls.push(posterUrl);
+            fs.unlink(posterLocalPath, () => {});
+          } catch (posterErr) {
+            console.warn('[upload] Poster generation failed:', posterErr.message);
+            posterUrls.push(null);
+          }
+        } else {
+          posterUrls.push(null);
+        }
+
         // Remove temp file after successful R2 upload
         fs.unlink(f.path, () => {});
         return url;
@@ -116,8 +143,10 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
     res.json({
       message: `${req.files.length} file(s) uploaded`,
       urls,
+      posterUrls: posterUrls.length > 0 ? posterUrls : undefined,
       // Legacy single-URL support
       url: urls[0],
+      posterUrl: posterUrls[0] || undefined,
     });
   } catch (err) {
     // Clean up any temp files on error

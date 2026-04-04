@@ -35,6 +35,7 @@ const contentSubmissionSchema = new mongoose.Schema({
   caption: { type: String, maxlength: 500, default: null },
   mediaUrls: [{ type: String }],              // Current/active version (starts as original, updated on edit)
   originalMediaUrls: [{ type: String }],       // Influencer's original submission (never changes after first edit)
+  posterUrl: { type: String, default: null },  // Server-generated thumbnail (first frame of video)
   editedMediaUrls: [{ type: String }],         // Brand-edited versions (trimmed, cropped, etc.)
 
   // Brand-applied overlays (saved from content manager editing tools)
