@@ -1076,6 +1076,8 @@
     <div class="library-filters">
       <div class="library-filter-group">
         <button class="library-filter active" data-filter="all" onclick="filterLibrary('all')">All Content</button>
+        <button class="library-filter" data-filter="approved" onclick="filterLibrary('approved')">Approved</button>
+        <button class="library-filter" data-filter="rejected" onclick="filterLibrary('rejected')">Rejected</button>
         <button class="library-filter" data-filter="video" onclick="filterLibrary('video')">Videos</button>
         <button class="library-filter" data-filter="image" onclick="filterLibrary('image')">Images</button>
       </div>
@@ -3699,9 +3701,12 @@
 
       var filtered = libraryItems.filter(function(entry) {
         var item = entry.item;
-        // 'image' filter matches both 'Image' and 'Photo' types
         if (typeVal !== 'all') {
           var t = item.type.toLowerCase();
+          // Status filters
+          if (typeVal === 'approved' && item.status !== 'approved' && item.status !== 'postd') return false;
+          if (typeVal === 'rejected' && item.status !== 'rejected') return false;
+          // Type filters — 'image' matches both 'image' and 'photo'
           if (typeVal === 'video' && t !== 'video') return false;
           if (typeVal === 'image' && t !== 'image' && t !== 'photo') return false;
         }
