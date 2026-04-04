@@ -457,6 +457,27 @@
     .video-play-overlay.playing:hover .play-icon { opacity: 1; pointer-events: auto; }
     .video-play-overlay.playing .play-icon svg.pause-icon { display: block; margin-left: 0; }
     .video-play-overlay.playing .play-icon svg.play-icon-svg { display: none; }
+    /* Scrubber bar */
+    .video-scrubber {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      z-index: 6;
+    }
+    .video-time-current, .video-time-total { font-size: 0.72rem; color: #fff; font-weight: 600; white-space: nowrap; min-width: 30px; }
+    .video-progress-track {
+      flex: 1; height: 4px; background: rgba(255,255,255,0.25); border-radius: 4px;
+      position: relative; cursor: pointer;
+    }
+    .video-progress-track:hover { height: 6px; }
+    .video-progress-fill { height: 100%; background: var(--kup-blue); border-radius: 4px; width: 0%; pointer-events: none; }
+    .video-progress-handle {
+      position: absolute; top: 50%; right: 0; transform: translate(50%, -50%);
+      width: 14px; height: 14px; border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4); pointer-events: none;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .video-progress-track:hover .video-progress-handle { opacity: 1; }
 
     /* ============== COUNTDOWN BAR ============== */
     .cm-countdown { margin: 16px 0; }
@@ -1442,17 +1463,24 @@
           video.preload = 'auto';
           video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           video.setAttribute('playsinline', '');
-          video.setAttribute('loop', '');
           video.addEventListener('contextmenu', function(e) { e.preventDefault(); });
           frame.insertBefore(video, frame.firstChild);
 
-          // Click-to-play overlay (native controls conflict with edit toolbar)
+          // Click-to-play overlay with scrubber (native controls conflict with edit toolbar)
           var overlay = document.createElement('div');
           overlay.className = 'video-play-overlay';
           overlay.innerHTML =
             '<div class="play-icon">' +
               '<svg class="play-icon-svg" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>' +
               '<svg class="pause-icon" viewBox="0 0 24 24" fill="#fff" style="display:none;margin-left:0"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' +
+            '</div>' +
+            '<div class="video-scrubber">' +
+              '<span class="video-time-current">0:00</span>' +
+              '<div class="video-progress-track">' +
+                '<div class="video-progress-fill"></div>' +
+                '<div class="video-progress-handle"></div>' +
+              '</div>' +
+              '<span class="video-time-total">0:00</span>' +
             '</div>';
           function setPlayingState(playing) {
             if (playing) {
@@ -1492,6 +1520,34 @@
             console.error('[CM] Video error:', video.error && video.error.message);
             setPlayingState(false);
           });
+
+          // Scrubber wiring
+          var fill   = overlay.querySelector('.video-progress-fill');
+          var handle = overlay.querySelector('.video-progress-handle');
+          var track  = overlay.querySelector('.video-progress-track');
+          var timeCur = overlay.querySelector('.video-time-current');
+          var timeTot = overlay.querySelector('.video-time-total');
+          function fmtTime(s) { var m = Math.floor(s/60); return m + ':' + ('0'+Math.floor(s%60)).slice(-2); }
+          video.addEventListener('loadedmetadata', function() { timeTot.textContent = fmtTime(video.duration || 0); });
+          video.addEventListener('timeupdate', function() {
+            var pct = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+            fill.style.width = pct + '%';
+            handle.style.left = pct + '%';
+            timeCur.textContent = fmtTime(video.currentTime);
+          });
+          function seekTo(e) {
+            if (!video.duration) return;
+            var rect = track.getBoundingClientRect();
+            var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            video.currentTime = pct * video.duration;
+          }
+          var scrubbing = false;
+          track.addEventListener('mousedown', function(e) {
+            e.stopPropagation(); scrubbing = true; seekTo(e);
+          });
+          document.addEventListener('mousemove', function(e) { if (scrubbing) seekTo(e); });
+          document.addEventListener('mouseup', function() { scrubbing = false; });
+          track.addEventListener('click', function(e) { e.stopPropagation(); seekTo(e); });
           frame.insertBefore(overlay, frame.firstChild);
         } else {
           var img = document.createElement('img');
@@ -1629,14 +1685,16 @@
         }
       }
 
-      // Nav arrows
-      document.getElementById('prevBtn').disabled = (index <= 0);
-      document.getElementById('nextBtn').disabled = (index >= contentItems.length - 1);
+      // Nav arrows — skip rejected items in queue flow
+      var queueItems = contentItems.filter(function(c) { return c.status !== 'rejected'; });
+      var queueIndex = queueItems.indexOf(contentItems[index]);
+      document.getElementById('prevBtn').disabled = (queueIndex <= 0);
+      document.getElementById('nextBtn').disabled = (queueIndex >= queueItems.length - 1);
 
       // Header counter
       var pendingCount = contentItems.filter(function(c) { return c.status === 'pending'; }).length;
       var counterEl = document.querySelector('.cm-header-right span');
-      if (counterEl) counterEl.textContent = 'Reviewing ' + (index + 1) + ' of ' + contentItems.length + ' items \u00B7 ' + pendingCount + ' pending';
+      if (counterEl) counterEl.textContent = 'Reviewing ' + (queueIndex + 1) + ' of ' + queueItems.length + ' items \u00B7 ' + pendingCount + ' pending';
 
       // Update URL without reload
       var newUrl = window.location.pathname + '?id=' + (item.mongoId || index);
@@ -1673,10 +1731,16 @@
 
     // ========== Navigation ==========
     function navigatePrev() {
-      if (currentIndex > 0) { currentIndex--; loadContent(currentIndex); }
+      // Skip rejected items going backwards
+      var i = currentIndex - 1;
+      while (i >= 0 && contentItems[i] && contentItems[i].status === 'rejected') i--;
+      if (i >= 0) { currentIndex = i; loadContent(currentIndex); }
     }
     function navigateNext() {
-      if (currentIndex < contentItems.length - 1) { currentIndex++; loadContent(currentIndex); }
+      // Skip rejected items going forwards
+      var i = currentIndex + 1;
+      while (i < contentItems.length && contentItems[i] && contentItems[i].status === 'rejected') i++;
+      if (i < contentItems.length) { currentIndex = i; loadContent(currentIndex); }
     }
 
     // ========== Approve / Reject (API-connected) ==========
@@ -3512,7 +3576,17 @@
     function renderLibrary() {
       var grid = document.getElementById('libraryGrid');
       grid.innerHTML = '';
-      var approvedItems = contentItems.filter(function(item) { return item.status === 'approved'; });
+      // Library shows: approved, postd, and rejected within 30 days
+      var thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      var approvedItems = contentItems.filter(function(item) {
+        if (item.status === 'approved' || item.status === 'postd') return true;
+        if (item.status === 'rejected') {
+          // Keep rejected items visible for 30 days (date field not always set, default to show)
+          var reviewedAt = item.reviewedAt ? new Date(item.reviewedAt).getTime() : Date.now();
+          return (Date.now() - reviewedAt) < thirtyDaysMs;
+        }
+        return false;
+      });
 
       var typeFilter = document.querySelector('.library-filter.active');
       var typeVal = typeFilter ? typeFilter.getAttribute('data-filter') : 'all';
