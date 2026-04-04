@@ -1144,18 +1144,18 @@
 
         <!-- Top bar: back | timer+REC badge | flip -->
         <div class="camera-top-bar">
-          <button class="camera-close-btn" onclick="goToStep(2)"><i class="ph ph-x" style="font-size:1.3rem;"></i></button>
+          <button class="camera-close-btn" onclick="goToStep(2)"><i class="ph ph-x-bold" style="font-size:1.3rem;"></i></button>
           <div style="display:flex;align-items:center;gap:8px;">
             <div class="camera-rec-badge" id="cameraRecBadge"><span class="rec-indicator"></span> REC</div>
             <span id="cameraTimeBadge" style="font-size:0.9rem;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.04em;">0:00</span>
           </div>
-          <button class="camera-close-btn" id="flipBtn" onclick="flipCamera()"><i class="ph ph-camera-rotate" style="font-size:1.3rem;"></i></button>
+          <button class="camera-close-btn" id="flipBtn" onclick="flipCamera()"><i class="ph ph-arrows-clockwise" style="font-size:1.3rem;"></i></button>
         </div>
 
         <!-- Right side panel (TikTok style) -->
         <div class="camera-side-panel">
           <div class="camera-side-item" onclick="flipCamera()">
-            <div class="camera-side-icon"><i class="ph ph-camera-rotate"></i></div>
+            <div class="camera-side-icon"><i class="ph ph-arrows-clockwise"></i></div>
             <span>Flip</span>
           </div>
           <div class="camera-side-item" id="speedItem" onclick="cycleSpeed()">
@@ -1178,7 +1178,7 @@
 
             <!-- Re-record (left of ring) -->
             <button class="side-action-btn" id="btnRerecord" onclick="reRecord()" style="visibility:hidden;">
-              <div class="side-action-icon"><i class="ph ph-arrow-counter-clockwise"></i></div>
+              <div class="side-action-icon"><i class="ph ph-arrows-counter-clockwise"></i></div>
               <span>Re-record</span>
             </button>
 
