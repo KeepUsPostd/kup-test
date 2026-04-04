@@ -2384,7 +2384,7 @@
           if (sub.contentType === 'video') {
             // Use poster thumbnail if generated, otherwise show icon placeholder
             if (sub.posterUrl) {
-              thumbHtml = `<img src="${sub.posterUrl}" alt="Video thumbnail" class="thumb-img video" style="object-fit:cover;">`;
+              thumbHtml = `<img src="${sub.posterUrl}" alt="Video thumbnail" class="thumb-img video" style="object-fit:cover;" onerror="this.outerHTML='<div class=\\'thumb-img video\\'><i class=\\'ph ph-play\\'></i></div>'">`;
             }
             // else: keep icon placeholder (posterUrl generated server-side on upload)
           } else {
