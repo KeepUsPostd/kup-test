@@ -202,6 +202,10 @@
       .wizard-layout{grid-template-columns:340px 1fr}
       .kiosk-section{padding:28px 24px}
     }
+    @media(max-width:1100px){
+      .content-split{grid-template-columns:1fr}
+      .content-info{position:static}
+    }
     @media(max-width:768px){
       .wizard-layout{grid-template-columns:1fr}
       .wizard-sidebar{border-right:none;border-bottom:1px solid #eee;padding:24px 20px}
@@ -234,23 +238,29 @@
       .scan-upsell svg{margin:0 auto}
     }
 
+    /* ========== INNER TWO-COLUMN SPLIT ========== */
+    .content-split{display:grid;grid-template-columns:1fr 320px;gap:28px;width:100%;align-items:start}
+    .content-main{display:flex;flex-direction:column;gap:24px;min-width:0}
+    .content-main .kiosk-section{max-width:none;margin-bottom:0}
+    .content-info{position:sticky;top:84px}
+
     /* ========== HOW IT WORKS PANEL ========== */
-    .how-it-works{background:linear-gradient(135deg,rgba(46,165,221,.05) 0%,rgba(112,123,187,.05) 100%);border:1px solid rgba(46,165,221,.15);border-radius:var(--radius-md);padding:32px 36px;max-width:640px;width:100%;margin-bottom:28px}
-    .how-it-works-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-    .how-it-works-header .hiw-icon{width:40px;height:40px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .how-it-works-header .hiw-icon svg{width:20px;height:20px;color:#fff}
-    .how-it-works-header h5{font-size:1rem;font-weight:700;margin:0;color:#1a1a1a}
-    .how-it-works-header p{font-size:.8rem;color:#888;margin:2px 0 0}
-    .hiw-steps{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
-    .hiw-step{display:flex;align-items:flex-start;gap:14px}
-    .hiw-step-num{width:28px;height:28px;border-radius:50%;background:var(--kup-blue);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-    .hiw-step-body .hiw-step-title{font-size:.88rem;font-weight:700;color:#1a1a1a;margin:0 0 2px}
-    .hiw-step-body .hiw-step-desc{font-size:.8rem;color:#666;margin:0;line-height:1.55}
-    .hiw-deploy{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:16px 18px;margin-top:4px}
-    .hiw-deploy-title{font-size:.82rem;font-weight:700;color:#1a1a1a;margin:0 0 10px;display:flex;align-items:center;gap:6px}
-    .hiw-deploy-title svg{width:15px;height:15px;color:var(--kup-blue);flex-shrink:0}
-    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:6px}
-    .hiw-deploy-steps li{font-size:.8rem;color:#555;display:flex;align-items:baseline;gap:8px;line-height:1.5}
+    .how-it-works{background:linear-gradient(135deg,rgba(46,165,221,.05) 0%,rgba(112,123,187,.05) 100%);border:1px solid rgba(46,165,221,.15);border-radius:var(--radius-md);padding:24px 22px;width:100%}
+    .how-it-works-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .how-it-works-header .hiw-icon{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .how-it-works-header .hiw-icon svg{width:18px;height:18px;color:#fff}
+    .how-it-works-header h5{font-size:.92rem;font-weight:700;margin:0;color:#1a1a1a}
+    .how-it-works-header p{font-size:.76rem;color:#888;margin:2px 0 0}
+    .hiw-steps{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+    .hiw-step{display:flex;align-items:flex-start;gap:12px}
+    .hiw-step-num{width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .hiw-step-body .hiw-step-title{font-size:.82rem;font-weight:700;color:#1a1a1a;margin:0 0 2px}
+    .hiw-step-body .hiw-step-desc{font-size:.76rem;color:#666;margin:0;line-height:1.5}
+    .hiw-deploy{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:14px 16px;margin-top:4px}
+    .hiw-deploy-title{font-size:.78rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+    .hiw-deploy-title svg{width:14px;height:14px;color:var(--kup-blue);flex-shrink:0}
+    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+    .hiw-deploy-steps li{font-size:.76rem;color:#555;display:flex;align-items:baseline;gap:7px;line-height:1.5}
     .hiw-deploy-steps li::before{content:'→';color:var(--kup-blue);font-weight:700;flex-shrink:0}
 
     /* Print styles */
@@ -360,239 +370,247 @@
 
     <!-- RIGHT CONTENT -->
     <div class="wizard-content">
+      <div class="content-split">
 
-      <!-- ===== HOW IT WORKS ===== -->
-      <div class="how-it-works">
-        <div class="how-it-works-header">
-          <div class="hiw-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-          </div>
-          <div>
-            <h5>What is Kiosk Mode?</h5>
-            <p>A self-service review station for your physical location — no app download required</p>
-          </div>
-        </div>
+        <!-- LEFT: Form Panels -->
+        <div class="content-main">
 
-        <div class="hiw-steps">
-          <div class="hiw-step">
-            <div class="hiw-step-num">1</div>
-            <div class="hiw-step-body">
-              <p class="hiw-step-title">Set up a tablet at your location</p>
-              <p class="hiw-step-desc">Mount any iPad or Android tablet at your counter, entrance, or event booth. Load your unique Kiosk URL in the browser — that's your kiosk screen.</p>
+          <!-- Panel 1: Kiosk Settings -->
+          <div class="kiosk-section">
+            <h5>Configure Your Kiosk</h5>
+            <h6>In-Store / Outdoor / Event Review Station</h6>
+
+            <div class="kiosk-form-group">
+              <label for="offerTitle">Offer Title</label>
+              <input type="text" id="offerTitle" placeholder="Record a review, get a free taco!">
             </div>
-          </div>
-          <div class="hiw-step">
-            <div class="hiw-step-num">2</div>
-            <div class="hiw-step-body">
-              <p class="hiw-step-title">Customer records a video review on the spot</p>
-              <p class="hiw-step-desc">Customers tap the screen, record a short video review of their experience (up to 60 seconds), and submit — all without needing the KUP app or an account.</p>
+
+            <div class="kiosk-form-group">
+              <label for="rewardType">Reward Type</label>
+              <select id="rewardType">
+                <option value="free-item">Free Item</option>
+                <option value="discount-pct">Discount (%)</option>
+                <option value="discount-dollar">Discount ($)</option>
+                <option value="points">Points</option>
+              </select>
             </div>
-          </div>
-          <div class="hiw-step">
-            <div class="hiw-step-num">3</div>
-            <div class="hiw-step-body">
-              <p class="hiw-step-title">They earn an instant reward</p>
-              <p class="hiw-step-desc">As soon as they submit, the kiosk displays their reward — a free item, discount, or loyalty points — which your staff redeems at the register. You set the reward below.</p>
+
+            <div class="kiosk-form-group">
+              <label for="rewardValue">Reward Value</label>
+              <input type="text" id="rewardValue" placeholder="Free Taco">
             </div>
-          </div>
-          <div class="hiw-step">
-            <div class="hiw-step-num">4</div>
-            <div class="hiw-step-body">
-              <p class="hiw-step-title">Reviews land in your KUP content library</p>
-              <p class="hiw-step-desc">Every kiosk review flows into your brand's Content tab. Review, approve, and reuse them in campaigns — or let Auto-Approve handle it automatically.</p>
+
+            <div class="kiosk-form-group">
+              <label for="recordingLimit">Recording Limit</label>
+              <select id="recordingLimit">
+                <option value="15">15 seconds</option>
+                <option value="30" selected>30 seconds</option>
+                <option value="60">60 seconds</option>
+              </select>
             </div>
-          </div>
-        </div>
 
-        <div class="hiw-deploy">
-          <p class="hiw-deploy-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            How to deploy in 3 steps
-          </p>
-          <ul class="hiw-deploy-steps">
-            <li>Configure your reward and settings in the panel below, then click <strong>Save Kiosk Settings</strong></li>
-            <li>Copy your Kiosk URL (sidebar button) and open it in fullscreen on your tablet</li>
-            <li>On iPad, use <strong>Settings → Accessibility → Guided Access</strong> to lock the browser to that page so customers can't navigate away</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Panel 1: Kiosk Settings -->
-      <div class="kiosk-section">
-        <h5>Configure Your Kiosk</h5>
-        <h6>In-Store / Outdoor / Event Review Station</h6>
-
-        <div class="kiosk-form-group">
-          <label for="offerTitle">Offer Title</label>
-          <input type="text" id="offerTitle" placeholder="Record a review, get a free taco!">
-        </div>
-
-        <div class="kiosk-form-group">
-          <label for="rewardType">Reward Type</label>
-          <select id="rewardType">
-            <option value="free-item">Free Item</option>
-            <option value="discount-pct">Discount (%)</option>
-            <option value="discount-dollar">Discount ($)</option>
-            <option value="points">Points</option>
-          </select>
-        </div>
-
-        <div class="kiosk-form-group">
-          <label for="rewardValue">Reward Value</label>
-          <input type="text" id="rewardValue" placeholder="Free Taco">
-        </div>
-
-        <div class="kiosk-form-group">
-          <label for="recordingLimit">Recording Limit</label>
-          <select id="recordingLimit">
-            <option value="15">15 seconds</option>
-            <option value="30" selected>30 seconds</option>
-            <option value="60">60 seconds</option>
-          </select>
-        </div>
-
-        <div class="kiosk-form-toggle">
-          <div class="toggle-info">
-            <div class="toggle-name">Auto-Approve Reviews</div>
-            <div class="helper">Automatically add kiosk reviews to your display loop</div>
-          </div>
-          <label class="kiosk-toggle" style="margin-bottom:0">
-            <input type="checkbox" id="autoApprove" checked>
-            <div class="toggle-track"></div>
-          </label>
-        </div>
-
-        <div class="kiosk-form-toggle">
-          <div class="toggle-info">
-            <div class="toggle-name">Require SMS Verification</div>
-            <div class="helper">Verify customer phone before recording</div>
-          </div>
-          <label class="kiosk-toggle" style="margin-bottom:0">
-            <input type="checkbox" id="requireSms">
-            <div class="toggle-track"></div>
-          </label>
-        </div>
-
-        <div class="kiosk-form-group" style="margin-top:20px">
-          <label for="dailyCap">Daily Reward Cap</label>
-          <input type="number" id="dailyCap" value="50">
-          <div class="helper">Maximum rewards issued per day (fraud prevention)</div>
-        </div>
-
-        <button class="btn-save" onclick="saveKioskSettings()">Save Kiosk Settings</button>
-      </div>
-
-      <!-- Panel 2: Kiosk Branding -->
-      <div class="kiosk-section">
-        <h5>Kiosk Appearance</h5>
-        <h6>Branding &amp; Customization</h6>
-
-        <div class="kiosk-form-group">
-          <label for="brandColor">Brand Color</label>
-          <div class="color-picker-row">
-            <div class="color-swatch" id="colorSwatch" style="background:#2EA5DD" onclick="document.getElementById('colorPickerInput').click()"></div>
-            <input type="text" id="brandColor" value="#2EA5DD" style="max-width:160px">
-            <input type="color" id="colorPickerInput" value="#2EA5DD" style="display:none">
-          </div>
-        </div>
-
-        <div class="kiosk-form-group">
-          <label>Logo Override</label>
-          <div class="file-upload-area" id="logoUploadArea">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div class="upload-label">Upload Custom Logo</div>
-            <div class="upload-hint">or use your brand profile logo</div>
-          </div>
-        </div>
-
-        <!-- KUP Branding Watermark Upsell -->
-        <div class="scan-upsell">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <div>
-            <p class="upsell-text">KeepUsPostd branding appears at the bottom of your kiosk screen.</p>
-            <p class="upsell-text" style="margin-bottom:0">Upgrade to Pro to remove or replace with your brand logo.</p>
-            <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 3: Kiosk Analytics -->
-      <div class="kiosk-section">
-        <div class="scan-analytics">
-          <div class="scan-analytics-header">
-            <h5>Kiosk Performance</h5>
-            <span class="analytics-badge" id="kioskPlanBadge">—</span>
-          </div>
-
-          <div class="scan-counter">
-            <span class="count" id="statTotalReviews">0</span>
-            <span class="label">Total Reviews Recorded</span>
-          </div>
-
-          <div class="scan-trend">
-            <div class="scan-trend-bars" id="kioskTrendBars">
-              <div class="scan-trend-bar" style="height:4%"><span>Mon</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Tue</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Wed</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Thu</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Fri</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Sat</span></div>
-              <div class="scan-trend-bar" style="height:4%"><span>Sun</span></div>
+            <div class="kiosk-form-toggle">
+              <div class="toggle-info">
+                <div class="toggle-name">Auto-Approve Reviews</div>
+                <div class="helper">Automatically add kiosk reviews to your display loop</div>
+              </div>
+              <label class="kiosk-toggle" style="margin-bottom:0">
+                <input type="checkbox" id="autoApprove" checked>
+                <div class="toggle-track"></div>
+              </label>
             </div>
-            <p class="scan-trend-label">Last 7 days &mdash; <strong><span id="statThisWeek">0</span> reviews</strong></p>
+
+            <div class="kiosk-form-toggle">
+              <div class="toggle-info">
+                <div class="toggle-name">Require SMS Verification</div>
+                <div class="helper">Verify customer phone before recording</div>
+              </div>
+              <label class="kiosk-toggle" style="margin-bottom:0">
+                <input type="checkbox" id="requireSms">
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+
+            <div class="kiosk-form-group" style="margin-top:20px">
+              <label for="dailyCap">Daily Reward Cap</label>
+              <input type="number" id="dailyCap" value="50">
+              <div class="helper">Maximum rewards issued per day (fraud prevention)</div>
+            </div>
+
+            <button class="btn-save" onclick="saveKioskSettings()">Save Kiosk Settings</button>
           </div>
 
-          <div class="scan-details">
-            <div class="scan-detail-item">
-              <span class="detail-value" id="statThisWeekCard">0</span>
-              <span class="detail-label">Reviews This Week</span>
+          <!-- Panel 2: Kiosk Branding -->
+          <div class="kiosk-section">
+            <h5>Kiosk Appearance</h5>
+            <h6>Branding &amp; Customization</h6>
+
+            <div class="kiosk-form-group">
+              <label for="brandColor">Brand Color</label>
+              <div class="color-picker-row">
+                <div class="color-swatch" id="colorSwatch" style="background:#2EA5DD" onclick="document.getElementById('colorPickerInput').click()"></div>
+                <input type="text" id="brandColor" value="#2EA5DD" style="max-width:160px">
+                <input type="color" id="colorPickerInput" value="#2EA5DD" style="display:none">
+              </div>
             </div>
-            <div class="scan-detail-item">
-              <span class="detail-value" id="statVsLastWeek">—</span>
-              <span class="detail-label">vs Last Week</span>
+
+            <div class="kiosk-form-group">
+              <label>Logo Override</label>
+              <div class="file-upload-area" id="logoUploadArea">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="upload-label">Upload Custom Logo</div>
+                <div class="upload-hint">or use your brand profile logo</div>
+              </div>
             </div>
-            <div class="scan-detail-item">
-              <span class="detail-value" id="statRedemptionRate">0%</span>
-              <span class="detail-label">Reward Redemption</span>
-            </div>
-            <div class="scan-detail-item">
-              <span class="detail-value" id="statTodayRewardsKiosk">0</span>
-              <span class="detail-label">Rewards Today</span>
+
+            <div class="scan-upsell">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <div>
+                <p class="upsell-text">KeepUsPostd branding appears at the bottom of your kiosk screen.</p>
+                <p class="upsell-text" style="margin-bottom:0">Upgrade to Pro to remove or replace with your brand logo.</p>
+                <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+              </div>
             </div>
           </div>
 
-          <div class="scan-upsell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <div>
-              <p class="upsell-text">Unlock detailed kiosk analytics, heat maps, and conversion funnels with a Pro plan.</p>
-              <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+          <!-- Panel 3: Kiosk Analytics -->
+          <div class="kiosk-section">
+            <div class="scan-analytics">
+              <div class="scan-analytics-header">
+                <h5>Kiosk Performance</h5>
+                <span class="analytics-badge" id="kioskPlanBadge">—</span>
+              </div>
+
+              <div class="scan-counter">
+                <span class="count" id="statTotalReviews">0</span>
+                <span class="label">Total Reviews Recorded</span>
+              </div>
+
+              <div class="scan-trend">
+                <div class="scan-trend-bars" id="kioskTrendBars">
+                  <div class="scan-trend-bar" style="height:4%"><span>Mon</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Tue</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Wed</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Thu</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Fri</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Sat</span></div>
+                  <div class="scan-trend-bar" style="height:4%"><span>Sun</span></div>
+                </div>
+                <p class="scan-trend-label">Last 7 days &mdash; <strong><span id="statThisWeek">0</span> reviews</strong></p>
+              </div>
+
+              <div class="scan-details">
+                <div class="scan-detail-item">
+                  <span class="detail-value" id="statThisWeekCard">0</span>
+                  <span class="detail-label">Reviews This Week</span>
+                </div>
+                <div class="scan-detail-item">
+                  <span class="detail-value" id="statVsLastWeek">—</span>
+                  <span class="detail-label">vs Last Week</span>
+                </div>
+                <div class="scan-detail-item">
+                  <span class="detail-value" id="statRedemptionRate">0%</span>
+                  <span class="detail-label">Reward Redemption</span>
+                </div>
+                <div class="scan-detail-item">
+                  <span class="detail-value" id="statTodayRewardsKiosk">0</span>
+                  <span class="detail-label">Rewards Today</span>
+                </div>
+              </div>
+
+              <div class="scan-upsell">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div>
+                  <p class="upsell-text">Unlock detailed kiosk analytics, heat maps, and conversion funnels with a Pro plan.</p>
+                  <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Panel 4: Kiosk URL & QR -->
-      <div class="kiosk-section">
-        <h5>Your Kiosk URL</h5>
-        <h6 style="margin-bottom:20px">Device Configuration</h6>
+          <!-- Panel 4: Kiosk URL & QR -->
+          <div class="kiosk-section">
+            <h5>Your Kiosk URL</h5>
+            <h6 style="margin-bottom:20px">Device Configuration</h6>
 
-        <span class="brand-url" onclick="copyKioskUrl()" id="kioskUrlDisplay">keepuspostd.com/kiosk/keepuspostd</span>
-        <div style="font-size:0.72rem;color:#888;margin-top:8px;margin-bottom:24px;line-height:1.4;" id="kioskUrlHint">
-          Click to copy &middot; Load this URL on your kiosk device
-        </div>
+            <span class="brand-url" onclick="copyKioskUrl()" id="kioskUrlDisplay">keepuspostd.com/kiosk/keepuspostd</span>
+            <div style="font-size:0.72rem;color:#888;margin-top:8px;margin-bottom:24px;line-height:1.4;" id="kioskUrlHint">
+              Click to copy &middot; Load this URL on your kiosk device
+            </div>
 
-        <div class="qr-wrapper" style="margin:0 0 16px">
-          <div class="qr-placeholder">
-            <div class="qr-grid" id="kioskQrGrid"></div>
-            <div class="qr-center-badge"><span>KUP</span></div>
+            <div class="qr-wrapper" style="margin:0 0 16px">
+              <div class="qr-placeholder">
+                <div class="qr-grid" id="kioskQrGrid"></div>
+                <div class="qr-center-badge"><span>KUP</span></div>
+              </div>
+            </div>
+
+            <p class="helper" style="font-size:.78rem;color:#888;line-height:1.6;margin-top:16px">Load this URL on your kiosk device. Use iPad Guided Access to lock the browser to this page.</p>
           </div>
-        </div>
 
-        <p class="helper" style="font-size:.78rem;color:#888;line-height:1.6;margin-top:16px">Load this URL on your kiosk device. Use iPad Guided Access to lock the browser to this page.</p>
-      </div>
+        </div><!-- /content-main -->
 
-    </div>
-  </div>
+        <!-- RIGHT: How It Works (sticky) -->
+        <div class="content-info">
+          <div class="how-it-works">
+            <div class="how-it-works-header">
+              <div class="hiw-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              </div>
+              <div>
+                <h5>What is Kiosk Mode?</h5>
+                <p>A self-service review station for your physical location — no app download required</p>
+              </div>
+            </div>
+
+            <div class="hiw-steps">
+              <div class="hiw-step">
+                <div class="hiw-step-num">1</div>
+                <div class="hiw-step-body">
+                  <p class="hiw-step-title">Set up a tablet at your location</p>
+                  <p class="hiw-step-desc">Mount any iPad or Android tablet at your counter, entrance, or event booth. Load your unique Kiosk URL in the browser — that's your kiosk screen.</p>
+                </div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-step-num">2</div>
+                <div class="hiw-step-body">
+                  <p class="hiw-step-title">Customer records a video review on the spot</p>
+                  <p class="hiw-step-desc">Customers tap the screen, record a short video review (up to 60 seconds), and submit — no KUP app or account needed.</p>
+                </div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-step-num">3</div>
+                <div class="hiw-step-body">
+                  <p class="hiw-step-title">They earn an instant reward</p>
+                  <p class="hiw-step-desc">The kiosk displays their reward — a free item, discount, or points — for your staff to redeem at the register.</p>
+                </div>
+              </div>
+              <div class="hiw-step">
+                <div class="hiw-step-num">4</div>
+                <div class="hiw-step-body">
+                  <p class="hiw-step-title">Reviews loop on your proof-point display</p>
+                  <p class="hiw-step-desc">Approved kiosk reviews automatically join your brand's proof-point loop — a continuous video reel that plays in-store or on any screen you choose, building social proof in real time.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="hiw-deploy">
+              <p class="hiw-deploy-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                Deploy in 3 steps
+              </p>
+              <ul class="hiw-deploy-steps">
+                <li>Configure your reward below &amp; click <strong>Save Kiosk Settings</strong></li>
+                <li>Copy your Kiosk URL &amp; open it fullscreen on your tablet</li>
+                <li>On iPad: <strong>Settings → Accessibility → Guided Access</strong> to lock the browser</li>
+              </ul>
+            </div>
+          </div>
+        </div><!-- /content-info -->
+
+      </div><!-- /content-split -->
+    </div><!-- /wizard-content -->
+  </div><!-- /wizard-layout -->
 
   <!-- ========== FOOTER ========== -->
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
