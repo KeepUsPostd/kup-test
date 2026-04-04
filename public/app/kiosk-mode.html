@@ -259,9 +259,11 @@
     .hiw-deploy{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:14px 16px;margin-top:4px}
     .hiw-deploy-title{font-size:.78rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
     .hiw-deploy-title svg{width:14px;height:14px;color:var(--kup-blue);flex-shrink:0}
-    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:deploy-step}
-    .hiw-deploy-steps li{font-size:.76rem;color:#555;display:flex;align-items:baseline;gap:8px;line-height:1.5;counter-increment:deploy-step}
-    .hiw-deploy-steps li::before{content:counter(deploy-step) '.';color:var(--kup-blue);font-weight:700;flex-shrink:0;min-width:14px}
+    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:deploy-step}
+    .hiw-deploy-steps li{display:flex;align-items:flex-start;gap:8px;counter-increment:deploy-step}
+    .hiw-deploy-steps li::before{content:counter(deploy-step) '.';color:var(--kup-blue);font-weight:700;flex-shrink:0;min-width:14px;font-size:.76rem;margin-top:1px}
+    .hiw-deploy-step-title{font-size:.78rem;font-weight:700;color:#1a1a1a;display:block;margin-bottom:2px}
+    .hiw-deploy-step-body{font-size:.74rem;color:#666;display:block;line-height:1.45}
     .hiw-note{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:12px 14px;margin-top:10px;display:flex;align-items:flex-start;gap:8px}
     .hiw-note svg{width:13px;height:13px;color:#bbb;flex-shrink:0;margin-top:2px}
     .hiw-note p{font-size:.74rem;color:#888;margin:0;line-height:1.5}
@@ -594,9 +596,18 @@
                 How to deploy
               </p>
               <ul class="hiw-deploy-steps">
-                <li>Set your reward &amp; offer title below, then click <strong>Save Kiosk Settings</strong></li>
-                <li>Copy your Kiosk URL from the sidebar &amp; open it fullscreen on your tablet</li>
-                <li>On iPad, go to <strong>Settings → Accessibility → Guided Access</strong> and enable it to lock the browser to your kiosk screen</li>
+                <li><div>
+                  <span class="hiw-deploy-step-title">Save your settings</span>
+                  <span class="hiw-deploy-step-body">Configure your reward &amp; offer title, then click Save Kiosk Settings.</span>
+                </div></li>
+                <li><div>
+                  <span class="hiw-deploy-step-title">Load the URL on your tablet</span>
+                  <span class="hiw-deploy-step-body">Copy your Kiosk URL from the sidebar and open it fullscreen in the browser.</span>
+                </div></li>
+                <li><div>
+                  <span class="hiw-deploy-step-title">Lock the browser with Guided Access</span>
+                  <span class="hiw-deploy-step-body">On iPad: Settings → Accessibility → Guided Access. This keeps customers from navigating away.</span>
+                </div></li>
               </ul>
             </div>
 
