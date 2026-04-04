@@ -95,6 +95,7 @@ app.use(helmet({
       mediaSrc: [
         "'self'",
         "blob:",                     // Camera preview via getUserMedia
+        "https://*.r2.dev",          // Cloudflare R2 — video/audio content
       ],
       frameSrc: [
         "'self'",
