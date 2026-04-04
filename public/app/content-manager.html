@@ -1248,6 +1248,7 @@
           daysRemaining: daysRemaining,
           avatarStyle: '',
           mediaUrls: sub.mediaUrls || [],
+          posterUrl: sub.posterUrl || null,
           originalMediaUrls: sub.originalMediaUrls || null,
           caption: sub.caption || '',
           rejectionReason: sub.rejectionReason || '',
@@ -1305,6 +1306,7 @@
             daysRemaining: daysRemaining,
             avatarStyle: '',
             mediaUrls: sub.mediaUrls || [],
+            posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
             rejectionReason: sub.rejectionReason || '',
@@ -1414,6 +1416,7 @@
         if (isVideo) {
           var video = document.createElement('video');
           video.src = mediaUrl;
+          if (item.posterUrl) video.poster = item.posterUrl;
           video.controls = true;
           video.preload = 'auto';
           video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
@@ -4022,6 +4025,7 @@
             daysRemaining: daysRemaining,
             avatarStyle: '',
             mediaUrls: sub.mediaUrls || [],
+            posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
             rejectionReason: sub.rejectionReason || '',
