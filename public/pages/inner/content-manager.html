@@ -38,8 +38,10 @@
     .cm-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 56px);overflow:hidden}
 
     /* Left: Content Preview */
-    .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:16px 60px;position:relative;overflow:hidden;height:100%}
-    .cm-preview .content-frame{width:auto;height:calc(100% - 70px);aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0;overflow:hidden}
+    .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:0;position:relative;overflow:hidden;height:100%}
+    /* Inner column: fills cm-preview minus bottom toolbar space, stacks video + scrubber */
+    .cm-preview-inner{position:absolute;top:16px;left:60px;right:60px;bottom:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+    .cm-preview .content-frame{width:auto;flex:1;min-height:0;max-height:100%;aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0;overflow:hidden}
     .cm-preview .content-frame .play-btn{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
     .cm-preview .content-frame .play-btn:hover{background:rgba(255,255,255,.25);transform:scale(1.05)}
     .cm-preview .content-frame .play-btn svg{width:32px;height:32px;fill:#fff;margin-left:4px}
@@ -439,6 +441,58 @@
     .content-frame { position:relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transition:aspect-ratio 0.3s ease; overflow:hidden; }
     .content-frame img, .content-frame video { position:relative; z-index:1; }
 
+    /* Video play/pause overlay */
+    .video-play-overlay {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; background: transparent;
+    }
+    .video-play-overlay .play-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.25s, transform 0.2s;
+    }
+    .video-play-overlay .play-icon svg { width: 32px; height: 32px; fill: #fff; margin-left: 4px; }
+    .video-play-overlay .pause-icon { display: none; margin-left: 0; }
+    .video-play-overlay.playing .play-icon { opacity: 0; pointer-events: none; }
+    .video-play-overlay.playing:hover .play-icon { opacity: 1; pointer-events: auto; }
+    .video-play-overlay.playing .play-icon svg.pause-icon { display: block; margin-left: 0; }
+    .video-play-overlay.playing .play-icon svg.play-icon-svg { display: none; }
+    /* Video playback scrubber bar — below content frame, full inner width */
+    .video-scrubber-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px;
+      background: rgba(13,13,26,0.95);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      flex-shrink: 0;
+      width: 100%; /* fills cm-preview-inner width = content-frame width */
+    }
+    .scrubber-play-btn {
+      width: 30px; height: 30px; border-radius: 50%; border: none;
+      background: var(--kup-blue); color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .scrubber-play-btn svg { width: 12px; height: 12px; }
+    .scrubber-play-btn:hover { background: #258fc4; }
+    .scrubber-time-current, .scrubber-time-total {
+      font-size: 0.72rem; color: #aaa; font-weight: 600; white-space: nowrap; min-width: 32px;
+    }
+    .scrubber-track {
+      flex: 1; height: 4px; background: rgba(255,255,255,0.15); border-radius: 4px;
+      position: relative; cursor: pointer; transition: height 0.15s;
+    }
+    .scrubber-track:hover { height: 6px; }
+    .scrubber-fill { height: 100%; background: var(--kup-blue); border-radius: 4px; width: 0%; pointer-events: none; }
+    .scrubber-handle {
+      position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%);
+      width: 14px; height: 14px; border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5); pointer-events: none;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .scrubber-track:hover .scrubber-handle { opacity: 1; }
+
     /* ============== COUNTDOWN BAR ============== */
     .cm-countdown { margin: 16px 0; }
     .countdown-bar { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
@@ -733,6 +787,8 @@
       <button class="nav-arrow prev" id="prevBtn" aria-label="Previous content" onclick="navigatePrev()">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
+      <!-- cm-preview-inner: column container for video + scrubber, keeps them together -->
+      <div class="cm-preview-inner">
       <div class="content-frame">
         <div class="content-type-icon" id="previewIcon"><i class="ph ph-play"></i></div>
         <div class="content-type-text" id="previewTypeLabel">VIDEO</div>
@@ -741,6 +797,20 @@
           <div class="crop-grid-h" style="top:66.66%"></div>
         </div>
       </div>
+      <!-- Video Playback Bar — directly below content frame, same width -->
+      <div class="video-scrubber-bar" id="videoScrubberBar" style="display:none;">
+        <button class="scrubber-play-btn" id="scrubberPlayBtn" onclick="toggleVideoPlayback()">
+          <svg id="scrubberPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          <svg id="scrubberPauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <span class="scrubber-time-current" id="scrubberTimeCurrent">0:00</span>
+        <div class="scrubber-track" id="scrubberTrack">
+          <div class="scrubber-fill" id="scrubberFill"></div>
+          <div class="scrubber-handle" id="scrubberHandle"></div>
+        </div>
+        <span class="scrubber-time-total" id="scrubberTimeTotal">0:00</span>
+      </div>
+      </div><!-- /cm-preview-inner -->
       <!-- Editing Toolbar -->
       <div class="edit-toolbar" id="editToolbar">
         <button class="edit-tool-btn" id="trimBtn" onclick="toggleTool('trim')" title="Trim video">
@@ -1248,6 +1318,7 @@
           daysRemaining: daysRemaining,
           avatarStyle: '',
           mediaUrls: sub.mediaUrls || [],
+          posterUrl: sub.posterUrl || null,
           originalMediaUrls: sub.originalMediaUrls || null,
           caption: sub.caption || '',
           rejectionReason: sub.rejectionReason || '',
@@ -1305,6 +1376,7 @@
             daysRemaining: daysRemaining,
             avatarStyle: '',
             mediaUrls: sub.mediaUrls || [],
+            posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
             rejectionReason: sub.rejectionReason || '',
@@ -1404,8 +1476,20 @@
       // === MEDIA PREVIEW (the main content area) ===
       var frame = document.querySelector('.content-frame');
       // Clear previous media (keep crop grid)
-      var existingMedia = frame.querySelectorAll('img, video, .content-type-icon, .content-type-text, .multi-indicator');
-      existingMedia.forEach(function(el) { el.remove(); });
+      var existingMedia = frame.querySelectorAll('img, video, .content-type-icon, .content-type-text, .multi-indicator, .video-play-overlay');
+      existingMedia.forEach(function(el) {
+        if (el.tagName === 'VIDEO') el.pause();
+        el.remove();
+      });
+      // Reset scrubber bar state between items
+      var resetScrub = document.getElementById('videoScrubberBar');
+      if (resetScrub) { resetScrub.style.display = 'none'; }
+      var rFill = document.getElementById('scrubberFill'); if (rFill) rFill.style.width = '0%';
+      var rHandle = document.getElementById('scrubberHandle'); if (rHandle) rHandle.style.left = '0%';
+      var rCur = document.getElementById('scrubberTimeCurrent'); if (rCur) rCur.textContent = '0:00';
+      var rTot = document.getElementById('scrubberTimeTotal'); if (rTot) rTot.textContent = '0:00';
+      var rPI = document.getElementById('scrubberPlayIcon'); if (rPI) rPI.style.display = 'block';
+      var rPaI = document.getElementById('scrubberPauseIcon'); if (rPaI) rPaI.style.display = 'none';
 
       if (item.mediaUrls && item.mediaUrls.length > 0) {
         var mediaUrl = item.mediaUrls[0]; // Show first media item
@@ -1414,17 +1498,121 @@
         if (isVideo) {
           var video = document.createElement('video');
           video.src = mediaUrl;
-          video.controls = true;
+          if (item.posterUrl) video.poster = item.posterUrl;
           video.preload = 'auto';
           video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;';
           video.setAttribute('playsinline', '');
-          // Block download from native three-dot menu unless approved
-          video.setAttribute('controlsList', 'nodownload');
-          if (item.status !== 'approved' && item.status !== 'postd') {
-            video.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-          }
+          video.addEventListener('contextmenu', function(e) { e.preventDefault(); });
           frame.insertBefore(video, frame.firstChild);
+
+          // Click-to-play overlay with scrubber (native controls conflict with edit toolbar)
+          var overlay = document.createElement('div');
+          overlay.className = 'video-play-overlay';
+          overlay.innerHTML =
+            '<div class="play-icon">' +
+              '<svg class="play-icon-svg" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>' +
+              '<svg class="pause-icon" viewBox="0 0 24 24" fill="#fff" style="display:none;margin-left:0"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' +
+            '</div>';
+          function setPlayingState(playing) {
+            if (playing) {
+              overlay.classList.add('playing');
+              overlay.querySelector('.play-icon-svg').style.display = 'none';
+              overlay.querySelector('.pause-icon').style.display = 'block';
+            } else {
+              overlay.classList.remove('playing');
+              overlay.querySelector('.play-icon-svg').style.display = 'block';
+              overlay.querySelector('.pause-icon').style.display = 'none';
+            }
+          }
+          overlay.addEventListener('click', function() {
+            if (video.paused) {
+              // If video hasn't loaded yet, load it first then play
+              if (video.readyState === 0) video.load();
+              var p = video.play();
+              if (p && p.then) {
+                p.then(function() {
+                  setPlayingState(true);
+                }).catch(function(err) {
+                  console.warn('[CM] video.play() rejected:', err.message);
+                  setPlayingState(false);
+                });
+              } else {
+                setPlayingState(true);
+              }
+            } else {
+              video.pause();
+              setPlayingState(false);
+            }
+          });
+          // Show the external scrubber bar
+          var scrubBar     = document.getElementById('videoScrubberBar');
+          var scrubFill    = document.getElementById('scrubberFill');
+          var scrubHandle  = document.getElementById('scrubberHandle');
+          var scrubTrack   = document.getElementById('scrubberTrack');
+          var scrubCur     = document.getElementById('scrubberTimeCurrent');
+          var scrubTot     = document.getElementById('scrubberTimeTotal');
+          var scrubPlayI   = document.getElementById('scrubberPlayIcon');
+          var scrubPauseI  = document.getElementById('scrubberPauseIcon');
+          if (scrubBar) scrubBar.style.display = 'flex';
+
+          function fmtTime(s) { var m = Math.floor(s/60); return m + ':' + ('0'+Math.floor(s%60)).slice(-2); }
+
+          function syncScrubber(playing) {
+            if (!scrubPlayI || !scrubPauseI) return;
+            scrubPlayI.style.display  = playing ? 'none' : 'block';
+            scrubPauseI.style.display = playing ? 'block' : 'none';
+          }
+
+          // Expose play/pause toggle for the scrubber button
+          window.toggleVideoPlayback = function() {
+            if (!video) return;
+            if (video.paused) {
+              if (video.readyState === 0) video.load();
+              var p = video.play();
+              if (p && p.then) p.then(function() { setPlayingState(true); syncScrubber(true); }).catch(function() { setPlayingState(false); syncScrubber(false); });
+              else { setPlayingState(true); syncScrubber(true); }
+            } else {
+              video.pause(); setPlayingState(false); syncScrubber(false);
+            }
+          };
+
+          video.addEventListener('play',  function() { setPlayingState(true);  syncScrubber(true); });
+          video.addEventListener('pause', function() { setPlayingState(false); syncScrubber(false); });
+          video.addEventListener('ended', function() { setPlayingState(false); syncScrubber(false); });
+          video.addEventListener('error', function() {
+            console.error('[CM] Video error:', video.error && video.error.message);
+            setPlayingState(false); syncScrubber(false);
+          });
+          video.addEventListener('loadedmetadata', function() {
+            if (scrubTot) scrubTot.textContent = fmtTime(video.duration || 0);
+          });
+          video.addEventListener('timeupdate', function() {
+            var pct = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+            if (scrubFill)   scrubFill.style.width  = pct + '%';
+            if (scrubHandle) scrubHandle.style.left  = pct + '%';
+            if (scrubCur)    scrubCur.textContent    = fmtTime(video.currentTime);
+          });
+
+          // Scrubber seek
+          var scrubbing = false;
+          function seekTo(e) {
+            if (!video.duration || !scrubTrack) return;
+            var rect = scrubTrack.getBoundingClientRect();
+            var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            video.currentTime = pct * video.duration;
+          }
+          if (scrubTrack) {
+            scrubTrack.addEventListener('mousedown', function(e) { e.stopPropagation(); scrubbing = true; seekTo(e); });
+            scrubTrack.addEventListener('click',     function(e) { e.stopPropagation(); seekTo(e); });
+          }
+          document.addEventListener('mousemove', function(e) { if (scrubbing) seekTo(e); });
+          document.addEventListener('mouseup',   function()  { scrubbing = false; });
+          frame.insertBefore(overlay, frame.firstChild);
         } else {
+          // Hide scrubber bar for images
+          var imgScrubBar = document.getElementById('videoScrubberBar');
+          if (imgScrubBar) imgScrubBar.style.display = 'none';
+          window.toggleVideoPlayback = null;
           var img = document.createElement('img');
           img.src = mediaUrl;
           img.alt = 'Submitted content';
@@ -1560,14 +1748,16 @@
         }
       }
 
-      // Nav arrows
-      document.getElementById('prevBtn').disabled = (index <= 0);
-      document.getElementById('nextBtn').disabled = (index >= contentItems.length - 1);
+      // Nav arrows — skip rejected items in queue flow
+      var queueItems = contentItems.filter(function(c) { return c.status !== 'rejected'; });
+      var queueIndex = queueItems.indexOf(contentItems[index]);
+      document.getElementById('prevBtn').disabled = (queueIndex <= 0);
+      document.getElementById('nextBtn').disabled = (queueIndex >= queueItems.length - 1);
 
       // Header counter
       var pendingCount = contentItems.filter(function(c) { return c.status === 'pending'; }).length;
       var counterEl = document.querySelector('.cm-header-right span');
-      if (counterEl) counterEl.textContent = 'Reviewing ' + (index + 1) + ' of ' + contentItems.length + ' items \u00B7 ' + pendingCount + ' pending';
+      if (counterEl) counterEl.textContent = 'Reviewing ' + (queueIndex + 1) + ' of ' + queueItems.length + ' items \u00B7 ' + pendingCount + ' pending';
 
       // Update URL without reload
       var newUrl = window.location.pathname + '?id=' + (item.mongoId || index);
@@ -1604,10 +1794,18 @@
 
     // ========== Navigation ==========
     function navigatePrev() {
-      if (currentIndex > 0) { currentIndex--; loadContent(currentIndex); }
+      // Skip rejected items going backwards
+      var i = currentIndex - 1;
+      while (i >= 0 && contentItems[i] && contentItems[i].status === 'rejected') i--;
+      // Update currentIndex AFTER loadContent so overlay save captures the correct outgoing item
+      if (i >= 0) { loadContent(i); currentIndex = i; }
     }
     function navigateNext() {
-      if (currentIndex < contentItems.length - 1) { currentIndex++; loadContent(currentIndex); }
+      // Skip rejected items going forwards
+      var i = currentIndex + 1;
+      while (i < contentItems.length && contentItems[i] && contentItems[i].status === 'rejected') i++;
+      // Update currentIndex AFTER loadContent so overlay save captures the correct outgoing item
+      if (i < contentItems.length) { loadContent(i); currentIndex = i; }
     }
 
     // ========== Approve / Reject (API-connected) ==========
@@ -3443,7 +3641,17 @@
     function renderLibrary() {
       var grid = document.getElementById('libraryGrid');
       grid.innerHTML = '';
-      var approvedItems = contentItems.filter(function(item) { return item.status === 'approved'; });
+      // Library shows: approved, postd, and rejected within 30 days
+      var thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      var approvedItems = contentItems.filter(function(item) {
+        if (item.status === 'approved' || item.status === 'postd') return true;
+        if (item.status === 'rejected') {
+          // Keep rejected items visible for 30 days (date field not always set, default to show)
+          var reviewedAt = item.reviewedAt ? new Date(item.reviewedAt).getTime() : Date.now();
+          return (Date.now() - reviewedAt) < thirtyDaysMs;
+        }
+        return false;
+      });
 
       var typeFilter = document.querySelector('.library-filter.active');
       var typeVal = typeFilter ? typeFilter.getAttribute('data-filter') : 'all';
@@ -4022,6 +4230,7 @@
             daysRemaining: daysRemaining,
             avatarStyle: '',
             mediaUrls: sub.mediaUrls || [],
+            posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,
             caption: sub.caption || '',
             rejectionReason: sub.rejectionReason || '',

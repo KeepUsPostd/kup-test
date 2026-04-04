@@ -38,8 +38,10 @@
     .cm-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 56px);overflow:hidden}
 
     /* Left: Content Preview */
-    .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:16px 60px;position:relative;overflow:hidden;height:100%}
-    .cm-preview .content-frame{width:auto;height:calc(100% - 70px);aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0;overflow:hidden}
+    .cm-preview{display:flex;align-items:center;justify-content:center;background:#0d0d1a;padding:0;position:relative;overflow:hidden;height:100%}
+    /* Inner column: fills cm-preview minus bottom toolbar space, stacks video + scrubber */
+    .cm-preview-inner{position:absolute;top:16px;left:60px;right:60px;bottom:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+    .cm-preview .content-frame{width:auto;flex:1;min-height:0;max-height:100%;aspect-ratio:9/16;background:#1a1a2e;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;border:1px solid #333;flex-shrink:0;overflow:hidden}
     .cm-preview .content-frame .play-btn{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
     .cm-preview .content-frame .play-btn:hover{background:rgba(255,255,255,.25);transform:scale(1.05)}
     .cm-preview .content-frame .play-btn svg{width:32px;height:32px;fill:#fff;margin-left:4px}
@@ -457,13 +459,15 @@
     .video-play-overlay.playing:hover .play-icon { opacity: 1; pointer-events: auto; }
     .video-play-overlay.playing .play-icon svg.pause-icon { display: block; margin-left: 0; }
     .video-play-overlay.playing .play-icon svg.play-icon-svg { display: none; }
-    /* Video playback scrubber bar — between content frame and editing toolbar */
+    /* Video playback scrubber bar — below content frame, full inner width */
     .video-scrubber-bar {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 16px;
-      background: #0d0d1a;
-      border-top: 1px solid rgba(255,255,255,0.07);
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(13,13,26,0.95);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      flex-shrink: 0;
+      width: 100%; /* fills cm-preview-inner width = content-frame width */
     }
     .scrubber-play-btn {
       width: 30px; height: 30px; border-radius: 50%; border: none;
@@ -783,6 +787,8 @@
       <button class="nav-arrow prev" id="prevBtn" aria-label="Previous content" onclick="navigatePrev()">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
+      <!-- cm-preview-inner: column container for video + scrubber, keeps them together -->
+      <div class="cm-preview-inner">
       <div class="content-frame">
         <div class="content-type-icon" id="previewIcon"><i class="ph ph-play"></i></div>
         <div class="content-type-text" id="previewTypeLabel">VIDEO</div>
@@ -791,6 +797,20 @@
           <div class="crop-grid-h" style="top:66.66%"></div>
         </div>
       </div>
+      <!-- Video Playback Bar — directly below content frame, same width -->
+      <div class="video-scrubber-bar" id="videoScrubberBar" style="display:none;">
+        <button class="scrubber-play-btn" id="scrubberPlayBtn" onclick="toggleVideoPlayback()">
+          <svg id="scrubberPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          <svg id="scrubberPauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <span class="scrubber-time-current" id="scrubberTimeCurrent">0:00</span>
+        <div class="scrubber-track" id="scrubberTrack">
+          <div class="scrubber-fill" id="scrubberFill"></div>
+          <div class="scrubber-handle" id="scrubberHandle"></div>
+        </div>
+        <span class="scrubber-time-total" id="scrubberTimeTotal">0:00</span>
+      </div>
+      </div><!-- /cm-preview-inner -->
       <!-- Editing Toolbar -->
       <div class="edit-toolbar" id="editToolbar">
         <button class="edit-tool-btn" id="trimBtn" onclick="toggleTool('trim')" title="Trim video">
@@ -839,20 +859,6 @@
           <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save Edit
         </button>
-      </div>
-
-      <!-- Video Playback Bar — sits between content frame and editing toolbar, only shown for videos -->
-      <div class="video-scrubber-bar" id="videoScrubberBar" style="display:none;">
-        <button class="scrubber-play-btn" id="scrubberPlayBtn" onclick="toggleVideoPlayback()">
-          <svg id="scrubberPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-          <svg id="scrubberPauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-        </button>
-        <span class="scrubber-time-current" id="scrubberTimeCurrent">0:00</span>
-        <div class="scrubber-track" id="scrubberTrack">
-          <div class="scrubber-fill" id="scrubberFill"></div>
-          <div class="scrubber-handle" id="scrubberHandle"></div>
-        </div>
-        <span class="scrubber-time-total" id="scrubberTimeTotal">0:00</span>
       </div>
 
       <!-- Trim Panel -->
