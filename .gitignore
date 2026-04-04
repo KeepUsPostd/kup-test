@@ -2,3 +2,6 @@ node_modules/
 .env*
 !.env.example
 public/uploads/
+
+# Seed/migration scripts — contain DB operations, run locally only
+scripts/

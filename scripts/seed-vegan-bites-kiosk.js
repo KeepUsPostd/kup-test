@@ -18,7 +18,8 @@ const InfluencerProfile = require('../src/models/InfluencerProfile');
 const Brand             = require('../src/models/Brand');
 const ContentSubmission = require('../src/models/ContentSubmission');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kup_admin:opC9nABk3MUrcmt1@kup-test.vnix9or.mongodb.net/keepuspostd_production';
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) { console.error('❌ MONGODB_URI env var not set. Run: node -r dotenv/config scripts/seed-vegan-bites-kiosk.js dotenv_config_path=.env.production'); process.exit(1); }
 
 // Same Google Drive video IDs used in the Pure Juice seed
 const DRIVE_FILE_IDS = [
