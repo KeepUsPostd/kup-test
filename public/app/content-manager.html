@@ -1454,23 +1454,43 @@
               '<svg class="play-icon-svg" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>' +
               '<svg class="pause-icon" viewBox="0 0 24 24" fill="#fff" style="display:none;margin-left:0"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' +
             '</div>';
-          overlay.addEventListener('click', function() {
-            if (video.paused) {
-              video.play();
+          function setPlayingState(playing) {
+            if (playing) {
               overlay.classList.add('playing');
               overlay.querySelector('.play-icon-svg').style.display = 'none';
               overlay.querySelector('.pause-icon').style.display = 'block';
             } else {
-              video.pause();
               overlay.classList.remove('playing');
               overlay.querySelector('.play-icon-svg').style.display = 'block';
               overlay.querySelector('.pause-icon').style.display = 'none';
             }
+          }
+          overlay.addEventListener('click', function() {
+            if (video.paused) {
+              // If video hasn't loaded yet, load it first then play
+              if (video.readyState === 0) video.load();
+              var p = video.play();
+              if (p && p.then) {
+                p.then(function() {
+                  setPlayingState(true);
+                }).catch(function(err) {
+                  console.warn('[CM] video.play() rejected:', err.message);
+                  setPlayingState(false);
+                });
+              } else {
+                setPlayingState(true);
+              }
+            } else {
+              video.pause();
+              setPlayingState(false);
+            }
           });
-          video.addEventListener('ended', function() {
-            overlay.classList.remove('playing');
-            overlay.querySelector('.play-icon-svg').style.display = 'block';
-            overlay.querySelector('.pause-icon').style.display = 'none';
+          video.addEventListener('play', function() { setPlayingState(true); });
+          video.addEventListener('pause', function() { setPlayingState(false); });
+          video.addEventListener('ended', function() { setPlayingState(false); });
+          video.addEventListener('error', function() {
+            console.error('[CM] Video error:', video.error && video.error.message);
+            setPlayingState(false);
           });
           frame.insertBefore(overlay, frame.firstChild);
         } else {
