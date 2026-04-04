@@ -59,7 +59,7 @@ router.get('/display/:brandCode', async (req, res) => {
         brandName: brand.name,
         brandInitials: brand.initials || (brand.name.trim().split(/\s+/).length === 1 ? brand.name.charAt(0).toUpperCase() : brand.name.trim().split(/\s+/).map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3)),
         brandLogo: brand.kioskBrandingLogo || brand.logoUrl,
-        brandColor: brand.kioskBrandingColor || '#FF6B35',
+        brandColor: brand.kioskBrandingColor || (brand.brandColors && brand.brandColors[0]) || brand.generatedColor || '#2EA5DD',
         offerTitle: brand.kioskOfferTitle || 'Leave a review, get a reward!',
         rewardType: brand.kioskRewardType || 'discount_percent',
         rewardValue: brand.kioskRewardValue || '10% Off',

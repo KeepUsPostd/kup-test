@@ -259,9 +259,9 @@
     .hiw-deploy{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:14px 16px;margin-top:4px}
     .hiw-deploy-title{font-size:.78rem;font-weight:700;color:#1a1a1a;margin:0 0 8px;display:flex;align-items:center;gap:6px}
     .hiw-deploy-title svg{width:14px;height:14px;color:var(--kup-blue);flex-shrink:0}
-    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:5px}
-    .hiw-deploy-steps li{font-size:.76rem;color:#555;display:flex;align-items:baseline;gap:7px;line-height:1.5}
-    .hiw-deploy-steps li::before{content:'→';color:var(--kup-blue);font-weight:700;flex-shrink:0}
+    .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:deploy-step}
+    .hiw-deploy-steps li{font-size:.76rem;color:#555;display:flex;align-items:baseline;gap:8px;line-height:1.5;counter-increment:deploy-step}
+    .hiw-deploy-steps li::before{content:counter(deploy-step) '.';color:var(--kup-blue);font-weight:700;flex-shrink:0;min-width:14px}
 
     /* Print styles */
     @media print{
@@ -446,20 +446,21 @@
             <h6>Branding &amp; Customization</h6>
 
             <div class="kiosk-form-group">
-              <label for="brandColor">Brand Color</label>
+              <label for="brandColor">Kiosk Accent Color</label>
               <div class="color-picker-row">
                 <div class="color-swatch" id="colorSwatch" style="background:#2EA5DD" onclick="document.getElementById('colorPickerInput').click()"></div>
                 <input type="text" id="brandColor" value="#2EA5DD" style="max-width:160px">
                 <input type="color" id="colorPickerInput" value="#2EA5DD" style="display:none">
               </div>
+              <div class="helper" style="margin-top:6px">Used for buttons and accents on the kiosk screen. Defaults to your brand color if left blank.</div>
             </div>
 
             <div class="kiosk-form-group">
-              <label>Logo Override</label>
+              <label>Kiosk Logo <span style="font-weight:400;color:#aaa;">(optional override)</span></label>
               <div class="file-upload-area" id="logoUploadArea">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <div class="upload-label">Upload Custom Logo</div>
-                <div class="upload-hint">or use your brand profile logo</div>
+                <div class="upload-label">Upload a Different Logo</div>
+                <div class="upload-hint">Your brand profile logo is used by default — only upload here to show a different one on the kiosk</div>
               </div>
             </div>
 
@@ -589,7 +590,7 @@
                 <div class="hiw-step-num">4</div>
                 <div class="hiw-step-body">
                   <p class="hiw-step-title">Reviews loop on your proof-point display</p>
-                  <p class="hiw-step-desc">Approved kiosk reviews automatically join your brand's proof-point loop — a continuous video reel that plays in-store or on any screen you choose, building social proof in real time.</p>
+                  <p class="hiw-step-desc">Enable <strong>Auto-Approve</strong> in the settings below and every kiosk review instantly joins the proof-point loop — a continuous reel that plays on the tablet between recordings, building social proof in real time.</p>
                 </div>
               </div>
             </div>
@@ -597,12 +598,12 @@
             <div class="hiw-deploy">
               <p class="hiw-deploy-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                Deploy in 3 steps
+                How to deploy
               </p>
               <ul class="hiw-deploy-steps">
-                <li>Configure your reward below &amp; click <strong>Save Kiosk Settings</strong></li>
-                <li>Copy your Kiosk URL &amp; open it fullscreen on your tablet</li>
-                <li>On iPad: <strong>Settings → Accessibility → Guided Access</strong> to lock the browser</li>
+                <li>Set your reward &amp; offer title below, then click <strong>Save Kiosk Settings</strong></li>
+                <li>Copy your Kiosk URL from the sidebar &amp; open it fullscreen on your tablet</li>
+                <li>On iPad, go to <strong>Settings → Accessibility → Guided Access</strong> and enable it to lock the browser to your kiosk screen</li>
               </ul>
             </div>
           </div>
