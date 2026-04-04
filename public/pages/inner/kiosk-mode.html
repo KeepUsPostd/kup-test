@@ -262,6 +262,12 @@
     .hiw-deploy-steps{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:deploy-step}
     .hiw-deploy-steps li{font-size:.76rem;color:#555;display:flex;align-items:baseline;gap:8px;line-height:1.5;counter-increment:deploy-step}
     .hiw-deploy-steps li::before{content:counter(deploy-step) '.';color:var(--kup-blue);font-weight:700;flex-shrink:0;min-width:14px}
+    .hiw-note{background:#fff;border-radius:var(--radius-sm);border:1px solid #eee;padding:12px 14px;margin-top:10px;display:flex;align-items:flex-start;gap:8px}
+    .hiw-note svg{width:13px;height:13px;color:#bbb;flex-shrink:0;margin-top:2px}
+    .hiw-note p{font-size:.74rem;color:#888;margin:0;line-height:1.5}
+    .hiw-note a{color:var(--kup-blue);font-weight:600}
+    .kiosk-overrides-divider{border-top:1px solid #f0f0f0;margin:20px 0 16px;display:flex;align-items:center;gap:8px}
+    .kiosk-overrides-divider span{font-size:.7rem;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 
     /* Print styles */
     @media print{
@@ -437,41 +443,28 @@
               <div class="helper">Maximum rewards issued per day (fraud prevention)</div>
             </div>
 
-            <button class="btn-save" onclick="saveKioskSettings()">Save Kiosk Settings</button>
-          </div>
-
-          <!-- Panel 2: Kiosk Branding -->
-          <div class="kiosk-section">
-            <h5>Kiosk Appearance</h5>
-            <h6>Branding &amp; Customization</h6>
+            <div class="kiosk-overrides-divider"><span>Optional Overrides</span></div>
 
             <div class="kiosk-form-group">
-              <label for="brandColor">Kiosk Accent Color</label>
+              <label for="brandColor">Accent Color <span style="font-weight:400;color:#aaa;">(optional)</span></label>
               <div class="color-picker-row">
                 <div class="color-swatch" id="colorSwatch" style="background:#2EA5DD" onclick="document.getElementById('colorPickerInput').click()"></div>
                 <input type="text" id="brandColor" value="#2EA5DD" style="max-width:160px">
                 <input type="color" id="colorPickerInput" value="#2EA5DD" style="display:none">
               </div>
-              <div class="helper" style="margin-top:6px">Used for buttons and accents on the kiosk screen. Defaults to your brand color if left blank.</div>
+              <div class="helper" style="margin-top:5px">Defaults to your brand color — only change to use a different color on the kiosk screen.</div>
             </div>
 
             <div class="kiosk-form-group">
-              <label>Kiosk Logo <span style="font-weight:400;color:#aaa;">(optional override)</span></label>
+              <label>Logo <span style="font-weight:400;color:#aaa;">(optional override)</span></label>
               <div class="file-upload-area" id="logoUploadArea">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <div class="upload-label">Upload a Different Logo</div>
-                <div class="upload-hint">Your brand profile logo is used by default — only upload here to show a different one on the kiosk</div>
+                <div class="upload-hint">Your brand profile logo is used by default</div>
               </div>
             </div>
 
-            <div class="scan-upsell">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <div>
-                <p class="upsell-text">KeepUsPostd branding appears at the bottom of your kiosk screen.</p>
-                <p class="upsell-text" style="margin-bottom:0">Upgrade to Pro to remove or replace with your brand logo.</p>
-                <a href="pricing-upgrade.html" class="btn-upsell">Upgrade Plan &rarr;</a>
-              </div>
-            </div>
+            <button class="btn-save" onclick="saveKioskSettings()">Save Kiosk Settings</button>
           </div>
 
           <!-- Panel 3: Kiosk Analytics -->
@@ -605,6 +598,11 @@
                 <li>Copy your Kiosk URL from the sidebar &amp; open it fullscreen on your tablet</li>
                 <li>On iPad, go to <strong>Settings → Accessibility → Guided Access</strong> and enable it to lock the browser to your kiosk screen</li>
               </ul>
+            </div>
+
+            <div class="hiw-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p>A "Powered by KeepUsPostd" mark appears at the bottom of your kiosk screen. <a href="pricing-upgrade.html">Upgrade to Pro</a> to remove it.</p>
             </div>
           </div>
         </div><!-- /content-info -->
