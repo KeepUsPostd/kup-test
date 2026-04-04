@@ -293,6 +293,12 @@ app.use('/api/purchase-points', require('./routes/purchasePoints'));
 // Google Business Profile routes (OAuth + config + post creation)
 app.use('/api/google-business', require('./routes/googleBusiness'));
 
+// Public kiosk display route — serves the tablet-facing kiosk screen
+// /kiosk/:brandCode → kiosk-display.html (no auth required)
+app.get('/kiosk/:brandCode', (req, res) => {
+  res.redirect(`/pages/inner/kiosk-display.html?brandCode=${encodeURIComponent(req.params.brandCode)}`);
+});
+
 // --- Error Handling Middleware ---
 app.use((err, req, res, next) => {
   console.error('Server error:', err.message);
