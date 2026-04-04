@@ -2381,7 +2381,7 @@
         if (sub.mediaUrls && sub.mediaUrls.length > 0) {
           const firstUrl = sub.mediaUrls[0];
           if (sub.contentType === 'video') {
-            thumbHtml = `<video src="${firstUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted></video>`;
+            thumbHtml = `<video src="${firstUrl}#t=0.5" preload="metadata" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted playsinline></video>`;
           } else {
             thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
           }
