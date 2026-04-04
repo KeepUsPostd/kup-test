@@ -123,6 +123,17 @@ router.post('/', requireAuth, async (req, res) => {
       console.log(`🔧 Auto-completed creator profile for ${user.email}: "${influencerProfile.displayName}" @${influencerProfile.handle}`);
     }
 
+    // Derive posterUrl from video filename if client didn't send it
+    // Upload route names posters as: <videoBasename>-poster.jpg
+    // Works for both web and Flutter app submissions
+    let resolvedPosterUrl = posterUrl || null;
+    if (!resolvedPosterUrl && contentType === 'video' && mediaUrls && mediaUrls.length > 0) {
+      const videoUrl = mediaUrls[0];
+      if (videoUrl && videoUrl.startsWith('http')) {
+        resolvedPosterUrl = videoUrl.replace(/\.[^.]+$/, '-poster.jpg');
+      }
+    }
+
     const submission = await ContentSubmission.create({
       influencerProfileId: influencerProfile._id,
       brandId,
@@ -131,7 +142,7 @@ router.post('/', requireAuth, async (req, res) => {
       contentType,
       caption: caption || null,
       mediaUrls: mediaUrls || [],
-      posterUrl: posterUrl || null,
+      posterUrl: resolvedPosterUrl,
       platform: platform || null,
       platformPostUrl: platformPostUrl || null,
       status: 'submitted',
