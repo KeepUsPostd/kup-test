@@ -35,17 +35,22 @@
     body {
       margin: 0;
       overflow: hidden;
-      background: var(--kup-bg);
+      background: #000;
       font-family: var(--kup-font);
       color: var(--kup-text);
       -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
 
     /* ── Kiosk Screen Base ── */
     .kiosk-screen {
-      position: fixed;
+      position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
@@ -57,6 +62,23 @@
       opacity: 0;
       pointer-events: none;
       transform: translateY(20px);
+    }
+
+    /* ── Portrait phone container ── */
+    .kiosk-phone {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--kup-bg);
+    }
+    @media (min-width: 600px) {
+      .kiosk-phone {
+        border-radius: 28px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 40px 80px rgba(0,0,0,0.8);
+      }
     }
 
     /* ── Top Bar ── */
@@ -954,9 +976,83 @@
         font-size: 1rem;
       }
     }
+
+    /* ── Playback Step ── */
+    #recordStepPreview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100%;
+      width: 100%;
+      padding: 0;
+    }
+    .playback-video-wrap {
+      flex: 1;
+      width: 100%;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+    }
+    .playback-video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .playback-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .playback-actions {
+      flex-shrink: 0;
+      width: 100%;
+      padding: 20px 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--kup-bg);
+    }
+    .btn-submit-review {
+      width: 100%;
+      padding: 16px;
+      background: var(--kup-blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--kup-radius);
+      font-family: var(--kup-font);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+    .btn-retake {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--kup-radius);
+      font-family: var(--kup-font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div class="kiosk-phone">
 
   <!-- ═══════════════════════════════════
        MODE 1: DISPLAY LOOP
@@ -965,8 +1061,8 @@
 
     <div class="top-bar">
       <div class="brand-info">
-        <div class="brand-logo" id="displayBrandLogo">VB</div>
-        <div class="brand-name" id="displayBrandName">Vegan Bites</div>
+        <div class="brand-logo" id="displayBrandLogo">?</div>
+        <div class="brand-name" id="displayBrandName">Your Brand</div>
       </div>
       <div class="live-badge">
         <span class="live-dot"></span>
@@ -1001,8 +1097,8 @@
 
     <div class="top-bar">
       <div class="brand-info">
-        <div class="brand-logo" id="recordBrandLogo">VB</div>
-        <div class="brand-name" id="recordBrandName">Vegan Bites</div>
+        <div class="brand-logo" id="recordBrandLogo">?</div>
+        <div class="brand-name" id="recordBrandName">Your Brand</div>
       </div>
     </div>
 
@@ -1014,7 +1110,7 @@
           <div class="offer-emoji">&#x1F32E;</div>
           <div class="offer-title" id="offerTitle">Record a 30-second review</div>
           <div class="offer-reward kiosk-reward-val" id="offerReward">Get a FREE Taco!</div>
-          <div class="offer-desc" id="offerDesc">Share what you love about Vegan Bites and we'll reward you on the spot.</div>
+          <div class="offer-desc" id="offerDesc">Share what you love about Your Brand and we'll reward you on the spot.</div>
         </div>
         <button class="btn-primary" onclick="goToStep(2)">Let's Go!</button>
         <button class="btn-cancel" onclick="showDisplay()">&#x2715; Cancel</button>
@@ -1098,7 +1194,7 @@
             </div>
 
             <!-- Done (right of ring) -->
-            <button class="side-action-btn btn-done-side" id="btnDone" onclick="submitReview()" style="visibility:hidden;">
+            <button class="side-action-btn btn-done-side" id="btnDone" onclick="showPlayback()" style="visibility:hidden;">
               <div class="side-action-icon"><i class="ph ph-check-bold"></i></div>
               <span>Done</span>
             </button>
@@ -1108,6 +1204,22 @@
           <!-- Hidden timer for JS compat -->
           <span id="timerDisplay" style="display:none;">0:00 / 0:30</span>
 
+        </div>
+      </div>
+
+      <!-- STEP PREVIEW: Playback before submit -->
+      <div id="recordStepPreview" class="record-step">
+        <div class="playback-video-wrap">
+          <span class="playback-label">Review your recording</span>
+          <video id="playbackVideo" playsinline autoplay loop muted style="width:100%;height:100%;object-fit:cover;"></video>
+        </div>
+        <div class="playback-actions">
+          <button class="btn-submit-review" onclick="confirmAndSubmit()">
+            ✓ &nbsp;Submit &amp; Claim Reward
+          </button>
+          <button class="btn-retake" onclick="retakeVideo()">
+            ↺ &nbsp;Retake
+          </button>
         </div>
       </div>
 
@@ -1133,7 +1245,8 @@
     </div>
 
     <div class="kup-watermark">Powered by <img src="/images/kup_gradient_new_logo_1.png" alt="KeepUsPostd" style="height:14px; vertical-align:middle; margin-left:4px; opacity:0.7;"></div>
-  </div>
+  </div><!-- #recordMode -->
+  </div><!-- .kiosk-phone -->
 
   <script>
     /* ── Card backgrounds ── */
@@ -1343,6 +1456,8 @@
 
     /* ── Step Navigation ── */
     function goToStep(n) {
+      var preview = document.getElementById('recordStepPreview');
+      if (preview) preview.classList.remove('active');
       for (var i = 1; i <= 4; i++) {
         document.getElementById('recordStep' + i).classList.remove('active');
       }
@@ -1475,6 +1590,54 @@
       if (lbl) { lbl.textContent = 'Tap to record'; lbl.style.opacity = '1'; }
       document.getElementById('btnRerecord').style.visibility = 'hidden';
       document.getElementById('btnDone').style.visibility = 'hidden';
+    }
+
+    /* ── Playback preview before submit ── */
+    function showPlayback() {
+      if (!recordedChunks || recordedChunks.length === 0) {
+        // No recording — skip straight to submit
+        submitReview();
+        return;
+      }
+      // Build blob URL from recorded chunks
+      var mime = (recordedChunks[0] && recordedChunks[0].type) ? recordedChunks[0].type : 'video/webm';
+      var blob = new Blob(recordedChunks, { type: mime });
+      var url = URL.createObjectURL(blob);
+      var pv = document.getElementById('playbackVideo');
+      if (pv) {
+        pv.src = url;
+        pv.muted = false; // let them hear it on playback
+        pv.play().catch(function() { pv.muted = true; pv.play(); });
+      }
+      // Switch to preview step
+      for (var i = 1; i <= 4; i++) {
+        var el = document.getElementById('recordStep' + i);
+        if (el) el.classList.remove('active');
+      }
+      var preview = document.getElementById('recordStepPreview');
+      if (preview) preview.classList.add('active');
+    }
+
+    function retakeVideo() {
+      // Stop playback video
+      var pv = document.getElementById('playbackVideo');
+      if (pv) { pv.pause(); pv.src = ''; }
+      // Go back to recording step
+      reRecord();
+      for (var i = 1; i <= 4; i++) {
+        var el = document.getElementById('recordStep' + i);
+        if (el) el.classList.remove('active');
+      }
+      var preview = document.getElementById('recordStepPreview');
+      if (preview) preview.classList.remove('active');
+      document.getElementById('recordStep3').classList.add('active');
+    }
+
+    function confirmAndSubmit() {
+      // Stop playback
+      var pv = document.getElementById('playbackVideo');
+      if (pv) { pv.pause(); pv.src = ''; }
+      submitReview();
     }
 
     function updateTimerDisplay() {
