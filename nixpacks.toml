@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "npm"]
+nixPkgs = ["nodejs_22", "npm", "ffmpeg"]
 # Explicitly empty aptPkgs prevents Railway from auto-detecting and
 # failing on apt package installs (libatomic1 etc.)
 aptPkgs = []
