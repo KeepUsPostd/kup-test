@@ -189,7 +189,8 @@ router.get('/config', requireAuth, async (req, res) => {
 
     res.json({
       connected: !!(config.locationId),
-      pendingLocation: !!(config.googleAccountId && !config.locationId),
+      // pendingLocation = tokens saved but no location chosen yet (works even if googleAccountId fetch failed during callback)
+      pendingLocation: !!(config.connectedAt && !config.locationId),
       config: {
         locationName:    config.locationName,
         locationAddress: config.locationAddress,
@@ -233,14 +234,27 @@ router.get('/locations', requireAuth, async (req, res) => {
     if (!brandId) return res.status(400).json({ error: 'brandId required' });
 
     const config = await GoogleBusinessConfig.findOne({ brandId });
-    if (!config || !config.googleAccountId) {
+    if (!config || !config.connectedAt) {
       return res.status(400).json({ error: 'Google account not connected' });
     }
 
     const accessToken = await getValidAccessToken(config);
 
+    // If googleAccountId wasn't saved during callback (API quota issue), fetch it now
+    let accountId = config.googleAccountId;
+    if (!accountId) {
+      const accountsResp = await gbpFetch(
+        'https://mybusinessaccountmanagement.googleapis.com/v1/accounts',
+        accessToken
+      );
+      accountId = accountsResp.accounts?.[0]?.name || null;
+      if (!accountId) return res.status(400).json({ error: 'No Google Business account found for this Google account' });
+      // Save it for future calls
+      await GoogleBusinessConfig.findOneAndUpdate({ brandId }, { googleAccountId: accountId });
+    }
+
     const data = await gbpFetch(
-      `https://mybusinessbusinessinformation.googleapis.com/v1/${config.googleAccountId}/locations?readMask=name,title,storefrontAddress`,
+      `https://mybusinessbusinessinformation.googleapis.com/v1/${accountId}/locations?readMask=name,title,storefrontAddress`,
       accessToken
     );
 
