@@ -1288,7 +1288,9 @@
         var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
         var tier = influencer.influenceTier || 'Creator';
         var campaign = sub.campaignId ? sub.campaignId.title : 'General';
-        var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+        // Normalize content type: API uses 'video' or 'photo' — UI uses 'Video' or 'Image'
+        var rawType = (sub.contentType || 'photo').toLowerCase();
+        var contentType = rawType === 'video' ? 'Video' : 'Image';
 
         // Calculate days remaining (auto-approve after 10 days)
         var daysRemaining = null;
@@ -1351,7 +1353,9 @@
           var influencer = sub.influencerProfileId || {};
           var displayName = influencer.displayName || influencer.handle || 'New Creator';
           var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
-          var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+          // Normalize content type: API uses 'video' or 'photo' — UI uses 'Video' or 'Image'
+          var rawType = (sub.contentType || 'photo').toLowerCase();
+          var contentType = rawType === 'video' ? 'Video' : 'Image';
           var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
           var daysRemaining = null;
           if (sub.status === 'submitted') {
@@ -1391,6 +1395,12 @@
             currentIndex = i;
             break;
           }
+        }
+        // If the linked submission is already reviewed (approved/rejected),
+        // start the queue on the first pending item instead
+        if (contentItems[currentIndex] && contentItems[currentIndex].status !== 'pending') {
+          var firstPending = contentItems.findIndex(function(c) { return c.status === 'pending'; });
+          if (firstPending >= 0) currentIndex = firstPending;
         }
         // Re-render with full navigation
         loadContent(currentIndex);
@@ -1748,16 +1758,22 @@
         }
       }
 
-      // Nav arrows — skip rejected items in queue flow
-      var queueItems = contentItems.filter(function(c) { return c.status !== 'rejected'; });
+      // Nav arrows — queue only moves through PENDING items
+      var queueItems = contentItems.filter(function(c) { return c.status === 'pending'; });
       var queueIndex = queueItems.indexOf(contentItems[index]);
       document.getElementById('prevBtn').disabled = (queueIndex <= 0);
       document.getElementById('nextBtn').disabled = (queueIndex >= queueItems.length - 1);
 
-      // Header counter
-      var pendingCount = contentItems.filter(function(c) { return c.status === 'pending'; }).length;
+      // Header counter — shows pending items only
       var counterEl = document.querySelector('.cm-header-right span');
-      if (counterEl) counterEl.textContent = 'Reviewing ' + (queueIndex + 1) + ' of ' + queueItems.length + ' items \u00B7 ' + pendingCount + ' pending';
+      if (queueItems.length === 0) {
+        if (counterEl) counterEl.textContent = 'All caught up \u2714';
+      } else if (queueIndex < 0) {
+        // Viewing a non-pending item (e.g. opened from library)
+        if (counterEl) counterEl.textContent = queueItems.length + ' pending in queue';
+      } else {
+        if (counterEl) counterEl.textContent = 'Reviewing ' + (queueIndex + 1) + ' of ' + queueItems.length + ' pending';
+      }
 
       // Update URL without reload
       var newUrl = window.location.pathname + '?id=' + (item.mongoId || index);
@@ -1793,19 +1809,39 @@
     }
 
     // ========== Navigation ==========
+    // Queue only moves through PENDING items — approved/rejected live in the library
     function navigatePrev() {
-      // Skip rejected items going backwards
       var i = currentIndex - 1;
-      while (i >= 0 && contentItems[i] && contentItems[i].status === 'rejected') i--;
-      // Update currentIndex AFTER loadContent so overlay save captures the correct outgoing item
+      while (i >= 0 && contentItems[i] && contentItems[i].status !== 'pending') i--;
       if (i >= 0) { loadContent(i); currentIndex = i; }
     }
     function navigateNext() {
-      // Skip rejected items going forwards
       var i = currentIndex + 1;
-      while (i < contentItems.length && contentItems[i] && contentItems[i].status === 'rejected') i++;
-      // Update currentIndex AFTER loadContent so overlay save captures the correct outgoing item
+      while (i < contentItems.length && contentItems[i] && contentItems[i].status !== 'pending') i++;
       if (i < contentItems.length) { loadContent(i); currentIndex = i; }
+    }
+    // After approve/reject: advance to next pending, or show "all done" if queue is empty
+    function advanceQueueAfterDecision() {
+      var next = currentIndex + 1;
+      while (next < contentItems.length && contentItems[next] && contentItems[next].status !== 'pending') next++;
+      if (next < contentItems.length) {
+        loadContent(next);
+        currentIndex = next;
+      } else {
+        // No more pending items forward — check from beginning
+        var first = 0;
+        while (first < currentIndex && contentItems[first] && contentItems[first].status !== 'pending') first++;
+        if (first < currentIndex && contentItems[first] && contentItems[first].status === 'pending') {
+          loadContent(first);
+          currentIndex = first;
+        } else {
+          // Truly all done — update header and disable arrows
+          var counterEl = document.querySelector('.cm-header-right span');
+          if (counterEl) counterEl.textContent = 'All caught up \u2714';
+          document.getElementById('prevBtn').disabled = true;
+          document.getElementById('nextBtn').disabled = true;
+        }
+      }
     }
 
     // ========== Approve / Reject (API-connected) ==========
@@ -1820,13 +1856,14 @@
             item.status = 'approved';
             item.daysRemaining = null;
             item.rewardTriggered = result.rewardTriggered || null;
-            loadContent(currentIndex);
             if (result.rewardTriggered) {
               kupToast('Content approved! $' + result.rewardTriggered.amount + ' earned by influencer (' + result.rewardTriggered.tier + ' tier)', 'success');
             } else {
               kupToast('Content approved!', 'success');
             }
-            setTimeout(function() { openRatingModal(item.influencer); }, 800);
+            // Advance to next pending item — approved content moves to library
+            setTimeout(function() { advanceQueueAfterDecision(); }, 400);
+            setTimeout(function() { openRatingModal(item.influencer); }, 900);
             return;
           } else {
             kupToast(result.message || 'Could not approve content', 'error');
@@ -1842,9 +1879,9 @@
       // Demo mode fallback
       item.status = 'approved';
       item.daysRemaining = null;
-      loadContent(currentIndex);
       kupToast('Content approved!', 'success');
-      setTimeout(function() { openRatingModal(item.influencer); }, 800);
+      setTimeout(function() { advanceQueueAfterDecision(); }, 400);
+      setTimeout(function() { openRatingModal(item.influencer); }, 900);
     }
 
     async function rejectContent() {
@@ -1874,8 +1911,9 @@
             item.status = 'rejected';
             item.daysRemaining = null;
             item.rejectionReason = reason.trim();
-            loadContent(currentIndex);
             kupToast('Content rejected', 'error');
+            // Advance to next pending item — rejected content moves to library (30-day visibility)
+            setTimeout(function() { advanceQueueAfterDecision(); }, 400);
             return;
           } else {
             kupToast(result.message || 'Could not reject content', 'error');
@@ -1892,8 +1930,8 @@
       item.status = 'rejected';
       item.daysRemaining = null;
       item.rejectionReason = reason.trim();
-      loadContent(currentIndex);
       kupToast('Content rejected', 'error');
+      setTimeout(function() { advanceQueueAfterDecision(); }, 400);
     }
 
     function undoDecision() {
@@ -3642,53 +3680,79 @@
       var grid = document.getElementById('libraryGrid');
       grid.innerHTML = '';
       // Library shows: approved, postd, and rejected within 30 days
+      // (pending items stay in the review queue only)
       var thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-      var approvedItems = contentItems.filter(function(item) {
-        if (item.status === 'approved' || item.status === 'postd') return true;
+      var libraryItems = contentItems.reduce(function(acc, item, idx) {
+        var include = false;
+        if (item.status === 'approved' || item.status === 'postd') include = true;
         if (item.status === 'rejected') {
-          // Keep rejected items visible for 30 days (date field not always set, default to show)
           var reviewedAt = item.reviewedAt ? new Date(item.reviewedAt).getTime() : Date.now();
-          return (Date.now() - reviewedAt) < thirtyDaysMs;
+          include = (Date.now() - reviewedAt) < thirtyDaysMs;
         }
-        return false;
-      });
+        if (include) acc.push({ item: item, idx: idx });
+        return acc;
+      }, []);
 
       var typeFilter = document.querySelector('.library-filter.active');
       var typeVal = typeFilter ? typeFilter.getAttribute('data-filter') : 'all';
       var campaignVal = document.getElementById('libraryCampaignFilter').value;
 
-      var filtered = approvedItems.filter(function(item) {
-        if (typeVal !== 'all' && item.type.toLowerCase() !== typeVal) return false;
+      var filtered = libraryItems.filter(function(entry) {
+        var item = entry.item;
+        // 'image' filter matches both 'Image' and 'Photo' types
+        if (typeVal !== 'all') {
+          var t = item.type.toLowerCase();
+          if (typeVal === 'video' && t !== 'video') return false;
+          if (typeVal === 'image' && t !== 'image' && t !== 'photo') return false;
+        }
         if (campaignVal !== 'all' && item.campaign !== campaignVal) return false;
         return true;
       });
 
       document.getElementById('libraryCount').textContent = filtered.length + ' item' + (filtered.length !== 1 ? 's' : '');
 
-      filtered.forEach(function(item) {
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 24px;color:#555;font-size:.88rem;">' +
+          '<i class="ph ph-folder-open" style="font-size:2.5rem;display:block;margin-bottom:12px;color:#333;"></i>' +
+          'No content here yet. Approved and rejected content will appear here.</div>';
+        return;
+      }
+
+      filtered.forEach(function(entry) {
+        var item = entry.item;
+        var itemIdx = entry.idx;
         var card = document.createElement('div');
         card.className = 'library-card';
-        card.setAttribute('data-id', item.id);
         card.setAttribute('data-type', item.type.toLowerCase());
         card.setAttribute('data-campaign', item.campaign);
+
         var typeIcon = item.type === 'Video' ? '<i class="ph ph-play"></i>' : '<i class="ph ph-image"></i>';
-        var avatarStyle = item.avatarStyle ? ' style="' + item.avatarStyle + '"' : '';
-        // Show real thumbnail if media available
+
+        // Status badge colours
+        var statusLabel = item.status === 'approved' ? 'Approved' : item.status === 'postd' ? "Post'd" : 'Rejected';
+        var statusColor = item.status === 'approved' ? '#4ade80' : item.status === 'postd' ? '#2EA5DD' : '#f87171';
+        var statusBg    = item.status === 'approved' ? 'rgba(74,222,128,.18)' : item.status === 'postd' ? 'rgba(46,165,221,.18)' : 'rgba(248,113,113,.18)';
+
+        // Thumbnail: use posterUrl for video, mediaUrl for image
         var thumbContent = '';
-        if (item.mediaUrls && item.mediaUrls.length > 0) {
+        if (item.posterUrl) {
+          thumbContent = '<img src="' + item.posterUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="Poster">';
+        } else if (item.mediaUrls && item.mediaUrls.length > 0) {
           var isVid = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm)$/i.test(item.mediaUrls[0]);
           if (isVid) {
-            thumbContent = '<video src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" muted preload="auto"></video>';
+            thumbContent = '<video src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" muted preload="none"></video>';
           } else {
-            thumbContent = '<img src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" alt="Content thumbnail">';
+            thumbContent = '<img src="' + item.mediaUrls[0] + '" style="width:100%;height:100%;object-fit:cover;" alt="Content">';
           }
         } else {
           thumbContent = '<span class="library-type-icon">' + typeIcon + '</span>';
         }
+
         card.innerHTML =
           '<div class="library-card-thumb">' +
             thumbContent +
             '<span class="library-type-badge">' + item.type + '</span>' +
+            '<span style="position:absolute;bottom:8px;left:8px;padding:3px 10px;border-radius:50px;font-size:0.65rem;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border:1px solid ' + statusColor + '33;">' + statusLabel + '</span>' +
           '</div>' +
           '<div class="library-card-info">' +
             '<div class="library-card-influencer">' +
@@ -3700,11 +3764,11 @@
             '</div>' +
             '<div class="library-card-meta">' +
               '<span>' + item.fileSize + '</span>' +
-              '<span>Approved ' + item.date + '</span>' +
+              '<span>' + item.date + '</span>' +
             '</div>' +
             '<div class="library-card-actions">' +
-              '<button class="library-open-btn" onclick="openInWorkspace(' + item.id + ')">Open</button>' +
-              '<button class="library-download-btn" onclick="downloadContent(' + item.id + ')"><i class="ph ph-download-simple"></i> Download</button>' +
+              '<button class="library-open-btn" onclick="openInWorkspace(' + itemIdx + ')">Open</button>' +
+              '<button class="library-download-btn" onclick="downloadContent(' + itemIdx + ')"><i class="ph ph-download-simple"></i> Download</button>' +
             '</div>' +
           '</div>';
         grid.appendChild(card);
@@ -3718,8 +3782,10 @@
       renderLibrary();
     }
 
-    function openInWorkspace(id) {
-      currentIndex = id;
+    function openInWorkspace(idx) {
+      // idx is the real index into contentItems (set from library render loop)
+      if (idx < 0 || idx >= contentItems.length) return;
+      currentIndex = idx;
       switchView('review');
       loadContent(currentIndex);
     }
@@ -4205,7 +4271,9 @@
           var influencer = sub.influencerProfileId || {};
           var displayName = influencer.displayName || influencer.handle || 'New Creator';
           var handle = '@' + (influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_'));
-          var contentType = (sub.contentType || 'photo').charAt(0).toUpperCase() + (sub.contentType || 'photo').slice(1);
+          // Normalize content type: API uses 'video' or 'photo' — UI uses 'Video' or 'Image'
+          var rawType = (sub.contentType || 'photo').toLowerCase();
+          var contentType = rawType === 'video' ? 'Video' : 'Image';
           var uiStatus = sub.status === 'submitted' ? 'pending' : sub.status;
           var daysRemaining = null;
           if (sub.status === 'submitted') {
