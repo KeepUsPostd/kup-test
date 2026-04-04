@@ -1084,9 +1084,6 @@
       <div class="library-filter-group">
         <select class="library-campaign-filter" id="libraryCampaignFilter" onchange="filterLibrary()">
           <option value="all">All Campaigns</option>
-          <option value="Summer Promo">Summer Promo</option>
-          <option value="Brand Launch">Brand Launch</option>
-          <option value="General">General</option>
         </select>
       </div>
       <span class="library-count" id="libraryCount">0 items</span>
@@ -3695,9 +3692,24 @@
         return acc;
       }, []);
 
+      // Rebuild campaign dropdown from actual data (preserves current selection)
+      var campaignSelect = document.getElementById('libraryCampaignFilter');
+      var prevCampaign = campaignSelect.value;
+      var campaigns = ['all'];
+      libraryItems.forEach(function(entry) {
+        var c = entry.item.campaign;
+        if (c && campaigns.indexOf(c) === -1) campaigns.push(c);
+      });
+      campaignSelect.innerHTML = '<option value="all">All Campaigns</option>' +
+        campaigns.slice(1).map(function(c) {
+          return '<option value="' + c + '"' + (c === prevCampaign ? ' selected' : '') + '>' + c + '</option>';
+        }).join('');
+      // Restore selection if it still exists, else fall back to 'all'
+      if (campaigns.indexOf(prevCampaign) === -1) campaignSelect.value = 'all';
+
       var typeFilter = document.querySelector('.library-filter.active');
       var typeVal = typeFilter ? typeFilter.getAttribute('data-filter') : 'all';
-      var campaignVal = document.getElementById('libraryCampaignFilter').value;
+      var campaignVal = campaignSelect.value;
 
       var filtered = libraryItems.filter(function(entry) {
         var item = entry.item;
