@@ -2356,6 +2356,7 @@
         const campaignSlug = campaignTitle.toLowerCase().replace(/\s+/g, '-');
         row.setAttribute('data-status', sub.status);
         row.setAttribute('data-campaign', campaignSlug);
+        row.setAttribute('data-campaign-title', campaignTitle);
         row.setAttribute('data-type', sub.contentType || 'video');
         // Days until auto-approve (for expiring alert)
         if (sub.status === 'submitted') {
@@ -2376,14 +2377,19 @@
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
         const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
 
-        // Build thumbnail — show actual media if available, fall back to icon
+        // Build thumbnail — use poster image if available, otherwise icon placeholder
+        // (Videos use server-generated poster; images load directly)
         let thumbHtml = `<div class="thumb-img ${sub.contentType}"><i class="ph ${typeIcon}"></i></div>`;
         if (sub.mediaUrls && sub.mediaUrls.length > 0) {
           const firstUrl = sub.mediaUrls[0];
           if (sub.contentType === 'video') {
-            thumbHtml = `<video src="${firstUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" muted></video>`;
+            // Use poster thumbnail if generated, otherwise show icon placeholder
+            if (sub.posterUrl) {
+              thumbHtml = `<img src="${sub.posterUrl}" alt="Video thumbnail" class="thumb-img video" style="object-fit:cover;" onerror="this.outerHTML='<div class=\\'thumb-img video\\'><i class=\\'ph ph-play\\'></i></div>'">`;
+            }
+            // else: keep icon placeholder (posterUrl generated server-side on upload)
           } else {
-            thumbHtml = `<img src="${firstUrl}" alt="Content" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`;
+            thumbHtml = `<img src="${firstUrl}" alt="Content" class="thumb-img image" style="object-fit:cover;">`;
           }
         }
 
@@ -2431,6 +2437,22 @@
 
         tbody.appendChild(row);
       });
+
+      // Rebuild campaign dropdown from real data (replaces hardcoded demo options)
+      var campaignSelect = document.getElementById('campaignFilter');
+      if (campaignSelect) {
+        var seen = {};
+        var options = '<option value="all">All Content</option>';
+        document.querySelectorAll('.data-table tbody tr[data-campaign]').forEach(function(r) {
+          var slug  = r.getAttribute('data-campaign');
+          var title = r.getAttribute('data-campaign-title') || slug;
+          if (slug && !seen[slug]) {
+            seen[slug] = true;
+            options += '<option value="' + slug + '">' + title + '</option>';
+          }
+        });
+        campaignSelect.innerHTML = options;
+      }
 
       // Apply pagination + filters (shows first page of results)
       currentPage = 1;

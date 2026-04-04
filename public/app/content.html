@@ -2356,6 +2356,7 @@
         const campaignSlug = campaignTitle.toLowerCase().replace(/\s+/g, '-');
         row.setAttribute('data-status', sub.status);
         row.setAttribute('data-campaign', campaignSlug);
+        row.setAttribute('data-campaign-title', campaignTitle);
         row.setAttribute('data-type', sub.contentType || 'video');
         // Days until auto-approve (for expiring alert)
         if (sub.status === 'submitted') {
@@ -2436,6 +2437,22 @@
 
         tbody.appendChild(row);
       });
+
+      // Rebuild campaign dropdown from real data (replaces hardcoded demo options)
+      var campaignSelect = document.getElementById('campaignFilter');
+      if (campaignSelect) {
+        var seen = {};
+        var options = '<option value="all">All Content</option>';
+        document.querySelectorAll('.data-table tbody tr[data-campaign]').forEach(function(r) {
+          var slug  = r.getAttribute('data-campaign');
+          var title = r.getAttribute('data-campaign-title') || slug;
+          if (slug && !seen[slug]) {
+            seen[slug] = true;
+            options += '<option value="' + slug + '">' + title + '</option>';
+          }
+        });
+        campaignSelect.innerHTML = options;
+      }
 
       // Apply pagination + filters (shows first page of results)
       currentPage = 1;
