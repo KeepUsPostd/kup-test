@@ -108,19 +108,30 @@ router.post('/', requireAuth, upload.array('media', 5), async (req, res) => {
         // Generate poster thumbnail for videos
         if (f.mimetype.startsWith('video/') || /\.(mp4|mov|webm|avi|m4v)$/i.test(f.originalname)) {
           try {
+            const os = require('os');
             const posterFilename = filename.replace(/\.[^.]+$/, '-poster.jpg');
-            const posterLocalPath = path.join(tmpDir || require('os').tmpdir(), posterFilename);
+            const posterLocalPath = path.join(os.tmpdir(), posterFilename);
             await new Promise((resolve, reject) => {
-              const ffmpeg = require('child_process').spawn('ffmpeg', [
-                '-i', f.path, '-ss', '00:00:01', '-vframes', '1',
+              const proc = require('child_process').spawn('ffmpeg', [
+                '-i', f.path,
+                '-ss', '00:00:00',   // grab very first frame — safe for all video lengths
+                '-vframes', '1',
                 '-vf', 'scale=200:200:force_original_aspect_ratio=increase,crop=200:200',
                 '-q:v', '3', posterLocalPath, '-y'
-              ]);
-              ffmpeg.on('close', (code) => code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}`)));
+              ], { stdio: ['ignore', 'ignore', 'pipe'] });
+              let ffmpegErr = '';
+              proc.stderr.on('data', d => { ffmpegErr += d.toString(); });
+              proc.on('close', (code) => {
+                if (code === 0) resolve();
+                else reject(new Error(`ffmpeg exit ${code}: ${ffmpegErr.slice(-200)}`));
+              });
+              proc.on('error', reject);
+              setTimeout(() => reject(new Error('ffmpeg timeout')), 15000);
             });
             const posterUrl = await uploadFileToR2(posterLocalPath, posterFilename, 'image/jpeg');
             posterUrls.push(posterUrl);
             fs.unlink(posterLocalPath, () => {});
+            console.log(`🖼️ Poster generated: ${posterFilename}`);
           } catch (posterErr) {
             console.warn('[upload] Poster generation failed:', posterErr.message);
             posterUrls.push(null);
