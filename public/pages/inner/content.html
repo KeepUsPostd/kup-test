@@ -428,6 +428,8 @@
       font-size: 0.7rem;
       flex-shrink: 0;
       cursor: pointer;
+      overflow: hidden;
+      position: relative;
     }
 
     .influencer-cell .name {
@@ -2428,7 +2430,7 @@
           <td data-label="Campaign"><span class="${campClass}" data-campaign="${campaignSlug}">${campaignTitle}</span></td>
           <td data-label="Submitted By">
             <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}" data-influencer-avatar="${influencer.avatarUrl || ''}" data-influencer-bio="${infBio}" data-influencer-followers="${infFollowers}" data-influencer-engagement="${infEngagement}" data-influencer-posts="${infPosts}">
-              <div class="avatar">${influencer.avatarUrl ? `<img src="${influencer.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML='${PERSON_SVG}'">` : PERSON_SVG}</div>
+              <div class="avatar">${influencer.avatarUrl ? `<img src="${influencer.avatarUrl}" style="width:100%;height:100%;object-fit:cover;" alt="">` : PERSON_SVG}</div>
               <div>
                 <div class="name">@${handle}</div>
                 <div class="tier">${tier}</div>

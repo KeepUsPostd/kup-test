@@ -1449,7 +1449,7 @@
         var method = editingRewardId ? 'put' : 'post';
         var result = await kupApi[method](endpoint, payload);
         kupToast(editingRewardId ? 'Reward updated!' : 'Reward created!', 'success');
-        setTimeout(function() { window.location = 'brand-reward-settings.html'; }, 1500);
+        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
       } catch (err) {
         console.error('Save reward error:', err);
         kupToast(err.message || 'Failed to save reward', 'error');
@@ -1464,7 +1464,7 @@
         var method = editingRewardId ? 'put' : 'post';
         var result = await kupApi[method](endpoint, payload);
         kupToast('Saved as draft', 'info');
-        setTimeout(function() { window.location = 'brand-reward-settings.html'; }, 1500);
+        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
       } catch (err) {
         console.error('Save draft error:', err);
         kupToast(err.message || 'Failed to save draft', 'error');
