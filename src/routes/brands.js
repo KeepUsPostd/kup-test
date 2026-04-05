@@ -263,6 +263,104 @@ router.get('/check-handle/:handle', async (req, res) => {
   }
 });
 
+// ── Invite routes: MUST be before /:brandId to avoid param shadowing ──────────
+
+// GET /api/brands/invite/preview?token=xxx — Public: returns brand + invite info for landing page
+router.get('/invite/preview', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const invite = await BrandInvite.findOne({ token, inviteType: 'team_member' })
+      .populate('brandId', 'name logoUrl heroImageUrl')
+      .populate('sentBy', 'legalFirstName displayName email')
+      .lean();
+
+    if (!invite) return res.status(404).json({ error: 'Invite not found or already used' });
+    if (invite.status !== 'pending') return res.status(410).json({ error: 'This invite has already been accepted' });
+    if (new Date() > new Date(invite.expiresAt)) return res.status(410).json({ error: 'This invite link has expired' });
+
+    const inviterName = invite.sentBy?.legalFirstName || invite.sentBy?.displayName || invite.sentBy?.email?.split('@')[0] || 'Someone';
+    const brand = invite.brandId;
+
+    res.json({
+      brandName: brand?.name || 'Unknown Brand',
+      brandLogo: brand?.logoUrl || null,
+      role: invite.role,
+      inviterName,
+      email: invite.email,
+      expiresAt: invite.expiresAt,
+    });
+  } catch (error) {
+    console.error('Invite preview error:', error.message);
+    res.status(500).json({ error: 'Could not load invite' });
+  }
+});
+
+// POST /api/brands/invite/accept — Requires auth: accept a team invite by token
+router.post('/invite/accept', requireAuth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const invite = await BrandInvite.findOne({ token, inviteType: 'team_member' })
+      .populate('brandId', 'name logoUrl')
+      .lean();
+
+    if (!invite) return res.status(404).json({ error: 'Invite not found or already used' });
+    if (invite.status !== 'pending') return res.status(410).json({ error: 'This invite has already been accepted' });
+    if (new Date() > new Date(invite.expiresAt)) return res.status(410).json({ error: 'This invite link has expired' });
+
+    // Verify the logged-in user's email matches the invite email
+    const userEmail = req.user.email?.toLowerCase();
+    if (userEmail !== invite.email) {
+      return res.status(403).json({
+        error: 'This invite was sent to a different email address',
+        detail: `This invite was sent to ${invite.email}. Please log in with that account to accept.`,
+      });
+    }
+
+    // Check for existing active membership
+    const existing = await BrandMember.findOne({ brandId: invite.brandId._id, userId: req.user._id });
+    if (existing && existing.status === 'active') {
+      return res.status(409).json({ error: 'You are already a member of this brand' });
+    }
+
+    // Create or update BrandMember → active
+    await BrandMember.findOneAndUpdate(
+      { brandId: invite.brandId._id, userId: req.user._id },
+      {
+        role: invite.role,
+        status: 'active',
+        invitedBy: invite.sentBy,
+        invitedAt: invite.createdAt,
+        acceptedAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
+
+    // Mark invite as accepted
+    await BrandInvite.findByIdAndUpdate(invite._id, {
+      status: 'accepted',
+      acceptedAt: new Date(),
+      acceptedByUserId: req.user._id,
+    });
+
+    console.log(`✅ Team invite accepted: ${req.user.email} joined brand ${invite.brandId.name} as ${invite.role}`);
+    res.json({
+      message: `Welcome to ${invite.brandId.name}!`,
+      brandId: invite.brandId._id,
+      brandName: invite.brandId.name,
+      role: invite.role,
+    });
+  } catch (error) {
+    console.error('Invite accept error:', error.message);
+    res.status(500).json({ error: 'Could not accept invite' });
+  }
+});
+
+// ── Brand CRUD ─────────────────────────────────────────────────────────────────
+
 // GET /api/brands/:brandId — Get single brand details
 router.get('/:brandId', requireAuth, requireBrandRole('viewer'), async (req, res) => {
   try {
@@ -392,100 +490,6 @@ router.post('/:brandId/members/invite', requireAuth, requireBrandRole('admin'), 
   } catch (error) {
     console.error('Team invite error:', error.message);
     res.status(500).json({ error: 'Could not send invite' });
-  }
-});
-
-// GET /api/brands/invite/preview?token=xxx — Public: returns brand + invite info for landing page
-router.get('/invite/preview', async (req, res) => {
-  try {
-    const { token } = req.query;
-    if (!token) return res.status(400).json({ error: 'Token required' });
-
-    const invite = await BrandInvite.findOne({ token, inviteType: 'team_member' })
-      .populate('brandId', 'name logoUrl heroImageUrl')
-      .populate('sentBy', 'legalFirstName displayName email')
-      .lean();
-
-    if (!invite) return res.status(404).json({ error: 'Invite not found or already used' });
-    if (invite.status !== 'pending') return res.status(410).json({ error: 'This invite has already been accepted' });
-    if (new Date() > new Date(invite.expiresAt)) return res.status(410).json({ error: 'This invite link has expired' });
-
-    const inviterName = invite.sentBy?.legalFirstName || invite.sentBy?.displayName || invite.sentBy?.email?.split('@')[0] || 'Someone';
-    const brand = invite.brandId;
-
-    res.json({
-      brandName: brand?.name || 'Unknown Brand',
-      brandLogo: brand?.logoUrl || null,
-      role: invite.role,
-      inviterName,
-      email: invite.email,
-      expiresAt: invite.expiresAt,
-    });
-  } catch (error) {
-    console.error('Invite preview error:', error.message);
-    res.status(500).json({ error: 'Could not load invite' });
-  }
-});
-
-// POST /api/brands/invite/accept — Requires auth: accept a team invite by token
-router.post('/invite/accept', requireAuth, async (req, res) => {
-  try {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ error: 'Token required' });
-
-    const invite = await BrandInvite.findOne({ token, inviteType: 'team_member' })
-      .populate('brandId', 'name logoUrl')
-      .lean();
-
-    if (!invite) return res.status(404).json({ error: 'Invite not found or already used' });
-    if (invite.status !== 'pending') return res.status(410).json({ error: 'This invite has already been accepted' });
-    if (new Date() > new Date(invite.expiresAt)) return res.status(410).json({ error: 'This invite link has expired' });
-
-    // Verify the logged-in user's email matches the invite email
-    const userEmail = req.user.email?.toLowerCase();
-    if (userEmail !== invite.email) {
-      return res.status(403).json({
-        error: 'This invite was sent to a different email address',
-        detail: `This invite was sent to ${invite.email}. Please log in with that account to accept.`,
-      });
-    }
-
-    // Check for existing active membership
-    const existing = await BrandMember.findOne({ brandId: invite.brandId._id, userId: req.user._id });
-    if (existing && existing.status === 'active') {
-      return res.status(409).json({ error: 'You are already a member of this brand' });
-    }
-
-    // Create or update BrandMember → active
-    await BrandMember.findOneAndUpdate(
-      { brandId: invite.brandId._id, userId: req.user._id },
-      {
-        role: invite.role,
-        status: 'active',
-        invitedBy: invite.sentBy,
-        invitedAt: invite.createdAt,
-        acceptedAt: new Date(),
-      },
-      { upsert: true, new: true }
-    );
-
-    // Mark invite as accepted
-    await BrandInvite.findByIdAndUpdate(invite._id, {
-      status: 'accepted',
-      acceptedAt: new Date(),
-      acceptedByUserId: req.user._id,
-    });
-
-    console.log(`✅ Team invite accepted: ${req.user.email} joined brand ${invite.brandId.name} as ${invite.role}`);
-    res.json({
-      message: `Welcome to ${invite.brandId.name}!`,
-      brandId: invite.brandId._id,
-      brandName: invite.brandId.name,
-      role: invite.role,
-    });
-  } catch (error) {
-    console.error('Invite accept error:', error.message);
-    res.status(500).json({ error: 'Could not accept invite' });
   }
 });
 
