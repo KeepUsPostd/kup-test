@@ -327,6 +327,65 @@ router.get('/:brandId/members', requireAuth, requireBrandRole('viewer'), async (
   }
 });
 
+// POST /api/brands/:brandId/members/invite — Invite a team member by email (admin+ only)
+router.post('/:brandId/members/invite', requireAuth, requireBrandRole('admin'), async (req, res) => {
+  try {
+    const { email, role } = req.body;
+    if (!email || !role) return res.status(400).json({ error: 'email and role are required' });
+
+    const validRoles = ['admin', 'manager', 'viewer'];
+    if (!validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+
+    const brand = await Brand.findById(req.params.brandId).lean();
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const { sendEmail } = require('../config/email');
+    const { User } = require('../models');
+
+    // Check if user already exists on platform
+    const existingUser = await User.findOne({ email: email.toLowerCase() }).lean();
+
+    if (existingUser) {
+      // Already has an account — create BrandMember record directly as 'invited'
+      const existing = await BrandMember.findOne({ brandId: brand._id, userId: existingUser._id });
+      if (existing && existing.status !== 'removed') {
+        return res.status(409).json({ error: 'This user is already a team member' });
+      }
+      await BrandMember.findOneAndUpdate(
+        { brandId: brand._id, userId: existingUser._id },
+        { role, status: 'invited', invitedBy: req.user._id, invitedAt: new Date() },
+        { upsert: true, new: true }
+      );
+    }
+
+    // Send invite email regardless of whether they have an account
+    const inviterName = req.user.legalFirstName || req.user.email.split('@')[0];
+    const acceptUrl = `${process.env.APP_URL}/pages/inner/owner-account.html?brandId=${brand._id}&invite=accept`;
+
+    await sendEmail({
+      to: email,
+      subject: `${inviterName} invited you to manage ${brand.name} on KeepUsPostd`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto">
+          <img src="${process.env.APP_URL}/images/kup_white_new_logo_1.png" alt="KeepUsPostd" style="width:140px;margin-bottom:24px" />
+          <h2 style="color:#0d0d1a">You've been invited to join a brand team</h2>
+          <p style="color:#444"><strong>${inviterName}</strong> has invited you to manage <strong>${brand.name}</strong> on KeepUsPostd as a <strong>${role.charAt(0).toUpperCase() + role.slice(1)}</strong>.</p>
+          <a href="${acceptUrl}" style="display:inline-block;background:#2EA5DD;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;margin:20px 0">Accept Invitation →</a>
+          <p style="color:#888;font-size:0.85rem">If you don't have a KeepUsPostd account yet, you'll be prompted to create one when you click the link above.</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
+          <p style="color:#bbb;font-size:0.75rem">KeepUsPostd · keepuspostd.com</p>
+        </div>
+      `,
+    });
+
+    console.log(`📧 Team invite sent to ${email} for brand ${brand.name} (role: ${role})`);
+    res.json({ message: `Invite sent to ${email}`, email, role });
+  } catch (error) {
+    console.error('Team invite error:', error.message);
+    res.status(500).json({ error: 'Could not send invite' });
+  }
+});
+
 // DELETE /api/brands/:brandId/members/:memberId — Remove a team member (owner/admin only)
 router.delete('/:brandId/members/:memberId', requireAuth, requireBrandRole('admin'), async (req, res) => {
   try {

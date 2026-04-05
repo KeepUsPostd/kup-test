@@ -1164,8 +1164,9 @@
         var handle = inf.handle || 'unknown';
         var displayName = inf.displayName || handle;
         var tier = inf.tier || 'Creator';
+        var avatarUrl = inf.avatarUrl || null;
         if (!influencerMap[handle]) {
-          influencerMap[handle] = { handle: handle, displayName: displayName, tier: tier, submitted: 0, approved: 0, postd: 0 };
+          influencerMap[handle] = { handle: handle, displayName: displayName, tier: tier, avatarUrl: avatarUrl, submitted: 0, approved: 0, postd: 0 };
         }
         influencerMap[handle].submitted++;
         if (sub.status === 'approved') influencerMap[handle].approved++;
@@ -1196,8 +1197,11 @@
 
       var html = '';
       top5.forEach(function(inf) {
+        var avHtml = inf.avatarUrl
+          ? '<div class="avatar-placeholder" style="overflow:hidden"><img src="' + inf.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'
+          : '<div class="avatar-placeholder">' + PERSON_SVG + '</div>';
         html += '<div class="influencer-item">';
-        html += '<div class="avatar-placeholder">' + PERSON_SVG + '</div>';
+        html += avHtml;
         html += '<div class="info"><div class="username">@' + inf.handle + '</div><div class="tier">' + inf.tier + '</div></div>';
         html += '<div class="stat"><div class="count">' + inf[sortKey] + '</div><div class="label">' + label + '</div></div>';
         html += '</div>';

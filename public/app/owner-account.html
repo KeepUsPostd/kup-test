@@ -2059,50 +2059,51 @@
       /* Invite Team Member */
       var inviteBtn = document.getElementById('btnInvite');
       if (inviteBtn) {
-        inviteBtn.addEventListener('click', function() {
+        inviteBtn.addEventListener('click', async function() {
           var emailInput = document.getElementById('inviteEmail');
           var roleSelect = document.getElementById('inviteRole');
           var email = emailInput.value.trim();
           var role = roleSelect.value;
 
-          if (!email) {
-            kupToast('Please enter an email address', 'error');
-            emailInput.focus();
-            return;
+          if (!email) { kupToast('Please enter an email address', 'error'); emailInput.focus(); return; }
+          if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { kupToast('Please enter a valid email address', 'error'); emailInput.focus(); return; }
+
+          var brandId = (typeof getActiveBrandId === 'function') ? getActiveBrandId() : (window.KUP_BRAND_CONTEXT && KUP_BRAND_CONTEXT.getActiveBrand() ? KUP_BRAND_CONTEXT.getActiveBrand().mongoId : null);
+          if (!brandId) { kupToast('No active brand selected', 'error'); return; }
+
+          inviteBtn.disabled = true;
+          inviteBtn.textContent = 'Sending...';
+
+          try {
+            await kupApi.post('/api/brands/' + brandId + '/members/invite', { email: email, role: role });
+
+            // Role display
+            var roleColors = { admin: 'bg-blue', manager: 'bg-purple', viewer: 'bg-gray' };
+            var roleLabels = { admin: 'Admin', manager: 'Manager', viewer: 'Viewer' };
+            var parts = email.split('@')[0].split(/[._-]/);
+            var initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].charAt(0).toUpperCase();
+            var avatarClass = roleColors[role] || 'bg-gray';
+
+            // Add row to table
+            var tbody = document.querySelector('#teamTable tbody');
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td data-label="Member"><div class="team-member-info"><div class="team-avatar ' + avatarClass + '">' + initials + '</div><span class="team-member-name">' + email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); }) + '</span></div></td>'
+              + '<td data-label="Email">' + email + '</td>'
+              + '<td data-label="Role"><span class="role-badge role-' + role + '">' + roleLabels[role] + '</span></td>'
+              + '<td data-label="Status"><span class="status-badge pending-status">Pending</span></td>'
+              + '<td data-label="Added">' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
+              + '<td data-label=""><button class="btn-remove" onclick="removeMember(this, \'\')">Remove</button></td>';
+            tbody.appendChild(tr);
+            updateMemberCount();
+            emailInput.value = '';
+            kupToast('Invite sent to ' + email, 'success');
+          } catch (err) {
+            var msg = err && err.error ? err.error : 'Could not send invite — please try again';
+            kupToast(msg, 'error');
+          } finally {
+            inviteBtn.disabled = false;
+            inviteBtn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Send Invite';
           }
-          if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            kupToast('Please enter a valid email address', 'error');
-            emailInput.focus();
-            return;
-          }
-
-          // Get initials from email
-          var parts = email.split('@')[0].split(/[._-]/);
-          var initials = parts.length > 1
-            ? (parts[0][0] + parts[1][0]).toUpperCase()
-            : parts[0].charAt(0).toUpperCase();
-
-          // Role display
-          var roleColors = { admin: 'bg-blue', manager: 'bg-purple', viewer: 'bg-gray' };
-          var roleLabels = { admin: 'Admin', manager: 'Manager', viewer: 'Viewer' };
-          var avatarClass = roleColors[role] || 'bg-gray';
-
-          // Build new row
-          var tbody = document.querySelector('#teamTable tbody');
-          var tr = document.createElement('tr');
-          tr.innerHTML = '<td data-label="Member"><div class="team-member-info"><div class="team-avatar ' + avatarClass + '">' + initials + '</div><span class="team-member-name">' + email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); }) + '</span></div></td>'
-            + '<td data-label="Email">' + email + '</td>'
-            + '<td data-label="Role"><span class="role-badge role-' + role + '">' + roleLabels[role] + '</span></td>'
-            + '<td data-label="Status"><span class="status-badge pending-status">Pending</span></td>'
-            + '<td data-label="Added">' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
-            + '<td data-label=""><button class="btn-remove" onclick="removeMember(this, \'' + email + '\')">Remove</button></td>';
-          tbody.appendChild(tr);
-
-          // Update count
-          updateMemberCount();
-
-          emailInput.value = '';
-          kupToast('Invite sent to ' + email + ' as ' + roleLabels[role], 'success');
         });
       }
 

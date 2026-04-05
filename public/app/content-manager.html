@@ -1318,6 +1318,8 @@
           status: uiStatus,
           daysRemaining: daysRemaining,
           avatarStyle: '',
+          avatarUrl: influencer.avatarUrl || null,
+          partnershipId: sub.partnershipId || null,
           mediaUrls: sub.mediaUrls || [],
           posterUrl: sub.posterUrl || null,
           originalMediaUrls: sub.originalMediaUrls || null,
@@ -1663,8 +1665,13 @@
         captionWrap.style.display = 'none';
       }
 
-      // Influencer avatar — show person silhouette
-      document.getElementById('cmAvatar').innerHTML = PERSON_SVG;
+      // Influencer avatar — show profile photo if available, else silhouette
+      var cmAvatarEl = document.getElementById('cmAvatar');
+      if (item.avatarUrl) {
+        cmAvatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+      } else {
+        cmAvatarEl.innerHTML = PERSON_SVG;
+      }
       document.getElementById('cmInfluencer').textContent = item.influencer;
       document.getElementById('cmTier').textContent = item.tier;
 
@@ -1869,8 +1876,19 @@
             return;
           }
         } catch (err) {
-          console.error('Approve error:', err);
-          kupToast('Error approving content', 'error');
+          // Check for reward_required — show a clear, helpful message, not a generic error
+          if (err && err.error === 'reward_required') {
+            kupToast('⚠️ Set up a reward first — cash or points — to approve content.', 'warning', 6000);
+            // Show a more detailed inline prompt
+            var detail = document.getElementById('cmDecisionText');
+            if (detail) {
+              detail.innerHTML = '<strong>Reward required to approve.</strong> Go to <a href="rewards.html" style="color:#2EA5DD">Rewards</a> and create a cash or points reward. This protects your influencers and builds your brand\'s trust score on KUP.';
+              document.getElementById('cmDecisionRecorded').style.display = '';
+              document.getElementById('cmActionButtons').style.display = 'none';
+            }
+          } else {
+            kupToast('Error approving content', 'error');
+          }
           return;
         }
       }
@@ -2032,7 +2050,8 @@
     document.getElementById('cmFeedbackBtn').addEventListener('click', function() {
       var item = contentItems[currentIndex];
       // Populate header
-      document.getElementById('cmFeedbackAvatar').innerHTML = PERSON_SVG;
+      var fbAvEl = document.getElementById('cmFeedbackAvatar');
+      fbAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('cmFeedbackName').textContent = item.name;
       document.getElementById('cmFeedbackHandle').textContent = item.influencer;
       // Populate content reference
@@ -2200,7 +2219,8 @@
 
       // Find influencer data
       var item = contentItems[currentIndex];
-      document.getElementById('ratingAvatar').innerHTML = PERSON_SVG;
+      var rtAvEl = document.getElementById('ratingAvatar');
+      rtAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('ratingName').textContent = item.name;
       document.getElementById('ratingHandle').textContent = item.influencer;
 
@@ -2268,11 +2288,33 @@
     });
 
     // Submit rating → show success state, then auto-close after 2 seconds
-    document.getElementById('ratingSubmitBtn').addEventListener('click', function() {
+    document.getElementById('ratingSubmitBtn').addEventListener('click', async function() {
+      var item = contentItems[currentIndex];
+      var partnershipId = item && item.partnershipId;
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      var feedback = document.getElementById('ratingFeedbackText') ? document.getElementById('ratingFeedbackText').value : '';
+
+      // Try to save to backend if we have a partnershipId
+      if (partnershipId && isRealData) {
+        try {
+          await kupApi.post('/api/partnerships/' + partnershipId + '/rate', {
+            communication:      ratingState.communication      || 0,
+            paymentTimeliness:  ratingState.paymentTimeliness  || 0,
+            creativeFreedom:    ratingState.creativeFreedom     || 0,
+            overallExperience:  ratingState.overallExperience   || 0,
+            feedback:           feedback || null,
+          });
+        } catch (e) {
+          console.warn('Rating API error (non-blocking):', e.message);
+        }
+      }
+
       document.getElementById('ratingFormState').style.display = 'none';
       document.getElementById('ratingSubmittedState').style.display = 'block';
 
-      // Auto-close the modal after a short delay so user sees the confirmation
       setTimeout(function() {
         closeRatingModal();
         kupToast('Rating submitted — thank you!', 'success');
@@ -3821,7 +3863,8 @@
       if (!item) return;
 
       // Populate modal basics
-      document.getElementById('dlAvatar').innerHTML = PERSON_SVG;
+      var dlAvEl = document.getElementById('dlAvatar');
+      dlAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('dlInfluencer').textContent = item.influencer;
       document.getElementById('dlType').textContent = item.type + ' \u00B7 ' + item.fileSize;
 
@@ -4314,6 +4357,8 @@
             status: uiStatus,
             daysRemaining: daysRemaining,
             avatarStyle: '',
+            avatarUrl: influencer.avatarUrl || null,
+            partnershipId: sub.partnershipId || null,
             mediaUrls: sub.mediaUrls || [],
             posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,
