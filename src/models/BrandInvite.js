@@ -29,9 +29,31 @@ const brandInviteSchema = new mongoose.Schema({
     ref: 'User',
     default: null,
   },
-  // Set when influencer clicks invite link and creates a partnership
+  // Team member invite fields (inviteType: 'team_member')
+  inviteType: {
+    type: String,
+    enum: ['influencer', 'team_member'],
+    default: 'influencer',
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'manager', 'viewer', 'location_manager', null],
+    default: null,
+  },
+  // Secure token for accept link (team_member invites only)
+  token: {
+    type: String,
+    default: null,
+    index: true,
+  },
+  // Set when invitee clicks invite link and creates a partnership or accepts team role
   acceptedAt: {
     type: Date,
+    default: null,
+  },
+  acceptedByUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     default: null,
   },
   // Auto-expire after 30 days (pending only — accepted invites kept as record)

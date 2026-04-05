@@ -298,7 +298,11 @@
     // ================================================================
     var urlParams = new URLSearchParams(window.location.search);
     var brandId = urlParams.get('brandId') || '';
-    var submitUrl = '/app/submit-content.html' + (brandId ? '?brandId=' + brandId : '');
+    var redirectParam = urlParams.get('redirect') || '';
+    // If a redirect param is present (e.g., from invite-accept flow), use it after signup
+    var submitUrl = redirectParam
+      ? decodeURIComponent(redirectParam)
+      : '/app/submit-content.html' + (brandId ? '?brandId=' + brandId : '');
 
     // If already logged in as influencer, skip to submit
     var authChecked = false;
