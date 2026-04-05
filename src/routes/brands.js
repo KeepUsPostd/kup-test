@@ -362,20 +362,17 @@ router.post('/:brandId/members/invite', requireAuth, requireBrandRole('admin'), 
     const inviterName = req.user.legalFirstName || req.user.email.split('@')[0];
     const acceptUrl = `${process.env.APP_URL}/pages/inner/owner-account.html?brandId=${brand._id}&invite=accept`;
 
+    const roleName = role.charAt(0).toUpperCase() + role.slice(1);
     await sendEmail({
       to: email,
       subject: `${inviterName} invited you to manage ${brand.name} on KeepUsPostd`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto">
-          <img src="${process.env.APP_URL}/images/kup_white_new_logo_1.png" alt="KeepUsPostd" style="width:140px;margin-bottom:24px" />
-          <h2 style="color:#0d0d1a">You've been invited to join a brand team</h2>
-          <p style="color:#444"><strong>${inviterName}</strong> has invited you to manage <strong>${brand.name}</strong> on KeepUsPostd as a <strong>${role.charAt(0).toUpperCase() + role.slice(1)}</strong>.</p>
-          <a href="${acceptUrl}" style="display:inline-block;background:#2EA5DD;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;margin:20px 0">Accept Invitation →</a>
-          <p style="color:#888;font-size:0.85rem">If you don't have a KeepUsPostd account yet, you'll be prompted to create one when you click the link above.</p>
-          <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
-          <p style="color:#bbb;font-size:0.75rem">KeepUsPostd · keepuspostd.com</p>
-        </div>
-      `,
+      preheader: `${inviterName} invited you to manage ${brand.name}`,
+      headline: `You've been invited to join ${brand.name}`,
+      bodyHtml: `<p><strong>${inviterName}</strong> has invited you to manage <strong>${brand.name}</strong> on KeepUsPostd as a <strong>${roleName}</strong>.</p>
+        <p style="font-size:13px;color:#999;margin-top:16px;">If you don't have a KeepUsPostd account yet, you'll be prompted to create one when you click the button above.</p>`,
+      ctaText: 'Accept Invitation →',
+      ctaUrl: acceptUrl,
+      variant: 'brand',
     });
 
     console.log(`📧 Team invite sent to ${email} for brand ${brand.name} (role: ${role})`);
