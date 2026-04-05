@@ -1318,6 +1318,7 @@
           status: uiStatus,
           daysRemaining: daysRemaining,
           avatarStyle: '',
+          avatarUrl: influencer.avatarUrl || null,
           mediaUrls: sub.mediaUrls || [],
           posterUrl: sub.posterUrl || null,
           originalMediaUrls: sub.originalMediaUrls || null,
@@ -1663,8 +1664,13 @@
         captionWrap.style.display = 'none';
       }
 
-      // Influencer avatar — show person silhouette
-      document.getElementById('cmAvatar').innerHTML = PERSON_SVG;
+      // Influencer avatar — show profile photo if available, else silhouette
+      var cmAvatarEl = document.getElementById('cmAvatar');
+      if (item.avatarUrl) {
+        cmAvatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+      } else {
+        cmAvatarEl.innerHTML = PERSON_SVG;
+      }
       document.getElementById('cmInfluencer').textContent = item.influencer;
       document.getElementById('cmTier').textContent = item.tier;
 
@@ -2032,7 +2038,8 @@
     document.getElementById('cmFeedbackBtn').addEventListener('click', function() {
       var item = contentItems[currentIndex];
       // Populate header
-      document.getElementById('cmFeedbackAvatar').innerHTML = PERSON_SVG;
+      var fbAvEl = document.getElementById('cmFeedbackAvatar');
+      fbAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('cmFeedbackName').textContent = item.name;
       document.getElementById('cmFeedbackHandle').textContent = item.influencer;
       // Populate content reference
@@ -2200,7 +2207,8 @@
 
       // Find influencer data
       var item = contentItems[currentIndex];
-      document.getElementById('ratingAvatar').innerHTML = PERSON_SVG;
+      var rtAvEl = document.getElementById('ratingAvatar');
+      rtAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('ratingName').textContent = item.name;
       document.getElementById('ratingHandle').textContent = item.influencer;
 
@@ -3821,7 +3829,8 @@
       if (!item) return;
 
       // Populate modal basics
-      document.getElementById('dlAvatar').innerHTML = PERSON_SVG;
+      var dlAvEl = document.getElementById('dlAvatar');
+      dlAvEl.innerHTML = item.avatarUrl ? '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
       document.getElementById('dlInfluencer').textContent = item.influencer;
       document.getElementById('dlType').textContent = item.type + ' \u00B7 ' + item.fileSize;
 
@@ -4314,6 +4323,7 @@
             status: uiStatus,
             daysRemaining: daysRemaining,
             avatarStyle: '',
+            avatarUrl: influencer.avatarUrl || null,
             mediaUrls: sub.mediaUrls || [],
             posterUrl: sub.posterUrl || null,
             originalMediaUrls: sub.originalMediaUrls || null,

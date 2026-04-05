@@ -163,6 +163,11 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
+    // Increment influencer profile post count
+    await InfluencerProfile.findByIdAndUpdate(influencerProfile._id, {
+      $inc: { totalReviews: 1 },
+    });
+
     console.log(`📸 Content submitted for brand ${brandId} (${contentType})`);
 
     // 📧 Notify brand (new submission) + influencer (confirmation)
@@ -292,7 +297,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
     const submissions = await ContentSubmission.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered')
       .populate('campaignId', 'title status')
       .sort({ submittedAt: -1 })
       .limit(100);
@@ -318,7 +323,7 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/:submissionId', requireAuth, async (req, res) => {
   try {
     const submission = await ContentSubmission.findById(req.params.submissionId)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered')
       .populate('campaignId', 'title status')
       .populate('reviewedBy', 'email legalFirstName legalLastName');
 

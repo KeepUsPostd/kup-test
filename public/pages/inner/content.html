@@ -2374,6 +2374,10 @@
         const displayName = influencer.displayName || influencer.handle || 'New Creator';
         const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
         const tier = influencer.influenceTier || 'Nano Influencer';
+        const infBio = influencer.bio || '';
+        const infFollowers = influencer.realFollowerCount ? (influencer.realFollowerCount >= 1000 ? (influencer.realFollowerCount / 1000).toFixed(1) + 'K' : influencer.realFollowerCount) : '—';
+        const infEngagement = influencer.engagementRate ? influencer.engagementRate.toFixed(1) + '%' : '—';
+        const infPosts = influencer.totalReviews || 0;
         const typeIcon = sub.contentType === 'video' ? 'ph-play' : 'ph-image';
         const typeName = (sub.contentType || 'video').charAt(0).toUpperCase() + (sub.contentType || 'video').slice(1);
 
@@ -2423,8 +2427,8 @@
           </td>
           <td data-label="Campaign"><span class="${campClass}" data-campaign="${campaignSlug}">${campaignTitle}</span></td>
           <td data-label="Submitted By">
-            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}">
-              <div class="avatar">${PERSON_SVG}</div>
+            <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}" data-influencer-avatar="${influencer.avatarUrl || ''}" data-influencer-bio="${infBio}" data-influencer-followers="${infFollowers}" data-influencer-engagement="${infEngagement}" data-influencer-posts="${infPosts}">
+              <div class="avatar">${influencer.avatarUrl ? `<img src="${influencer.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML='${PERSON_SVG}'">` : PERSON_SVG}</div>
               <div>
                 <div class="name">@${handle}</div>
                 <div class="tier">${tier}</div>
@@ -2468,17 +2472,20 @@
           var name = this.getAttribute('data-influencer-name') || 'Unknown';
           var handle = this.getAttribute('data-influencer-handle') || '';
           var tier = this.getAttribute('data-influencer-tier') || 'Creator';
+          var avatarUrl = this.getAttribute('data-influencer-avatar') || '';
           // Populate the existing influencer profile modal
-          document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
+          var ipAvEl = document.getElementById('ipAvatar');
+          ipAvEl.innerHTML = avatarUrl ? '<img src="' + avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">' : PERSON_SVG;
           document.getElementById('ipModalHandle').textContent = '@' + handle;
           document.getElementById('ipName').textContent = name;
           var tierEl = document.getElementById('ipTier');
           tierEl.textContent = tier;
           tierEl.className = 'ip-tier tier-badge micro';
-          document.getElementById('ipFollowers').textContent = '—';
-          document.getElementById('ipEngagement').textContent = '—';
-          document.getElementById('ipPosts').textContent = '—';
-          document.getElementById('ipBio').textContent = 'Creator profile — more details coming soon.';
+          document.getElementById('ipFollowers').textContent = this.getAttribute('data-influencer-followers') || '—';
+          document.getElementById('ipEngagement').textContent = this.getAttribute('data-influencer-engagement') || '—';
+          document.getElementById('ipPosts').textContent = this.getAttribute('data-influencer-posts') || '0';
+          var bio = this.getAttribute('data-influencer-bio') || '';
+          document.getElementById('ipBio').textContent = bio || 'No bio yet.';
 
           openModal('influencerProfileModal');
         });
