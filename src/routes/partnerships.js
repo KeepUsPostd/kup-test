@@ -280,12 +280,19 @@ router.get('/', requireAuth, async (req, res) => {
 
     const filtered = partnerships;
 
-    // Gather stats
+    // Gather stats from full DB count (not filtered list) so numbers are accurate
+    // even when the brand owner's own profile is excluded from the visible list
+    const statsFilter = brandId ? { brandId } : {};
+    const [totalCount, activeCount, pausedCount] = await Promise.all([
+      Partnership.countDocuments(statsFilter),
+      Partnership.countDocuments({ ...statsFilter, status: 'active' }),
+      Partnership.countDocuments({ ...statsFilter, status: 'paused' }),
+    ]);
     const stats = {
-      total: filtered.length,
-      active: filtered.filter(p => p.status === 'active').length,
-      paused: filtered.filter(p => p.status === 'paused').length,
-      ended: filtered.filter(p => p.status === 'ended').length,
+      total: totalCount,
+      active: activeCount,
+      paused: pausedCount,
+      ended: totalCount - activeCount - pausedCount,
     };
 
     res.json({ partnerships: filtered, stats });
