@@ -37,7 +37,7 @@ const brandInviteSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'manager', 'viewer', 'location_manager', null],
+    enum: ['admin', 'manager', 'viewer', 'location_manager'],
     default: null,
   },
   // Secure token for accept link (team_member invites only)

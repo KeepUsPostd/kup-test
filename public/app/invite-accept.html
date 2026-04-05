@@ -257,11 +257,17 @@
 
   // Step 1: Load invite preview (public — no auth needed)
   fetch('/api/brands/invite/preview?token=' + token)
-    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(r) {
+      return r.text().then(function(text) {
+        var data;
+        try { data = JSON.parse(text); } catch(e) { data = { error: 'Server returned: ' + text.substring(0, 200) }; }
+        return { ok: r.ok, status: r.status, data: data };
+      });
+    })
     .then(function(result) {
       if (!result.ok) {
         show('stateError');
-        document.getElementById('errorMsg').textContent = result.data.error || 'Invite not found or expired.';
+        document.getElementById('errorMsg').textContent = result.data.error || ('HTTP ' + result.status);
         return;
       }
 
@@ -290,7 +296,7 @@
     })
     .catch(function(err) {
       show('stateError');
-      document.getElementById('errorMsg').textContent = 'Could not load invitation. Please try again.';
+      document.getElementById('errorMsg').textContent = 'Network error: ' + (err && err.message ? err.message : String(err));
     });
 
   function acceptInvite(user) {
