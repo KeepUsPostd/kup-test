@@ -460,6 +460,27 @@ router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
 
     await partnership.save();
 
+    // Roll up averageRating + ratingCount onto the InfluencerProfile
+    // Recalculate from all rated partnerships for this influencer (accurate aggregate)
+    try {
+      const allRated = await Partnership.find({
+        influencerProfileId: partnership.influencerProfileId,
+        'influencerRating.overall': { $ne: null },
+      }, 'influencerRating.overall').lean();
+
+      const ratingCount = allRated.length;
+      const averageRating = ratingCount > 0
+        ? Math.round((allRated.reduce((sum, p) => sum + p.influencerRating.overall, 0) / ratingCount) * 10) / 10
+        : null;
+
+      await InfluencerProfile.findByIdAndUpdate(partnership.influencerProfileId, {
+        averageRating,
+        ratingCount,
+      });
+    } catch (rollupErr) {
+      console.error('Rating rollup error (non-blocking):', rollupErr.message);
+    }
+
     console.log(`⭐ Partnership ${partnership._id} rated: ${overall}/5`);
 
     res.json({ message: 'Rating saved', overall, partnership });

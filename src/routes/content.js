@@ -355,6 +355,23 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       });
     }
 
+    // RULE: Brand must have an active reward configured before approving content.
+    // This protects influencers from doing unpaid work.
+    // Cash AND points-based rewards both count — either one unlocks approvals.
+    const activeReward = await Reward.findOne({
+      brandId: submission.brandId,
+      status: 'active',
+    });
+
+    if (!activeReward) {
+      return res.status(402).json({
+        error: 'reward_required',
+        message: 'Set up a reward before approving content.',
+        detail: 'KUP requires brands to have an active reward configured — cash per approval or points — before influencer content can be approved. This protects your influencers and your brand reputation. Brands without active rewards also receive lower trust ratings on the platform.',
+        action: 'Go to Rewards → Create a cash or points reward to unlock approvals.',
+      });
+    }
+
     submission.status = 'approved';
     submission.reviewedAt = new Date();
     submission.reviewedBy = req.user._id;
