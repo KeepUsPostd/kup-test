@@ -198,7 +198,7 @@ router.get('/my-brands', requireAuth, async (req, res) => {
     if (status) filter.status = status;
 
     const partnerships = await Partnership.find(filter)
-      .populate('brandId', 'name initials generatedColor category logoUrl kioskBrandCode brandColors')
+      .populate('brandId', 'name initials generatedColor category logoUrl heroImageUrl kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
