@@ -202,10 +202,17 @@ router.get('/my-brands', requireAuth, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(200);
 
-    const brands = partnerships.map(p => ({
-      partnership: p,
-      brand: p.brandId,
-    }));
+    // Flatten to Brand objects directly — app's Brand.fromJson expects brand fields at root level
+    const brands = partnerships
+      .filter(p => p.brandId) // skip any orphaned partnerships
+      .map(p => {
+        const b = p.brandId.toObject ? p.brandId.toObject() : p.brandId;
+        return {
+          ...b,
+          partnershipId: p._id,
+          partnershipStatus: p.status,
+        };
+      });
 
     res.json({ brands, total: brands.length });
   } catch (error) {
