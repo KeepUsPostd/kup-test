@@ -97,6 +97,11 @@ const influencerProfileSchema = new mongoose.Schema({
   },
   paypalTrackingId: { type: String, default: null },          // Our internal ID used during onboarding flow
 
+  // Platform visibility — hidden influencers are auto-created or test accounts
+  // that should not appear in brand portal views on the website.
+  // Does NOT affect native app — influencer can still use the app normally.
+  isHidden: { type: Boolean, default: false },
+
   // Referral
   referralCode: { type: String, unique: true, sparse: true },
 }, {

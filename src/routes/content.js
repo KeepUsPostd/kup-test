@@ -109,6 +109,20 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    // Self-submission gate: brand members cannot submit content to their own brand
+    const BrandMember = require('../models/BrandMember');
+    const isBrandMember = await BrandMember.findOne({
+      brandId: brandId,
+      userId: req.user._id,
+      status: 'active',
+    });
+    if (isBrandMember) {
+      return res.status(403).json({
+        error: 'Self-submission not allowed',
+        message: "You can't submit content to a brand you manage.",
+      });
+    }
+
     // RULE: No "Unknown" influencers. If profile is missing displayName or handle,
     // auto-populate from the User record we already have — don't block the flow.
     // The native app will prompt for profile enhancement later.
@@ -297,11 +311,15 @@ router.get('/', requireAuth, async (req, res) => {
     if (campaignId) filter.campaignId = campaignId;
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
-    const submissions = await ContentSubmission.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered')
+    const rawSubmissions = await ContentSubmission.find(filter)
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isHidden')
       .populate('campaignId', 'title status')
       .sort({ submittedAt: -1 })
       .limit(100);
+
+    // Filter out content from hidden influencers (auto-created/test accounts)
+    // Hidden influencers still work in the native app — this only affects the brand portal
+    const submissions = rawSubmissions.filter(s => !s.influencerProfileId?.isHidden);
 
     // Gather stats
     const allForBrand = await ContentSubmission.countDocuments({ brandId });

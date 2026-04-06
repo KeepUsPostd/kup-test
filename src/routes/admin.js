@@ -139,4 +139,62 @@ router.delete('/partnerships/cleanup', requireAuth, requireAdmin, async (req, re
   }
 });
 
+// PATCH /api/admin/influencers/hide — Mark an influencer as hidden on brand portal (website)
+// Hidden influencers still work normally in the native app.
+// Usage: { influencerEmail: "user@example.com", hidden: true }
+router.patch('/influencers/hide', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { influencerEmail, hidden = true } = req.body;
+    const User = require('../models/User');
+    const InfluencerProfile = require('../models/InfluencerProfile');
+
+    const user = await User.findOne({ email: influencerEmail });
+    if (!user) return res.status(404).json({ error: `User not found: ${influencerEmail}` });
+
+    const influencer = await InfluencerProfile.findOneAndUpdate(
+      { userId: user._id },
+      { isHidden: hidden },
+      { new: true }
+    );
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    res.json({
+      message: `Influencer @${influencer.handle} is now ${hidden ? 'hidden' : 'visible'} on the brand portal`,
+      handle: influencer.handle,
+      isHidden: influencer.isHidden,
+    });
+  } catch (error) {
+    console.error('Influencer hide error:', error.message);
+    res.status(500).json({ error: 'Could not update influencer visibility', message: error.message });
+  }
+});
+
+// DELETE /api/admin/influencers/content — Delete all content submissions from an influencer
+// Usage: { influencerEmail: "user@example.com" }
+router.delete('/influencers/content', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { influencerEmail } = req.body;
+    const User = require('../models/User');
+    const InfluencerProfile = require('../models/InfluencerProfile');
+    const ContentSubmission = require('../models/ContentSubmission');
+
+    const user = await User.findOne({ email: influencerEmail });
+    if (!user) return res.status(404).json({ error: `User not found: ${influencerEmail}` });
+
+    const influencer = await InfluencerProfile.findOne({ userId: user._id });
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    const result = await ContentSubmission.deleteMany({ influencerProfileId: influencer._id });
+
+    res.json({
+      message: `Deleted ${result.deletedCount} content submission(s) from @${influencer.handle}`,
+      handle: influencer.handle,
+      deleted: result.deletedCount,
+    });
+  } catch (error) {
+    console.error('Content deletion error:', error.message);
+    res.status(500).json({ error: 'Could not delete content', message: error.message });
+  }
+});
+
 module.exports = router;
