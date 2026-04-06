@@ -1862,11 +1862,29 @@
             item.status = 'approved';
             item.daysRemaining = null;
             item.rewardTriggered = result.rewardTriggered || null;
-            if (result.rewardTriggered) {
-              kupToast('Content approved! $' + result.rewardTriggered.amount + ' earned by influencer (' + result.rewardTriggered.tier + ' tier)', 'success');
+
+            var reward = result.rewardTriggered;
+
+            // PPCP flow: approvalUrl present → redirect brand to PayPal checkout.
+            // Brand completes PayPal authorization → webhook auto-captures → influencer gets paid.
+            if (reward && reward.approvalUrl && !reward.skipped) {
+              kupToast('Content approved! Redirecting to PayPal to complete $' + reward.brandPaysAmount.toFixed(2) + ' payment…', 'success', 4000);
+              // Brief pause so toast is visible, then redirect
+              setTimeout(function() {
+                window.location.href = reward.approvalUrl;
+              }, 1200);
+              return;
+            }
+
+            // No PPCP yet — transaction logged as pending (payable from Cash & Rewards)
+            if (reward && !reward.skipped) {
+              kupToast('Content approved! $' + reward.amount + ' queued for ' + item.influencer + ' (' + reward.tier + ' tier)', 'success');
+            } else if (reward && reward.skipped) {
+              kupToast('Content approved! Budget cap reached — no payment triggered.', 'warning', 5000);
             } else {
               kupToast('Content approved!', 'success');
             }
+
             // Advance to next pending item — approved content moves to library
             setTimeout(function() { advanceQueueAfterDecision(); }, 400);
             setTimeout(function() { openRatingModal(item.influencer); }, 900);
@@ -3717,6 +3735,22 @@
       if (view === 'library') renderLibrary();
     }
 
+    // Fallback handler: when a poster image fails to load, swap in the video element
+    function handlePosterError(img) {
+      var fallback = img.getAttribute('data-fallback');
+      var container = img.parentNode;
+      if (fallback) {
+        var vid = document.createElement('video');
+        vid.src = fallback;
+        vid.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+        vid.muted = true;
+        vid.preload = 'metadata';
+        container.replaceChild(vid, img);
+      } else {
+        img.style.display = 'none';
+      }
+    }
+
     function renderLibrary() {
       var grid = document.getElementById('libraryGrid');
       grid.innerHTML = '';
@@ -3795,7 +3829,8 @@
         // Thumbnail: use posterUrl for video, mediaUrl for image
         var thumbContent = '';
         if (item.posterUrl) {
-          thumbContent = '<img src="' + item.posterUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="Poster">';
+          var fallbackSrc = (item.mediaUrls && item.mediaUrls.length > 0) ? item.mediaUrls[0] : '';
+          thumbContent = '<img src="' + item.posterUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="Poster" data-fallback="' + fallbackSrc + '" onerror="handlePosterError(this)">';
         } else if (item.mediaUrls && item.mediaUrls.length > 0) {
           var isVid = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm)$/i.test(item.mediaUrls[0]);
           if (isVid) {

@@ -3735,6 +3735,22 @@
       if (view === 'library') renderLibrary();
     }
 
+    // Fallback handler: when a poster image fails to load, swap in the video element
+    function handlePosterError(img) {
+      var fallback = img.getAttribute('data-fallback');
+      var container = img.parentNode;
+      if (fallback) {
+        var vid = document.createElement('video');
+        vid.src = fallback;
+        vid.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+        vid.muted = true;
+        vid.preload = 'metadata';
+        container.replaceChild(vid, img);
+      } else {
+        img.style.display = 'none';
+      }
+    }
+
     function renderLibrary() {
       var grid = document.getElementById('libraryGrid');
       grid.innerHTML = '';
@@ -3813,7 +3829,8 @@
         // Thumbnail: use posterUrl for video, mediaUrl for image
         var thumbContent = '';
         if (item.posterUrl) {
-          thumbContent = '<img src="' + item.posterUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="Poster">';
+          var fallbackSrc = (item.mediaUrls && item.mediaUrls.length > 0) ? item.mediaUrls[0] : '';
+          thumbContent = '<img src="' + item.posterUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="Poster" data-fallback="' + fallbackSrc + '" onerror="handlePosterError(this)">';
         } else if (item.mediaUrls && item.mediaUrls.length > 0) {
           var isVid = item.type.toLowerCase() === 'video' || /\.(mp4|mov|webm)$/i.test(item.mediaUrls[0]);
           if (isVid) {
