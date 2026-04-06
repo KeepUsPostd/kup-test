@@ -514,8 +514,140 @@ router.post('/send-verification-email', requireAuth, async (req, res) => {
 });
 
 // ── PayPal Onboarding Routes ──────────────────────────────
+// Two connection methods:
+// 1. PPCP Merchant Onboarding: enables direct brand→influencer routing (required for CPA/PostdPay)
+// 2. PayPal Email (legacy): used for Payouts API cashouts (KUP→influencer bonuses/withdrawals)
 
-// PUT /api/auth/paypal-connect — Connect influencer's PayPal email
+const paypal = require('../config/paypal');
+
+// GET /api/auth/paypal-onboard — Initiate PPCP merchant onboarding
+// Returns an onboardingUrl for the influencer to open in a browser/WebView.
+// After completing, PayPal redirects to our /return URL with merchantIdInPayPal.
+router.get('/paypal-onboard', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    // If already completed, return current status
+    if (influencer.paypalOnboardingStatus === 'completed' && influencer.paypalMerchantId) {
+      return res.json({
+        status: 'completed',
+        merchantId: influencer.paypalMerchantId,
+        message: 'PayPal Business account already connected.',
+      });
+    }
+
+    // Generate a unique tracking ID for this onboarding session
+    const trackingId = `KUP_INF_${influencer._id}_${Date.now()}`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const returnUrl = `${baseUrl}/api/auth/paypal-onboard/return?influencerId=${influencer._id}`;
+
+    const { actionUrl, referralId } = await paypal.createPartnerReferral(trackingId, returnUrl);
+
+    if (!actionUrl) {
+      return res.status(500).json({ error: 'Could not generate PayPal onboarding URL' });
+    }
+
+    // Store tracking ID so we can match the webhook/return URL back to this influencer
+    influencer.paypalTrackingId = trackingId;
+    influencer.paypalOnboardingStatus = 'pending';
+    await influencer.save();
+
+    console.log(`🔗 PPCP onboarding initiated for ${influencer.displayName}: trackingId=${trackingId}`);
+
+    res.json({
+      status: 'pending',
+      onboardingUrl: actionUrl,
+      trackingId,
+      message: 'Open this URL in a browser to connect your PayPal Business account.',
+    });
+  } catch (error) {
+    console.error('PayPal onboard initiate error:', error.message);
+    res.status(500).json({ error: 'Could not initiate PayPal onboarding' });
+  }
+});
+
+// GET /api/auth/paypal-onboard/return — PayPal redirects here after onboarding completes
+// PayPal appends: ?merchantIdInPayPal=xxx&permissionsGranted=true&accountStatus=BUSINESS_ACCOUNT
+// No auth required — browser redirect from PayPal (uses influencerId from our returnUrl)
+router.get('/paypal-onboard/return', async (req, res) => {
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+  try {
+    const { influencerId, merchantIdInPayPal, permissionsGranted, accountStatus } = req.query;
+
+    if (!influencerId || !merchantIdInPayPal) {
+      return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=error&reason=missing_params`);
+    }
+
+    if (permissionsGranted !== 'true') {
+      return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=canceled`);
+    }
+
+    const influencer = await InfluencerProfile.findById(influencerId);
+    if (!influencer) {
+      return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=error&reason=not_found`);
+    }
+
+    // Store merchant ID and mark onboarding complete
+    influencer.paypalMerchantId = merchantIdInPayPal;
+    influencer.paypalOnboardingStatus = 'completed';
+    influencer.paypalConnectedAt = new Date();
+    await influencer.save();
+
+    console.log(`✅ PPCP onboarding complete for ${influencer.displayName}: merchantId=${merchantIdInPayPal}`);
+
+    // 📧 Notify influencer: PayPal Business connected
+    notify.paypalConnected({
+      influencer: { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId },
+      maskedEmail: 'PayPal Business Account',
+    }).catch(() => {});
+
+    res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=connected`);
+  } catch (error) {
+    console.error('PayPal onboard return error:', error.message);
+    res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=error&reason=server_error`);
+  }
+});
+
+// GET /api/auth/paypal-onboard/status — Check PPCP onboarding status
+router.get('/paypal-onboard/status', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) {
+      return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    // If we have a merchantId, verify with PayPal that it's still active
+    let paypalVerified = null;
+    if (influencer.paypalMerchantId) {
+      try {
+        const status = await paypal.getMerchantStatus(influencer.paypalMerchantId);
+        paypalVerified = {
+          paymentsReceivable: status.payments_receivable,
+          primaryEmailConfirmed: status.primary_email_confirmed,
+          oauthThirdParty: status.oauth_third_party || [],
+        };
+      } catch (verifyErr) {
+        console.warn('[paypal-onboard/status] Could not verify with PayPal:', verifyErr.message);
+      }
+    }
+
+    res.json({
+      onboardingStatus: influencer.paypalOnboardingStatus,
+      merchantId: influencer.paypalMerchantId || null,
+      connectedAt: influencer.paypalConnectedAt || null,
+      paypalVerified,
+    });
+  } catch (error) {
+    console.error('PayPal onboard status error:', error.message);
+    res.status(500).json({ error: 'Could not check PayPal status' });
+  }
+});
+
+// PUT /api/auth/paypal-connect — Connect PayPal email (used for cashouts / Payouts API)
+// This is separate from PPCP onboarding — both can coexist on the same account.
 router.put('/paypal-connect', requireAuth, async (req, res) => {
   try {
     const { paypalEmail } = req.body;
@@ -524,7 +656,6 @@ router.put('/paypal-connect', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'paypalEmail is required' });
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(paypalEmail)) {
       return res.status(400).json({ error: 'Invalid email format' });
@@ -539,9 +670,8 @@ router.put('/paypal-connect', requireAuth, async (req, res) => {
     influencer.paypalConnectedAt = new Date();
     await influencer.save();
 
-    console.log(`🔗 PayPal connected for ${influencer.displayName}: ${paypalEmail}`);
+    console.log(`🔗 PayPal email connected for ${influencer.displayName}: ${paypalEmail}`);
 
-    // 📧 Notify influencer: PayPal connected
     const maskedEmail = paypalEmail.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
     notify.paypalConnected({
       influencer: { ...influencer.toObject(), email: req.user.email, userId: req.user._id },
@@ -549,7 +679,7 @@ router.put('/paypal-connect', requireAuth, async (req, res) => {
     }).catch(() => {});
 
     res.json({
-      message: 'PayPal account connected successfully',
+      message: 'PayPal email connected successfully',
       paypalEmail: influencer.paypalEmail,
       connectedAt: influencer.paypalConnectedAt,
     });
@@ -559,7 +689,7 @@ router.put('/paypal-connect', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/auth/paypal-disconnect — Remove PayPal email
+// DELETE /api/auth/paypal-disconnect — Remove PayPal email (cashout email only)
 router.delete('/paypal-disconnect', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
@@ -571,7 +701,7 @@ router.delete('/paypal-disconnect', requireAuth, async (req, res) => {
     influencer.paypalConnectedAt = null;
     await influencer.save();
 
-    console.log(`🔗 PayPal disconnected for ${influencer.displayName}`);
+    console.log(`🔗 PayPal email disconnected for ${influencer.displayName}`);
 
     res.json({ message: 'PayPal account disconnected' });
   } catch (error) {
@@ -580,7 +710,8 @@ router.delete('/paypal-disconnect', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/auth/paypal-status — Check if PayPal is connected
+// GET /api/auth/paypal-status — Combined PayPal connection status
+// Returns both PPCP onboarding status AND email connection status
 router.get('/paypal-status', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
@@ -588,9 +719,7 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Influencer profile not found' });
     }
 
-    const connected = !!influencer.paypalEmail;
     let maskedEmail = null;
-
     if (influencer.paypalEmail) {
       const parts = influencer.paypalEmail.split('@');
       const name = parts[0];
@@ -600,9 +729,15 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
     }
 
     res.json({
-      connected,
+      // Email connection (cashouts)
+      connected: !!influencer.paypalEmail,
       email: maskedEmail,
-      connectedAt: connected ? influencer.paypalConnectedAt : null,
+      connectedAt: influencer.paypalConnectedAt || null,
+
+      // PPCP merchant onboarding (direct payments)
+      onboardingStatus: influencer.paypalOnboardingStatus,
+      merchantId: influencer.paypalMerchantId || null,
+      ppccReady: influencer.paypalOnboardingStatus === 'completed' && !!influencer.paypalMerchantId,
     });
   } catch (error) {
     console.error('PayPal status error:', error.message);

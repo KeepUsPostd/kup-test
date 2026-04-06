@@ -82,9 +82,20 @@ const influencerProfileSchema = new mongoose.Schema({
   // Engagement rate (0–100, stored as a percentage e.g. 4.2 = 4.2%)
   engagementRate: { type: Number, default: null },
 
-  // Payment
+  // Payment — PayPal
+  // paypalEmail: used for Payouts API cashouts (KUP → influencer bonuses/withdrawals)
+  // paypalMerchantId: PPCP merchant ID — enables direct brand → influencer routing
   paypalEmail: { type: String, default: null },
   paypalConnectedAt: { type: Date, default: null },
+
+  // PPCP Merchant Onboarding (brand → influencer direct payments)
+  paypalMerchantId: { type: String, default: null },          // Assigned by PayPal after PPCP onboarding
+  paypalOnboardingStatus: {
+    type: String,
+    enum: ['not_started', 'pending', 'completed', 'failed'],
+    default: 'not_started',
+  },
+  paypalTrackingId: { type: String, default: null },          // Our internal ID used during onboarding flow
 
   // Referral
   referralCode: { type: String, unique: true, sparse: true },

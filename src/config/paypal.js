@@ -205,28 +205,114 @@ async function cancelSubscription(subscriptionId, reason) {
   });
 }
 
+// ── PPCP Merchant Onboarding ──────────────────────────────
+
+/**
+ * Create a PayPal Partner Referral for PPCP merchant onboarding.
+ * Influencers complete this to become PayPal merchants — enables
+ * money routing directly to them (brand → influencer, no KUP holding).
+ * @param {string} trackingId - Our unique internal ID for this onboarding session
+ * @param {string} returnUrl  - Where PayPal redirects after onboarding (receives merchantIdInPayPal param)
+ * @returns {Promise<{ actionUrl: string, referralId: string }>}
+ */
+async function createPartnerReferral(trackingId, returnUrl) {
+  const partnerId = process.env.PAYPAL_PARTNER_ID;
+  if (!partnerId) {
+    throw new Error('PAYPAL_PARTNER_ID not configured. Add it to your .env file.');
+  }
+
+  const result = await paypalRequest('POST', '/v2/customer/partner-referrals', {
+    tracking_id: trackingId,
+    operations: [
+      {
+        operation: 'API_INTEGRATION',
+        api_integration_preference: {
+          rest_api_integration: {
+            integration_method: 'PAYPAL',
+            integration_type: 'THIRD_PARTY',
+            third_party_details: {
+              features: ['PAYMENT', 'REFUND', 'PARTNER_FEE', 'ACCESS_MERCHANT_INFORMATION'],
+            },
+          },
+        },
+      },
+    ],
+    products: ['EXPRESS_CHECKOUT'],
+    legal_consents: [{ type: 'SHARE_DATA_CONSENT', granted: true }],
+    partner_config_override: { return_url: returnUrl },
+  });
+
+  const actionLink = result.links && result.links.find(l => l.rel === 'action_url');
+  return {
+    actionUrl: actionLink ? actionLink.href : null,
+    referralId: result.id || null,
+  };
+}
+
+/**
+ * Check merchant onboarding status from PayPal.
+ * Call after MERCHANT.ONBOARDING.COMPLETED webhook fires (or on return URL).
+ * @param {string} merchantId - The PayPal merchant ID returned after onboarding
+ * @returns {Promise<object>} Merchant integration details (payments_receivable, primary_email_confirmed, etc.)
+ */
+async function getMerchantStatus(merchantId) {
+  const partnerId = process.env.PAYPAL_PARTNER_ID;
+  if (!partnerId) {
+    throw new Error('PAYPAL_PARTNER_ID not configured.');
+  }
+  return paypalRequest('GET', `/v1/customer/partners/${partnerId}/merchant-integrations/${merchantId}`);
+}
+
 // ── Order Helpers (Brand → Influencer Payments) ──────────
 
 /**
  * Create a PayPal order for a brand-to-influencer payment.
- * This is for one-off payments (CPA, bonus cash, PostdPay).
- * @param {number} amount - Total amount brand pays (gross)
- * @param {string} description - Payment description
- * @param {string} returnUrl - Redirect after approval
- * @param {string} cancelUrl - Redirect if cancelled
+ * With PPCP (merchantId provided): money routes directly to influencer.
+ * KUP collects platformFee automatically via PayPal's partner fee mechanism.
+ * Without PPCP (no merchantId): money goes to KUP's account (legacy mode).
+ *
+ * @param {number} amount        - Total amount brand pays (gross, includes all fees)
+ * @param {string} description   - Payment description shown in PayPal
+ * @param {string} returnUrl     - Redirect after brand approves payment
+ * @param {string} cancelUrl     - Redirect if brand cancels
+ * @param {string} [merchantId]  - Influencer's PayPal merchant ID (PPCP direct routing)
+ * @param {number} [platformFee] - KUP's partner fee to collect (default $0.50)
+ * @param {string} [customId]    - Our transaction ID (stored in PayPal for webhook lookup)
  */
-async function createOrder(amount, description, returnUrl, cancelUrl) {
+async function createOrder(amount, description, returnUrl, cancelUrl, merchantId = null, platformFee = 0.50, customId = null) {
+  const purchaseUnit = {
+    amount: {
+      currency_code: 'USD',
+      value: amount.toFixed(2),
+    },
+    description,
+  };
+
+  // PPCP: route payment directly to influencer's PayPal merchant account.
+  // KUP automatically receives platformFee as a partner fee — never touches the main payment.
+  if (merchantId) {
+    purchaseUnit.payee = { merchant_id: merchantId };
+    purchaseUnit.payment_instruction = {
+      disbursement_mode: 'INSTANT',
+      platform_fees: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: platformFee.toFixed(2),
+          },
+        },
+      ],
+    };
+  }
+
+  // Store our transaction ID in custom_id so webhook handlers can find the record.
+  if (customId) {
+    purchaseUnit.custom_id = customId;
+  }
+
   return paypalRequest('POST', '/v2/checkout/orders', {
     intent: 'CAPTURE',
-    purchase_units: [
-      {
-        amount: {
-          currency_code: 'USD',
-          value: amount.toFixed(2),
-        },
-        description,
-      },
-    ],
+    purchase_units: [purchaseUnit],
     payment_source: {
       paypal: {
         experience_context: {
@@ -325,12 +411,16 @@ module.exports = {
   getSubscriptionTransactions,
   cancelSubscription,
 
-  // Orders (brand → influencer payments)
+  // PPCP Merchant Onboarding
+  createPartnerReferral,
+  getMerchantStatus,
+
+  // Orders (brand → influencer payments, PPCP-enabled)
   createOrder,
   captureOrder,
   getOrder,
 
-  // Payouts (KUP → influencer platform bonuses)
+  // Payouts (KUP → influencer platform bonuses & cashouts)
   createPayout,
   getPayoutBatch,
 

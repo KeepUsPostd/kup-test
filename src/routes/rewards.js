@@ -329,23 +329,27 @@ router.post('/distribute', requireAuth, async (req, res) => {
           continue;
         }
 
-        // Build transaction record
+        // Build transaction record — only for cash rewards (free_product/points have $0 value)
         const isCash = CASH_TYPES.includes(reward.type);
         const cashAmount = isCash && reward.cashConfig
           ? (reward.cashConfig.amount || reward.cashConfig.rate || 0)
           : 0;
 
-        const transaction = await Transaction.create({
-          type: 'reward_distribution',
-          brandId,
-          influencerProfileId: infId,
-          rewardId: reward._id,
-          amount: cashAmount,
-          currency: 'USD',
-          status: 'completed',
-          description: `Reward distributed: ${reward.title}`,
-          createdBy: req.user._id,
-        });
+        // Only create a transaction record for cash-type rewards
+        let transaction = null;
+        if (isCash && cashAmount > 0) {
+          transaction = await Transaction.create({
+            payerType: 'brand',
+            payerBrandId: brandId,
+            payeeInfluencerId: infId,
+            type: 'bonus_cash',
+            rewardId: reward._id,
+            amount: cashAmount,
+            currency: 'USD',
+            status: 'paid',
+            paidAt: new Date(),
+          });
+        }
 
         // Fire notification (non-blocking)
         if (isCash && cashAmount > 0 && influencer.userId?.email) {
@@ -357,7 +361,7 @@ router.post('/distribute', requireAuth, async (req, res) => {
           }).catch(err => console.error('[rewards/distribute] notify error:', err.message));
         }
 
-        results.push({ influencerId: infId, transactionId: transaction._id, status: 'success' });
+        results.push({ influencerId: infId, transactionId: transaction?._id || null, status: 'success' });
         console.log(`✅ Reward "${reward.title}" distributed to influencer ${infId} by brand ${brandId}`);
       } catch (infErr) {
         console.error(`[rewards/distribute] Error for influencer ${infId}:`, infErr.message);

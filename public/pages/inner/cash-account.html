@@ -425,9 +425,40 @@
       color: #f39c12;
     }
 
+    .status-badge.processing {
+      background: rgba(46, 165, 221, 0.1);
+      color: #2EA5DD;
+    }
+
     .status-badge.failed {
       background: rgba(231, 76, 60, 0.1);
       color: #e74c3c;
+    }
+
+    /* Pay Now button — shown in status cell for pending transactions */
+    .btn-pay-now {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: linear-gradient(135deg, #0070ba, #003087);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-family: var(--kup-font);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-pay-now:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,112,186,0.35);
+    }
+    .btn-pay-now:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     /* =============================================
@@ -1390,6 +1421,26 @@
   <script>
   /* ============== CASH ACCOUNT — LIVE API WIRING ============== */
   (function() {
+    /* ---- Handle PayPal return URL params ---- */
+    var urlParams = new URLSearchParams(window.location.search);
+    var paymentStatus = urlParams.get('payment');
+    if (paymentStatus === 'success') {
+      setTimeout(function() {
+        kupToast('Payment sent to influencer\'s PayPal. Transaction confirmed!', 'success');
+      }, 600);
+      history.replaceState(null, '', window.location.pathname);
+    } else if (paymentStatus === 'canceled') {
+      setTimeout(function() {
+        kupToast('Payment was canceled. The transaction remains pending.', 'warning');
+      }, 600);
+      history.replaceState(null, '', window.location.pathname);
+    } else if (paymentStatus === 'error') {
+      setTimeout(function() {
+        kupToast('Payment error. Please try again from the transaction row.', 'error');
+      }, 600);
+      history.replaceState(null, '', window.location.pathname);
+    }
+
     var brand = null;
     try {
       if (typeof KUP_BRAND_CONTEXT !== 'undefined') brand = KUP_BRAND_CONTEXT.getActiveBrand();
@@ -1426,10 +1477,9 @@
       return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
     }
 
-    function fmtAmount(cents) {
-      if (cents == null) return '$0.00';
-      var dollars = Math.abs(cents / 100).toFixed(2);
-      return (cents < 0 ? '-' : '+') + '$' + dollars;
+    function fmtDollars(amount) {
+      if (amount == null) return '$0.00';
+      return '$' + Math.abs(parseFloat(amount)).toFixed(2);
     }
 
     function statusClass(status) {
@@ -1437,13 +1487,55 @@
       var s = status.toLowerCase();
       if (s === 'completed' || s === 'success' || s === 'paid') return 'completed';
       if (s === 'failed' || s === 'error' || s === 'rejected') return 'failed';
+      if (s === 'processing') return 'processing';
       return 'pending';
     }
 
     function statusLabel(status) {
-      if (!status) return 'Pending';
-      return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      var labels = {
+        pending: 'Pay Now',
+        processing: 'Processing',
+        paid: 'Paid ✓',
+        completed: 'Paid ✓',
+        failed: 'Failed',
+        refunded: 'Refunded',
+      };
+      return labels[(status || '').toLowerCase()] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
     }
+
+    function txTypeLabel(type) {
+      var labels = {
+        cash_per_approval: 'Content Approval',
+        bonus_cash: 'Bonus Cash',
+        postd_pay: 'Postd Pay',
+        viral_bonus: 'Viral Bonus',
+        platform_bonus: 'Platform Bonus',
+        referral_bonus: 'Referral Bonus',
+      };
+      return labels[type] || (type ? type.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) : '--');
+    }
+
+    /* ---- Pay individual pending transaction via PayPal ---- */
+    window.payTransaction = function(txId, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Opening PayPal…';
+
+      kupApi.post('/api/payouts/pay', { transactionId: txId }).then(function(data) {
+        if (data.approvalUrl) {
+          // Redirect brand to PayPal checkout — capture fires automatically on return
+          window.location.href = data.approvalUrl;
+        } else {
+          kupToast('Could not generate payment link. Please try again.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Pay via PayPal';
+        }
+      }).catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Payment failed. Please try again.';
+        kupToast(msg, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Pay via PayPal';
+      });
+    };
 
     /* ---- Render table rows for current page ---- */
     function renderPage() {
@@ -1463,18 +1555,37 @@
 
       var html = '';
       pageItems.forEach(function(tx) {
-        var amt = tx.amountCents != null ? tx.amountCents : (tx.amount != null ? Math.round(tx.amount * 100) : 0);
-        var amtClass = amt < 0 ? 'negative' : 'positive';
+        // Use brandPaysAmount (gross brand charge) for display on brand side
+        var displayAmt = tx.brandPaysAmount != null ? tx.brandPaysAmount : (tx.amount || 0);
         var sc = statusClass(tx.status);
-        var influencer = tx.payeeName || tx.influencerHandle || tx.influencer || '--';
-        if (influencer !== '--' && influencer.charAt(0) !== '@') influencer = '@' + influencer;
+        var isPending = tx.status === 'pending';
+
+        // Influencer handle from populated field
+        var inf = tx.payeeInfluencerId;
+        var influencer = '--';
+        if (inf && typeof inf === 'object' && inf.handle) {
+          influencer = '@' + inf.handle;
+        } else if (inf && typeof inf === 'string') {
+          influencer = inf;
+        }
+
+        var txType = txTypeLabel(tx.type);
+        var txId = tx._id || tx.id;
+
+        // Status cell: pending shows Pay Now button, paid shows badge
+        var statusCell;
+        if (isPending && txId) {
+          statusCell = '<button class="btn-pay-now" onclick="payTransaction(\'' + txId + '\', this)">Pay via PayPal</button>';
+        } else {
+          statusCell = '<span class="status-badge ' + sc + '">' + statusLabel(tx.status) + '</span>';
+        }
 
         html += '<tr>'
           + '<td data-label="Date" class="tx-date-cell">' + fmtDate(tx.createdAt || tx.date) + '</td>'
-          + '<td data-label="Description" class="tx-desc-cell">' + (tx.description || tx.memo || '--') + '</td>'
+          + '<td data-label="Type" class="tx-desc-cell">' + txType + '</td>'
           + '<td data-label="Influencer" class="tx-influencer-cell">' + influencer + '</td>'
-          + '<td data-label="Amount" class="tx-amount-cell ' + amtClass + '">' + fmtAmount(amt) + '</td>'
-          + '<td data-label="Status"><span class="status-badge ' + sc + '">' + statusLabel(tx.status) + '</span></td>'
+          + '<td data-label="Amount" class="tx-amount-cell' + (isPending ? '' : ' positive') + '">' + fmtDollars(displayAmt) + '</td>'
+          + '<td data-label="Status">' + statusCell + '</td>'
           + '</tr>';
       });
       txBody.innerHTML = html;

@@ -424,8 +424,7 @@ router.post('/pay', requireAuth, async (req, res) => {
 
     // Build return/cancel URLs
     const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
-    const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;
-    // returnUrl uses a placeholder — PayPal appends token param automatically
+    const cancelUrl = `${baseUrl}/pages/inner/cash-account.html?payment=canceled`;
     const returnUrl = `${baseUrl}/api/payouts/pay/capture?transactionId=${transactionId}`;
     const description = `KUP payment: ${transaction.type} to ${influencer.displayName}`;
 
@@ -495,7 +494,7 @@ router.get('/pay/capture', async (req, res) => {
     transaction.paidAt = new Date();
     await transaction.save();
 
-    // Update influencer's totalCashEarned
+    // Update influencer's totalCashEarned (also handled by PAYMENT.CAPTURE.COMPLETED webhook — idempotent)
     await InfluencerProfile.findByIdAndUpdate(
       transaction.payeeInfluencerId,
       { $inc: { totalCashEarned: transaction.amount } }
@@ -503,10 +502,11 @@ router.get('/pay/capture', async (req, res) => {
 
     console.log(`✅ Payment captured: $${transaction.amount} to influencer ${transaction.payeeInfluencerId}`);
 
-    res.redirect('/pages/inner/cash-rewards.html?payment=success');
+    // Redirect to Cash Transactions page so brand sees the confirmed transaction
+    res.redirect('/pages/inner/cash-account.html?payment=success');
   } catch (error) {
     console.error('Capture PayPal order error:', error.message);
-    res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=capture_failed');
+    res.redirect('/pages/inner/cash-account.html?payment=error&reason=capture_failed');
   }
 });
 

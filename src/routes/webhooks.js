@@ -6,6 +6,7 @@ const router = express.Router();
 const { Subscription, BrandProfile, Transaction, Payout, Withdrawal, InfluencerProfile, Brand } = require('../models');
 const paypal = require('../config/paypal');
 const notify = require('../services/notifications');
+const { sendPushToUser } = require('../config/push');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -137,27 +138,96 @@ router.post('/paypal', express.json({ verify: (req, res, buf) => { req.rawBody =
         break;
       }
 
-      // ── Payment Capture Events (Brand → Influencer) ──
+      // ── PPCP Merchant Onboarding ──────────────────────────
+      case 'MERCHANT.ONBOARDING.COMPLETED': {
+        // Fires when an influencer finishes PayPal PPCP merchant onboarding.
+        // Stores merchant ID so future CPA/PostdPay orders can route directly to them.
+        const merchantId = event.resource?.merchant_id;
+        const trackingId = event.resource?.tracking_id;
+
+        if (merchantId && trackingId) {
+          const influencer = await InfluencerProfile.findOneAndUpdate(
+            { paypalTrackingId: trackingId },
+            { $set: { paypalMerchantId: merchantId, paypalOnboardingStatus: 'completed' } },
+            { new: true }
+          );
+
+          if (influencer) {
+            console.log(`✅ PPCP onboarding completed (webhook): ${influencer.displayName} → merchantId=${merchantId}`);
+
+            // 📱 Push: PayPal Business connected
+            sendPushToUser(influencer.userId, {
+              title: '✅ PayPal Ready!',
+              body: 'Your PayPal Business account is connected. You\'ll receive payments automatically.',
+              data: { type: 'paypal_connected' },
+            }).catch(() => {});
+          }
+        }
+        break;
+      }
+
+      // ── Payment Capture Events (Brand → Influencer) ──────
       case 'CHECKOUT.ORDER.APPROVED': {
-        // Brand approved the payment on PayPal — now we capture it
+        // Brand authorized the PayPal checkout — auto-capture immediately.
+        // This is what makes the flow "automatic": brand approves once, capture fires here.
         const orderId = event.resource.id;
-        console.log(`📋 Order approved, ready to capture: ${orderId}`);
-        // Capture happens on our return URL handler, not here
+        console.log(`📋 Order approved, auto-capturing: ${orderId}`);
+
+        try {
+          const capture = await paypal.captureOrder(orderId);
+          const captureId = capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+          console.log(`✅ Auto-capture complete: orderId=${orderId}, captureId=${captureId}`);
+        } catch (captureErr) {
+          // Non-fatal: PAYMENT.CAPTURE.COMPLETED will fire if capture succeeds,
+          // or PAYMENT.CAPTURE.DENIED if it fails. We handle both below.
+          console.error(`❌ Auto-capture failed for order ${orderId}:`, captureErr.message);
+        }
         break;
       }
 
       case 'PAYMENT.CAPTURE.COMPLETED': {
-        // Payment captured successfully
+        // Payment captured successfully — mark transaction paid + notify influencer.
+        // customId = our transaction._id (stored via purchase_unit.custom_id on order creation).
         const captureId = event.resource.id;
-        const customId = event.resource.custom_id; // We store our transactionId here
+        const customId = event.resource.custom_id;
+
         if (customId) {
           const tx = await Transaction.findById(customId);
-          if (tx) {
+          if (tx && tx.status !== 'paid') {
             tx.status = 'paid';
             tx.paypalTransactionId = captureId;
             tx.paidAt = new Date();
             await tx.save();
-            console.log(`✅ Payment captured: $${tx.amount} → transaction ${customId}`);
+
+            // Update influencer's lifetime cash earned stat
+            const influencer = await InfluencerProfile.findByIdAndUpdate(
+              tx.payeeInfluencerId,
+              { $inc: { totalCashEarned: tx.amount } },
+              { new: true }
+            );
+
+            // 📱 Push + email: payment landed in PayPal
+            if (influencer) {
+              const brand = tx.payerBrandId ? await Brand.findById(tx.payerBrandId) : null;
+              const brandName = brand?.name || 'your brand partner';
+
+              // Push notification — real-time "money arrived" feel
+              sendPushToUser(influencer.userId, {
+                title: '💰 Payment Received!',
+                body: `$${tx.amount.toFixed(2)} from ${brandName} is in your PayPal`,
+                data: { type: 'payment_received', transactionId: String(tx._id), amount: String(tx.amount) },
+              }).catch(err => console.error('[webhook] Push failed:', err.message));
+
+              // Email notification
+              notify.cashRewardEarned({
+                influencer: { ...influencer.toObject(), email: influencer.paypalEmail || '' },
+                brand: { name: brandName },
+                amount: tx.amount,
+                type: tx.type,
+              }).catch(() => {});
+            }
+
+            console.log(`✅ Payment confirmed: $${tx.amount} → transaction ${customId} (captureId: ${captureId})`);
           }
         }
         break;

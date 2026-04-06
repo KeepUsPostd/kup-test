@@ -245,7 +245,7 @@
       <div class="wallet-card">
         <div class="label">Pending</div>
         <div class="value" id="balancePending">—</div>
-        <div class="sub">Awaiting brand approval</div>
+        <div class="sub">Awaiting brand payment</div>
       </div>
       <div class="wallet-card">
         <div class="label">Total Withdrawn</div>
@@ -259,14 +259,37 @@
       </div>
     </div>
 
-    <!-- Cash Out Section -->
+    <!-- PayPal Business Connection (PPCP) -->
+    <div class="cashout-section" id="ppccSection">
+      <h3>PayPal Business Account <span id="ppccBadge" style="display:none; background:rgba(22,163,74,0.1); color:#16a34a; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:20px; vertical-align:middle; margin-left:8px;">&#10003; Connected</span></h3>
+      <p id="ppccSubtext">Connect your PayPal Business account to receive cash payments directly from brands when they approve your content.</p>
+
+      <!-- Not started / pending state -->
+      <div id="ppccConnectBlock">
+        <div id="ppccPendingNote" style="display:none; background:rgba(46,165,221,0.08); border:1px solid rgba(46,165,221,0.2); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem; color:#1a6fa8;">
+          <strong>Onboarding in progress.</strong> Complete the PayPal setup in the browser window that opened. Once done, this page will update automatically.
+        </div>
+        <button class="btn-cashout" id="ppccConnectBtn" onclick="startPpccOnboarding()" style="background:linear-gradient(135deg,#0070ba,#003087);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9z"/><path d="M9 12l2 2 4-4"/></svg>
+          Connect PayPal Business
+        </button>
+      </div>
+
+      <!-- Connected state -->
+      <div id="ppccConnectedBlock" style="display:none;">
+        <p style="font-size:0.85rem; color:#16a34a; font-weight:600; margin:0;">
+          &#10003; Your PayPal Business account is connected. Approved content payments arrive in your PayPal automatically — no action needed.
+        </p>
+      </div>
+    </div>
+
+    <!-- Cash Out Section (for platform bonuses / referral cash) -->
     <div class="cashout-section">
-      <h3>Cash Out to PayPal</h3>
-      <p id="cashoutSubtext">Enter the amount you want to withdraw. Minimum cashout is $5.00.</p>
+      <h3>Cash Out Bonus Earnings</h3>
+      <p id="cashoutSubtext">Withdraw platform bonuses and referral earnings to PayPal. Minimum cashout is $5.00.</p>
 
       <div id="paypalWarning" style="display:none; background:rgba(237,132,68,0.08); border:1px solid rgba(237,132,68,0.2); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem; color:#b45309;">
-        <strong>PayPal not connected.</strong> You need to add your PayPal email before cashing out.
-        Go to <strong>Settings &rarr; Payment</strong> to connect your PayPal account.
+        <strong>PayPal cashout email not set.</strong> Add your PayPal email to withdraw bonus earnings.
       </div>
 
       <div class="cashout-row">
@@ -348,11 +371,32 @@
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
   <script>
+    // ── Handle PayPal return URL params ──
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var paypalStatus = params.get('paypal');
+      if (paypalStatus === 'connected') {
+        // Brief delay so page loads before toast shows
+        setTimeout(function() {
+          kupToast('PayPal Business account connected! You\'ll now receive payments automatically.', 'success');
+        }, 800);
+        // Clean the URL
+        history.replaceState(null, '', window.location.pathname);
+      } else if (paypalStatus === 'canceled') {
+        setTimeout(function() { kupToast('PayPal setup was canceled.', 'warning'); }, 800);
+        history.replaceState(null, '', window.location.pathname);
+      } else if (paypalStatus === 'error') {
+        setTimeout(function() { kupToast('PayPal setup failed. Please try again.', 'error'); }, 800);
+        history.replaceState(null, '', window.location.pathname);
+      }
+    })();
+
     // ── Auth Gate ──
     if (typeof auth !== 'undefined') {
       auth.onAuthStateChanged(function(user) {
         if (!user) { window.location.href = '/pages/login.html'; return; }
         loadWallet();
+        loadPpccStatus();
       });
     }
 
@@ -361,6 +405,60 @@
     var _txFilter = 'all';
     var _availableBalance = 0;
     var _paypalConnected = false;
+
+    // ── Load PPCP Onboarding Status ──
+    function loadPpccStatus() {
+      kupApi.get('/api/auth/paypal-onboard/status').then(function(data) {
+        var status = data.onboardingStatus;
+        var badge = document.getElementById('ppccBadge');
+        var connectBlock = document.getElementById('ppccConnectBlock');
+        var connectedBlock = document.getElementById('ppccConnectedBlock');
+        var pendingNote = document.getElementById('ppccPendingNote');
+        var subtext = document.getElementById('ppccSubtext');
+
+        if (status === 'completed' && data.merchantId) {
+          badge.style.display = 'inline';
+          connectBlock.style.display = 'none';
+          connectedBlock.style.display = 'block';
+          subtext.style.display = 'none';
+        } else if (status === 'pending') {
+          pendingNote.style.display = 'block';
+          document.getElementById('ppccConnectBtn').textContent = 'Continue Setup';
+        }
+      }).catch(function(err) {
+        // Non-blocking — PPCP status check can fail silently
+        console.warn('PPCP status check failed:', err);
+      });
+    }
+
+    // ── Start PPCP Onboarding ──
+    function startPpccOnboarding() {
+      var btn = document.getElementById('ppccConnectBtn');
+      btn.disabled = true;
+      btn.textContent = 'Opening PayPal…';
+
+      kupApi.get('/api/auth/paypal-onboard').then(function(data) {
+        if (data.status === 'completed') {
+          // Already done — refresh status display
+          loadPpccStatus();
+          kupToast('PayPal Business account already connected!', 'success');
+          return;
+        }
+        if (data.onboardingUrl) {
+          document.getElementById('ppccPendingNote').style.display = 'block';
+          // Open in same window — PayPal will redirect back to our return URL
+          window.location.href = data.onboardingUrl;
+        } else {
+          kupToast('Could not generate PayPal onboarding link. Please try again.', 'error');
+        }
+      }).catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Could not start PayPal setup.';
+        kupToast(msg, 'error');
+      }).finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Connect PayPal Business';
+      });
+    }
 
     // ── Load Wallet Balance ──
     function loadWallet() {
@@ -378,7 +476,7 @@
           document.getElementById('cashoutBtn').disabled = true;
         } else {
           document.getElementById('paypalEmailDisplay').innerHTML =
-            '<span class="paypal-connected-badge">&#10003; PayPal Connected</span> &nbsp; Cashouts go to your verified PayPal account.';
+            '<span class="paypal-connected-badge">&#10003; PayPal Connected</span> &nbsp; Bonus cashouts go to your verified PayPal account.';
         }
 
         // Set default cashout amount to full available
@@ -438,15 +536,32 @@
     function txRow(tx) {
       var date = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
       var brand = (tx.payerBrandId && tx.payerBrandId.name) ? tx.payerBrandId.name : 'KUP Platform';
-      var type = tx.type ? tx.type.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) : 'Earnings';
+      var typeMap = {
+        cash_per_approval: 'Content Approval',
+        bonus_cash: 'Bonus Cash',
+        postd_pay: 'Postd Pay',
+        viral_bonus: 'Viral Bonus',
+        platform_bonus: 'Platform Bonus',
+        referral_bonus: 'Referral Bonus',
+      };
+      var type = typeMap[tx.type] || (tx.type ? tx.type.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) : 'Earnings');
       var amount = '$' + (tx.amount || 0).toFixed(2);
       var status = tx.status || 'pending';
+      // Show human-readable status labels
+      var statusLabels = {
+        pending: 'Awaiting Payment',
+        processing: 'Processing',
+        paid: 'In PayPal ✓',
+        failed: 'Failed',
+        refunded: 'Refunded',
+      };
+      var statusLabel = statusLabels[status] || status;
       return '<tr>' +
         '<td>' + date + '</td>' +
         '<td>' + brand + '</td>' +
         '<td>' + type + '</td>' +
         '<td class="amount-positive">' + amount + '</td>' +
-        '<td><span class="status-badge ' + status + '">' + status + '</span></td>' +
+        '<td><span class="status-badge ' + status + '">' + statusLabel + '</span></td>' +
         '</tr>';
     }
 

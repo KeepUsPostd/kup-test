@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, User } = require('../models');
 const notify = require('../services/notifications');
+const paypal = require('../config/paypal');
 
 // ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
 // Rule G7: Brands cannot override — rates come from influencer tier.
@@ -372,6 +373,17 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       });
     }
 
+    // Warn if active reward is NOT cash_per_approval — no auto-transaction will fire.
+    // Non-cash rewards (free_product, points) require manual distribution by the brand.
+    const hasCashReward = await Reward.findOne({
+      brandId: submission.brandId,
+      type: 'cash_per_approval',
+      status: 'active',
+    });
+    const rewardGateNote = !hasCashReward
+      ? 'No cash_per_approval reward active — no automatic transaction created. Distribute reward manually if needed.'
+      : null;
+
     submission.status = 'approved';
     submission.reviewedAt = new Date();
     submission.reviewedBy = req.user._id;
@@ -435,6 +447,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             campaignId: submission.campaignId || null,
             rewardId: cpaReward._id,
             status: 'pending',
+            // status becomes 'paid' after brand completes PayPal payment via POST /api/payouts/pay
           });
 
           // Update budget spent (track gross brand cost) + influencer stats (track net received)
@@ -453,10 +466,57 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             });
           }
 
-          rewardTriggered = { type: 'cash_per_approval', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id };
+          // === CREATE PAYPAL ORDER (PPCP) ===
+          // If influencer has completed PPCP onboarding, create a PayPal Order immediately.
+          // Money routes directly to influencer — brand taps approve → PayPal checkout → capture fires.
+          let approvalUrl = null;
+          try {
+            const freshInfluencer = influencer || await InfluencerProfile.findById(submission.influencerProfileId);
+            if (freshInfluencer?.paypalMerchantId) {
+              const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+              const returnUrl = `${baseUrl}/api/payouts/pay/capture?transactionId=${transaction._id}`;
+              const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;
+              const desc = `KUP CPA: ${freshInfluencer.displayName || 'Influencer'} — ${tier} tier ${submission.contentType}`;
+
+              const order = await paypal.createOrder(
+                brandPaysAmount,
+                desc,
+                returnUrl,
+                cancelUrl,
+                freshInfluencer.paypalMerchantId,   // PPCP: routes to influencer's PayPal
+                FEES.kup.flat,                        // KUP's $0.50 partner fee
+                String(transaction._id)               // custom_id for webhook lookup
+              );
+
+              const approvalLink = order.links && order.links.find(l => l.rel === 'payer-action' || l.rel === 'approve');
+              approvalUrl = approvalLink ? approvalLink.href : null;
+
+              // Store order ID on transaction so we can capture it later
+              transaction.paypalOrderId = order.id;
+              await transaction.save();
+
+              console.log(`💳 PayPal Order created: ${order.id} (PPCP → ${freshInfluencer.paypalMerchantId})`);
+            } else {
+              console.log(`ℹ️ No PPCP merchant ID for influencer ${submission.influencerProfileId} — transaction logged as pending`);
+            }
+          } catch (orderErr) {
+            // Non-blocking: don't fail approval if PayPal order creation fails.
+            // Transaction stays pending and brand can pay from Cash & Rewards page.
+            console.error('[content/approve] PayPal order creation failed (non-blocking):', orderErr.message);
+          }
+
+          rewardTriggered = { type: 'cash_per_approval', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id, approvalUrl };
           console.log(`💰 CPA reward: $${amount} to influencer (brand charged $${brandPaysAmount}) — ${tier} tier, ${submission.contentType} → ${submission.influencerProfileId}`);
         } else {
           console.log(`⚠️ CPA reward skipped: budget cap reached ($${cpaReward.cashConfig.budgetSpent}/$${cpaReward.cashConfig.budgetCap})`);
+          // Surface budget exhaustion — brand needs to know no transaction was created
+          rewardTriggered = {
+            type: 'cash_per_approval',
+            skipped: true,
+            reason: 'budget_cap_reached',
+            budgetSpent: cpaReward.cashConfig.budgetSpent,
+            budgetCap: cpaReward.cashConfig.budgetCap,
+          };
         }
       }
     } catch (rewardErr) {
@@ -479,7 +539,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
-    res.json({ message: 'Content approved', submission, rewardTriggered });
+    res.json({ message: 'Content approved', submission, rewardTriggered, rewardGateNote });
   } catch (error) {
     console.error('Approve content error:', error.message);
     res.status(500).json({ error: 'Could not approve content' });

@@ -1862,11 +1862,29 @@
             item.status = 'approved';
             item.daysRemaining = null;
             item.rewardTriggered = result.rewardTriggered || null;
-            if (result.rewardTriggered) {
-              kupToast('Content approved! $' + result.rewardTriggered.amount + ' earned by influencer (' + result.rewardTriggered.tier + ' tier)', 'success');
+
+            var reward = result.rewardTriggered;
+
+            // PPCP flow: approvalUrl present → redirect brand to PayPal checkout.
+            // Brand completes PayPal authorization → webhook auto-captures → influencer gets paid.
+            if (reward && reward.approvalUrl && !reward.skipped) {
+              kupToast('Content approved! Redirecting to PayPal to complete $' + reward.brandPaysAmount.toFixed(2) + ' payment…', 'success', 4000);
+              // Brief pause so toast is visible, then redirect
+              setTimeout(function() {
+                window.location.href = reward.approvalUrl;
+              }, 1200);
+              return;
+            }
+
+            // No PPCP yet — transaction logged as pending (payable from Cash & Rewards)
+            if (reward && !reward.skipped) {
+              kupToast('Content approved! $' + reward.amount + ' queued for ' + item.influencer + ' (' + reward.tier + ' tier)', 'success');
+            } else if (reward && reward.skipped) {
+              kupToast('Content approved! Budget cap reached — no payment triggered.', 'warning', 5000);
             } else {
               kupToast('Content approved!', 'success');
             }
+
             // Advance to next pending item — approved content moves to library
             setTimeout(function() { advanceQueueAfterDecision(); }, 400);
             setTimeout(function() { openRatingModal(item.influencer); }, 900);
