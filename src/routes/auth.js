@@ -148,7 +148,9 @@ router.post('/register', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error.message);
+    // Log full details so Railway shows us the real failure line
+    console.error('Registration error:', error.message, '| code:', error.code, '| name:', error.name);
+    if (error.stack) console.error('Registration stack:', error.stack.split('\n').slice(0, 4).join(' | '));
 
     // MongoDB duplicate key — handle gracefully instead of returning 500
     if (error.code === 11000) {
@@ -180,6 +182,34 @@ router.post('/register', async (req, res) => {
           }
         } catch (linkErr) {
           console.error('Registration duplicate-email link failed:', linkErr.message);
+        }
+      }
+
+      // Duplicate referralCode — regenerate and retry once (very rare collision)
+      if (keyStr.includes('referralCode')) {
+        try {
+          const userForRef = await User.findOne({ firebaseUid });
+          if (userForRef) {
+            const prefix = (profileType === 'brand') ? 'BRD' : 'INF';
+            const newCode = `${prefix}-` + Math.random().toString(36).substring(2, 10).toUpperCase();
+            await InfluencerProfile.findOneAndUpdate(
+              { userId: userForRef._id },
+              { $set: { referralCode: newCode } },
+            );
+            console.log(`🔧 Referral code collision resolved for ${email}`);
+            return res.status(201).json({
+              message: 'Account created successfully',
+              user: {
+                id: userForRef._id,
+                email: userForRef.email,
+                activeProfile: userForRef.activeProfile,
+                hasInfluencerProfile: userForRef.hasInfluencerProfile,
+                hasBrandProfile: userForRef.hasBrandProfile,
+              },
+            });
+          }
+        } catch (refRetryErr) {
+          console.error('Registration referralCode-retry failed:', refRetryErr.message);
         }
       }
 
