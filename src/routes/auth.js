@@ -646,9 +646,9 @@ router.get('/paypal-onboard/status', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/auth/paypal-connect — Connect PayPal email (used for cashouts / Payouts API)
+// POST /api/auth/paypal-connect — Connect PayPal email (used for cashouts / Payouts API)
 // This is separate from PPCP onboarding — both can coexist on the same account.
-router.put('/paypal-connect', requireAuth, async (req, res) => {
+router.post('/paypal-connect', requireAuth, async (req, res) => {
   try {
     const { paypalEmail } = req.body;
 
