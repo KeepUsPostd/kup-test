@@ -105,4 +105,38 @@ router.post('/trials/process-expired', requireAuth, requireAdmin, async (req, re
   }
 });
 
+// DELETE /api/admin/partnerships/cleanup — Remove test/orphaned partnerships by influencer email
+// Usage: POST body { influencerEmail: "test@gmail.com", brandName: "Santana Thrasybule" }
+router.delete('/partnerships/cleanup', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { influencerEmail, brandName } = req.body;
+    const User = require('../models/User');
+    const InfluencerProfile = require('../models/InfluencerProfile');
+    const Brand = require('../models/Brand');
+    const Partnership = require('../models/Partnership');
+
+    const user = await User.findOne({ email: influencerEmail });
+    if (!user) return res.status(404).json({ error: `User not found: ${influencerEmail}` });
+
+    const influencer = await InfluencerProfile.findOne({ userId: user._id });
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    const brand = await Brand.findOne({ name: new RegExp(brandName, 'i') });
+    if (!brand) return res.status(404).json({ error: `Brand not found: ${brandName}` });
+
+    const result = await Partnership.deleteMany({
+      influencerProfileId: influencer._id,
+      brandId: brand._id,
+    });
+
+    res.json({
+      message: `Removed ${result.deletedCount} partnership(s) between ${influencerEmail} and ${brand.name}`,
+      deleted: result.deletedCount,
+    });
+  } catch (error) {
+    console.error('Partnership cleanup error:', error.message);
+    res.status(500).json({ error: 'Could not clean up partnerships', message: error.message });
+  }
+});
+
 module.exports = router;

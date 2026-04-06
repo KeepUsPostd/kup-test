@@ -362,7 +362,9 @@ router.post('/invite/accept', requireAuth, async (req, res) => {
 // ── Brand CRUD ─────────────────────────────────────────────────────────────────
 
 // GET /api/brands/:brandId — Get single brand details
-router.get('/:brandId', requireAuth, requireBrandRole('viewer'), async (req, res) => {
+// Any authenticated user can view a brand (influencers, partners, admins).
+// userRole is only included if the viewer is an active brand member.
+router.get('/:brandId', requireAuth, async (req, res) => {
   try {
     const brand = await Brand.findById(req.params.brandId);
 
@@ -373,9 +375,18 @@ router.get('/:brandId', requireAuth, requireBrandRole('viewer'), async (req, res
     // Recompute initials for consistency (single word = first letter only)
     const brandObj = brand.toObject();
     brandObj.initials = computeInitials(brandObj.name);
+
+    // Optionally attach userRole if this user is a brand member
+    const { BrandMember } = require('../models');
+    const membership = await BrandMember.findOne({
+      brandId: brand._id,
+      userId: req.user._id,
+      status: 'active',
+    });
+
     res.json({
       brand: brandObj,
-      userRole: req.brandMembership.role,
+      userRole: membership ? membership.role : 'viewer',
     });
   } catch (error) {
     console.error('Get brand error:', error.message);
