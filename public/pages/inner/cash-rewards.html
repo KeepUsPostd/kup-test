@@ -2256,15 +2256,9 @@
       var tbody = document.getElementById('cashTbody');
       if (!tbody) return;
       if (!transactions || transactions.length === 0) {
-        // Show demo influencer row so the page is navigable
-        tbody.innerHTML = _buildDemoCashRow();
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:0.9rem;">No influencer partners yet — partners will appear here once they join your brand.</td></tr>';
         var footer = document.getElementById('cashTableShowing');
-        if (footer) footer.textContent = 'Showing 1 influencer';
-        // Bind checkbox + profile click
-        document.querySelectorAll('.check-influencer input[type="checkbox"]').forEach(function(cb) {
-          cb.addEventListener('change', updatePostdPay);
-        });
-        _bindInfluencerClicks();
+        if (footer) footer.textContent = 'Showing 0 influencers';
         return;
       }
       var html = '';
@@ -2356,11 +2350,9 @@
       var tbody = document.getElementById('rewardTableBody');
       if (!tbody) return;
       if (!partnerships || partnerships.length === 0) {
-        // Show demo influencer row so user can navigate to distribute-reward
-        tbody.innerHTML = _buildDemoRewardRow(rewards);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:0.9rem;">No influencer partners yet — partners will appear here once they join your brand.</td></tr>';
         var footer = document.getElementById('rewardTableShowing');
-        if (footer) footer.textContent = 'Showing 1 influencer';
-        _bindInfluencerClicks();
+        if (footer) footer.textContent = 'Showing 0 influencers';
         return;
       }
 
