@@ -25,8 +25,8 @@ router.get('/discover', requireAuth, async (req, res) => {
     const skip = (parseInt(page) - 1) * Math.min(parseInt(limit), 50);
     const take = Math.min(parseInt(limit), 50);
 
-    // Exclude the requesting user's own influencer profile from brand-side discovery
-    const filter = { campaignAccessUnlocked: true, userId: { $ne: req.user._id } };
+    // Exclude the requesting user's own influencer profile + hidden accounts from brand-side discovery
+    const filter = { campaignAccessUnlocked: true, isHidden: { $ne: true }, userId: { $ne: req.user._id } };
 
     if (q && q.trim().length >= 2) {
       const search = q.trim();
@@ -280,12 +280,13 @@ router.get('/', requireAuth, async (req, res) => {
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
     const partnerships = await Partnership.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats isHidden')
       .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
-    const filtered = partnerships;
+    // Filter out hidden influencers (auto-created/test accounts) from brand portal views
+    const filtered = partnerships.filter(p => !p.influencerProfileId?.isHidden);
 
     // Gather stats from full DB count (not filtered list) so numbers are accurate
     // even when the brand owner's own profile is excluded from the visible list
