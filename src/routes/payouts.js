@@ -186,12 +186,15 @@ router.get('/transactions', requireAuth, async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
 
-    const transactions = await Transaction.find(filter)
-      .populate('payeeInfluencerId', 'displayName handle influenceTier')
+    const rawTransactions = await Transaction.find(filter)
+      .populate('payeeInfluencerId', 'displayName handle influenceTier isHidden')
       .populate('payerBrandId', 'name')
       .populate('contentSubmissionId', 'contentType status')
       .sort({ createdAt: -1 })
       .limit(100);
+
+    // Filter out transactions from hidden influencers (auto-created/test accounts)
+    const transactions = rawTransactions.filter(t => !t.payeeInfluencerId?.isHidden);
 
     // Calculate totals
     const allForQuery = await Transaction.find(filter);
