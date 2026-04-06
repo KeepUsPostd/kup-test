@@ -218,6 +218,40 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/brands/discover — All active brands for influencer discovery screen
+// Returns every active brand regardless of membership. Used by Flutter Trending Brands.
+// MUST be before /:brandId to prevent "discover" being treated as a brandId
+router.get('/discover', requireAuth, async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    const filter = { status: { $ne: 'deleted' } };
+
+    if (category && category !== 'all') filter.category = { $regex: category, $options: 'i' };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const brands = await Brand.find(filter)
+      .select('name category description logoUrl heroImageUrl brandColors brandType claimStatus ownerId status')
+      .sort({ name: 1 })
+      .limit(100)
+      .lean();
+
+    const brandsWithInitials = brands.map(b => ({
+      ...b,
+      initials: computeInitials(b.name),
+    }));
+
+    res.json({ brands: brandsWithInitials });
+  } catch (error) {
+    console.error('Discover brands error:', error.message);
+    res.status(500).json({ error: 'Could not fetch brands' });
+  }
+});
+
 // GET /api/brands/public/:identifier — lookup by @handle OR kioskBrandCode (no auth — QR landing page)
 // MUST be before /:brandId to prevent "public" being treated as a brandId
 router.get('/public/:identifier', async (req, res) => {
@@ -361,9 +395,9 @@ router.post('/invite/accept', requireAuth, async (req, res) => {
 
 // ── Brand CRUD ─────────────────────────────────────────────────────────────────
 
-// GET /api/brands/:brandId — Get single brand details
+// GET /api/brands/:brandId — Get single brand details + live stats
 // Any authenticated user can view a brand (influencers, partners, admins).
-// userRole is only included if the viewer is an active brand member.
+// Returns: brand, userRole, stats { influencerCount, reviewCount, rating }
 router.get('/:brandId', requireAuth, async (req, res) => {
   try {
     const brand = await Brand.findById(req.params.brandId);
@@ -376,17 +410,34 @@ router.get('/:brandId', requireAuth, async (req, res) => {
     const brandObj = brand.toObject();
     brandObj.initials = computeInitials(brandObj.name);
 
-    // Optionally attach userRole if this user is a brand member
-    const { BrandMember } = require('../models');
-    const membership = await BrandMember.findOne({
-      brandId: brand._id,
-      userId: req.user._id,
-      status: 'active',
-    });
+    // Load live stats + membership check in parallel
+    const { Partnership, ContentSubmission } = require('../models');
+    const [membership, influencerCount, reviewCount, ratedPartnerships] = await Promise.all([
+      BrandMember.findOne({ brandId: brand._id, userId: req.user._id, status: 'active' }),
+      Partnership.countDocuments({ brandId: brand._id, status: 'active' }),
+      ContentSubmission.countDocuments({ brandId: brand._id }),
+      // Ratings come from influencer feedback on partnerships
+      Partnership.find(
+        { brandId: brand._id, 'influencerRating.overall': { $ne: null } },
+        'influencerRating.overall'
+      ).lean(),
+    ]);
+
+    // Average brand rating across all submitted influencer ratings
+    const rating = ratedPartnerships.length > 0
+      ? Math.round(
+          (ratedPartnerships.reduce((sum, p) => sum + (p.influencerRating?.overall ?? 0), 0) / ratedPartnerships.length) * 10
+        ) / 10
+      : null;
 
     res.json({
       brand: brandObj,
       userRole: membership ? membership.role : 'viewer',
+      stats: {
+        influencerCount,
+        reviewCount,
+        rating,
+      },
     });
   } catch (error) {
     console.error('Get brand error:', error.message);
