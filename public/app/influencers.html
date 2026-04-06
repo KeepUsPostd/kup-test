@@ -2517,83 +2517,60 @@
       });
     });
 
-    // Row action handlers
-    document.querySelectorAll('.row-action-item').forEach(function(item) {
-      item.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var action = this.getAttribute('data-action');
-        // Close menu
-        this.closest('.row-actions-menu').classList.remove('show');
+    // Row action handlers — delegated on tbody so dynamic rows are covered
+    document.getElementById('influencersTbody').addEventListener('click', function(e) {
+      var item = e.target.closest('.row-action-item');
+      if (!item) return;
+      e.stopPropagation();
+      var action = item.getAttribute('data-action');
+      var menu = item.closest('.row-actions-menu');
+      if (menu) menu.classList.remove('show');
 
-        if (action === 'profile') {
-          var key = this.getAttribute('data-influencer');
-          var data = influencerData[key];
-          if (data) {
-            document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
-            document.getElementById('ipModalHandle').textContent = data.handle;
-            document.getElementById('ipName').textContent = data.name;
-            var tierEl = document.getElementById('ipTier');
-            tierEl.textContent = data.tier;
-            tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
-            document.getElementById('ipFollowers').textContent = data.followers;
-            document.getElementById('ipEngagement').textContent = data.engagement;
-            document.getElementById('ipPosts').textContent = data.posts;
-            document.getElementById('ipBio').textContent = data.bio;
-            if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-              var ab = KUP_BRAND_CONTEXT.getActiveBrand();
-              var brandLogoEl = document.getElementById('ipBrandLogo');
-              if (ab.logoUrl) {
-                brandLogoEl.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
-                brandLogoEl.style.background = '#fff';
-              } else {
-                brandLogoEl.textContent = ab.abbreviation || 'KP';
-                brandLogoEl.style.background = ab.color || '#2EA5DD';
-              }
-              document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
-            }
-            openModal('influencerProfileModal');
-          }
-        } else if (action === 'notice') {
-          var key = this.getAttribute('data-msg');
-          var data = influencerData[key];
-          if (data) {
-            document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
-            document.getElementById('noticeModalName').textContent = data.name;
-            document.getElementById('noticeHandle').textContent = data.handle;
-            resetNoticeForm();
-            openModal('noticeComposerModal');
-          }
-        } else if (action === 'pause' || action === 'reactivate' || action === 'end') {
-          var partnershipId = this.getAttribute('data-partnership');
-          var name = this.getAttribute('data-name');
-          var row = this.closest('tr');
-          var newStatus = action === 'pause' ? 'paused' : (action === 'reactivate' ? 'active' : 'ended');
-          var toastMsg = action === 'pause'
-            ? name + ' paused — they won\'t receive new campaign opportunities'
-            : (action === 'reactivate' ? name + ' reactivated as a partner' : name + ' partnership ended');
-          var toastType = action === 'end' ? 'warning' : 'success';
-
-          kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: newStatus })
-            .then(function() {
-              kupToast(toastMsg, toastType);
-              if (action === 'end') {
-                // Remove the row entirely for ended partnerships
-                if (row) {
-                  row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                  row.style.opacity = '0';
-                  row.style.transform = 'translateX(20px)';
-                  setTimeout(function() { loadPartnerships(); }, 300);
-                }
-              } else {
-                // Reload to show updated status badge and correct menu option
-                loadPartnerships();
-              }
-            })
-            .catch(function(err) {
-              kupToast('Could not update partnership. Please try again.', 'error');
-            });
+      if (action === 'profile') {
+        var key = item.getAttribute('data-influencer');
+        var data = influencerData[key];
+        if (data) {
+          openInfluencerModal(data);
+          openModal('influencerProfileModal');
         }
-      });
+      } else if (action === 'notice') {
+        var key = item.getAttribute('data-msg');
+        var data = influencerData[key];
+        if (data) {
+          document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
+          document.getElementById('noticeModalName').textContent = data.name;
+          document.getElementById('noticeHandle').textContent = data.handle;
+          resetNoticeForm();
+          openModal('noticeComposerModal');
+        }
+      } else if (action === 'pause' || action === 'reactivate' || action === 'end') {
+        var partnershipId = item.getAttribute('data-partnership');
+        var name = item.getAttribute('data-name');
+        var row = item.closest('tr');
+        var newStatus = action === 'pause' ? 'paused' : (action === 'reactivate' ? 'active' : 'ended');
+        var toastMsg = action === 'pause'
+          ? name + ' paused — they won\'t receive new campaign opportunities'
+          : (action === 'reactivate' ? name + ' reactivated as a partner' : name + ' partnership ended');
+        var toastType = action === 'end' ? 'warning' : 'success';
+
+        kupApi.put('/api/partnerships/' + partnershipId + '/status', { status: newStatus })
+          .then(function() {
+            kupToast(toastMsg, toastType);
+            if (action === 'end') {
+              if (row) {
+                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(function() { loadPartnerships(); }, 300);
+              }
+            } else {
+              loadPartnerships();
+            }
+          })
+          .catch(function() {
+            kupToast('Could not update partnership. Please try again.', 'error');
+          });
+      }
     });
 
     // Close row menus on outside click
@@ -2939,36 +2916,49 @@
     });
 
     /* ============== INFLUENCER PROFILE MODAL ============== */
-    // Avatar/name clicks in table still open profile
-    document.querySelectorAll('[data-influencer]').forEach(function(el) {
-      el.addEventListener('click', function() {
-        var key = this.getAttribute('data-influencer');
-        var data = influencerData[key];
-        if (!data) return;
-        document.getElementById('ipAvatar').innerHTML = PERSON_SVG;
-        document.getElementById('ipModalHandle').textContent = data.handle;
-        document.getElementById('ipName').textContent = data.name;
-        var tierEl = document.getElementById('ipTier');
-        tierEl.textContent = data.tier;
-        tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
-        document.getElementById('ipFollowers').textContent = data.followers;
-        document.getElementById('ipEngagement').textContent = data.engagement;
-        document.getElementById('ipPosts').textContent = data.posts;
-        document.getElementById('ipBio').textContent = data.bio;
-        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
-          var brandLogoEl2 = document.getElementById('ipBrandLogo');
-          if (ab.logoUrl) {
-            brandLogoEl2.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
-            brandLogoEl2.style.background = '#fff';
-          } else {
-            brandLogoEl2.textContent = ab.abbreviation || 'KP';
-            brandLogoEl2.style.background = ab.color || '#2EA5DD';
-          }
-          document.getElementById('ipBrandName').textContent = ab.name || 'KeepUsPostd';
+    // Shared helper: fill and open the influencer profile modal
+    function openInfluencerModal(data) {
+      // Avatar — real photo or silhouette
+      var avatarEl = document.getElementById('ipAvatar');
+      if (data.avatarUrl) {
+        avatarEl.innerHTML = '<img src="' + data.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+      } else {
+        avatarEl.innerHTML = PERSON_SVG;
+      }
+      document.getElementById('ipModalHandle').textContent = data.handle;
+      document.getElementById('ipName').textContent = data.name;
+      var tierEl = document.getElementById('ipTier');
+      tierEl.textContent = data.tier;
+      tierEl.className = 'ip-tier tier-badge ' + data.tierClass;
+      document.getElementById('ipFollowers').textContent = data.followers;
+      document.getElementById('ipEngagement').textContent = data.engagement;
+      document.getElementById('ipPosts').textContent = data.posts;
+      document.getElementById('ipBio').textContent = data.bio || '';
+      if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+        var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+        var brandLogoEl = document.getElementById('ipBrandLogo');
+        if (ab && ab.logoUrl) {
+          brandLogoEl.innerHTML = '<img src="' + ab.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">';
+          brandLogoEl.style.background = '#fff';
+        } else {
+          brandLogoEl.textContent = (ab && ab.abbreviation) || 'KP';
+          brandLogoEl.style.background = (ab && ab.color) || '#2EA5DD';
         }
-        openModal('influencerProfileModal');
-      });
+        document.getElementById('ipBrandName').textContent = (ab && ab.name) || 'KeepUsPostd';
+      }
+    }
+
+    // Name/avatar clicks in table — delegated so dynamic rows are covered
+    document.getElementById('influencersTbody').addEventListener('click', function(e) {
+      // Skip if the click was on a row-action-item (handled by the action handler above)
+      if (e.target.closest('.row-action-item') || e.target.closest('.row-actions-btn')) return;
+      var el = e.target.closest('[data-influencer]');
+      if (!el) return;
+      var key = el.getAttribute('data-influencer');
+      var data = influencerData[key];
+      if (!data) return;
+      openInfluencerModal(data);
+      openModal('influencerProfileModal');
     });
     document.getElementById('ipModalClose').addEventListener('click', function() {
       closeModal('influencerProfileModal');
