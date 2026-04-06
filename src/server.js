@@ -177,6 +177,34 @@ app.get('/redeem/:code', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'redeem.html'));
 });
 
+// Legacy QR redirect — old platform used /download-app?brand-id=XXXX
+// Maps numeric brand IDs from printed materials to current brand kiosk codes
+// New users see the download page with brand context; existing app users deep link in
+const LEGACY_BRAND_ID_MAP = {
+  '0129': 'KUP-SXA139',  // The Pure Juice Joint
+  // Additional mappings added as remaining QR codes are confirmed:
+  // '0XXX': 'KUP-XXXXXX',  // Butterfly Uprising
+  // '0XXX': 'KUP-XXXXXX',  // The Silk Screen Machine
+  // '0XXX': 'KUP-XXXXXX',  // Nelsons Bespoke
+  // '0XXX': 'KUP-XXXXXX',  // Ted X Marvila
+  // '0XXX': 'KUP-XXXXXX',  // Chaney's Pralines
+  // '0XXX': 'KUP-XXXXXX',  // MTWF
+  // '0XXX': 'KUP-XXXXXX',  // AI Powered Dahlia Imanbay
+  // '0XXX': 'KUP-XXXXXX',  // Into Beauty
+  // '0XXX': 'KUP-XXXXXX',  // Fatherhood Leadership Initiatives
+  // '0XXX': 'KUP-XXXXXX',  // KeepUsPostd
+};
+
+app.get('/download-app', (req, res) => {
+  const brandId = req.query['brand-id'];
+  if (brandId && LEGACY_BRAND_ID_MAP[brandId]) {
+    // Redirect to brand profile page — handles deep link + download flow
+    return res.redirect(301, '/brand/' + LEGACY_BRAND_ID_MAP[brandId]);
+  }
+  // No brand-id or unmapped — serve normal download page
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'download-app.html'));
+});
+
 // Public brand profile page — scanned from QR codes on market materials
 // Supports both /brand/KUP-XXXXXX (kiosk code) and /@handle (vanity handle)
 app.get('/brand/:code', (req, res) => {
