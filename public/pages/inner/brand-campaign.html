@@ -1224,12 +1224,8 @@
 
         kupToast('Campaign "' + title + '" created successfully! Redirecting...', 'success');
 
-        // Redirect to the new campaign's detail page
-        var newId = result.campaign ? result.campaign._id : (result._id || '');
-        if (newId) {
-          setTimeout(function() { window.location.href = 'campaign-detail.html?id=' + newId; }, 1200);
-          return;
-        }
+        // Redirect back to campaigns list
+        setTimeout(function() { window.location.href = 'campaigns.html'; }, 1200);
 
         // Fallback: reload sidebar if no ID returned
         if (typeof loadCampaignsFromApi === 'function') {

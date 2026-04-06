@@ -352,7 +352,6 @@
         <!-- Points / Store Credit -->
         <div class="step2-fields" id="fields-points">
           <div class="form-group"><label>Reward Title</label><input type="text" id="ptTitle" placeholder="e.g., 500 Loyalty Points" maxlength="21"><p class="helper">What influencers see when they earn this reward (21 char max)</p></div>
-          <div class="form-group"><label>Points Value per Approval</label><input type="number" id="ptValue" placeholder="e.g., 500" min="1"><p class="helper">How many points each approved submission is worth</p></div>
           <div class="form-group"><label>Redemption Description</label><textarea id="ptDesc" placeholder="Describe how influencers can redeem points (e.g., 'Redeem in our online store — 100 points = $1')" maxlength="85"></textarea><p class="helper">85 character max</p></div>
         </div>
 
@@ -906,7 +905,7 @@
       if (step === 2) {
         if (selectedType === 'points') {
           if (!document.getElementById('ptTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
-          if (!document.getElementById('ptValue').value) { kupToast('Please enter a points value', 'warning'); return false; }
+
         } else if (selectedType === 'free-product') {
           if (!document.getElementById('fpTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
         } else if (selectedType === 'discount') {
@@ -1177,7 +1176,17 @@
             gradient = 'linear-gradient(135deg,' + p + ' 0%,' + s + ' 100%)';
           }
           var banner = document.getElementById('phoneBanner');
-          if (banner) banner.style.background = gradient;
+          if (banner) {
+            if (b.heroImageUrl) {
+              // Use uploaded brand banner image if available
+              banner.style.background = 'none';
+              banner.style.backgroundImage = 'url(' + b.heroImageUrl + ')';
+              banner.style.backgroundSize = 'cover';
+              banner.style.backgroundPosition = 'center';
+            } else {
+              banner.style.background = gradient;
+            }
+          }
           var card = document.getElementById('phoneRewardCard');
           if (card && !uploadedRewardBannerUrl) card.style.background = gradient;
         }).catch(function() {});
@@ -1257,7 +1266,6 @@
 
         if (selectedType === 'points') {
           rows.push({l:'Title', v:document.getElementById('ptTitle').value || '\u2014'});
-          rows.push({l:'Points per Approval', v:document.getElementById('ptValue').value || '\u2014'});
           rows.push({l:'Redemption', v:document.getElementById('ptDesc').value || '\u2014'});
         } else if (selectedType === 'free-product') {
           rows.push({l:'Title', v:document.getElementById('fpTitle').value || '\u2014'});
@@ -1449,7 +1457,7 @@
         var method = editingRewardId ? 'put' : 'post';
         var result = await kupApi[method](endpoint, payload);
         kupToast(editingRewardId ? 'Reward updated!' : 'Reward created!', 'success');
-        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
+        setTimeout(function() { window.location = 'brand-reward-settings.html'; }, 1500);
       } catch (err) {
         console.error('Save reward error:', err);
         kupToast(err.message || 'Failed to save reward', 'error');
@@ -1464,7 +1472,7 @@
         var method = editingRewardId ? 'put' : 'post';
         var result = await kupApi[method](endpoint, payload);
         kupToast('Saved as draft', 'info');
-        setTimeout(function() { window.location = 'cash-rewards.html'; }, 1500);
+        setTimeout(function() { window.location = 'brand-reward-settings.html'; }, 1500);
       } catch (err) {
         console.error('Save draft error:', err);
         kupToast(err.message || 'Failed to save draft', 'error');
@@ -1579,7 +1587,7 @@
 
     /* ============ LIVE PREVIEW LISTENERS ============ */
     document.addEventListener('input', function(e) {
-      if (['ptTitle','ptValue','ptDesc','fpTitle','fpDesc','fpValue','dcTitle','dcValue','cpaMemo','unlockThreshold',
+      if (['ptTitle','ptDesc','fpTitle','fpDesc','fpValue','dcTitle','dcValue','cpaMemo','unlockThreshold',
            'ptContentSubmit','ptContentApprove','ptContentPublish','ptContentBonus',
            'ptGratJoin','ptGratBday','ptGratAnniv'].indexOf(e.target.id) >= 0) { updatePreview(); }
     });

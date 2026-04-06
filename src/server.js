@@ -88,9 +88,12 @@ app.use(helmet({
         "https://securetoken.googleapis.com",
         "https://identitytoolkit.googleapis.com",
         "https://fcmregistrations.googleapis.com", // FCM push
+        "https://firebase.googleapis.com",          // Firebase general
+        "https://*.firebaseio.com",                 // Firebase Realtime DB
         "https://keepuspostd.com",
         "https://www.keepuspostd.com",
-        "https://*.r2.dev",          // Cloudflare R2 uploads
+        "https://*.r2.dev",                         // Cloudflare R2 uploads
+        "https://cdn.jsdelivr.net",                 // Bootstrap CDN (source maps + preload)
       ],
       mediaSrc: [
         "'self'",
