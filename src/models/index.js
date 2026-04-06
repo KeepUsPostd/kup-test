@@ -24,4 +24,6 @@ module.exports = {
   PurchasePointsConfig: require('./PurchasePointsConfig'),
   PurchasePointsLog: require('./PurchasePointsLog'),
   GoogleBusinessConfig: require('./GoogleBusinessConfig'),
+  ContentReport: require('./ContentReport'),
+  UserBlock: require('./UserBlock'),
 };
