@@ -879,6 +879,68 @@ router.put('/claims/:id/approve', async (req, res) => {
     brand.claimedAt = new Date();
     await brand.save();
 
+    // Find or prepare the claimer's user account
+    let claimer = await User.findOne({ email: claim.claimerEmail.toLowerCase() });
+
+    // If user already exists — wire brand ownership
+    if (claimer) {
+      // Create BrandMember as owner if not already
+      const BrandMember = require('../models/BrandMember');
+      const existing = await BrandMember.findOne({ brandId: brand._id, userId: claimer._id });
+      if (!existing) {
+        await BrandMember.create({
+          brandId: brand._id,
+          userId: claimer._id,
+          role: 'owner',
+          status: 'active',
+          acceptedAt: new Date(),
+        });
+      }
+
+      // Create BrandProfile with 14-day Pro trial if not already
+      let bp = await BrandProfile.findOne({ userId: claimer._id });
+      if (!bp) {
+        const trialStart = new Date();
+        const trialEnd = new Date(trialStart.getTime() + 14 * 24 * 60 * 60 * 1000);
+        bp = await BrandProfile.create({
+          userId: claimer._id,
+          ownedBrandIds: [brand._id],
+          planTier: 'pro',
+          trialActive: true,
+          trialTier: 'pro',
+          trialStartedAt: trialStart,
+          trialEndsAt: trialEnd,
+        });
+      } else if (!bp.ownedBrandIds.includes(brand._id)) {
+        bp.ownedBrandIds.push(brand._id);
+        await bp.save();
+      }
+    }
+
+    // Send approval email to claimer with next steps
+    try {
+      await notify.sendEmail({
+        to: claim.claimerEmail,
+        subject: `Your "${brand.name}" brand claim on KeepUsPostd has been approved! 🎉`,
+        headline: `You're in, ${claim.claimerName.split(' ')[0]}!`,
+        bodyHtml: `
+          <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
+          <p>Here's what to do next:</p>
+          <ol>
+            <li><strong>Download the app</strong> or visit <a href="https://keepuspostd.com">keepuspostd.com</a></li>
+            <li><strong>Sign up</strong> using this email address: <strong>${claim.claimerEmail}</strong></li>
+            <li>Your brand dashboard will be ready — you'll start your <strong>14-day free Pro trial</strong> automatically</li>
+          </ol>
+          <p>Your QR code and brand profile are already live and ready for customers.</p>
+        `,
+        ctaText: 'Set Up Your Account',
+        ctaUrl: 'https://keepuspostd.com/pages/download-app.html',
+      });
+    } catch (emailErr) {
+      console.error('Claim approval email failed:', emailErr.message);
+      // Non-fatal — claim is still approved
+    }
+
     res.json({ success: true, claim, brand });
   } catch (error) {
     console.error('Claim approve error:', error);

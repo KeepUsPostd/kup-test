@@ -236,8 +236,20 @@
 
     <!-- Populated by JS -->
     <div id="brandContent" style="display:none;">
+
       <div class="brand-avatar" id="brandAvatar">KUP</div>
       <div class="brand-name" id="brandName">Brand Name</div>
+
+      <!-- Unclaimed badge — shown only for admin brands not yet claimed -->
+      <div id="unclaimedBadge" style="display:none;text-align:center;margin:8px 0 12px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#fff8e1;color:#b45309;border:1px solid #fcd34d;border-radius:50px;padding:5px 14px;font-size:0.75rem;font-weight:600;">
+          ⚠ UNCLAIMED BRAND
+        </span>
+        <div style="margin-top:8px;font-size:0.8rem;color:#888;">
+          Own this brand? <a id="claimLink" href="#" style="color:#2EA5DD;font-weight:600;">Claim it →</a>
+        </div>
+      </div>
+
       <div class="brand-category" id="brandCategory"></div>
       <div class="brand-description" id="brandDescription"></div>
 
@@ -331,6 +343,24 @@
         }
 
         document.getElementById('brandName').textContent = brand.name;
+
+        // Unclaimed badge — show if this is an admin-created brand not yet claimed
+        var badge = document.getElementById('unclaimedBadge');
+        if (badge && (brand.claimStatus === 'unclaimed' || brand.claimStatus === 'pending') && brand.brandType === 'admin') {
+          badge.style.display = 'block';
+          var claimLink = document.getElementById('claimLink');
+          if (claimLink) {
+            if (brand.claimStatus === 'pending') {
+              // Already has a pending request — disable link
+              claimLink.textContent = 'Claim pending review';
+              claimLink.style.pointerEvents = 'none';
+              claimLink.style.color = '#aaa';
+            } else {
+              claimLink.href = '/pages/claim.html?brandId=' + (brand._id || brand.id || '');
+            }
+          }
+        }
+
         document.getElementById('brandCategory').textContent = brand.category || 'Brand';
         document.getElementById('brandDescription').textContent =
           brand.description || 'This brand is looking for partner influencers on KeepUsPostd.';

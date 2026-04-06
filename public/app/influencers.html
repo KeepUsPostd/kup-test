@@ -621,8 +621,8 @@
       text-align: left;
       white-space: nowrap;
     }
-    .data-table tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
-    .data-table tbody tr:hover { background: #fafbfc; }
+    .data-table tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; cursor: pointer; }
+    .data-table tbody tr:hover { background: #f0f8fd; }
     .data-table tbody tr:last-child { border-bottom: none; }
     .data-table tbody td { padding: 16px 20px; font-size: 0.85rem; vertical-align: middle; }
 
@@ -2480,14 +2480,15 @@
     });
 
     /* ============== INFLUENCER DATA ============== */
-    var influencerData = {
-      jessicadavis:  { handle: '@jessicadavis', name: 'Jessica Davis', tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
-      marcusking:    { handle: '@marcusking', name: 'Marcus King', tier: 'Macro Influencer', tierClass: 'macro', followers: '245K', engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
-      amylee_creates:{ handle: '@amylee_creates', name: 'Amy Lee', tier: 'Nano Influencer', tierClass: 'nano', followers: '8.2K', engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
-      tyreese_r:     { handle: '@tyreese_r', name: 'Tyreese Robinson', tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
-      nina_k:        { handle: '@nina_k', name: 'Nina Kim', tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' },
-      chelseap_fit:  { handle: '@chelseap_fit', name: 'Chelsea Patterson', tier: 'Mega Influencer', tierClass: 'mega', followers: '1.2M', engagement: '1.8%', posts: '45', bio: 'Celebrity fitness trainer and brand ambassador. Partnered with 50+ fitness and nutrition brands worldwide.' }
-    };
+    // Populated from real partnership data when table rows are built
+    var influencerData = {};
+
+    function _formatFollowers(n) {
+      if (!n || isNaN(n)) return '—';
+      if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      return String(n);
+    }
 
     /* ============== INFLUENCER TABS ============== */
     var discoveryLoaded = false;
@@ -2948,14 +2949,17 @@
       }
     }
 
-    // Name/avatar clicks in table — delegated so dynamic rows are covered
+    // Row clicks in table — entire row opens profile popup (except action buttons)
     document.getElementById('influencersTbody').addEventListener('click', function(e) {
-      // Skip if the click was on a row-action-item (handled by the action handler above)
-      if (e.target.closest('.row-action-item') || e.target.closest('.row-actions-btn')) return;
-      var el = e.target.closest('[data-influencer]');
-      if (!el) return;
-      var key = el.getAttribute('data-influencer');
+      console.log('[KUP] tbody clicked, target:', e.target.tagName, e.target.className);
+      // Skip clicks on the action menu area
+      if (e.target.closest('.row-actions-wrap')) { console.log('[KUP] skipped — action wrap'); return; }
+      var row = e.target.closest('tr[data-handle]');
+      console.log('[KUP] row found:', row ? row.getAttribute('data-handle') : 'NONE');
+      if (!row) return;
+      var key = row.getAttribute('data-handle');
       var data = influencerData[key];
+      console.log('[KUP] influencerData keys:', Object.keys(influencerData), '| looking for:', key, '| found:', !!data);
       if (!data) return;
       openInfluencerModal(data);
       openModal('influencerProfileModal');
@@ -3420,6 +3424,20 @@
       var subs = p.totalSubmissions || 0;
       var statusClass = p.status === 'active' ? 'active-status' : (p.status === 'paused' ? 'pending-status' : 'inactive-status');
       var statusLabel = p.status.charAt(0).toUpperCase() + p.status.slice(1);
+
+      // Register real data for profile popup — keyed by handle
+      influencerData[handle] = {
+        handle: '@' + handle,
+        name: name,
+        tier: tierLabel(tier),
+        tierClass: tierBadgeClass(tier),
+        avatarUrl: avatarUrl || null,
+        followers: _formatFollowers(inf.realFollowerCount || inf.followerCount),
+        engagement: rating ? rating.toFixed(1) + ' ★' : '—',
+        posts: String(subs),
+        bio: inf.bio || inf.description || '',
+        partnershipId: p._id,
+      };
 
       var avatarHtml = avatarUrl
         ? '<div class="avatar" style="overflow:hidden"><img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'

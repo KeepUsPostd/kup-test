@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claim Your Brand — KeepUsPostd</title>
+  <meta name="description" content="Claim your brand on KeepUsPostd to start rewarding customers and partnering with influencers." />
+  <link rel="icon" type="image/png" href="/images/KUP_Favicon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kup-blue: #2ea5dd;
+      --kup-gradient: linear-gradient(135deg, #2ea5dd, #1a73b8);
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      width: 100%;
+      height: 120px;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero img {
+      height: 36px;
+      width: auto;
+    }
+
+    /* ── CARD ── */
+    .card {
+      max-width: 480px;
+      margin: -32px auto 40px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      padding: 28px 24px 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── PROGRESS STEPS ── */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      color: #999;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      background: var(--kup-gradient);
+      color: #fff;
+    }
+    .step-dot.done {
+      background: #16a34a;
+      color: #fff;
+    }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: #e5e7eb;
+      max-width: 60px;
+      transition: background 0.3s;
+    }
+    .step-line.done { background: #16a34a; }
+
+    /* ── STEP LABELS ── */
+    .step-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding: 0 4px;
+    }
+    .step-label {
+      font-size: 0.65rem;
+      color: #aaa;
+      text-align: center;
+      flex: 1;
+    }
+    .step-label.active { color: var(--kup-blue); font-weight: 600; }
+    .step-label.done { color: #16a34a; }
+
+    /* ── BRAND INFO HEADER ── */
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #f8f9fb;
+      border-radius: var(--radius-sm);
+      margin-bottom: 24px;
+    }
+    .brand-avatar-sm {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.9rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .brand-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .brand-header-text { flex: 1; min-width: 0; }
+    .brand-header-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-header-category { font-size: 0.75rem; color: #888; text-transform: capitalize; }
+
+    /* ── SECTION HEADING ── */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 5px;
+    }
+    label span { color: #e53e3e; margin-left: 2px; }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--kup-blue); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .field-note {
+      font-size: 0.72rem;
+      color: #999;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed #d1d5db;
+      border-radius: var(--radius-sm);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.over { border-color: var(--kup-blue); background: #f0f9ff; }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-label { font-size: 0.82rem; color: #666; line-height: 1.5; }
+    .upload-label strong { color: var(--kup-blue); }
+    .upload-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f0f9ff;
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #1a1a1a;
+    }
+    .upload-preview span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .upload-remove { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 1rem; padding: 0; flex-shrink: 0; }
+
+    /* ── CHECKBOX ── */
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      accent-color: var(--kup-blue);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .checkbox-row label {
+      font-size: 0.8rem;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--kup-gradient);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      color: #666;
+      border: 1.5px solid #e5e7eb;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: #bbb; }
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--kup-blue);
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0;
+      font-weight: 600;
+    }
+
+    /* ── INLINE ERROR ── */
+    .error-msg {
+      display: none;
+      background: #fff5f5;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── SUCCESS STATE ── */
+    #stepSuccess { text-align: center; }
+    .success-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2rem;
+    }
+    .success-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .success-sub { font-size: 0.85rem; color: #666; line-height: 1.6; margin-bottom: 24px; }
+    .success-what-next {
+      background: #f8f9fb;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    .success-what-next h4 { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .success-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+      color: #444;
+      line-height: 1.5;
+    }
+    .success-step:last-child { margin-bottom: 0; }
+    .success-step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--kup-gradient);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── LOADING ── */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.72rem;
+      color: #bbb;
+    }
+    .page-footer a { color: #bbb; }
+
+    /* ── HIDE/SHOW ── */
+    .step-pane { display: none; }
+    .step-pane.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img src="/images/kup_white_new_logo_1.png" alt="KeepUsPostd" onerror="this.style.display='none'" />
+  </div>
+
+  <div class="card">
+
+    <!-- Progress steps -->
+    <div class="steps" id="stepsBar">
+      <div class="step-dot active" id="dot1">1</div>
+      <div class="step-line" id="line1"></div>
+      <div class="step-dot" id="dot2">2</div>
+      <div class="step-line" id="line2"></div>
+      <div class="step-dot" id="dot3">3</div>
+    </div>
+    <div class="step-labels" id="stepsLabels">
+      <span class="step-label active" id="lbl1">Your Info</span>
+      <span class="step-label" id="lbl2">Proof</span>
+      <span class="step-label" id="lbl3">Confirm</span>
+    </div>
+
+    <!-- Brand header — populated by JS -->
+    <div class="brand-header" id="brandHeader" style="display:none;">
+      <div class="brand-avatar-sm" id="claimAvatar">?</div>
+      <div class="brand-header-text">
+        <div class="brand-header-name" id="claimBrandName">Loading…</div>
+        <div class="brand-header-category" id="claimBrandCategory"></div>
+      </div>
+    </div>
+
+    <!-- Inline error banner -->
+    <div class="error-msg" id="errorBanner"></div>
+
+    <!-- ── STEP 1 — Your Info ── -->
+    <div class="step-pane active" id="step1">
+      <div class="section-title">Claim this brand</div>
+      <p class="section-sub">Tell us about you and your role at this business. We'll review your request within 1–2 business days.</p>
+
+      <div class="field">
+        <label for="claimerName">Full name <span>*</span></label>
+        <input type="text" id="claimerName" placeholder="Your full name" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="claimerEmail">Business email <span>*</span></label>
+        <input type="email" id="claimerEmail" placeholder="you@yourbusiness.com" autocomplete="email" />
+        <div class="field-note">A matching domain (e.g. @yourbrand.com) speeds up approval.</div>
+      </div>
+
+      <div class="field">
+        <label for="claimerTitle">Your role / title <span>*</span></label>
+        <select id="claimerTitle">
+          <option value="">Select your role…</option>
+          <option value="Owner">Owner</option>
+          <option value="Co-Owner">Co-Owner</option>
+          <option value="Manager">Manager</option>
+          <option value="Marketing Director">Marketing Director</option>
+          <option value="Brand Manager">Brand Manager</option>
+          <option value="Social Media Manager">Social Media Manager</option>
+          <option value="PR / Communications">PR / Communications</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="claimerPhone">Phone number <span style="color:#999;font-weight:400;">(optional)</span></label>
+        <input type="tel" id="claimerPhone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+      </div>
+
+      <button class="btn-primary" id="nextToStep2">Continue</button>
+    </div>
+
+    <!-- ── STEP 2 — Proof ── -->
+    <div class="step-pane" id="step2">
+      <div class="section-title">Optional: Add proof</div>
+      <p class="section-sub">To speed up review, you can attach a business license, website screenshot, or any document that confirms you represent this brand. Skip if you prefer.</p>
+
+      <div class="field">
+        <label>Proof document</label>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="proofFile" accept="image/*,.pdf" />
+          <div class="upload-icon">📎</div>
+          <div class="upload-label">
+            <strong>Tap to choose a file</strong><br />
+            Photo or PDF &mdash; max 10MB
+          </div>
+        </div>
+        <div id="filePreview" style="display:none;" class="upload-preview">
+          <span id="fileName">file.pdf</span>
+          <button type="button" class="upload-remove" id="removeFile" title="Remove">✕</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="authStatement">Authorization statement <span style="color:#999;font-weight:400;">(optional)</span></label>
+        <textarea id="authStatement" placeholder="e.g. I am the owner of The Pure Juice Joint and have the authority to manage this brand's online presence…"></textarea>
+      </div>
+
+      <button class="btn-primary" id="nextToStep3">Continue</button>
+      <button class="btn-secondary" id="backToStep1">← Back</button>
+    </div>
+
+    <!-- ── STEP 3 — Confirm & Submit ── -->
+    <div class="step-pane" id="step3">
+      <div class="section-title">Review & submit</div>
+      <p class="section-sub">Confirm the details below are correct before submitting your claim request.</p>
+
+      <!-- Review summary -->
+      <div style="background:#f8f9fb;border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;">
+        <div style="font-size:0.75rem;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Your details</div>
+        <div style="display:grid;gap:8px;">
+          <div style="display:flex;gap:8px;font-size:0.85rem;">
+            <span style="color:#999;width:56px;flex-shrink:0;">Name</span>
+            <span id="reviewName" style="font-weight:600;"></span>
+          </div>
+          <div style="display:flex;gap:8px;font-size:0.85rem;">
+            <span style="color:#999;width:56px;flex-shrink:0;">Email</span>
+            <span id="reviewEmail" style="font-weight:600;word-break:break-all;"></span>
+          </div>
+          <div style="display:flex;gap:8px;font-size:0.85rem;">
+            <span style="color:#999;width:56px;flex-shrink:0;">Role</span>
+            <span id="reviewRole" style="font-weight:600;"></span>
+          </div>
+          <div id="reviewPhoneRow" style="display:flex;gap:8px;font-size:0.85rem;">
+            <span style="color:#999;width:56px;flex-shrink:0;">Phone</span>
+            <span id="reviewPhone" style="font-weight:600;"></span>
+          </div>
+          <div id="reviewFileRow" style="display:flex;gap:8px;font-size:0.85rem;">
+            <span style="color:#999;width:56px;flex-shrink:0;">Proof</span>
+            <span id="reviewFile" style="font-weight:600;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="checkbox-row">
+          <input type="checkbox" id="agreeCheck" />
+          <label for="agreeCheck">I confirm I am an authorized representative of this business and have the right to manage this brand on KeepUsPostd.</label>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="submitClaim" disabled>Submit Claim Request</button>
+      <button class="btn-secondary" id="backToStep2">← Back</button>
+    </div>
+
+    <!-- ── SUCCESS ── -->
+    <div class="step-pane" id="stepSuccess">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Claim submitted!</div>
+      <p class="success-sub">We received your claim for <strong id="successBrandName"></strong>. Our team will review it within 1–2 business days and email you at <strong id="successEmail"></strong>.</p>
+
+      <div class="success-what-next">
+        <h4>What happens next</h4>
+        <div class="success-step">
+          <div class="success-step-num">1</div>
+          <div>Our team reviews your information and any proof you uploaded.</div>
+        </div>
+        <div class="success-step">
+          <div class="success-step-num">2</div>
+          <div>You'll receive an email when your claim is approved or if we need more info.</div>
+        </div>
+        <div class="success-step">
+          <div class="success-step-num">3</div>
+          <div>Once approved, download the KUP app and sign in with your email to access your brand dashboard and start a <strong>14-day free Pro trial</strong>.</div>
+        </div>
+      </div>
+
+      <a href="https://apps.apple.com/us/app/keepuspostd/id6736950249" class="btn-primary" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Download KeepUsPostd
+      </a>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    &copy; 2026 KeepUsPostd &nbsp;·&nbsp;
+    <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/help">Help</a>
+  </div>
+
+  <script>
+    (function () {
+      // ── State ──
+      var brandId   = new URLSearchParams(window.location.search).get('brandId') || '';
+      var brandData = null;
+      var proofFileData = null; // { name, base64, type } — stored for submission
+
+      // ── DOM refs ──
+      var errorBanner = document.getElementById('errorBanner');
+
+      // ── Load brand info ──
+      if (brandId) {
+        fetch('/api/brands/public/' + encodeURIComponent(brandId))
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (!d || !d.brand) return;
+            brandData = d.brand;
+
+            // Populate header
+            var header = document.getElementById('brandHeader');
+            header.style.display = 'flex';
+
+            var av = document.getElementById('claimAvatar');
+            if (brandData.logoUrl) {
+              av.innerHTML = '<img src="' + brandData.logoUrl + '" alt="" onerror="this.style.display=\'none\'" />';
+            } else {
+              av.textContent = (brandData.initials || brandData.name.charAt(0)).toUpperCase();
+              if (brandData.generatedColor) av.style.background = brandData.generatedColor;
+            }
+            document.getElementById('claimBrandName').textContent = brandData.name;
+            document.getElementById('claimBrandCategory').textContent = brandData.category || 'Brand';
+          })
+          .catch(function() {}); // non-fatal
+      }
+
+      // ── Step navigation ──
+      var currentStep = 1;
+
+      function goToStep(n) {
+        document.querySelectorAll('.step-pane').forEach(function(p) { p.classList.remove('active'); });
+        var pane = document.getElementById(n === 'success' ? 'stepSuccess' : 'step' + n);
+        if (pane) pane.classList.add('active');
+
+        if (n === 'success') {
+          document.getElementById('stepsBar').style.display = 'none';
+          document.getElementById('stepsLabels').style.display = 'none';
+          return;
+        }
+
+        currentStep = n;
+        // Update dots
+        for (var i = 1; i <= 3; i++) {
+          var dot = document.getElementById('dot' + i);
+          var lbl = document.getElementById('lbl' + i);
+          dot.className = 'step-dot' + (i < n ? ' done' : (i === n ? ' active' : ''));
+          lbl.className = 'step-label' + (i < n ? ' done' : (i === n ? ' active' : ''));
+          dot.textContent = i < n ? '✓' : i;
+        }
+        // Update lines
+        for (var j = 1; j <= 2; j++) {
+          var line = document.getElementById('line' + j);
+          line.className = 'step-line' + (j < n ? ' done' : '');
+        }
+      }
+
+      // ── Validation helpers ──
+      function showError(msg) {
+        errorBanner.textContent = msg;
+        errorBanner.classList.add('visible');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      function clearError() { errorBanner.classList.remove('visible'); }
+
+      // ── Step 1 → 2 ──
+      document.getElementById('nextToStep2').addEventListener('click', function() {
+        clearError();
+        var name  = document.getElementById('claimerName').value.trim();
+        var email = document.getElementById('claimerEmail').value.trim();
+        var role  = document.getElementById('claimerTitle').value;
+
+        if (!name) return showError('Please enter your full name.');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid business email.');
+        if (!role) return showError('Please select your role at this business.');
+
+        goToStep(2);
+      });
+
+      // ── Step 2 → 3 ──
+      document.getElementById('nextToStep3').addEventListener('click', function() {
+        clearError();
+        // Populate review screen
+        document.getElementById('reviewName').textContent  = document.getElementById('claimerName').value.trim();
+        document.getElementById('reviewEmail').textContent = document.getElementById('claimerEmail').value.trim();
+        document.getElementById('reviewRole').textContent  = document.getElementById('claimerTitle').value;
+
+        var phone = document.getElementById('claimerPhone').value.trim();
+        var phoneRow = document.getElementById('reviewPhoneRow');
+        if (phone) {
+          document.getElementById('reviewPhone').textContent = phone;
+          phoneRow.style.display = 'flex';
+        } else {
+          phoneRow.style.display = 'none';
+        }
+
+        var fileRow = document.getElementById('reviewFileRow');
+        if (proofFileData) {
+          document.getElementById('reviewFile').textContent = proofFileData.name;
+          fileRow.style.display = 'flex';
+        } else {
+          fileRow.style.display = 'none';
+        }
+
+        goToStep(3);
+      });
+
+      // ── Step 3 → 2 ──
+      document.getElementById('backToStep2').addEventListener('click', function() { clearError(); goToStep(2); });
+      // ── Step 2 → 1 ──
+      document.getElementById('backToStep1').addEventListener('click', function() { clearError(); goToStep(1); });
+
+      // ── Checkbox gates submit button ──
+      document.getElementById('agreeCheck').addEventListener('change', function() {
+        document.getElementById('submitClaim').disabled = !this.checked;
+      });
+
+      // ── File upload ──
+      var uploadZone = document.getElementById('uploadZone');
+      var proofInput = document.getElementById('proofFile');
+      var filePreview = document.getElementById('filePreview');
+
+      proofInput.addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+          showError('File is too large. Please choose a file under 10MB.');
+          proofInput.value = '';
+          return;
+        }
+        document.getElementById('fileName').textContent = file.name;
+        filePreview.style.display = 'flex';
+        uploadZone.querySelector('.upload-icon').textContent = '✅';
+
+        // Read as base64 for submission
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          proofFileData = { name: file.name, type: file.type, base64: e.target.result.split(',')[1] };
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('removeFile').addEventListener('click', function() {
+        proofInput.value = '';
+        proofFileData = null;
+        filePreview.style.display = 'none';
+        uploadZone.querySelector('.upload-icon').textContent = '📎';
+      });
+
+      // ── Submit ──
+      document.getElementById('submitClaim').addEventListener('click', function() {
+        clearError();
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Submitting…';
+
+        var payload = {
+          claimerName:            document.getElementById('claimerName').value.trim(),
+          claimerEmail:           document.getElementById('claimerEmail').value.trim(),
+          claimerTitle:           document.getElementById('claimerTitle').value,
+          claimerPhone:           document.getElementById('claimerPhone').value.trim() || undefined,
+          authorizationStatement: document.getElementById('authStatement').value.trim() || undefined,
+        };
+        if (proofFileData) payload.proofFile = proofFileData;
+
+        fetch('/api/brands/' + encodeURIComponent(brandId) + '/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (!res.ok) {
+            var msg = (res.data && res.data.error) || 'Something went wrong. Please try again.';
+            showError(msg);
+            btn.disabled = false;
+            btn.textContent = 'Submit Claim Request';
+            document.getElementById('agreeCheck').checked = false;
+            return;
+          }
+          // Success
+          document.getElementById('successBrandName').textContent = brandData ? brandData.name : 'this brand';
+          document.getElementById('successEmail').textContent = payload.claimerEmail;
+          goToStep('success');
+        })
+        .catch(function() {
+          showError('Network error. Please check your connection and try again.');
+          btn.disabled = false;
+          btn.textContent = 'Submit Claim Request';
+          document.getElementById('agreeCheck').checked = false;
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>
