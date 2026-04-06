@@ -732,6 +732,7 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
       // Email connection (cashouts)
       connected: !!influencer.paypalEmail,
       email: maskedEmail,
+      paypalEmail: maskedEmail,
       connectedAt: influencer.paypalConnectedAt || null,
 
       // PPCP merchant onboarding (direct payments)
