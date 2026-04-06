@@ -565,7 +565,9 @@ router.get('/paypal-onboard', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('PayPal onboard initiate error:', error.message);
-    res.status(500).json({ error: 'Could not initiate PayPal onboarding' });
+    // Log full PayPal response if available to diagnose partner API issues
+    if (error.paypalResponse) console.error('PayPal response:', JSON.stringify(error.paypalResponse));
+    res.status(500).json({ error: 'Could not initiate PayPal onboarding', detail: error.message });
   }
 });
 
