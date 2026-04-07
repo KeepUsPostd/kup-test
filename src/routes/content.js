@@ -516,6 +516,20 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
               console.log(`💳 PayPal Order created: ${order.id} (PPCP → ${freshInfluencer.paypalMerchantId})`);
             } else {
               console.log(`ℹ️ No PPCP merchant ID for influencer ${submission.influencerProfileId} — transaction logged as pending`);
+              // Notify influencer: money is waiting, connect PayPal to receive it
+              try {
+                const pendingInfluencer = freshInfluencer || await InfluencerProfile.findById(submission.influencerProfileId);
+                const pendingBrand = await Brand.findById(submission.brandId);
+                if (pendingInfluencer && pendingBrand) {
+                  notify.paypalMoneyWaiting({
+                    influencer: { ...pendingInfluencer.toObject(), email: pendingInfluencer.paypalEmail || '', userId: pendingInfluencer.userId },
+                    brand: pendingBrand,
+                    amount,
+                  }).catch(e => console.error('[content/approve] paypalMoneyWaiting notify failed:', e.message));
+                }
+              } catch (notifyErr) {
+                console.error('[content/approve] paypalMoneyWaiting lookup failed:', notifyErr.message);
+              }
             }
           } catch (orderErr) {
             // Non-blocking: don't fail approval if PayPal order creation fails.

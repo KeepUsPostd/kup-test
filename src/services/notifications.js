@@ -375,6 +375,85 @@ async function subscriptionCanceled({ brand, planTier }) {
   });
 }
 
+// PAY-006b: Money waiting — influencer approved but no PPCP connected yet
+// Also used for weekly cron reminders (isWeeklyReminder: true)
+async function paypalMoneyWaiting({ influencer, brand, amount, isWeeklyReminder = false, hasPendingCash = false }) {
+  if (!influencer.email) return;
+
+  const connectUrl = `${APP_URL}/app/influencer-wallet.html`;
+
+  let subject, headline, preheader, bodyHtml, pushTitle, pushBody;
+
+  if (isWeeklyReminder) {
+    if (hasPendingCash && amount > 0) {
+      // Weekly — specific pending amount
+      subject   = `⏰ Reminder: ${$(amount)} is waiting for you — connect PayPal`;
+      headline  = `You Still Have ${$(amount)} Waiting!`;
+      preheader = `Your cash reward is sitting unclaimed. Connect PayPal to receive it.`;
+      bodyHtml  = `
+        <p>You currently have <strong>${$(amount)}</strong> in cash rewards waiting to be paid out — but we can't send it until you connect your PayPal account.</p>
+        <p>It only takes a few minutes. Once connected, you'll receive payments automatically every time a brand approves your content.</p>
+        <p>Don't let your earnings sit unclaimed!</p>
+      `;
+      pushTitle = `⏰ ${$(amount)} still waiting for you!`;
+      pushBody  = 'Connect PayPal now to claim your cash reward.';
+    } else {
+      // Weekly — general reminder, no specific pending amount yet
+      subject   = '💡 Reminder: Connect PayPal to get paid on KeepUsPostd';
+      headline  = 'Get Paid for Your Reviews';
+      preheader = 'Some brands pay cash — connect PayPal so you never miss a payout.';
+      bodyHtml  = `
+        <p>Many brands on KeepUsPostd offer <strong>cash payments</strong> for approved reviews. To receive those payments, you'll need to connect your PayPal Business account.</p>
+        <p>It only takes a few minutes — and once you're connected, any cash rewards you earn will be sent directly to your PayPal account automatically.</p>
+        <p>Don't miss out on cash payouts!</p>
+      `;
+      pushTitle = '💡 Connect PayPal to get paid';
+      pushBody  = 'Some brands on KUP pay cash — connect PayPal to receive your rewards.';
+    }
+  } else {
+    // Immediate trigger — brand just approved content, cash is ready
+    subject   = `💰 You have ${$(amount)} waiting — connect PayPal to receive it`;
+    headline  = `${$(amount)} is Waiting for You!`;
+    preheader = `${brand?.name || 'A brand'} approved your content and wants to pay you.`;
+    bodyHtml  = `
+      <p><strong>${brand?.name || 'A brand partner'}</strong> just approved your content and has <strong>${$(amount)}</strong> ready to send you directly.</p>
+      <p>To receive cash payments, you need to connect your PayPal Business account. It only takes a few minutes — and once connected, you'll get paid automatically every time a brand approves your content.</p>
+      <p>Some brands on KeepUsPostd pay cash per approved review. Don't leave money on the table!</p>
+    `;
+    pushTitle = `💰 ${$(amount)} waiting for you!`;
+    pushBody  = 'Connect your PayPal to receive your cash reward.';
+  }
+
+  await sendEmail({
+    to: influencer.email,
+    subject,
+    headline,
+    preheader,
+    bodyHtml,
+    ctaText: 'Connect PayPal & Get Paid',
+    ctaUrl: connectUrl,
+    variant: 'influencer',
+  });
+
+  // In-app + push notification
+  if (influencer.userId) {
+    await createInApp({
+      userId: influencer.userId,
+      title: pushTitle,
+      message: isWeeklyReminder
+        ? (hasPendingCash ? `You have ${$(amount)} in cash rewards waiting. Connect PayPal to claim it.` : 'Some brands on KUP pay cash. Connect PayPal so you never miss a payout.')
+        : `${brand?.name || 'A brand'} approved your content. Connect PayPal to receive your payment.`,
+      type: 'payment',
+      link: '/app/influencer-wallet.html',
+    });
+    push(influencer.userId, {
+      title: pushTitle,
+      body: pushBody,
+      link: '/app/influencer-wallet.html',
+    });
+  }
+}
+
 // PAY-007: PayPal connected → notify influencer
 async function paypalConnected({ influencer, maskedEmail }) {
   if (!influencer.email) return;
@@ -1971,6 +2050,7 @@ module.exports = {
   // ── Phase 1: Payments (Critical) ──
   subscriptionPaymentFailed,
   subscriptionCanceled,
+  paypalMoneyWaiting,
   paypalConnected,
   cashoutCompleted,
   cashoutFailed,

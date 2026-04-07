@@ -372,7 +372,78 @@ const startServer = async () => {
       }
     }, { timezone: 'UTC' });
 
-    console.log('⏰ Cron: Trial expiry scheduled daily at 2:00 AM UTC\n');
+    console.log('⏰ Cron: Trial expiry scheduled daily at 2:00 AM UTC');
+
+    // ── Weekly Cron — PayPal Connect Reminder ───────────────────
+    // Every Monday at 9:00 AM UTC
+    // Notifies influencers who haven't connected PayPal PPCP:
+    //   Group A — have pending cash transactions (money literally waiting)
+    //   Group B — no pending transactions yet (proactive reminder, brands do pay cash)
+    cron.schedule('0 9 * * 1', async () => {
+      console.log('⏰ [CRON] Running weekly PayPal connect reminder...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const Transaction       = require('./models/Transaction');
+        const notify            = require('./services/notifications');
+
+        // All influencers without a completed PPCP merchant ID
+        const unconnected = await InfluencerProfile.find({
+          $or: [
+            { paypalMerchantId: { $exists: false } },
+            { paypalMerchantId: null },
+            { paypalMerchantId: '' },
+          ],
+          paypalOnboardingStatus: { $ne: 'completed' },
+        }).lean();
+
+        if (!unconnected.length) {
+          console.log('⏰ [CRON] PayPal reminder: all influencers connected — nothing to do.');
+          return;
+        }
+
+        let sentWithPending  = 0;
+        let sentGeneral      = 0;
+        let errors           = 0;
+
+        for (const influencer of unconnected) {
+          try {
+            // Check for pending transactions (money waiting)
+            const pendingTxns = await Transaction.find({
+              influencerProfileId: influencer._id,
+              status: 'pending',
+            }).lean();
+
+            const hasPending = pendingTxns.length > 0;
+            const totalPending = pendingTxns.reduce((sum, t) => sum + (t.influencerAmount || t.amount || 0), 0);
+
+            await notify.paypalMoneyWaiting({
+              influencer: {
+                ...influencer,
+                // paypalMoneyWaiting expects email & userId
+                email:  influencer.paypalEmail || influencer.email || '',
+                userId: influencer.userId,
+              },
+              brand: hasPending ? null : null,   // generic — no specific brand for weekly reminder
+              amount: hasPending ? totalPending : 0,
+              isWeeklyReminder: true,
+              hasPendingCash: hasPending,
+            });
+
+            if (hasPending) sentWithPending++;
+            else sentGeneral++;
+          } catch (innerErr) {
+            console.error(`⏰ [CRON] PayPal reminder failed for influencer ${influencer._id}: ${innerErr.message}`);
+            errors++;
+          }
+        }
+
+        console.log(`⏰ [CRON] PayPal reminder done — sent: ${sentWithPending} with pending cash, ${sentGeneral} general reminders, ${errors} errors`);
+      } catch (err) {
+        console.error('⏰ [CRON] PayPal connect reminder failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+
+    console.log('⏰ Cron: PayPal connect reminder scheduled weekly — Mondays at 9:00 AM UTC\n');
   });
 };
 
