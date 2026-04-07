@@ -15,7 +15,7 @@ const { sendPushToUser } = require('../config/push');
 // Creates the MongoDB user + optional profile
 router.post('/register', async (req, res) => {
   try {
-    const { email, firebaseUid, firstName, lastName, profileType, referredByCode } = req.body;
+    const { email, firebaseUid, displayName, firstName, lastName, profileType, referredByCode } = req.body;
 
     // Validate required fields
     if (!email || !firebaseUid) {
@@ -40,8 +40,8 @@ router.post('/register', async (req, res) => {
         // Add influencer profile to existing account
         // RULE: Every influencer must have displayName + handle. No "Unknown" creators.
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        const infDisplayName = `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || user.email.split('@')[0];
-        const infHandle = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+        const infDisplayName = displayName || `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || user.email.split('@')[0];
+        const infHandle = (displayName || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
         await InfluencerProfile.create({
           userId: user._id,
           displayName: infDisplayName,
@@ -80,6 +80,7 @@ router.post('/register', async (req, res) => {
       user = await User.create({
         email: email.toLowerCase().trim(),
         firebaseUid,
+        // Legal name stays null at sign-up — collected during PayPal onboarding
         legalFirstName: firstName || null,
         legalLastName: lastName || null,
         lastLoginAt: new Date(),
@@ -90,8 +91,8 @@ router.post('/register', async (req, res) => {
       // RULE: Every influencer must have displayName + handle. No "Unknown" creators.
       if (profileType === 'influencer') {
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        const newDisplayName = `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0];
-        const newHandle = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+        const newDisplayName = displayName || `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0];
+        const newHandle = (displayName || email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
         await InfluencerProfile.create({
           userId: user._id,
           displayName: newDisplayName,
@@ -684,10 +685,18 @@ router.get('/paypal-onboard/status', requireAuth, async (req, res) => {
 // This is separate from PPCP onboarding — both can coexist on the same account.
 router.post('/paypal-connect', requireAuth, async (req, res) => {
   try {
-    const { paypalEmail } = req.body;
+    const { paypalEmail, legalFirstName, legalLastName } = req.body;
 
     if (!paypalEmail) {
       return res.status(400).json({ error: 'paypalEmail is required' });
+    }
+
+    // Save legal name to User record if provided (used for PayPal payouts + tax)
+    if (legalFirstName || legalLastName) {
+      await User.findByIdAndUpdate(req.user._id, {
+        ...(legalFirstName && { legalFirstName: legalFirstName.trim() }),
+        ...(legalLastName && { legalLastName: legalLastName.trim() }),
+      });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
