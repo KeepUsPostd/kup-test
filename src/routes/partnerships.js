@@ -151,6 +151,11 @@ router.post('/', requireAuth, async (req, res) => {
 
     console.log(`🤝 Partnership created: brand ${brandId} + @${influencer.handle}`);
 
+    // Increment influencer's brand partner count
+    await InfluencerProfile.findByIdAndUpdate(influencerProfileId, {
+      $inc: { totalBrandsPartnered: 1 },
+    });
+
     // Update BrandInvite record to 'accepted' so the Invited tab reflects the response.
     // This links the partnership back to the email invite that brought the influencer in.
     try {

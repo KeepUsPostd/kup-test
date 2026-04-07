@@ -168,6 +168,12 @@ app.get('/privacy-policy', (req, res) => {
 app.get('/policy', (req, res) => {
   res.redirect(301, '/pages/policy.html');
 });
+app.get('/terms', (req, res) => {
+  res.redirect(301, '/pages/terms.html');
+});
+app.get('/terms-of-service', (req, res) => {
+  res.redirect(301, '/pages/terms.html');
+});
 app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
