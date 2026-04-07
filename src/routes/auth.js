@@ -148,6 +148,9 @@ router.post('/register', async (req, res) => {
       },
     });
   } catch (error) {
+    // req.body values — re-read here since the try-block const bindings are out of scope in catch
+    const { email: _email, firebaseUid: _uid, firstName: _first, lastName: _last, profileType: _ptype } = req.body || {};
+
     // Log full details so Railway shows us the real failure line
     console.error('Registration error:', error.message, '| code:', error.code, '| name:', error.name);
     if (error.stack) console.error('Registration stack:', error.stack.split('\n').slice(0, 4).join(' | '));
@@ -156,18 +159,17 @@ router.post('/register', async (req, res) => {
     if (error.code === 11000) {
       const keyStr = JSON.stringify(error.keyPattern || error.keyValue || {});
 
-      // Duplicate email with different Firebase UID (e.g. Apple re-auth after iOS cache clear)
-      if (keyStr.includes('email')) {
+      // Duplicate email — existing account, link the new Firebase UID (e.g. re-install / Apple re-auth)
+      if (keyStr.includes('email') && _email) {
         try {
-          const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+          const existingUser = await User.findOne({ email: _email.toLowerCase().trim() });
           if (existingUser) {
-            // Link the new Firebase UID to the existing account so sign-in works going forward
-            existingUser.firebaseUid = firebaseUid;
+            existingUser.firebaseUid = _uid;
             await existingUser.save();
             const profile = existingUser.hasInfluencerProfile
               ? await InfluencerProfile.findOne({ userId: existingUser._id })
               : null;
-            console.log(`🔗 Apple re-auth: linked new Firebase UID to existing user ${existingUser.email}`);
+            console.log(`🔗 Linked new Firebase UID to existing user ${existingUser.email}`);
             return res.status(201).json({
               message: 'Account linked successfully',
               user: {
@@ -186,17 +188,17 @@ router.post('/register', async (req, res) => {
       }
 
       // Duplicate referralCode — regenerate and retry once (very rare collision)
-      if (keyStr.includes('referralCode')) {
+      if (keyStr.includes('referralCode') && _uid) {
         try {
-          const userForRef = await User.findOne({ firebaseUid });
+          const userForRef = await User.findOne({ firebaseUid: _uid });
           if (userForRef) {
-            const prefix = (profileType === 'brand') ? 'BRD' : 'INF';
+            const prefix = (_ptype === 'brand') ? 'BRD' : 'INF';
             const newCode = `${prefix}-` + Math.random().toString(36).substring(2, 10).toUpperCase();
             await InfluencerProfile.findOneAndUpdate(
               { userId: userForRef._id },
               { $set: { referralCode: newCode } },
             );
-            console.log(`🔧 Referral code collision resolved for ${email}`);
+            console.log(`🔧 Referral code collision resolved for ${_email}`);
             return res.status(201).json({
               message: 'Account created successfully',
               user: {
@@ -214,15 +216,15 @@ router.post('/register', async (req, res) => {
       }
 
       // Duplicate handle — append random suffix and retry once
-      if (keyStr.includes('handle')) {
+      if (keyStr.includes('handle') && _uid && _email) {
         try {
-          const baseHandle = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 15);
+          const baseHandle = _email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 15);
           const uniqueHandle = `${baseHandle}_${Math.random().toString(36).substring(2, 6)}`;
-          const newUser = await User.findOne({ firebaseUid });
+          const newUser = await User.findOne({ firebaseUid: _uid });
           if (newUser) {
             await InfluencerProfile.create({
               userId: newUser._id,
-              displayName: `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0],
+              displayName: `${_first || ''} ${_last || ''}`.trim() || _email.split('@')[0],
               handle: uniqueHandle,
               referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
             });
