@@ -159,6 +159,21 @@ router.post('/', requireAuth, async (req, res) => {
           console.warn('Reactivation notification error:', notifyErr.message);
         }
 
+        // Notify influencer they're re-partnered
+        try {
+          const inflUser = await require('../models').User.findById(req.user._id, 'email').lean();
+          await notify.newBrandPartnership({
+            influencer: {
+              email: inflUser?.email,
+              userId: req.user._id,
+              displayName: influencer.displayName,
+            },
+            brand: { name: brandDoc?.name || 'A brand' },
+          });
+        } catch (notifyErr) {
+          console.warn('Influencer reactivation notification error:', notifyErr.message);
+        }
+
         return res.json({ message: 'Partnership reactivated', partnership: existing });
       }
       return res.status(409).json({
@@ -223,6 +238,21 @@ router.post('/', requireAuth, async (req, res) => {
     } catch (notifyErr) {
       // Non-critical — log but don't fail the partnership creation
       console.warn('Partnership notification error:', notifyErr.message);
+    }
+
+    // Notify influencer that they're now partnered (email + in-app + push)
+    try {
+      const inflUser = await require('../models').User.findById(req.user._id, 'email').lean();
+      await notify.newBrandPartnership({
+        influencer: {
+          email: inflUser?.email,
+          userId: req.user._id,
+          displayName: influencer.displayName,
+        },
+        brand: { name: brandDoc?.name || 'A brand' },
+      });
+    } catch (notifyErr) {
+      console.warn('Influencer partnership notification error:', notifyErr.message);
     }
 
     res.status(201).json({
