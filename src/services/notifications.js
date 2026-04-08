@@ -1327,21 +1327,26 @@ async function newInfluencerPartner({ brand, influencer }) {
 
 // New brand partnership notification → influencer
 async function newBrandPartnership({ influencer, brand }) {
-  if (!influencer.email) return;
+  console.log(`🔔 newBrandPartnership called — email: ${influencer.email}, userId: ${influencer.userId}, brand: ${brand.name}`);
+  if (!influencer.email) {
+    console.warn('🔔 newBrandPartnership skipped — no influencer email');
+    return;
+  }
 
-  await sendEmail({
+  const emailResult = await sendEmail({
     to: influencer.email,
-    subject: `🤝 ${brand.name} Accepted Your Partnership!`,
-    headline: 'Partnership Accepted!',
+    subject: `🤝 ${brand.name} — You're Now Partnered!`,
+    headline: 'Partnership Confirmed!',
     preheader: `You're now partnered with ${brand.name} on KeepUsPostd.`,
     bodyHtml: `
-      <p><strong>${brand.name}</strong> accepted your partnership request!</p>
-      <p>You can now submit content and start earning rewards from this brand.</p>
+      <p>You're now partnered with <strong>${brand.name}</strong> on KeepUsPostd!</p>
+      <p>Start submitting content and earning rewards from this brand.</p>
     `,
     ctaText: 'View Partnership',
     ctaUrl: `${APP_URL}/app/brands.html`,
     variant: 'influencer',
   });
+  console.log(`🔔 newBrandPartnership email result:`, JSON.stringify(emailResult));
 
   if (influencer.userId) {
     await createInApp({
