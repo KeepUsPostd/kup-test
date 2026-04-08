@@ -225,7 +225,8 @@ router.get('/my-brands', requireAuth, async (req, res) => {
 
     const { status } = req.query;
     const filter = { influencerProfileId: influencerProfile._id };
-    if (status) filter.status = status;
+    // Default to active partnerships only — ended ones shouldn't show in the app
+    filter.status = status || 'active';
 
     const partnerships = await Partnership.find(filter)
       .populate('brandId', 'name initials generatedColor category logoUrl heroImageUrl kioskBrandCode brandColors')
