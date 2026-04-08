@@ -583,6 +583,8 @@ router.get('/paypal-onboard', requireAuth, async (req, res) => {
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const returnUrl = `${baseUrl}/api/auth/paypal-onboard/return?influencerId=${influencer._id}`;
 
+    console.log(`[paypal-onboard] baseUrl=${baseUrl}, returnUrl=${returnUrl}`);
+
     const { actionUrl, referralId } = await paypal.createPartnerReferral(trackingId, returnUrl);
 
     if (!actionUrl) {
@@ -617,6 +619,8 @@ router.get('/paypal-onboard/return', async (req, res) => {
   const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
   try {
     const { influencerId, merchantIdInPayPal, permissionsGranted, accountStatus } = req.query;
+
+    console.log(`[paypal-onboard/return] HIT! influencerId=${influencerId}, merchantId=${merchantIdInPayPal}, permissions=${permissionsGranted}, accountStatus=${accountStatus}`);
 
     // influencerId is always required — without it we can't find the user
     if (!influencerId) {
