@@ -3630,7 +3630,7 @@
       try {
         // Fetch partnerships and pending email invites in parallel
         var results = await Promise.all([
-          kupApi.get('/api/partnerships?brandId=' + brand.mongoId),
+          kupApi.get('/api/partnerships?brandId=' + brand.mongoId + '&status=active'),
           kupApi.get('/api/partnerships/pending-invites?brandId=' + brand.mongoId).catch(function() { return { invites: [] }; }),
         ]);
 
