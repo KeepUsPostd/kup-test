@@ -404,16 +404,15 @@
     .btn-row-actions:hover { background: #f0f0f0; color: #444; }
     .row-actions-menu {
       position: absolute;
-      top: calc(100% + 4px);
+      bottom: calc(100% + 4px);
       right: 0;
       background: var(--kup-white);
       border: 1px solid #eee;
       border-radius: var(--radius-sm);
       box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      min-width: 160px;
+      min-width: 180px;
       display: none;
       z-index: 50;
-      overflow: hidden;
     }
     .row-actions-menu.show { display: block; }
     .row-action-item {
@@ -607,7 +606,6 @@
       background: white;
       border: 1px solid #eee;
       border-radius: var(--radius-md);
-      overflow: hidden;
     }
     .data-table table { width: 100%; border-collapse: collapse; }
     .data-table thead th {
