@@ -130,6 +130,11 @@ router.post('/', requireAuth, async (req, res) => {
         existing.endedBy = null;
         await existing.save();
 
+        // Increment influencer's brand partner count back
+        await InfluencerProfile.findByIdAndUpdate(influencerProfileId, {
+          $inc: { totalBrandsPartnered: 1 },
+        });
+
         console.log(`🔄 Partnership reactivated: brand ${brandId} + influencer ${influencerProfileId}`);
 
         // Notify brand owner about the re-partnered influencer
