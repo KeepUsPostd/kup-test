@@ -342,19 +342,23 @@ router.get('/', requireAuth, async (req, res) => {
     // Filter out hidden influencers (auto-created/test accounts) from brand portal views
     const filtered = partnerships.filter(p => !p.influencerProfileId?.isHidden);
 
-    // Gather stats from full DB count (not filtered list) so numbers are accurate
-    // even when the brand owner's own profile is excluded from the visible list
+    // Gather stats excluding brand owner's own profile and ended partnerships
     const statsFilter = brandId ? { brandId } : {};
-    const [totalCount, activeCount, pausedCount] = await Promise.all([
-      Partnership.countDocuments(statsFilter),
+    if (brandId) {
+      const ownProfile = await InfluencerProfile.findOne({ userId: req.user._id }, '_id').lean();
+      if (ownProfile) {
+        statsFilter.influencerProfileId = { $ne: ownProfile._id };
+      }
+    }
+    const [activeCount, pausedCount] = await Promise.all([
       Partnership.countDocuments({ ...statsFilter, status: 'active' }),
       Partnership.countDocuments({ ...statsFilter, status: 'paused' }),
     ]);
     const stats = {
-      total: totalCount,
+      total: activeCount + pausedCount,
       active: activeCount,
       paused: pausedCount,
-      ended: totalCount - activeCount - pausedCount,
+      ended: 0,
     };
 
     res.json({ partnerships: filtered, stats });
