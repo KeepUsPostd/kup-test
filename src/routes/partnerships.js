@@ -131,6 +131,29 @@ router.post('/', requireAuth, async (req, res) => {
         await existing.save();
 
         console.log(`🔄 Partnership reactivated: brand ${brandId} + influencer ${influencerProfileId}`);
+
+        // Notify brand owner about the re-partnered influencer
+        try {
+          const { User } = require('../models');
+          const ownerUser = brandProfile
+            ? await User.findById(brandProfile.userId, 'email').lean()
+            : null;
+          await notify.newInfluencerPartner({
+            brand: {
+              name: brandDoc?.name,
+              email: brandDoc?.email,
+              ownerEmail: ownerUser?.email || brandDoc?.email,
+              ownerId: brandProfile?.userId || null,
+            },
+            influencer: {
+              displayName: influencer.displayName,
+              handle: influencer.handle,
+            },
+          });
+        } catch (notifyErr) {
+          console.warn('Reactivation notification error:', notifyErr.message);
+        }
+
         return res.json({ message: 'Partnership reactivated', partnership: existing });
       }
       return res.status(409).json({
