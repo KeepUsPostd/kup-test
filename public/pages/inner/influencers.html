@@ -3618,6 +3618,10 @@
           var menu = this.nextElementSibling;
           // Close other menus
           document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { if (m !== menu) m.classList.remove('show'); });
+          // Position menu using fixed coordinates so it escapes overflow:hidden parents
+          var rect = this.getBoundingClientRect();
+          menu.style.top = (rect.bottom + 4) + 'px';
+          menu.style.right = (window.innerWidth - rect.right) + 'px';
           menu.classList.toggle('show');
         });
       });
