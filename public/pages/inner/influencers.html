@@ -403,16 +403,14 @@
     }
     .btn-row-actions:hover { background: #f0f0f0; color: #444; }
     .row-actions-menu {
-      position: absolute;
-      bottom: calc(100% + 4px);
-      right: 0;
+      position: fixed;
       background: var(--kup-white);
       border: 1px solid #eee;
       border-radius: var(--radius-sm);
       box-shadow: 0 8px 24px rgba(0,0,0,0.1);
       min-width: 180px;
       display: none;
-      z-index: 50;
+      z-index: 9999;
     }
     .row-actions-menu.show { display: block; }
     .row-action-item {
@@ -2512,6 +2510,10 @@
         // Close all other menus first
         document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
         var menu = this.nextElementSibling;
+        // Position menu using fixed coordinates so it escapes overflow:hidden parents
+        var rect = this.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
         menu.classList.toggle('show');
       });
     });
