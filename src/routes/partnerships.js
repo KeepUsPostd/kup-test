@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Partnership, InfluencerProfile, ContentSubmission, BrandProfile, Brand } = require('../models');
 const { checkTrialStatus } = require('../services/trial');
+const notify = require('../services/notifications');
 
 // Influencer slot limits per plan tier
 const INFLUENCER_SLOT_LIMITS = {
@@ -94,8 +95,9 @@ router.post('/', requireAuth, async (req, res) => {
 
     // Enforce influencer slot limit based on brand owner's plan tier
     const brandDoc = await Brand.findById(brandId).lean();
+    let brandProfile = null;
     if (brandDoc) {
-      const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandDoc._id });
+      brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandDoc._id });
       if (brandProfile) {
         const { effectiveTier } = checkTrialStatus(brandProfile);
         const slotLimit = INFLUENCER_SLOT_LIMITS[effectiveTier] ?? 10;
@@ -170,6 +172,29 @@ router.post('/', requireAuth, async (req, res) => {
     } catch (inviteErr) {
       // Non-critical — log but don't fail the partnership creation
       console.warn('Could not update BrandInvite status:', inviteErr.message);
+    }
+
+    // Notify brand owner about the new partner (email + in-app + push)
+    try {
+      const { User } = require('../models');
+      const ownerUser = brandProfile
+        ? await User.findById(brandProfile.userId, 'email firstName lastName').lean()
+        : null;
+      await notify.newInfluencerPartner({
+        brand: {
+          name: brandDoc?.name,
+          email: brandDoc?.email,
+          ownerEmail: ownerUser?.email || brandDoc?.email,
+          ownerId: brandProfile?.userId || null,
+        },
+        influencer: {
+          displayName: influencer.displayName,
+          handle: influencer.handle,
+        },
+      });
+    } catch (notifyErr) {
+      // Non-critical — log but don't fail the partnership creation
+      console.warn('Partnership notification error:', notifyErr.message);
     }
 
     res.status(201).json({
