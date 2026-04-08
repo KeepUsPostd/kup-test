@@ -273,17 +273,20 @@ router.get('/mine', requireAuth, async (req, res) => {
 
     const result = submissions.map(s => ({
       _id:         s._id,
+      status:      s.status,           // needed for Stats tab approval rate
       displayName: influencer.displayName || req.user.firstName || 'You',
       handle:      influencer.handle || 'me',
       avatarUrl:   influencer.avatarUrl || null,
       verified:    influencer.verificationStatus === 'verified',
       caption:     s.caption || '',
       brandName:   s.brandId?.name || 'Brand',
+      brandId:     s.brandId?._id || null,
       brandLogo:   s.brandId?.logoUrl || null,
       brandColor:  s.brandId?.generatedColor || '#1A1A1A',
       mediaUrls:   s.mediaUrls || [],
       posterUrl:   s.posterUrl || null,
       contentType: s.contentType,
+      submittedAt: s.submittedAt,
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
       shares:      s.metrics?.shares || 0,
