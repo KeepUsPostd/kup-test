@@ -426,7 +426,7 @@ router.post('/pay', requireAuth, async (req, res) => {
     }
 
     // Build return/cancel URLs
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const cancelUrl = `${baseUrl}/pages/inner/cash-account.html?payment=canceled`;
     const returnUrl = `${baseUrl}/api/payouts/pay/capture?transactionId=${transactionId}`;
     const description = `KUP payment: ${transaction.type} to ${influencer.displayName}`;
@@ -571,7 +571,7 @@ router.post('/pay/batch', requireAuth, async (req, res) => {
     const roundedTotal = Math.round(totalAmount * 100) / 100;
 
     // Build return/cancel URLs
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const txnIdsParam = transactionIds.join(',');
     const returnUrl = `${baseUrl}/api/payouts/pay/batch/capture?transactionIds=${txnIdsParam}`;
     const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;

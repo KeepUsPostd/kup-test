@@ -580,7 +580,7 @@ router.get('/paypal-onboard', requireAuth, async (req, res) => {
 
     // Generate a unique tracking ID for this onboarding session
     const trackingId = `KUP_INF_${influencer._id}_${Date.now()}`;
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const returnUrl = `${baseUrl}/api/auth/paypal-onboard/return?influencerId=${influencer._id}`;
 
     const { actionUrl, referralId } = await paypal.createPartnerReferral(trackingId, returnUrl);
@@ -614,7 +614,7 @@ router.get('/paypal-onboard', requireAuth, async (req, res) => {
 // PayPal appends: ?merchantIdInPayPal=xxx&permissionsGranted=true&accountStatus=BUSINESS_ACCOUNT
 // No auth required — browser redirect from PayPal (uses influencerId from our returnUrl)
 router.get('/paypal-onboard/return', async (req, res) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+  const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
   try {
     const { influencerId, merchantIdInPayPal, permissionsGranted, accountStatus } = req.query;
 
