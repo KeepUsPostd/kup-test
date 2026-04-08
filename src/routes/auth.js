@@ -686,11 +686,31 @@ router.get('/paypal-onboard/return', async (req, res) => {
 });
 
 // GET /api/auth/paypal-onboard/status — Check PPCP onboarding status
+// If our DB says 'pending' but PayPal says the merchant completed onboarding,
+// we update our record. This handles the case where PayPal doesn't fire the
+// return URL redirect (common in sandbox, occasional in production).
 router.get('/paypal-onboard/status', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
       return res.status(404).json({ error: 'Influencer profile not found' });
+    }
+
+    // If status is pending and we have a tracking ID, ask PayPal directly
+    if (influencer.paypalOnboardingStatus === 'pending' && influencer.paypalTrackingId) {
+      try {
+        const ppResult = await paypal.getMerchantStatusByTrackingId(influencer.paypalTrackingId);
+        if (ppResult && ppResult.merchant_id) {
+          // PayPal confirms onboarding is done — update our record
+          influencer.paypalMerchantId = ppResult.merchant_id;
+          influencer.paypalOnboardingStatus = 'completed';
+          influencer.paypalConnectedAt = new Date();
+          await influencer.save();
+          console.log(`✅ PPCP onboarding confirmed via status poll for ${influencer.displayName}: merchantId=${ppResult.merchant_id}`);
+        }
+      } catch (pollErr) {
+        console.warn('[paypal-onboard/status] Could not poll PayPal by trackingId:', pollErr.message);
+      }
     }
 
     // If we have a merchantId, verify with PayPal that it's still active

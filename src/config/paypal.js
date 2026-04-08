@@ -263,6 +263,24 @@ async function getMerchantStatus(merchantId) {
   return paypalRequest('GET', `/v1/customer/partners/${partnerId}/merchant-integrations/${merchantId}`);
 }
 
+/**
+ * Check merchant onboarding status by tracking ID.
+ * Useful when PayPal doesn't fire the return URL redirect (common in sandbox).
+ * @param {string} trackingId - Our internal tracking ID from createPartnerReferral
+ * @returns {Promise<object|null>} Merchant integration details or null if not found
+ */
+async function getMerchantStatusByTrackingId(trackingId) {
+  const partnerId = process.env.PAYPAL_PARTNER_ID;
+  if (!partnerId) throw new Error('PAYPAL_PARTNER_ID not configured.');
+  try {
+    return await paypalRequest('GET', `/v1/customer/partners/${partnerId}/merchant-integrations?tracking_id=${trackingId}`);
+  } catch (err) {
+    // PayPal returns 404 if merchant hasn't completed onboarding yet
+    if (err.status === 404 || err.statusCode === 404) return null;
+    throw err;
+  }
+}
+
 // ── Order Helpers (Brand → Influencer Payments) ──────────
 
 /**
@@ -414,6 +432,7 @@ module.exports = {
   // PPCP Merchant Onboarding
   createPartnerReferral,
   getMerchantStatus,
+  getMerchantStatusByTrackingId,
 
   // Orders (brand → influencer payments, PPCP-enabled)
   createOrder,
