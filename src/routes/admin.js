@@ -197,4 +197,27 @@ router.delete('/influencers/content', requireAuth, requireAdmin, async (req, res
   }
 });
 
+// POST /api/admin/recalculate-partner-counts — Fix all totalBrandsPartnered from actual data
+router.post('/recalculate-partner-counts', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { InfluencerProfile, Partnership } = require('../models');
+    const profiles = await InfluencerProfile.find({}, '_id handle totalBrandsPartnered').lean();
+    const fixed = [];
+
+    for (const p of profiles) {
+      const actual = await Partnership.countDocuments({ influencerProfileId: p._id, status: 'active' });
+      if (p.totalBrandsPartnered !== actual) {
+        await InfluencerProfile.updateOne({ _id: p._id }, { $set: { totalBrandsPartnered: actual } });
+        fixed.push({ handle: p.handle, was: p.totalBrandsPartnered, now: actual });
+      }
+    }
+
+    console.log(`🔧 Recalculated partner counts: ${fixed.length} fixed out of ${profiles.length}`);
+    res.json({ checked: profiles.length, fixed });
+  } catch (error) {
+    console.error('Recalculate error:', error.message);
+    res.status(500).json({ error: 'Failed to recalculate', message: error.message });
+  }
+});
+
 module.exports = router;
