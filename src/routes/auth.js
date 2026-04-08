@@ -558,6 +558,12 @@ const paypal = require('../config/paypal');
 // After completing, PayPal redirects to our /return URL with merchantIdInPayPal.
 router.get('/paypal-onboard', requireAuth, async (req, res) => {
   try {
+    // Guard: PAYPAL_PARTNER_ID is required for PPCP onboarding — surface this clearly
+    if (!process.env.PAYPAL_PARTNER_ID) {
+      console.error('[paypal-onboard] PAYPAL_PARTNER_ID env var is not set');
+      return res.status(500).json({ error: 'PayPal onboarding is not configured on this server. Contact support.', detail: 'PAYPAL_PARTNER_ID missing' });
+    }
+
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
       return res.status(404).json({ error: 'Influencer profile not found' });
@@ -612,11 +618,15 @@ router.get('/paypal-onboard/return', async (req, res) => {
   try {
     const { influencerId, merchantIdInPayPal, permissionsGranted, accountStatus } = req.query;
 
-    if (!influencerId || !merchantIdInPayPal) {
+    // influencerId is always required — without it we can't find the user
+    if (!influencerId) {
+      console.warn('[paypal-onboard/return] Missing influencerId');
       return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=error&reason=missing_params`);
     }
 
-    if (permissionsGranted !== 'true') {
+    // PayPal sandbox sometimes sends permissionsGranted=false or omits it entirely.
+    // Treat any explicit false/canceled as a user cancellation. Missing = proceed.
+    if (permissionsGranted === 'false') {
       return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=canceled`);
     }
 
@@ -625,13 +635,19 @@ router.get('/paypal-onboard/return', async (req, res) => {
       return res.redirect(`${baseUrl}/pages/inner/influencer-wallet.html?paypal=error&reason=not_found`);
     }
 
-    // Store merchant ID and mark onboarding complete
-    influencer.paypalMerchantId = merchantIdInPayPal;
+    // Store merchant ID if PayPal included it (may be absent in sandbox — webhook will fill it in later)
+    if (merchantIdInPayPal) {
+      influencer.paypalMerchantId = merchantIdInPayPal;
+      console.log(`✅ PPCP onboarding complete for ${influencer.displayName}: merchantId=${merchantIdInPayPal}`);
+    } else {
+      // No merchantId yet — mark as completed anyway; webhook MERCHANT.ONBOARDING.COMPLETED
+      // will provide the merchantId once PayPal finishes processing on their side.
+      console.log(`✅ PPCP onboarding return for ${influencer.displayName}: no merchantId yet (pending webhook)`);
+    }
+
     influencer.paypalOnboardingStatus = 'completed';
     influencer.paypalConnectedAt = new Date();
     await influencer.save();
-
-    console.log(`✅ PPCP onboarding complete for ${influencer.displayName}: merchantId=${merchantIdInPayPal}`);
 
     // 📧 Notify influencer: PayPal Business connected
     notify.paypalConnected({
