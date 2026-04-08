@@ -2503,19 +2503,27 @@
       });
     });
 
-    /* ============== ROW ACTIONS MENU (⋯) ============== */
-    document.querySelectorAll('.btn-row-actions').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
+    /* ============== ROW ACTIONS MENU (⋯) — single delegated handler ============== */
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn-row-actions');
+      if (btn) {
         e.stopPropagation();
-        // Close all other menus first
+        var menu = btn.nextElementSibling;
+        var wasOpen = menu.classList.contains('show');
+        // Close all menus first
         document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
-        var menu = this.nextElementSibling;
-        // Position menu using fixed coordinates so it escapes overflow:hidden parents
-        var rect = this.getBoundingClientRect();
-        menu.style.top = (rect.bottom + 4) + 'px';
-        menu.style.right = (window.innerWidth - rect.right) + 'px';
-        menu.classList.toggle('show');
-      });
+        if (!wasOpen) {
+          var rect = btn.getBoundingClientRect();
+          menu.style.top = (rect.bottom + 4) + 'px';
+          menu.style.right = (window.innerWidth - rect.right) + 'px';
+          menu.classList.add('show');
+        }
+        return;
+      }
+      // Close menus on any other click (outside .row-actions-wrap)
+      if (!e.target.closest('.row-actions-menu')) {
+        document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
+      }
     });
 
     // Row action handlers — delegated on tbody so dynamic rows are covered
@@ -2574,11 +2582,7 @@
       }
     });
 
-    // Close row menus on outside click
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.row-actions-wrap')) return;
-      document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
-    });
+    // Close row menus handled by delegated handler above
 
     /* ============== REQUEST APPROVE / DECLINE ============== */
     document.querySelectorAll('.btn-approve').forEach(function(btn) {
@@ -3483,8 +3487,7 @@
       tbody.innerHTML = html;
       showing.textContent = 'Showing ' + partnerships.length + ' influencer' + (partnerships.length !== 1 ? 's' : '');
 
-      // Re-bind row action menus
-      bindRowActions();
+      // Row action menus handled by delegated handler — no rebinding needed
     }
 
     /* ---- Render requests (source=request, not yet active) ---- */
@@ -3612,21 +3615,7 @@
     }
 
     /* ---- Row action menus ---- */
-    function bindRowActions() {
-      document.querySelectorAll('#influencersTbody .btn-row-actions').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          var menu = this.nextElementSibling;
-          // Close other menus
-          document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { if (m !== menu) m.classList.remove('show'); });
-          // Position menu using fixed coordinates so it escapes overflow:hidden parents
-          var rect = this.getBoundingClientRect();
-          menu.style.top = (rect.bottom + 4) + 'px';
-          menu.style.right = (window.innerWidth - rect.right) + 'px';
-          menu.classList.toggle('show');
-        });
-      });
-    }
+    // Row action menu binding handled by single delegated handler at top
 
     /* ---- LOAD PARTNERSHIPS FROM API ---- */
     async function loadPartnerships() {
