@@ -220,4 +220,34 @@ router.post('/recalculate-partner-counts', requireAuth, requireAdmin, async (req
   }
 });
 
+// POST /api/admin/test-email — Send a test email to diagnose delivery issues
+router.post('/test-email', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { sendEmail } = require('../config/email');
+    const { to } = req.body;
+    if (!to) return res.status(400).json({ error: 'to is required' });
+
+    const result = await sendEmail({
+      to,
+      subject: 'KeepUsPostd — Partnership Confirmed!',
+      headline: 'Partnership Confirmed!',
+      preheader: 'You are now partnered with a brand on KeepUsPostd.',
+      bodyHtml: `
+        <p>You're now partnered with <strong>Santana Thrasybule</strong> on KeepUsPostd!</p>
+        <p>Start submitting content and earning rewards from this brand.</p>
+        <p style="font-size:0.8rem;color:#888;">This is a test email sent from the admin panel to verify delivery.</p>
+      `,
+      ctaText: 'View Partnership',
+      ctaUrl: 'https://keepuspostd.com/app/brands.html',
+      variant: 'influencer',
+    });
+
+    console.log(`📧 Admin test email to ${to}:`, JSON.stringify(result));
+    res.json({ to, result });
+  } catch (error) {
+    console.error('Test email error:', error.message);
+    res.status(500).json({ error: 'Failed to send test email', message: error.message });
+  }
+});
+
 module.exports = router;
