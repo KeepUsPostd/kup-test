@@ -2575,7 +2575,8 @@
     });
 
     // Close row menus on outside click
-    document.addEventListener('click', function() {
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.row-actions-wrap')) return;
       document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
     });
 
