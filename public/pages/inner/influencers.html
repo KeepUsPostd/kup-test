@@ -2503,11 +2503,13 @@
       });
     });
 
-    /* ============== ROW ACTIONS MENU (⋯) — single delegated handler ============== */
+    /* ============== ROW ACTIONS MENU (⋯) ============== */
+    // Use capture phase so this fires FIRST, before any other click handlers
     document.addEventListener('click', function(e) {
       var btn = e.target.closest('.btn-row-actions');
       if (btn) {
-        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
         var menu = btn.nextElementSibling;
         var wasOpen = menu.classList.contains('show');
         // Close all menus first
@@ -2520,11 +2522,11 @@
         }
         return;
       }
-      // Close menus on any other click (outside .row-actions-wrap)
+      // Close menus if clicking outside the menu itself
       if (!e.target.closest('.row-actions-menu')) {
         document.querySelectorAll('.row-actions-menu.show').forEach(function(m) { m.classList.remove('show'); });
       }
-    });
+    }, true);
 
     // Row action handlers — delegated on tbody so dynamic rows are covered
     document.getElementById('influencersTbody').addEventListener('click', function(e) {
