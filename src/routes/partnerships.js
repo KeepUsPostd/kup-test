@@ -423,10 +423,14 @@ router.post('/leave', requireAuth, async (req, res) => {
     partnership.endedBy = 'influencer';
     await partnership.save();
 
-    // Decrement influencer's brand partner count
+    // Decrement influencer's brand partner count (floor at 0)
     await InfluencerProfile.findByIdAndUpdate(influencer._id, {
       $inc: { totalBrandsPartnered: -1 },
     });
+    await InfluencerProfile.updateOne(
+      { _id: influencer._id, totalBrandsPartnered: { $lt: 0 } },
+      { $set: { totalBrandsPartnered: 0 } }
+    );
 
     console.log(`👋 Influencer @${influencer.handle} left brand ${brandId}`);
 
@@ -547,11 +551,15 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
 
     await partnership.save();
 
-    // Update influencer's brand partner count when ending
+    // Update influencer's brand partner count when ending (floor at 0)
     if (newStatus === 'ended') {
       await InfluencerProfile.findByIdAndUpdate(partnership.influencerProfileId, {
         $inc: { totalBrandsPartnered: -1 },
       });
+      await InfluencerProfile.updateOne(
+        { _id: partnership.influencerProfileId, totalBrandsPartnered: { $lt: 0 } },
+        { $set: { totalBrandsPartnered: 0 } }
+      );
     }
 
     console.log(`🤝 Partnership ${partnership._id} → ${newStatus}`);
