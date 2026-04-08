@@ -542,6 +542,13 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
 
     await partnership.save();
 
+    // Update influencer's brand partner count when ending
+    if (newStatus === 'ended') {
+      await InfluencerProfile.findByIdAndUpdate(partnership.influencerProfileId, {
+        $inc: { totalBrandsPartnered: -1 },
+      });
+    }
+
     console.log(`🤝 Partnership ${partnership._id} → ${newStatus}`);
 
     // Notify influencer when brand ends the partnership
