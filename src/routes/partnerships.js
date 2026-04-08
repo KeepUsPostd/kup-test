@@ -365,6 +365,86 @@ router.get('/pending-invites', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/partnerships/leave — Influencer ends their partnership with a brand
+// Body: { brandId }  — looks up partnership by brandId + logged-in user's influencer profile
+router.post('/leave', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.body;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    const partnership = await Partnership.findOne({
+      brandId,
+      influencerProfileId: influencer._id,
+      status: { $in: ['active', 'paused'] },
+    });
+
+    if (!partnership) {
+      return res.status(404).json({ error: 'No active partnership found with this brand' });
+    }
+
+    partnership.status = 'ended';
+    partnership.endedAt = new Date();
+    partnership.endedBy = 'influencer';
+    await partnership.save();
+
+    // Decrement influencer's brand partner count
+    await InfluencerProfile.findByIdAndUpdate(influencer._id, {
+      $inc: { totalBrandsPartnered: -1 },
+    });
+
+    console.log(`👋 Influencer @${influencer.handle} left brand ${brandId}`);
+
+    // Notify brand owner that the influencer left
+    try {
+      const { User } = require('../models');
+      const brandDoc = await Brand.findById(brandId).lean();
+      const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandId });
+      const ownerUser = brandProfile
+        ? await User.findById(brandProfile.userId, 'email').lean()
+        : null;
+
+      if (ownerUser || brandDoc?.email) {
+        const { sendEmail } = require('../config/email');
+        const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+        await sendEmail({
+          to: ownerUser?.email || brandDoc?.email,
+          subject: `Partner Update — ${influencer.displayName || influencer.handle} left ${brandDoc?.name || 'your brand'}`,
+          headline: 'Influencer Left Partnership',
+          preheader: `${influencer.displayName || influencer.handle} ended their partnership.`,
+          bodyHtml: `
+            <p><strong>${influencer.displayName || influencer.handle}</strong> has ended their partnership with <strong>${brandDoc?.name || 'your brand'}</strong>.</p>
+            <p>Any pending content submissions will remain in your queue.</p>
+          `,
+          ctaText: 'View Influencers',
+          ctaUrl: `${APP_URL}/pages/inner/influencers.html`,
+          variant: 'brand',
+        });
+
+        if (brandProfile?.userId) {
+          const { Notification } = require('../models');
+          await Notification.create({
+            userId: brandProfile.userId,
+            title: 'Partner Left',
+            message: `${influencer.displayName || influencer.handle} ended their partnership with ${brandDoc?.name || 'your brand'}.`,
+            type: 'partnership',
+            link: '/pages/inner/influencers.html',
+          });
+        }
+      }
+    } catch (notifyErr) {
+      console.warn('Leave notification error:', notifyErr.message);
+    }
+
+    res.json({ message: 'Partnership ended', partnership });
+  } catch (error) {
+    console.error('Leave partnership error:', error.message);
+    res.status(500).json({ error: 'Could not leave partnership' });
+  }
+});
+
 // GET /api/partnerships/:partnershipId — Get single partnership with details
 router.get('/:partnershipId', requireAuth, async (req, res) => {
   try {
@@ -435,6 +515,28 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
     await partnership.save();
 
     console.log(`🤝 Partnership ${partnership._id} → ${newStatus}`);
+
+    // Notify influencer when brand ends the partnership
+    if (newStatus === 'ended') {
+      try {
+        const inflProfile = await InfluencerProfile.findById(partnership.influencerProfileId).lean();
+        const brandDoc = await Brand.findById(partnership.brandId).lean();
+        const { User } = require('../models');
+        const inflUser = inflProfile?.userId
+          ? await User.findById(inflProfile.userId, 'email').lean()
+          : null;
+        await notify.partnershipRemoved({
+          influencer: {
+            email: inflUser?.email,
+            userId: inflProfile?.userId,
+            displayName: inflProfile?.displayName || inflProfile?.handle,
+          },
+          brand: { name: brandDoc?.name || 'A brand' },
+        });
+      } catch (notifyErr) {
+        console.warn('End partnership notification error:', notifyErr.message);
+      }
+    }
 
     res.json({ message: `Partnership ${newStatus}`, partnership });
   } catch (error) {
