@@ -553,25 +553,6 @@ router.post('/send-verification-email', requireAuth, async (req, res) => {
 
 const paypal = require('../config/paypal');
 
-// TEMP: Debug endpoint to check PPCP state — REMOVE after debugging
-router.get('/paypal-onboard/debug', requireAuth, async (req, res) => {
-  try {
-    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
-    if (!influencer) return res.json({ error: 'no influencer profile' });
-    const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'NOT_SET';
-    res.json({
-      displayName: influencer.displayName,
-      paypalEmail: influencer.paypalEmail,
-      paypalOnboardingStatus: influencer.paypalOnboardingStatus,
-      paypalMerchantId: influencer.paypalMerchantId || null,
-      paypalTrackingId: influencer.paypalTrackingId || null,
-      paypalConnectedAt: influencer.paypalConnectedAt || null,
-      APP_URL: baseUrl,
-      BASE_URL_env: process.env.BASE_URL || 'NOT_SET',
-    });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
 // GET /api/auth/paypal-onboard — Initiate PPCP merchant onboarding
 // Returns an onboardingUrl for the influencer to open in a browser/WebView.
 // After completing, PayPal redirects to our /return URL with merchantIdInPayPal.
@@ -601,8 +582,6 @@ router.get('/paypal-onboard', requireAuth, async (req, res) => {
     const trackingId = `KUP_INF_${influencer._id}_${Date.now()}`;
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const returnUrl = `${baseUrl}/api/auth/paypal-onboard/return?influencerId=${influencer._id}`;
-
-    console.log(`[paypal-onboard] baseUrl=${baseUrl}, returnUrl=${returnUrl}`);
 
     const { actionUrl, referralId } = await paypal.createPartnerReferral(trackingId, returnUrl);
 
@@ -638,8 +617,6 @@ router.get('/paypal-onboard/return', async (req, res) => {
   const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
   try {
     const { influencerId, merchantIdInPayPal, permissionsGranted, accountStatus } = req.query;
-
-    console.log(`[paypal-onboard/return] HIT! influencerId=${influencerId}, merchantId=${merchantIdInPayPal}, permissions=${permissionsGranted}, accountStatus=${accountStatus}`);
 
     // influencerId is always required — without it we can't find the user
     if (!influencerId) {
