@@ -1215,7 +1215,10 @@
 
   <!-- Auth gate + load rewards from API -->
   <script>
-    auth.onAuthStateChanged(function(user) {
+    // Wait for Firebase auth to fully initialize before checking user state.
+    // onAuthStateChanged fires immediately with null if session isn't restored yet.
+    auth.authStateReady().then(function() {
+      var user = auth.currentUser;
       if (!user) { window.location.href = '/pages/login.html'; return; }
 
       // Hydrate header from brand context
