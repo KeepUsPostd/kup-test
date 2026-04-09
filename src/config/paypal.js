@@ -480,26 +480,13 @@ async function createOrderWithVault(amount, description, vaultPaymentTokenId, me
     description,
   };
 
-  if (merchantId) {
-    purchaseUnit.payee = { merchant_id: merchantId };
-    purchaseUnit.payment_instruction = {
-      disbursement_mode: 'INSTANT',
-      platform_fees: [
-        {
-          amount: {
-            currency_code: 'USD',
-            value: platformFee.toFixed(2),
-          },
-        },
-      ],
-    };
-  }
-
+  // NOTE: PPCP payee + platform_fees cannot be combined with vault_id in a single order.
+  // Vault orders charge the payer directly — KUP collects the full amount and pays out via Payouts API.
   if (customId) {
     purchaseUnit.custom_id = customId;
   }
 
-  return paypalRequest('POST', '/v2/checkout/orders', {
+  const orderPayload = {
     intent: 'CAPTURE',
     purchase_units: [purchaseUnit],
     payment_source: {
@@ -507,7 +494,10 @@ async function createOrderWithVault(amount, description, vaultPaymentTokenId, me
         vault_id: vaultPaymentTokenId,
       },
     },
-  });
+  };
+
+  console.log(`💳 Vault order payload: ${JSON.stringify(orderPayload).substring(0, 300)}`);
+  return paypalRequest('POST', '/v2/checkout/orders', orderPayload);
 }
 
 module.exports = {
