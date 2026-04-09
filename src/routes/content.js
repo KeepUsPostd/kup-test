@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, User } = require('../models');
+const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
 const paypal = require('../config/paypal');
 
