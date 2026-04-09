@@ -231,12 +231,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      vertical-align: middle;
       min-width: 22px;
       height: 22px;
       padding: 0 6px;
       border-radius: 50px;
       font-size: 0.7rem;
       font-weight: 700;
+      line-height: 1;
       background: #f0f0f0;
       color: #888;
     }
@@ -952,6 +954,8 @@
     .notice-avatar {
       width: 44px; height: 44px;
       border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
       background: var(--kup-gradient);
       display: flex;
       align-items: center;
