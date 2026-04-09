@@ -119,8 +119,8 @@ router.post('/', requireAuth, async (req, res) => {
     });
     if (isBrandMember) {
       return res.status(403).json({
-        error: 'Self-submission not allowed',
-        message: "You can't submit content to a brand you manage.",
+        error: 'self_submission',
+        message: "You can't submit reviews to your own brand. Choose a different brand to review as an influencer.",
       });
     }
 
