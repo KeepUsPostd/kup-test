@@ -147,6 +147,9 @@
     .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
     .notif-text strong { font-weight: 700; color: #1a1a1a; }
     .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+        .notif-title { font-size: 0.82rem; font-weight: 700; color: #1a1a1a; line-height: 1.3; }
+    .notif-msg { font-size: 0.78rem; color: #555; line-height: 1.4; margin-top: 2px; }
+    .notif-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--kup-blue); flex-shrink: 0; margin-top: 6px; }
     .notif-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 0.85rem; }
 
     /* =============================================
@@ -2375,7 +2378,11 @@
         const influencer = sub.influencerProfileId || {};
         const displayName = influencer.displayName || influencer.handle || 'New Creator';
         const handle = influencer.handle || displayName.toLowerCase().replace(/\s+/g, '_');
-        const tier = influencer.influenceTier || 'Nano Influencer';
+        const rawTier = influencer.influenceTier || 'unverified';
+        const isVerified = influencer.isVerified === true;
+        const TIER_NAMES = { unverified: 'Startup', nano: 'Nano', micro: 'Micro', rising: 'Mid', established: 'Macro', premium: 'Mega', celebrity: 'Celebrity' };
+        const tier = isVerified ? (TIER_NAMES[rawTier] || rawTier.charAt(0).toUpperCase() + rawTier.slice(1)) : (rawTier === 'unverified' ? 'Unverified' : rawTier.charAt(0).toUpperCase() + rawTier.slice(1));
+        const verifiedBadge = isVerified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '';
         const infBio = influencer.bio || '';
         const infFollowers = influencer.realFollowerCount ? (influencer.realFollowerCount >= 1000 ? (influencer.realFollowerCount / 1000).toFixed(1) + 'K' : influencer.realFollowerCount) : '—';
         const infEngagement = influencer.engagementRate ? influencer.engagementRate.toFixed(1) + '%' : '—';
@@ -2432,7 +2439,7 @@
             <div class="influencer-cell" data-influencer-id="${influencer._id || ''}" data-influencer-name="${displayName}" data-influencer-handle="${handle}" data-influencer-tier="${tier}" data-influencer-avatar="${influencer.avatarUrl || ''}" data-influencer-bio="${infBio}" data-influencer-followers="${infFollowers}" data-influencer-engagement="${infEngagement}" data-influencer-posts="${infPosts}">
               <div class="avatar">${influencer.avatarUrl ? `<img src="${influencer.avatarUrl}" style="width:100%;height:100%;object-fit:cover;" alt="">` : PERSON_SVG}</div>
               <div>
-                <div class="name">@${handle}</div>
+                <div class="name">@${handle}${verifiedBadge}</div>
                 <div class="tier">${tier}</div>
               </div>
             </div>

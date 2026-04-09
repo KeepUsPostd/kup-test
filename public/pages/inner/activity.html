@@ -1049,6 +1049,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
 
   <script>
     var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
@@ -1163,10 +1164,13 @@
         var inf = sub.influencerProfileId || {};
         var handle = inf.handle || 'unknown';
         var displayName = inf.displayName || handle;
-        var tier = inf.tier || 'Creator';
+        var rawTier = inf.influenceTier || 'unverified';
+        var infVerified = inf.isVerified === true;
+        var TIER_NAMES = { unverified: 'Startup', nano: 'Nano', micro: 'Micro', rising: 'Mid', established: 'Macro', premium: 'Mega', celebrity: 'Celebrity' };
+        var tier = infVerified ? (TIER_NAMES[rawTier] || rawTier) : (rawTier === 'unverified' ? 'Unverified' : rawTier);
         var avatarUrl = inf.avatarUrl || null;
         if (!influencerMap[handle]) {
-          influencerMap[handle] = { handle: handle, displayName: displayName, tier: tier, avatarUrl: avatarUrl, submitted: 0, approved: 0, postd: 0 };
+          influencerMap[handle] = { handle: handle, displayName: displayName, tier: tier, isVerified: infVerified, avatarUrl: avatarUrl, submitted: 0, approved: 0, postd: 0 };
         }
         influencerMap[handle].submitted++;
         if (sub.status === 'approved') influencerMap[handle].approved++;
@@ -1202,7 +1206,8 @@
           : '<div class="avatar-placeholder">' + PERSON_SVG + '</div>';
         html += '<div class="influencer-item">';
         html += avHtml;
-        html += '<div class="info"><div class="username">@' + inf.handle + '</div><div class="tier">' + inf.tier + '</div></div>';
+        var vBadge = inf.isVerified ? ' <svg width="12" height="12" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '';
+        html += '<div class="info"><div class="username">@' + inf.handle + vBadge + '</div><div class="tier">' + inf.tier + '</div></div>';
         html += '<div class="stat"><div class="count">' + inf[sortKey] + '</div><div class="label">' + label + '</div></div>';
         html += '</div>';
       });
