@@ -434,6 +434,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
     // Priority: campaign-linked reward → brand-level active CPA reward
     let rewardTriggered = null;
     try {
+      console.log(`🎰 Reward trigger START — brandId=${submission.brandId}, campaignId=${submission.campaignId || 'none'}, influencer=${submission.influencerProfileId}`);
       let cpaReward = null;
 
       // 1. Check if the campaign has a linked reward
