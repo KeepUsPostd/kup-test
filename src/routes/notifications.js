@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
     const skip = (page - 1) * limit;
 
-    const filter = { userId: req.user._id };
+    const filter = { userId: req.user._id.toString() };
 
     // Optional type filter
     if (req.query.type) {
@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
 router.get('/unread-count', async (req, res) => {
   try {
     const count = await Notification.countDocuments({
-      userId: req.user._id,
+      userId: req.user._id.toString(),
       read: false,
     });
     res.json({ unreadCount: count });
@@ -71,7 +71,7 @@ router.get('/unread-count', async (req, res) => {
 router.put('/:id/read', async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+      { _id: req.params.id, userId: req.user._id.toString() },
       { $set: { read: true, readAt: new Date() } },
       { new: true }
     );
@@ -91,7 +91,7 @@ router.put('/:id/read', async (req, res) => {
 router.put('/read-all', async (req, res) => {
   try {
     const result = await Notification.updateMany(
-      { userId: req.user._id, read: false },
+      { userId: req.user._id.toString(), read: false },
       { $set: { read: true, readAt: new Date() } }
     );
 
