@@ -3424,6 +3424,7 @@
       var handle = inf.handle || 'unknown';
       var name = inf.displayName || handle;
       var tier = inf.influenceTier || inf.creatorTier || 'unverified';
+      var verified = inf.isVerified === true;
       var avatarUrl = inf.avatarUrl;
       var gradient = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
       var rating = inf.stats ? inf.stats.averageRating : (inf.averageRating || null);
@@ -3438,6 +3439,7 @@
         name: name,
         tier: tierLabel(tier),
         tierClass: tierBadgeClass(tier),
+        isVerified: verified,
         avatarUrl: avatarUrl || null,
         followers: _formatFollowers(inf.realFollowerCount || inf.followerCount),
         engagement: rating ? rating.toFixed(1) + ' ★' : '—',
@@ -3452,7 +3454,7 @@
 
       return '<tr data-partnership-id="' + p._id + '" data-handle="' + handle + '" data-name="' + name + '" data-status="' + p.status + '">' +
         '<td data-label="Influencer"><div class="influencer-cell">' + avatarHtml +
-          '<div><div class="name" data-influencer="' + handle + '">@' + handle + '</div>' +
+          '<div><div class="name" data-influencer="' + handle + '">@' + handle + (verified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div>' +
           '<div class="tier"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier) + '</span></div></div></div></td>' +
         '<td class="rating-cell" data-label="Rating">' + buildStars(rating, ratingCount) + '</td>' +
         '<td data-label="Status"><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +

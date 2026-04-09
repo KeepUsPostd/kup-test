@@ -371,7 +371,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
     const partnerships = await Partnership.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats isHidden')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats isHidden isVerified realFollowerCount')
       .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
@@ -518,7 +518,7 @@ router.post('/leave', requireAuth, async (req, res) => {
 router.get('/:partnershipId', requireAuth, async (req, res) => {
   try {
     const partnership = await Partnership.findById(req.params.partnershipId)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats bio')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats bio isVerified realFollowerCount')
       .populate('brandId', 'name initials generatedColor category');
 
     if (!partnership) {

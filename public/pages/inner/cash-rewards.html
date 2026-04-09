@@ -2244,7 +2244,7 @@
           '<input type="checkbox" aria-label="Select ' + inf.handle + '">' +
           '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
             '<div class="avatar">' + PERSON_SVG + '</div>' +
-            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
+            '<div><div class="name">@' + inf.handle + (inf.isVerified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
           '</div></div></td>' +
         '<td data-label="Last Paid" class="amount-cell" style="text-align:center;">$0.00</td>' +
         '<td data-label="Total Paid" class="amount-cell green" style="text-align:center;">$0.00</td>' +

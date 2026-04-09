@@ -218,7 +218,7 @@ router.get('/feed', async (req, res) => {
     const skip = (page - 1) * limit;
 
     const submissions = await ContentSubmission.find({ status: 'approved' })
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
       .populate('brandId', 'name logoUrl generatedColor')
       .sort({ approvedAt: -1, submittedAt: -1 })
       .skip(skip)
@@ -315,7 +315,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
     const rawSubmissions = await ContentSubmission.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isHidden')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isHidden isVerified')
       .populate('campaignId', 'title status')
       .sort({ submittedAt: -1 })
       .limit(100);
@@ -345,7 +345,7 @@ router.get('/', requireAuth, async (req, res) => {
 router.get('/:submissionId', requireAuth, async (req, res) => {
   try {
     const submission = await ContentSubmission.findById(req.params.submissionId)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isVerified')
       .populate('campaignId', 'title status')
       .populate('reviewedBy', 'email legalFirstName legalLastName');
 
