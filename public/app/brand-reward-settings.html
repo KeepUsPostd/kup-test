@@ -1220,10 +1220,14 @@
     auth.authStateReady().then(function() {
       var user = auth.currentUser;
       if (!user) { window.location.href = '/pages/login.html'; return; }
+      // Wait briefly for brand-context.js to sync brands from API
+      setTimeout(loadRewardPage, 500);
+    });
 
+    function loadRewardPage() {
       // Hydrate header from brand context
       try {
-        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
         if (brand && brand.name) {
           var brandEl = document.querySelector('.profile-info .brand');
           if (brandEl) brandEl.textContent = brand.name;
@@ -1262,7 +1266,7 @@
           });
         }
       } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
-    });
+    }
 
     // Hydrate the summary stat cards from real reward data
     function hydrateRewardStats(rewards) {
