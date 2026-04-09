@@ -416,6 +416,98 @@ async function verifyWebhook(headers, body, webhookId) {
   });
 }
 
+// ── Vault v3 — Save brand payment method for auto-capture ──────────────
+
+/**
+ * Create a Vault setup token. Brand visits the approve URL once to authorize
+ * KUP to charge their PayPal for future content approval payments.
+ * @param {string} returnUrl - Where PayPal redirects after brand approves
+ * @param {string} cancelUrl - Where PayPal redirects if brand cancels
+ * @returns {Promise<Object>} { id, approve_url, ... }
+ */
+async function createVaultSetupToken(returnUrl, cancelUrl) {
+  return paypalRequest('POST', '/v3/vault/setup-tokens', {
+    payment_source: {
+      paypal: {
+        usage_type: 'MERCHANT',
+        experience_context: {
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+          brand_name: 'KeepUsPostd',
+          shipping_preference: 'NO_SHIPPING',
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Exchange a setup token for a permanent payment token after brand approves.
+ * The payment_token can be used for future auto-captures without redirect.
+ * @param {string} setupTokenId - The setup token ID from createVaultSetupToken
+ * @returns {Promise<Object>} { id (payment_token), customer.id, ... }
+ */
+async function createVaultPaymentToken(setupTokenId) {
+  return paypalRequest('POST', '/v3/vault/payment-tokens', {
+    payment_source: {
+      token: {
+        id: setupTokenId,
+        type: 'SETUP_TOKEN',
+      },
+    },
+  });
+}
+
+/**
+ * Create and immediately capture an order using a saved Vault payment token.
+ * No brand redirect needed — payment is charged automatically.
+ * @param {number} amount - Total amount brand pays (includes fees)
+ * @param {string} description - Payment description
+ * @param {string} vaultPaymentTokenId - Brand's saved payment token
+ * @param {string} merchantId - Influencer's PPCP merchant ID
+ * @param {number} platformFee - KUP platform fee ($0.50)
+ * @param {string} customId - Transaction ID for webhook lookup
+ * @returns {Promise<Object>} Order with capture result
+ */
+async function createOrderWithVault(amount, description, vaultPaymentTokenId, merchantId, platformFee = 0.50, customId = null) {
+  const purchaseUnit = {
+    amount: {
+      currency_code: 'USD',
+      value: amount.toFixed(2),
+    },
+    description,
+  };
+
+  if (merchantId) {
+    purchaseUnit.payee = { merchant_id: merchantId };
+    purchaseUnit.payment_instruction = {
+      disbursement_mode: 'INSTANT',
+      platform_fees: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: platformFee.toFixed(2),
+          },
+        },
+      ],
+    };
+  }
+
+  if (customId) {
+    purchaseUnit.custom_id = customId;
+  }
+
+  return paypalRequest('POST', '/v2/checkout/orders', {
+    intent: 'CAPTURE',
+    purchase_units: [purchaseUnit],
+    payment_source: {
+      paypal: {
+        vault_id: vaultPaymentTokenId,
+      },
+    },
+  });
+}
+
 module.exports = {
   PAYPAL_BASE_URL,
   getAccessToken,
@@ -436,8 +528,13 @@ module.exports = {
 
   // Orders (brand → influencer payments, PPCP-enabled)
   createOrder,
+  createOrderWithVault,
   captureOrder,
   getOrder,
+
+  // Vault v3 (brand saved payment method)
+  createVaultSetupToken,
+  createVaultPaymentToken,
 
   // Payouts (KUP → influencer platform bonuses & cashouts)
   createPayout,

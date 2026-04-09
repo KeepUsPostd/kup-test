@@ -34,6 +34,8 @@ const brandProfileSchema = new mongoose.Schema({
   },
   paypalCustomerId: { type: String, default: null },
   paypalSubscriptionId: { type: String, default: null },
+  paypalVaultPaymentTokenId: { type: String, default: null }, // Vault v3: saved payment method for content approval auto-capture
+  paypalVaultSetupAt: { type: Date, default: null },
   planStartedAt: { type: Date, default: null },
   planExpiresAt: { type: Date, default: null },
 

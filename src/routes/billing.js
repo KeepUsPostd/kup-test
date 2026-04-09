@@ -554,4 +554,103 @@ router.post('/setup-plans', requireAuth, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// VAULT v3 — Save brand payment method for seamless content approval
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/billing/payment-method — Check if brand has a saved payment method
+router.get('/payment-method', requireAuth, async (req, res) => {
+  try {
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (!brandProfile) return res.json({ connected: false });
+
+    res.json({
+      connected: !!brandProfile.paypalVaultPaymentTokenId,
+      setupAt: brandProfile.paypalVaultSetupAt || null,
+    });
+  } catch (error) {
+    console.error('Payment method check error:', error.message);
+    res.status(500).json({ error: 'Could not check payment method' });
+  }
+});
+
+// POST /api/billing/save-payment — Start Vault setup flow
+// Creates a setup token and returns the PayPal approval URL.
+// Brand visits the URL once to authorize KUP for future auto-charges.
+router.post('/save-payment', requireAuth, async (req, res) => {
+  try {
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+    const returnUrl = `${APP_URL}/api/billing/save-payment/return`;
+    const cancelUrl = `${APP_URL}/pages/inner/owner-account.html?vault=canceled`;
+
+    const setupToken = await paypal.createVaultSetupToken(returnUrl, cancelUrl);
+
+    const approveLink = setupToken.links && setupToken.links.find(l => l.rel === 'approve');
+    const approveUrl = approveLink ? approveLink.href : null;
+
+    if (!approveUrl) {
+      return res.status(500).json({ error: 'PayPal did not return an approval URL' });
+    }
+
+    console.log(`🔐 Vault setup token created: ${setupToken.id} for user ${req.user._id}`);
+
+    res.json({
+      setupTokenId: setupToken.id,
+      approveUrl,
+    });
+  } catch (error) {
+    console.error('Vault setup error:', error.message);
+    res.status(500).json({ error: 'Could not start payment setup' });
+  }
+});
+
+// GET /api/billing/save-payment/return — PayPal callback after brand approves
+// Exchanges setup token for a permanent payment token and stores it.
+router.get('/save-payment/return', requireAuth, async (req, res) => {
+  const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+  try {
+    const setupTokenId = req.query.token || req.query.approval_token_id;
+    if (!setupTokenId) {
+      return res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=missing_token`);
+    }
+
+    // Exchange setup token for permanent payment token
+    const paymentToken = await paypal.createVaultPaymentToken(setupTokenId);
+
+    if (!paymentToken || !paymentToken.id) {
+      return res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=token_exchange_failed`);
+    }
+
+    // Store on the brand profile
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (brandProfile) {
+      brandProfile.paypalVaultPaymentTokenId = paymentToken.id;
+      brandProfile.paypalVaultSetupAt = new Date();
+      await brandProfile.save();
+      console.log(`✅ Vault payment token saved: ${paymentToken.id} for brand ${brandProfile._id}`);
+    }
+
+    res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=success`);
+  } catch (error) {
+    console.error('Vault return error:', error.message);
+    res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=exchange_failed`);
+  }
+});
+
+// DELETE /api/billing/payment-method — Remove saved payment method
+router.delete('/payment-method', requireAuth, async (req, res) => {
+  try {
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (brandProfile) {
+      brandProfile.paypalVaultPaymentTokenId = null;
+      brandProfile.paypalVaultSetupAt = null;
+      await brandProfile.save();
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Remove payment method error:', error.message);
+    res.status(500).json({ error: 'Could not remove payment method' });
+  }
+});
+
 module.exports = router;
