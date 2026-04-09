@@ -34,6 +34,15 @@ const kupApi = {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.baseUrl}${path}`, { headers });
     if (response.status === 401) {
+      // If Firebase still has a user, the token may just need refreshing — retry once
+      if (typeof auth !== 'undefined' && auth.currentUser) {
+        try {
+          const freshToken = await auth.currentUser.getIdToken(true); // force refresh
+          const retryHeaders = { ...headers, 'Authorization': `Bearer ${freshToken}` };
+          const retry = await fetch(`${this.baseUrl}${path}`, { headers: retryHeaders });
+          if (retry.ok) return await retry.json();
+        } catch(e) {}
+      }
       window.location.href = '/pages/login.html';
       return;
     }
@@ -49,6 +58,13 @@ const kupApi = {
       body: JSON.stringify(body),
     });
     if (response.status === 401) {
+      if (typeof auth !== 'undefined' && auth.currentUser) {
+        try {
+          const freshToken = await auth.currentUser.getIdToken(true);
+          const retry = await fetch(`${this.baseUrl}${path}`, { method: 'POST', headers: { ...headers, 'Authorization': `Bearer ${freshToken}` }, body: JSON.stringify(body) });
+          if (retry.ok) return await retry.json();
+        } catch(e) {}
+      }
       window.location.href = '/pages/login.html';
       return;
     }
@@ -64,6 +80,13 @@ const kupApi = {
       body: JSON.stringify(body),
     });
     if (response.status === 401) {
+      if (typeof auth !== 'undefined' && auth.currentUser) {
+        try {
+          const freshToken = await auth.currentUser.getIdToken(true);
+          const retry = await fetch(`${this.baseUrl}${path}`, { method: 'PUT', headers: { ...headers, 'Authorization': `Bearer ${freshToken}` }, body: JSON.stringify(body) });
+          if (retry.ok) return await retry.json();
+        } catch(e) {}
+      }
       window.location.href = '/pages/login.html';
       return;
     }
