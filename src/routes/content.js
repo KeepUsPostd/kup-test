@@ -447,12 +447,14 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
       // 2. Fallback: find brand-level active CPA reward
       if (!cpaReward) {
+        console.log(`🔍 Looking for CPA reward: brandId=${submission.brandId}, type=cash_per_approval, status=active`);
         cpaReward = await Reward.findOne({
           brandId: submission.brandId,
           type: 'cash_per_approval',
           status: 'active',
         });
         if (cpaReward) console.log(`🔄 Using brand-level fallback reward: ${cpaReward.title}`);
+        else console.log(`⚠️ No active CPA reward found for brand ${submission.brandId}`);
       }
 
       if (cpaReward) {
@@ -622,7 +624,9 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
       const brand = await Brand.findById(submission.brandId);
       if (influencer && brand) {
-        const inf = { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId };
+        // Use the User's login email for notifications (not paypalEmail which is for payouts)
+        const infUser = await User.findById(influencer.userId, 'email').lean();
+        const inf = { ...influencer.toObject(), email: infUser?.email || influencer.paypalEmail || '', userId: influencer.userId };
         notify.contentApproved({ influencer: inf, brand, submission, reward: rewardTriggered }).catch(() => {});
         if (rewardTriggered) {
           notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval' }).catch(() => {});
