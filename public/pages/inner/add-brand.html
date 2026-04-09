@@ -1474,6 +1474,125 @@
       document.getElementById('publishBtn').textContent = 'Add to Agency Portfolio';
     }
   })();
+
+  /* ── Edit Mode — Pre-fill from existing brand ───── */
+  var _editBrandId = null;
+  (async function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('edit') !== 'true') return;
+    _editBrandId = params.get('brandId');
+    if (!_editBrandId) {
+      // Try to get from brand context
+      try {
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        _editBrandId = brand ? (brand.mongoId || brand._id || brand.id) : null;
+      } catch(e) {}
+    }
+    if (!_editBrandId) return;
+
+    // Update UI for edit mode
+    var heading = document.getElementById('step1Heading');
+    if (heading) heading.textContent = 'Edit Your Brand';
+    var subtitle = document.getElementById('step1Subtitle');
+    if (subtitle) subtitle.textContent = 'Update your brand details below.';
+    var breadcrumb = document.getElementById('breadcrumb');
+    if (breadcrumb) breadcrumb.innerHTML = 'Brands &nbsp;|&nbsp; <span>Edit Brand</span>';
+    var publishBtn = document.getElementById('publishBtn');
+    if (publishBtn) publishBtn.textContent = 'Save Changes';
+    var draftBtn = document.getElementById('draftBtn');
+    if (draftBtn) draftBtn.style.display = 'none'; // hide draft button in edit mode
+
+    // Fetch brand data and pre-fill form
+    try {
+      var data = await kupApi.get('/api/brands/' + _editBrandId);
+      if (!data || !data.brand) return;
+      var b = data.brand;
+
+      // Basic fields
+      if (b.name) document.getElementById('brandName').value = b.name;
+      if (b.brandHandle) document.getElementById('brandHandle').value = b.brandHandle;
+      if (b.category) document.getElementById('brandIndustry').value = b.category;
+      if (b.description) document.getElementById('brandDescription').value = b.description;
+      if (b.location) document.getElementById('brandLocation').value = b.location;
+      if (b.contactName) document.getElementById('contactName').value = b.contactName;
+      var urlField = document.getElementById('brandUrl');
+      if (urlField && b.website) urlField.value = b.website;
+
+      // Social links
+      if (b.socials) {
+        if (b.socials.instagram) document.getElementById('socialIg').value = b.socials.instagram;
+        if (b.socials.twitter) document.getElementById('socialX').value = b.socials.twitter;
+        if (b.socials.tiktok) document.getElementById('socialTt').value = b.socials.tiktok;
+        if (b.socials.facebook) document.getElementById('socialFb').value = b.socials.facebook;
+        if (b.socials.linkedin) document.getElementById('socialLi').value = b.socials.linkedin;
+      }
+
+      // Colors
+      if (b.brandColors) {
+        var cp = document.getElementById('obColorPrimary');
+        var cs = document.getElementById('obColorSecondary');
+        var cph = document.getElementById('obColorPrimaryHex');
+        var csh = document.getElementById('obColorSecondaryHex');
+        if (cp && b.brandColors.primary) { cp.value = b.brandColors.primary; if (cph) cph.value = b.brandColors.primary; }
+        if (cs && b.brandColors.secondary) { cs.value = b.brandColors.secondary; if (csh) csh.value = b.brandColors.secondary; }
+      }
+
+      // Logo preview
+      if (b.logoUrl) {
+        var logoCircle = document.getElementById('logoPreviewCircle');
+        if (logoCircle) logoCircle.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Logo">';
+        var previewLogo = document.getElementById('previewLogo');
+        if (previewLogo) previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
+      }
+
+      // Banner preview
+      if (b.heroImageUrl) {
+        var previewBanner = document.getElementById('previewBanner');
+        if (previewBanner) {
+          previewBanner.style.backgroundImage = 'url(' + b.heroImageUrl + ')';
+          previewBanner.style.backgroundSize = 'cover';
+          previewBanner.style.backgroundPosition = 'center';
+        }
+      }
+
+      // Skip to step 1 (the form) instead of step 0 (scrape/manual choice)
+      var step0 = document.getElementById('step0');
+      var step1 = document.getElementById('step1');
+      if (step0) step0.style.display = 'none';
+      if (step1) step1.style.display = '';
+
+      console.log('[edit-brand] Pre-filled from brand:', b.name);
+    } catch(err) {
+      console.error('[edit-brand] Failed to load brand data:', err);
+    }
+  })();
+
+  // Override publish handler for edit mode
+  document.getElementById('publishBtn').addEventListener('click', async function(e) {
+    if (!_editBrandId) return; // let the original handler run for new brands
+    e.stopImmediatePropagation();
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+      var payload = collectBrandPayload('published');
+      var result = await kupApi.put('/api/brands/' + _editBrandId, payload);
+      if (result && result.error) {
+        kupToast(result.error || 'Failed to save.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        return;
+      }
+      kupToast('Brand updated successfully!', 'success');
+      setTimeout(function() { window.location.href = 'brand-home.html'; }, 1500);
+    } catch(err) {
+      console.error('Edit brand error:', err);
+      kupToast('Something went wrong.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+    }
+  }, true); // 'true' = capture phase, runs before the original handler
+
   </script>
 
   <!-- ========== TOAST + NOTIFICATIONS + PROFILE DROPDOWN ========== -->
@@ -1544,6 +1663,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
 
   <script>
   /* ============== AUTH GATE ============== */
