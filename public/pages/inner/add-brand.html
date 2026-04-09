@@ -1477,7 +1477,7 @@
 
   /* ── Edit Mode — Pre-fill from existing brand ───── */
   var _editBrandId = null;
-  (async function() {
+  async function initEditMode() {
     var params = new URLSearchParams(window.location.search);
     if (params.get('edit') !== 'true') return;
     _editBrandId = params.get('brandId');
@@ -1565,7 +1565,7 @@
     } catch(err) {
       console.error('[edit-brand] Failed to load brand data:', err);
     }
-  })();
+  }
 
   // Override publish handler for edit mode
   document.getElementById('publishBtn').addEventListener('click', async function(e) {
@@ -1669,8 +1669,12 @@
   /* ============== AUTH GATE ============== */
   if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.href = '/pages/login.html';
+      if (!user) return; // skip null (session still loading)
+      // Initialize edit mode if URL has ?edit=true
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('edit') === 'true') {
+        // Wait briefly for brand context to load, then init edit mode
+        setTimeout(function() { initEditMode(); }, 600);
       }
     });
   }
