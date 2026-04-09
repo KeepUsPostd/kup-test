@@ -1227,7 +1227,14 @@
       setTimeout(loadRewardPage, 1000);
     });
 
-    function loadRewardPage() {
+    async function loadRewardPage() {
+      // Ensure Firebase auth token is ready before making API calls
+      // (api.js redirects to login on 401 — must have valid token first)
+      try {
+        var token = await auth.currentUser.getIdToken();
+        if (!token) { console.warn('[brand-reward-settings] No auth token available'); return; }
+      } catch(e) { console.warn('[brand-reward-settings] Token not ready:', e.message); return; }
+
       // Hydrate header from brand context
       try {
         var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
