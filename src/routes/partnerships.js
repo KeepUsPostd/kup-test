@@ -149,6 +149,7 @@ router.post('/', requireAuth, async (req, res) => {
               email: brandDoc?.email,
               ownerEmail: ownerUser?.email || brandDoc?.email,
               ownerId: brandProfile?.userId || null,
+              logoUrl: brandDoc?.logoUrl || null,
             },
             influencer: {
               displayName: influencer.displayName,
@@ -168,7 +169,7 @@ router.post('/', requireAuth, async (req, res) => {
               userId: req.user._id,
               displayName: influencer.displayName,
             },
-            brand: { name: brandDoc?.name || 'A brand' },
+            brand: { name: brandDoc?.name || 'A brand', logoUrl: brandDoc?.logoUrl || null },
           });
         } catch (notifyErr) {
           console.warn('Influencer reactivation notification error:', notifyErr.message);
@@ -229,6 +230,7 @@ router.post('/', requireAuth, async (req, res) => {
           email: brandDoc?.email,
           ownerEmail: ownerUser?.email || brandDoc?.email,
           ownerId: brandProfile?.userId || null,
+          logoUrl: brandDoc?.logoUrl || null,
         },
         influencer: {
           displayName: influencer.displayName,
@@ -249,7 +251,7 @@ router.post('/', requireAuth, async (req, res) => {
           userId: req.user._id,
           displayName: influencer.displayName,
         },
-        brand: { name: brandDoc?.name || 'A brand' },
+        brand: { name: brandDoc?.name || 'A brand', logoUrl: brandDoc?.logoUrl || null },
       });
     } catch (notifyErr) {
       console.warn('Influencer partnership notification error:', notifyErr.message);
@@ -609,7 +611,7 @@ router.put('/:partnershipId/status', requireAuth, async (req, res) => {
             userId: inflProfile?.userId,
             displayName: inflProfile?.displayName || inflProfile?.handle,
           },
-          brand: { name: brandDoc?.name || 'A brand' },
+          brand: { name: brandDoc?.name || 'A brand', logoUrl: brandDoc?.logoUrl || null },
         });
       } catch (notifyErr) {
         console.warn('End partnership notification error:', notifyErr.message);

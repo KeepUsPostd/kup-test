@@ -1316,6 +1316,7 @@ async function newInfluencerPartner({ brand, influencer }) {
       message: `${influencer.displayName || 'An influencer'} partnered with ${brand.name}.`,
       type: 'partnership',
       link: '/pages/inner/influencers.html',
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
     });
     push(brand.ownerId, {
       title: 'New Partner!',
@@ -1355,6 +1356,7 @@ async function newBrandPartnership({ influencer, brand }) {
       message: `${brand.name} accepted your partnership.`,
       type: 'partnership',
       link: '/app/brands.html',
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
     });
     push(influencer.userId, {
       title: '🤝 Partnership Accepted!',
@@ -1390,6 +1392,7 @@ async function partnershipRemoved({ influencer, brand, reason = '' }) {
       message: `${brand.name} ended the partnership.`,
       type: 'partnership',
       link: '/app/brands.html',
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
     });
   }
 }
