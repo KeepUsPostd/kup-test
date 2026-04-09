@@ -1803,6 +1803,29 @@
       }
     }
 
+    // Listen for postMessage from PayPal popup window
+    window.addEventListener('message', async function(event) {
+      if (event.data && event.data.type === 'vault_approved' && event.data.setupTokenId) {
+        console.log('🔐 Vault approved — exchanging token...');
+        var btn = document.getElementById('vaultConnectBtn');
+        if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+        try {
+          var result = await kupApi.post('/api/billing/save-payment/exchange', { setupTokenId: event.data.setupTokenId });
+          if (result && result.success) {
+            console.log('✅ Vault payment token saved');
+            loadVaultStatus();
+          } else {
+            alert('Could not save payment method. Please try again.');
+            if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
+          }
+        } catch (err) {
+          console.error('Vault exchange error:', err);
+          alert('Could not save payment method. Please try again.');
+          if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
+        }
+      }
+    });
+
     async function startVaultSetup() {
       try {
         var btn = document.getElementById('vaultConnectBtn');
@@ -1810,19 +1833,20 @@
         var data = await kupApi.post('/api/billing/save-payment', {});
         if (data.approveUrl) {
           // Open PayPal approval in a new window — avoids cached session conflicts.
-          // The new window gets a fresh PayPal context where user can log in with any account.
           var popup = window.open(data.approveUrl, 'kupPayPalVault', 'width=500,height=650,scrollbars=yes,resizable=yes');
           if (!popup || popup.closed) {
-            // Popup blocked — fall back to same-window redirect
             window.location.href = data.approveUrl;
           } else {
-            // Poll for popup close — when it closes, check vault status
             if (btn) { btn.textContent = 'Complete in PayPal window...'; }
             var pollTimer = setInterval(function() {
               if (popup.closed) {
                 clearInterval(pollTimer);
-                if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
-                loadVaultStatus();
+                // Give a moment for postMessage to arrive, then reset button if not connected
+                setTimeout(function() {
+                  if (btn && btn.textContent === 'Complete in PayPal window...') {
+                    btn.textContent = 'Connect PayPal'; btn.disabled = false;
+                  }
+                }, 2000);
               }
             }, 1000);
           }

@@ -605,20 +605,38 @@ router.post('/save-payment', requireAuth, async (req, res) => {
 });
 
 // GET /api/billing/save-payment/return — PayPal callback after brand approves
-// Exchanges setup token for a permanent payment token and stores it.
-router.get('/save-payment/return', requireAuth, async (req, res) => {
-  const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+// NO auth required — this runs in the popup window which may not have a KUP session.
+// Returns an HTML page that passes the setup token back to the opener window.
+router.get('/save-payment/return', async (req, res) => {
+  const setupTokenId = req.query.token || req.query.approval_token_id;
+  // Return a small HTML page that sends the token to the opener window and closes itself
+  res.send(`<!DOCTYPE html><html><head><title>PayPal Connected</title></head><body>
+    <p style="font-family:sans-serif;text-align:center;margin-top:40px">Connecting PayPal...</p>
+    <script>
+      try {
+        if (window.opener) {
+          window.opener.postMessage({ type: 'vault_approved', setupTokenId: '${setupTokenId || ''}' }, '*');
+        }
+      } catch(e) {}
+      setTimeout(function() { window.close(); }, 1500);
+    </script>
+  </body></html>`);
+});
+
+// POST /api/billing/save-payment/exchange — Exchange setup token for payment token (authenticated)
+// Called from the main window after receiving the setup token from the popup.
+router.post('/save-payment/exchange', requireAuth, async (req, res) => {
   try {
-    const setupTokenId = req.query.token || req.query.approval_token_id;
+    const { setupTokenId } = req.body;
     if (!setupTokenId) {
-      return res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=missing_token`);
+      return res.status(400).json({ error: 'setupTokenId is required' });
     }
 
     // Exchange setup token for permanent payment token
     const paymentToken = await paypal.createVaultPaymentToken(setupTokenId);
 
     if (!paymentToken || !paymentToken.id) {
-      return res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=token_exchange_failed`);
+      return res.status(500).json({ error: 'Token exchange failed' });
     }
 
     // Store on the brand profile
@@ -630,10 +648,10 @@ router.get('/save-payment/return', requireAuth, async (req, res) => {
       console.log(`✅ Vault payment token saved: ${paymentToken.id} for brand ${brandProfile._id}`);
     }
 
-    res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=success`);
+    res.json({ success: true, connectedAt: new Date().toISOString() });
   } catch (error) {
-    console.error('Vault return error:', error.message);
-    res.redirect(`${APP_URL}/pages/inner/owner-account.html?vault=error&reason=exchange_failed`);
+    console.error('Vault exchange error:', error.message);
+    res.status(500).json({ error: 'Could not complete PayPal setup' });
   }
 });
 
