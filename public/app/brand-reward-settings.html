@@ -1275,6 +1275,8 @@
             });
           });
         }
+        // Check vault banner after rewards load
+        checkVaultBanner();
       } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
     }
 
@@ -1296,9 +1298,8 @@
       }
     }
 
-    // Render reward cards dynamically from API data
-    // Check PayPal Vault status and show banner if not connected
-    (async function checkVaultBanner() {
+    // Check PayPal Vault status — called from loadRewardPage() after auth is ready
+    async function checkVaultBanner() {
       try {
         var data = await kupApi.get('/api/billing/payment-method');
         var banner = document.getElementById('vaultBanner');
@@ -1307,7 +1308,7 @@
         var banner = document.getElementById('vaultBanner');
         if (banner) banner.style.display = 'block';
       }
-    })();
+    }
 
     async function startSettingsVaultSetup() {
       try {
