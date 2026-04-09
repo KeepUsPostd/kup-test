@@ -1088,6 +1088,22 @@ router.post('/social-verify', requireAuth, async (req, res) => {
       console.log(`✅ Auto-created influencer profile for ${user.email} during social verify`);
     }
 
+    // 60-day cooldown: if already verified, enforce wait period before re-verification
+    const REVERIFY_COOLDOWN_DAYS = 60;
+    if (influencer.isVerified && influencer.lastVerificationAt) {
+      const daysSince = Math.floor((Date.now() - new Date(influencer.lastVerificationAt).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSince < REVERIFY_COOLDOWN_DAYS) {
+        const eligibleDate = new Date(new Date(influencer.lastVerificationAt).getTime() + REVERIFY_COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+        return res.status(429).json({
+          error: 'cooldown_active',
+          message: `Re-verification available in ${REVERIFY_COOLDOWN_DAYS - daysSince} days`,
+          eligibleDate: eligibleDate.toISOString(),
+          daysSince,
+          cooldownDays: REVERIFY_COOLDOWN_DAYS,
+        });
+      }
+    }
+
     // Save social handles — merge with any existing
     const currentLinks = influencer.socialLinks ? Object.fromEntries(influencer.socialLinks) : {};
     const updatedLinks = { ...currentLinks, ...handles };
@@ -1158,6 +1174,20 @@ router.get('/social-verify/status', requireAuth, async (req, res) => {
 
     const links = influencer.socialLinks ? Object.fromEntries(influencer.socialLinks) : {};
 
+    // Calculate re-verification eligibility (60-day cooldown)
+    const REVERIFY_COOLDOWN_DAYS = 60;
+    let canReverify = true;
+    let reverifyEligibleDate = null;
+    let daysUntilReverify = 0;
+    if (influencer.lastVerificationAt) {
+      const daysSince = Math.floor((Date.now() - new Date(influencer.lastVerificationAt).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSince < REVERIFY_COOLDOWN_DAYS) {
+        canReverify = false;
+        daysUntilReverify = REVERIFY_COOLDOWN_DAYS - daysSince;
+        reverifyEligibleDate = new Date(new Date(influencer.lastVerificationAt).getTime() + REVERIFY_COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      }
+    }
+
     res.json({
       verified: true,
       tier: tier.displayName,
@@ -1172,6 +1202,10 @@ router.get('/social-verify/status', requireAuth, async (req, res) => {
       inactivePct: 3,
       payRates: { video: tier.video, image: tier.image },
       verifiedAt: influencer.lastVerificationAt,
+      canReverify,
+      daysUntilReverify,
+      reverifyEligibleDate,
+      cooldownDays: REVERIFY_COOLDOWN_DAYS,
     });
   } catch (error) {
     console.error('Social verify status error:', error.message);
