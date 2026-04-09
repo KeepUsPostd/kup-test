@@ -1335,12 +1335,12 @@ async function newBrandPartnership({ influencer, brand }) {
 
   const emailResult = await sendEmail({
     to: influencer.email,
-    subject: `🤝 ${brand.name} — You're Now Partnered!`,
-    headline: 'Partnership Confirmed!',
-    preheader: `You're now partnered with ${brand.name} on KeepUsPostd.`,
+    subject: `Partnership Update — ${brand.name}`,
+    headline: 'New Partnership',
+    preheader: `Your partnership with ${brand.name} is now active.`,
     bodyHtml: `
-      <p>You're now partnered with <strong>${brand.name}</strong> on KeepUsPostd!</p>
-      <p>Start submitting content and earning rewards from this brand.</p>
+      <p>Your partnership with <strong>${brand.name}</strong> is now active on KeepUsPostd.</p>
+      <p>You can submit content and earn rewards from this brand.</p>
     `,
     ctaText: 'View Partnership',
     ctaUrl: `${APP_URL}/app/brands.html`,

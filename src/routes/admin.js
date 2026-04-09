@@ -229,12 +229,12 @@ router.post('/test-email', requireAuth, requireAdmin, async (req, res) => {
 
     const result = await sendEmail({
       to,
-      subject: 'KeepUsPostd — Partnership Confirmed!',
-      headline: 'Partnership Confirmed!',
-      preheader: 'You are now partnered with a brand on KeepUsPostd.',
+      subject: 'Partnership Update — Santana Thrasybule',
+      headline: 'New Partnership',
+      preheader: 'Your partnership with Santana Thrasybule is now active.',
       bodyHtml: `
-        <p>You're now partnered with <strong>Santana Thrasybule</strong> on KeepUsPostd!</p>
-        <p>Start submitting content and earning rewards from this brand.</p>
+        <p>Your partnership with <strong>Santana Thrasybule</strong> is now active on KeepUsPostd.</p>
+        <p>You can submit content and earn rewards from this brand.</p>
         <p style="font-size:0.8rem;color:#888;">This is a test email sent from the admin panel to verify delivery.</p>
       `,
       ctaText: 'View Partnership',
