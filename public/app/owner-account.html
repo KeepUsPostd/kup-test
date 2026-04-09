@@ -1809,7 +1809,10 @@
         if (btn) { btn.textContent = 'Connecting...'; btn.disabled = true; }
         var data = await kupApi.post('/api/billing/save-payment', {});
         if (data.approveUrl) {
-          window.location.href = data.approveUrl;
+          // Force PayPal to show fresh login by clearing any cached session first.
+          // Redirect: PayPal logout → PayPal approval page (clean login prompt).
+          var logoutThenApprove = 'https://www.paypal.com/signout?returnUri=' + encodeURIComponent(data.approveUrl);
+          window.location.href = logoutThenApprove;
         } else {
           alert('Could not start PayPal setup. Please try again.');
           if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
