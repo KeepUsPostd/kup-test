@@ -1215,28 +1215,13 @@
 
   <!-- Auth gate + load rewards from API -->
   <script>
-    // Wait for Firebase auth + brand context before loading rewards.
-    // onAuthStateChanged fires with null first, then again with user once session restores.
+    // Wait for auth then load rewards. Single attempt with 1s delay for brand context.
     var _rewardPageLoaded = false;
     auth.onAuthStateChanged(function(user) {
-      if (_rewardPageLoaded) return; // only run once
-      if (!user) return; // skip null (session still loading) — if truly not logged in, brand-context handles redirect
+      if (_rewardPageLoaded) return;
+      if (!user) return;
       _rewardPageLoaded = true;
-      // Retry loading until brand context is available (up to 5 seconds)
-      var retryCount = 0;
-      function tryLoad() {
-        retryCount++;
-        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
-        if (brand && (brand.mongoId || brand._id || brand.id)) {
-          loadRewardPage();
-        } else if (retryCount < 10) {
-          setTimeout(tryLoad, 500);
-        } else {
-          console.warn('[brand-reward-settings] Brand context not available after 5s');
-          loadRewardPage();
-        }
-      }
-      setTimeout(tryLoad, 300);
+      setTimeout(loadRewardPage, 1000);
     });
 
     function loadRewardPage() {
