@@ -935,6 +935,18 @@
         </button>
       </div>
 
+      <!-- PayPal Vault Banner (hidden by default, shown if not connected) -->
+      <div id="vaultBanner" style="display:none;background:rgba(237,132,68,0.08);border:1px solid rgba(237,132,68,0.2);border-radius:10px;padding:14px 20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:1.2rem"><i class="ph ph-warning-circle" style="color:#ED8444"></i></span>
+          <div style="flex:1;min-width:200px">
+            <strong style="font-size:0.88rem;color:#1a1a1a">Payment method not connected</strong>
+            <p style="font-size:0.8rem;color:#666;margin:2px 0 0">Connect PayPal for one-click payments when you approve influencer content.</p>
+          </div>
+          <button onclick="startSettingsVaultSetup()" style="padding:8px 18px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;font-family:inherit;cursor:pointer">Connect PayPal</button>
+        </div>
+      </div>
+
       <!-- Summary Stats -->
       <div class="reward-stats-row">
         <div class="reward-stat-card">
@@ -1268,6 +1280,32 @@
     }
 
     // Render reward cards dynamically from API data
+    // Check PayPal Vault status and show banner if not connected
+    (async function checkVaultBanner() {
+      try {
+        var data = await kupApi.get('/api/billing/payment-method');
+        var banner = document.getElementById('vaultBanner');
+        if (banner) banner.style.display = (data && data.connected) ? 'none' : 'block';
+      } catch(e) {
+        var banner = document.getElementById('vaultBanner');
+        if (banner) banner.style.display = 'block';
+      }
+    })();
+
+    async function startSettingsVaultSetup() {
+      try {
+        var data = await kupApi.post('/api/billing/save-payment', {});
+        if (data.approveUrl) {
+          window.location.href = data.approveUrl;
+        } else {
+          alert('Could not start PayPal setup. Please try again.');
+        }
+      } catch (err) {
+        console.error('Vault setup error:', err);
+        alert('Could not connect PayPal. Please try again.');
+      }
+    }
+
     function renderRewardCards(rewards) {
       var container = document.getElementById('rewardCardsList');
       if (!rewards || rewards.length === 0) {

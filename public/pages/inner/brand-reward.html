@@ -383,7 +383,7 @@
             <a href="cash-account.html#influencer-rates" style="font-size:0.78rem;font-weight:600;color:var(--kup-blue)">View Influence Tier Rates &rarr;</a>
           </div>
           <div class="form-group"><label>Payment Note Template</label><textarea id="cpaMemo" placeholder="e.g., Thank you for your approved submission for our brand!" maxlength="85"></textarea><p class="helper">85 character max — shown with each payment</p></div>
-          <div class="payment-note"><i class="ph ph-credit-card"></i> Payments are processed via PayPal Business. Influencers receive funds directly to their PayPal Business account.</div>
+          <div class="payment-note" id="cpaPaymentNote"><i class="ph ph-credit-card"></i> Checking payment setup...</div>
         </div>
 
         <!-- Bonus Cash -->
@@ -396,7 +396,7 @@
           <div class="form-group"><label>Qualifying Content Types</label><div class="content-type-checks"><label><input type="checkbox" checked> Instagram Reel</label><label><input type="checkbox" checked> TikTok Video</label><label><input type="checkbox"> YouTube Short</label><label><input type="checkbox"> Instagram Story</label><label><input type="checkbox"> Blog Post</label></div></div>
           <div class="auto-toggle"><input type="checkbox" checked id="bcAutoSend"> Automatically send bonus when content is verified</div>
           <div class="form-group" style="margin-top:16px"><label>Budget Cap <span style="font-weight:400;color:#bbb">(optional)</span></label><div class="input-amount-wrap"><div class="input-amount-prefix">$</div><input type="number" id="bcBudget" placeholder="No limit" min="0" step="1"></div><p class="helper">Stop bonuses when total reaches this amount. Leave blank for unlimited.</p></div>
-          <div class="payment-note"><i class="ph ph-credit-card"></i> Bonus payments are processed via PayPal Business when content posting is verified.</div>
+          <div class="payment-note" id="bcPaymentNote"><i class="ph ph-credit-card"></i> Checking payment setup...</div>
         </div>
 
         <!-- Reward Banner Image (optional — shows on reward card) -->
@@ -1193,6 +1193,36 @@
       } catch(e) {}
     }
 
+    /* ============ PAYPAL VAULT CHECK ============ */
+    var _vaultConnected = false;
+    (async function checkVaultForRewards() {
+      try {
+        var data = await kupApi.get('/api/billing/payment-method');
+        _vaultConnected = data && data.connected;
+      } catch(e) { _vaultConnected = false; }
+      var connectedHtml = '<i class="ph ph-check-circle" style="color:#16a34a"></i> <strong style="color:#16a34a">PayPal connected</strong> — payments will process automatically when you approve content.';
+      var notConnectedHtml = '<i class="ph ph-warning-circle" style="color:#ED8444"></i> <strong>PayPal not connected</strong> — you\'ll confirm each payment on PayPal\'s site. <a href="#" onclick="startRewardVaultSetup();return false" style="color:var(--kup-blue);font-weight:700">Connect now for one-click payments &rarr;</a>';
+      var noteHtml = _vaultConnected ? connectedHtml : notConnectedHtml;
+      var cpaNote = document.getElementById('cpaPaymentNote');
+      var bcNote = document.getElementById('bcPaymentNote');
+      if (cpaNote) cpaNote.innerHTML = noteHtml;
+      if (bcNote) bcNote.innerHTML = noteHtml;
+    })();
+
+    async function startRewardVaultSetup() {
+      try {
+        var data = await kupApi.post('/api/billing/save-payment', {});
+        if (data.approveUrl) {
+          window.location.href = data.approveUrl;
+        } else {
+          alert('Could not start PayPal setup. Please try again.');
+        }
+      } catch (err) {
+        console.error('Vault setup from reward page error:', err);
+        alert('Could not connect PayPal. Please try again.');
+      }
+    }
+
     /* ============ POPULATE REVIEW ============ */
     function populateReview() {
       var typeNames = { 'points':'Points / Store Credit', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
@@ -1607,6 +1637,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
   <script>
     if (typeof auth !== 'undefined') {
       auth.onAuthStateChanged(function(user) {
