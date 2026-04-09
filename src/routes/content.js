@@ -83,9 +83,10 @@ router.post('/', requireAuth, async (req, res) => {
     let influencerProfile = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencerProfile) {
       const user = req.user;
-      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 18) || `user${Date.now()}`;
+      const autoName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || (user.email || '').split('@')[0];
+      const baseHandle = autoName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9_]/g, '').substring(0, 20) || `user${Date.now()}`;
       const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const displayName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || baseHandle;
+      const displayName = autoName;
       let finalHandle = baseHandle;
       const existingHandle = await InfluencerProfile.findOne({ handle: baseHandle }).select('_id').lean();
       if (existingHandle) {

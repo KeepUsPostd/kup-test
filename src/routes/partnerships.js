@@ -84,10 +84,11 @@ router.post('/', requireAuth, async (req, res) => {
     let influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
       const user = req.user;
-      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      const autoName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || (user.email || '').split('@')[0];
+      const baseHandle = autoName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9_]/g, '').substring(0, 20) || `user${Date.now()}`;
       influencer = await InfluencerProfile.create({
         userId: user._id,
-        displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
+        displayName: autoName,
         handle: baseHandle,
       });
     }

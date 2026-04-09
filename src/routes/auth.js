@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
         // RULE: Every influencer must have displayName + handle. No "Unknown" creators.
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         const infDisplayName = displayName || `${firstName || ''} ${lastName || ''}`.trim() || user.legalFirstName || user.email.split('@')[0];
-        const infHandle = (displayName || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+        const infHandle = sanitizeHandle(infDisplayName) || sanitizeHandle(user.email?.split('@')[0]) || `user${Date.now()}`;
         await InfluencerProfile.create({
           userId: user._id,
           displayName: infDisplayName,
@@ -92,7 +92,7 @@ router.post('/register', async (req, res) => {
       if (profileType === 'influencer') {
         const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         const newDisplayName = displayName || `${firstName || ''} ${lastName || ''}`.trim() || email.split('@')[0];
-        const newHandle = (displayName || email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 20);
+        const newHandle = sanitizeHandle(newDisplayName) || sanitizeHandle(email.split('@')[0]) || `user${Date.now()}`;
         await InfluencerProfile.create({
           userId: user._id,
           displayName: newDisplayName,
@@ -219,13 +219,14 @@ router.post('/register', async (req, res) => {
       // Duplicate handle — append random suffix and retry once
       if (keyStr.includes('handle') && _uid && _email) {
         try {
-          const baseHandle = _email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 15);
-          const uniqueHandle = `${baseHandle}_${Math.random().toString(36).substring(2, 6)}`;
+          const socialDisplayName = `${_first || ''} ${_last || ''}`.trim() || _email.split('@')[0];
+          const baseHandle = sanitizeHandle(socialDisplayName) || sanitizeHandle(_email.split('@')[0]);
+          const uniqueHandle = `${baseHandle.substring(0, 15)}_${Math.random().toString(36).substring(2, 6)}`;
           const newUser = await User.findOne({ firebaseUid: _uid });
           if (newUser) {
             await InfluencerProfile.create({
               userId: newUser._id,
-              displayName: `${_first || ''} ${_last || ''}`.trim() || _email.split('@')[0],
+              displayName: socialDisplayName,
               handle: uniqueHandle,
               referralCode: 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
             });
@@ -340,12 +341,37 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/auth/me — Update influencer profile fields (displayName, bio, avatarUrl, socialLinks)
+// ── Handle Utilities ─────────────────────────────────────────
+const RESERVED_HANDLES = new Set([
+  'admin', 'support', 'help', 'keepuspostd', 'kup', 'postd', 'official',
+  'moderator', 'mod', 'staff', 'team', 'system', 'null', 'undefined',
+  'api', 'app', 'www', 'test', 'demo', 'root', 'user',
+]);
+
+function sanitizeHandle(input) {
+  return (input || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9_]/g, '').substring(0, 20);
+}
+
+// GET /api/auth/check-handle/:handle — Real-time handle uniqueness check
+router.get('/check-handle/:handle', async (req, res) => {
+  try {
+    const handle = sanitizeHandle(req.params.handle);
+    if (handle.length < 3) return res.json({ available: false, handle, reason: 'Must be at least 3 characters' });
+    if (RESERVED_HANDLES.has(handle)) return res.json({ available: false, handle, reason: 'This name is reserved' });
+    const taken = await InfluencerProfile.findOne({ handle }).select('_id').lean();
+    res.json({ available: !taken, handle });
+  } catch (err) {
+    res.status(500).json({ available: false, reason: 'Check failed' });
+  }
+});
+
+// PUT /api/auth/me — Update influencer profile fields (displayName, handle, bio, avatarUrl, socialLinks)
 // This is the primary profile-update endpoint used by the Flutter app.
+// displayName and handle stay in sync: updating one auto-updates the other.
 router.put('/me', requireAuth, async (req, res) => {
   try {
     const user = req.user;
-    const { displayName, bio, avatarUrl, socialLinks } = req.body;
+    const { displayName, handle, bio, avatarUrl, socialLinks } = req.body;
 
     // Update the user's top-level avatarUrl as well (used in some views)
     if (avatarUrl !== undefined) {
@@ -356,7 +382,7 @@ router.put('/me', requireAuth, async (req, res) => {
     // Find or auto-create the influencer profile (brand-only accounts need one too)
     let influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
     if (!influencerProfile) {
-      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      const baseHandle = sanitizeHandle(user.email?.split('@')[0]) || `user${Date.now()}`;
       influencerProfile = await InfluencerProfile.create({
         userId: user._id,
         displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || baseHandle,
@@ -365,7 +391,34 @@ router.put('/me', requireAuth, async (req, res) => {
       await User.findByIdAndUpdate(user._id, { hasInfluencerProfile: true });
     }
 
-    if (displayName !== undefined) influencerProfile.displayName = displayName;
+    // Handle + displayName sync logic:
+    // If displayName provided, derive handle from it (unless handle also explicitly provided)
+    // If handle provided alone, update handle and set displayName to the handle value
+    if (displayName !== undefined) {
+      influencerProfile.displayName = displayName;
+      const derivedHandle = sanitizeHandle(displayName);
+      if (derivedHandle.length >= 3 && derivedHandle !== influencerProfile.handle) {
+        // Check uniqueness before auto-syncing
+        const taken = await InfluencerProfile.findOne({ handle: derivedHandle, _id: { $ne: influencerProfile._id } }).select('_id').lean();
+        if (!taken && !RESERVED_HANDLES.has(derivedHandle)) {
+          influencerProfile.handle = derivedHandle;
+        }
+      }
+    }
+    if (handle !== undefined) {
+      const cleanHandle = sanitizeHandle(handle);
+      if (cleanHandle.length >= 3 && cleanHandle !== influencerProfile.handle) {
+        const taken = await InfluencerProfile.findOne({ handle: cleanHandle, _id: { $ne: influencerProfile._id } }).select('_id').lean();
+        if (taken) return res.status(409).json({ error: 'Handle already taken', handle: cleanHandle });
+        if (RESERVED_HANDLES.has(cleanHandle)) return res.status(400).json({ error: 'Handle is reserved', handle: cleanHandle });
+        influencerProfile.handle = cleanHandle;
+        // If displayName wasn't explicitly provided, update it to match the new handle
+        if (displayName === undefined) {
+          influencerProfile.displayName = handle; // preserve original casing from request
+        }
+      }
+    }
+
     if (bio !== undefined) influencerProfile.bio = bio;
     if (avatarUrl !== undefined) influencerProfile.avatarUrl = avatarUrl;
     if (socialLinks !== undefined) influencerProfile.socialLinks = socialLinks;
@@ -1014,9 +1067,9 @@ router.post('/social-verify', requireAuth, async (req, res) => {
     if (!influencer) {
       // Auto-create influencer profile if user only has a brand profile
       const user = req.user;
-      const baseHandle = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 18) || `user${Date.now()}`;
+      const autoName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || (user.email || '').split('@')[0];
+      const baseHandle = sanitizeHandle(autoName) || `user${Date.now()}`;
       const referralCode = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const displayName = `${user.legalFirstName || ''} ${user.legalLastName || ''}`.trim() || baseHandle;
 
       // Handle uniqueness: try base handle, fall back to base+random suffix
       let finalHandle = baseHandle;
@@ -1027,7 +1080,7 @@ router.post('/social-verify', requireAuth, async (req, res) => {
 
       influencer = await InfluencerProfile.create({
         userId: user._id,
-        displayName,
+        displayName: autoName,
         handle: finalHandle,
         referralCode,
       });
