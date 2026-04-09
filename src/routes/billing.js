@@ -605,21 +605,29 @@ router.post('/save-payment', requireAuth, async (req, res) => {
 });
 
 // GET /api/billing/save-payment/return — PayPal callback after brand approves
-// NO auth required — this runs in the popup window which may not have a KUP session.
-// Returns an HTML page that passes the setup token back to the opener window.
+// NO auth required — this may run in a different browser (Firefox popup).
+// Redirects back to the KUP owner-account page with the setup token in the URL.
+// The owner-account page (in the main browser) detects the token and calls the exchange endpoint.
 router.get('/save-payment/return', async (req, res) => {
+  const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
   const setupTokenId = req.query.token || req.query.approval_token_id;
-  // Return a small HTML page that sends the token to the opener window and closes itself
-  res.send(`<!DOCTYPE html><html><head><title>PayPal Connected</title></head><body>
-    <p style="font-family:sans-serif;text-align:center;margin-top:40px">Connecting PayPal...</p>
-    <script>
-      try {
-        if (window.opener) {
-          window.opener.postMessage({ type: 'vault_approved', setupTokenId: '${setupTokenId || ''}' }, '*');
-        }
-      } catch(e) {}
-      setTimeout(function() { window.close(); }, 1500);
-    </script>
+  // Show a page with the token displayed + auto-copy instructions
+  res.send(`<!DOCTYPE html><html><head><title>PayPal Connected</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>body{font-family:-apple-system,sans-serif;text-align:center;padding:40px 20px;background:#f8f9fa}
+    .card{max-width:400px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+    h2{color:#1a1a1a;margin:0 0 8px} p{color:#666;font-size:14px;margin:0 0 20px}
+    .token{background:#f0f4ff;border:1px solid #d0d8f0;border-radius:8px;padding:12px;font-family:monospace;font-size:13px;word-break:break-all;margin:0 0 20px;color:#333}
+    .btn{display:inline-block;padding:14px 28px;background:#2EA5DD;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none}
+    .btn:hover{background:#2590c4}
+    .hint{font-size:12px;color:#999;margin-top:16px}</style></head><body>
+    <div class="card">
+      <h2>PayPal Authorized</h2>
+      <p>Copy this code and paste it back in your KeepUsPostd billing page:</p>
+      <div class="token" id="tokenBox">${setupTokenId || 'No token received'}</div>
+      <button class="btn" onclick="navigator.clipboard.writeText('${setupTokenId || ''}');this.textContent='Copied!';this.style.background='#16a34a'">Copy Code</button>
+      <p class="hint">Then go back to your Owner Account → Billing tab and paste it in the confirmation field.</p>
+    </div>
   </body></html>`);
 });
 

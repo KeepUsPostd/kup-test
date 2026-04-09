@@ -1226,6 +1226,14 @@
           <button class="btn-upgrade-sm" id="vaultConnectBtn" onclick="startVaultSetup()">Connect PayPal</button>
           <button class="btn-disconnect" id="vaultDisconnectBtn" style="display:none;" onclick="disconnectVault()">Remove</button>
         </div>
+        <!-- Manual token paste (shown after popup flow when cross-browser) -->
+        <div id="vaultPasteSection" style="display:none;margin-top:16px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e5e7eb">
+          <label style="font-size:0.85rem;font-weight:600;color:#444;display:block;margin-bottom:6px">Paste your PayPal authorization code:</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="vaultPasteInput" placeholder="Paste code here..." style="flex:1;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:monospace;font-size:13px">
+            <button onclick="submitPastedToken()" style="padding:10px 20px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.85rem;font-family:inherit;cursor:pointer">Connect</button>
+          </div>
+        </div>
       </div>
 
       <!-- Billing History -->
@@ -1832,23 +1840,21 @@
         if (btn) { btn.textContent = 'Connecting...'; btn.disabled = true; }
         var data = await kupApi.post('/api/billing/save-payment', {});
         if (data.approveUrl) {
-          // Open PayPal approval in a new window — avoids cached session conflicts.
+          // Open PayPal approval in a new window — may open in a different browser
           var popup = window.open(data.approveUrl, 'kupPayPalVault', 'width=500,height=650,scrollbars=yes,resizable=yes');
-          if (!popup || popup.closed) {
-            window.location.href = data.approveUrl;
-          } else {
-            if (btn) { btn.textContent = 'Complete in PayPal window...'; }
+          // Show the paste section so user can paste the token from the popup
+          var pasteSection = document.getElementById('vaultPasteSection');
+          if (pasteSection) pasteSection.style.display = 'block';
+          if (btn) { btn.textContent = 'Waiting for PayPal...'; }
+          if (popup && !popup.closed) {
             var pollTimer = setInterval(function() {
               if (popup.closed) {
                 clearInterval(pollTimer);
-                // Give a moment for postMessage to arrive, then reset button if not connected
-                setTimeout(function() {
-                  if (btn && btn.textContent === 'Complete in PayPal window...') {
-                    btn.textContent = 'Connect PayPal'; btn.disabled = false;
-                  }
-                }, 2000);
+                if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
               }
             }, 1000);
+          } else {
+            if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
           }
         } else {
           alert('Could not start PayPal setup. Please try again.');
@@ -1859,6 +1865,25 @@
         alert('Could not connect PayPal. Please try again.');
         var btn = document.getElementById('vaultConnectBtn');
         if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
+      }
+    }
+
+    async function submitPastedToken() {
+      var input = document.getElementById('vaultPasteInput');
+      var token = (input && input.value || '').trim();
+      if (!token) { alert('Please paste the authorization code from the PayPal window.'); return; }
+      try {
+        var result = await kupApi.post('/api/billing/save-payment/exchange', { setupTokenId: token });
+        if (result && result.success) {
+          var pasteSection = document.getElementById('vaultPasteSection');
+          if (pasteSection) pasteSection.style.display = 'none';
+          loadVaultStatus();
+        } else {
+          alert('Could not connect. Please check the code and try again.');
+        }
+      } catch (err) {
+        console.error('Token exchange error:', err);
+        alert('Connection failed. The code may have expired — try clicking Connect PayPal again.');
       }
     }
 
