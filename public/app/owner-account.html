@@ -1809,10 +1809,23 @@
         if (btn) { btn.textContent = 'Connecting...'; btn.disabled = true; }
         var data = await kupApi.post('/api/billing/save-payment', {});
         if (data.approveUrl) {
-          // Force PayPal to show fresh login by clearing any cached session first.
-          // Redirect: PayPal logout → PayPal approval page (clean login prompt).
-          var logoutThenApprove = 'https://www.paypal.com/signout?returnUri=' + encodeURIComponent(data.approveUrl);
-          window.location.href = logoutThenApprove;
+          // Open PayPal approval in a new window — avoids cached session conflicts.
+          // The new window gets a fresh PayPal context where user can log in with any account.
+          var popup = window.open(data.approveUrl, 'kupPayPalVault', 'width=500,height=650,scrollbars=yes,resizable=yes');
+          if (!popup || popup.closed) {
+            // Popup blocked — fall back to same-window redirect
+            window.location.href = data.approveUrl;
+          } else {
+            // Poll for popup close — when it closes, check vault status
+            if (btn) { btn.textContent = 'Complete in PayPal window...'; }
+            var pollTimer = setInterval(function() {
+              if (popup.closed) {
+                clearInterval(pollTimer);
+                if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
+                loadVaultStatus();
+              }
+            }, 1000);
+          }
         } else {
           alert('Could not start PayPal setup. Please try again.');
           if (btn) { btn.textContent = 'Connect PayPal'; btn.disabled = false; }
