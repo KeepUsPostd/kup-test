@@ -1216,12 +1216,24 @@
   <!-- Auth gate + load rewards from API -->
   <script>
     // Wait for Firebase auth to fully initialize before checking user state.
-    // onAuthStateChanged fires immediately with null if session isn't restored yet.
     auth.authStateReady().then(function() {
       var user = auth.currentUser;
       if (!user) { window.location.href = '/pages/login.html'; return; }
-      // Wait briefly for brand-context.js to sync brands from API
-      setTimeout(loadRewardPage, 500);
+      // Retry loading until brand context is available (up to 5 seconds)
+      var retryCount = 0;
+      function tryLoad() {
+        retryCount++;
+        var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+        if (brand && (brand.mongoId || brand._id || brand.id)) {
+          loadRewardPage();
+        } else if (retryCount < 10) {
+          setTimeout(tryLoad, 500);
+        } else {
+          console.warn('[brand-reward-settings] Brand context not available after 5s');
+          loadRewardPage(); // try anyway
+        }
+      }
+      setTimeout(tryLoad, 300);
     });
 
     function loadRewardPage() {
