@@ -435,6 +435,8 @@ async function createVaultSetupToken(returnUrl, cancelUrl) {
           cancel_url: cancelUrl,
           brand_name: 'KeepUsPostd',
           shipping_preference: 'NO_SHIPPING',
+          landing_page: 'LOGIN',
+          user_action: 'CONTINUE',
         },
       },
     },
