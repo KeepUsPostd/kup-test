@@ -1162,11 +1162,12 @@ router.post('/verifications/:id/approve', async (req, res) => {
       const user = await User.findById(influencer.userId).select('email').lean();
       if (user && notify.socialInfluenceVerified) {
         await notify.socialInfluenceVerified({
-          userId: influencer.userId,
-          email: user.email,
-          displayName: influencer.displayName,
-          tier: tier.displayName,
-          followerCount: count,
+          influencer: {
+            email: user.email,
+            userId: influencer.userId,
+            displayName: influencer.displayName,
+          },
+          tier: tier.key,
         });
       }
     } catch (notifErr) {

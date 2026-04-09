@@ -3386,8 +3386,8 @@
       return 'nano';
     }
 
-    function tierLabel(tier) {
-      if (!tier) return 'Unverified';
+    function tierLabel(tier, isVerified) {
+      if (!tier || tier === 'unverified') return isVerified ? 'Startup' : 'Unverified';
       return tier.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
     }
 
@@ -3437,7 +3437,7 @@
       influencerData[handle] = {
         handle: '@' + handle,
         name: name,
-        tier: tierLabel(tier),
+        tier: tierLabel(tier, verified),
         tierClass: tierBadgeClass(tier),
         isVerified: verified,
         avatarUrl: avatarUrl || null,
@@ -3455,7 +3455,7 @@
       return '<tr data-partnership-id="' + p._id + '" data-handle="' + handle + '" data-name="' + name + '" data-status="' + p.status + '">' +
         '<td data-label="Influencer"><div class="influencer-cell">' + avatarHtml +
           '<div><div class="name" data-influencer="' + handle + '">@' + handle + (verified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div>' +
-          '<div class="tier"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier) + '</span></div></div></div></td>' +
+          '<div class="tier"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier, verified) + '</span></div></div></div></td>' +
         '<td class="rating-cell" data-label="Rating">' + buildStars(rating, ratingCount) + '</td>' +
         '<td data-label="Status"><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
         '<td class="stat-cell" data-label="Total Submissions">' + subs + '</td>' +
@@ -3518,13 +3518,14 @@
         var inf = p.influencerProfileId || {};
         var handle = inf.handle || 'unknown';
         var tier = inf.influenceTier || 'unverified';
+        var reqVerified = inf.isVerified === true;
         var gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
         var followers = inf.realFollowerCount ? (inf.realFollowerCount >= 1000 ? (inf.realFollowerCount / 1000).toFixed(1) + 'K' : inf.realFollowerCount) : '—';
 
         html += '<div class="request-card" data-partnership-id="' + p._id + '">' +
           '<div class="request-avatar" style="background:' + gradient + ';display:flex;align-items:center;justify-content:center">' + PERSON_SVG + '</div>' +
           '<div class="request-info"><p class="request-name">@' + handle + '</p>' +
-          '<div class="request-meta"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier) + '</span>' +
+          '<div class="request-meta"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier, reqVerified) + '</span>' +
           '<span>Requested ' + timeAgo(p.createdAt) + '</span></div></div>' +
           '<div class="request-stats"><div class="request-stat"><div class="request-stat-value">' + followers + '</div><div class="request-stat-label">Followers</div></div></div>' +
           '<div class="request-actions">' +
