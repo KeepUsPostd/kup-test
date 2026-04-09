@@ -2548,7 +2548,12 @@
         var key = item.getAttribute('data-msg');
         var data = influencerData[key];
         if (data) {
-          document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
+          var noticeAv = document.getElementById('noticeAvatar');
+          if (data.avatarUrl) {
+            noticeAv.innerHTML = '<img src="' + data.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+          } else {
+            noticeAv.innerHTML = PERSON_SVG;
+          }
           document.getElementById('noticeModalName').textContent = data.name;
           document.getElementById('noticeHandle').textContent = data.handle;
           resetNoticeForm();
@@ -2979,7 +2984,15 @@
       closeModal('influencerProfileModal');
       var handle = document.getElementById('ipModalHandle').textContent;
       var name = document.getElementById('ipName').textContent;
-      document.getElementById('noticeAvatar').innerHTML = PERSON_SVG;
+      // Pull avatar from the profile modal's current state
+      var ipAvatarEl = document.getElementById('ipAvatar');
+      var avatarImg = ipAvatarEl ? ipAvatarEl.querySelector('img') : null;
+      var noticeAvatarEl = document.getElementById('noticeAvatar');
+      if (avatarImg && avatarImg.src) {
+        noticeAvatarEl.innerHTML = '<img src="' + avatarImg.src + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'' + PERSON_SVG.replace(/'/g, "\\'") + '\'">';
+      } else {
+        noticeAvatarEl.innerHTML = PERSON_SVG;
+      }
       document.getElementById('noticeModalName').textContent = name;
       document.getElementById('noticeHandle').textContent = handle;
       resetNoticeForm();
