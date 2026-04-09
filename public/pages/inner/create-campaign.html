@@ -427,13 +427,13 @@
             <div class="offer-card-icon"><i class="ph ph-coins"></i></div>
             <div class="offer-card-body">
               <h4 class="offer-card-title">Cash Reward</h4>
-              <p class="offer-card-desc">Pay creators a set amount per approved review</p>
+              <p class="offer-card-desc">Pay creators based on their influence tier when you approve content</p>
               <div class="reward-detail">
-                <label for="cashAmount">Amount per review</label>
-                <div class="amount-input-wrap">
-                  <input type="number" id="cashAmount" min="1" max="50" value="5" placeholder="5">
+                <p class="helper" style="margin:0 0 8px">Payout amounts are determined by each creator's verified tier — you don't set a fixed amount.</p>
+                <a href="cash-account.html#influencer-rates" style="font-size:.78rem;font-weight:600;color:var(--kup-blue)">View Influence Tier Rates &rarr;</a>
+                <div id="cashPaypalStatus" style="margin-top:12px;padding:10px 14px;border-radius:8px;font-size:.82rem;background:rgba(237,132,68,0.06);border:1px solid rgba(237,132,68,0.15)">
+                  <i class="ph ph-credit-card"></i> Checking payment setup...
                 </div>
-                <p class="helper" style="margin-top:6px">Platform sweet spot: $3 &ndash; $10 per review</p>
               </div>
             </div>
             <div class="offer-card-check"></div>
@@ -863,6 +863,44 @@
     });
   });
 
+  /* ── Reward Linking ───────────────────────────── */
+  // Track the linked reward ID for the campaign
+  var _selectedRewardId = null;
+  var _brandRewards = [];
+
+  // Check PayPal Vault status for cash reward card
+  (async function checkCashPaypal() {
+    try {
+      var data = await kupApi.get('/api/billing/payment-method');
+      var el = document.getElementById('cashPaypalStatus');
+      if (!el) return;
+      if (data && data.connected) {
+        el.style.background = 'rgba(22,163,74,0.06)';
+        el.style.borderColor = 'rgba(22,163,74,0.15)';
+        el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i> <strong style="color:#16a34a">PayPal connected</strong> — payments process automatically on approval.';
+      } else {
+        el.innerHTML = '<i class="ph ph-warning-circle" style="color:#ED8444"></i> <strong>PayPal not connected</strong> — <a href="owner-account.html?tab=billing" style="color:var(--kup-blue);font-weight:700">Connect in Settings</a> for one-click payments.';
+      }
+    } catch(e) {
+      var el = document.getElementById('cashPaypalStatus');
+      if (el) el.innerHTML = '<i class="ph ph-warning-circle" style="color:#ED8444"></i> Could not check payment status.';
+    }
+  })();
+
+  // Load existing rewards for the brand so we can auto-link
+  (async function loadBrandRewards() {
+    try {
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? (brand.mongoId || brand._id || brand.id) : null;
+      if (!brandId) return;
+      var data = await kupApi.get('/api/rewards?brandId=' + brandId);
+      _brandRewards = (data && data.rewards) || [];
+      // Auto-select the first active CPA reward if one exists
+      var cpa = _brandRewards.find(function(r) { return r.type === 'cash_per_approval' && r.status === 'active'; });
+      if (cpa) _selectedRewardId = cpa._id;
+    } catch(e) { console.warn('Could not load brand rewards:', e); }
+  })();
+
   /* ── Cash Amount → Preview ──────────────────── */
   document.getElementById('cashAmount').addEventListener('input', function() {
     updateRewardPreview();
@@ -1045,6 +1083,7 @@
   <script src="/js/firebase-client.js"></script>
   <script src="/js/brand-context.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
 
   <script>
   /* ── API Submission — wire Publish & Draft to POST /api/campaigns ── */
@@ -1088,7 +1127,8 @@
         coverImageUrl: uploadedImageUrl || '',
         maxSubmissions: maxSubmissions,
         deadline: computeDeadline(),
-        hasPlatformBonus: hasPlatformBonus
+        hasPlatformBonus: hasPlatformBonus,
+        rewardId: _selectedRewardId || null
       };
     }
 

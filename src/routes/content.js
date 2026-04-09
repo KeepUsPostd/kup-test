@@ -430,15 +430,30 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
     console.log(`✅ Content approved: ${submission._id}`);
 
-    // === AUTO-TRIGGER CASH PER APPROVAL REWARD ===
-    // Check if this brand has an active cash_per_approval reward configured
+    // === AUTO-TRIGGER REWARD ON APPROVAL ===
+    // Priority: campaign-linked reward → brand-level active CPA reward
     let rewardTriggered = null;
     try {
-      const cpaReward = await Reward.findOne({
-        brandId: submission.brandId,
-        type: 'cash_per_approval',
-        status: 'active',
-      });
+      let cpaReward = null;
+
+      // 1. Check if the campaign has a linked reward
+      if (submission.campaignId) {
+        const campaign = await Campaign.findById(submission.campaignId).populate('rewardId').lean();
+        if (campaign?.rewardId && campaign.rewardId.status === 'active') {
+          cpaReward = await Reward.findById(campaign.rewardId._id);
+          console.log(`🎯 Using campaign-linked reward: ${cpaReward?.title} (${cpaReward?.type})`);
+        }
+      }
+
+      // 2. Fallback: find brand-level active CPA reward
+      if (!cpaReward) {
+        cpaReward = await Reward.findOne({
+          brandId: submission.brandId,
+          type: 'cash_per_approval',
+          status: 'active',
+        });
+        if (cpaReward) console.log(`🔄 Using brand-level fallback reward: ${cpaReward.title}`);
+      }
 
       if (cpaReward) {
         // Resolve rate from influencer tier + content type (video vs photo)

@@ -32,7 +32,7 @@ const VALID_TRANSITIONS = {
 router.post('/', requireAuth, async (req, res) => {
   try {
     const { brandId, title, description, brief, category, coverImageUrl,
-            maxSubmissions, deadline, locationId } = req.body;
+            maxSubmissions, deadline, locationId, rewardId } = req.body;
 
     if (!brandId) {
       return res.status(400).json({ error: 'brandId is required' });
@@ -69,6 +69,7 @@ router.post('/', requireAuth, async (req, res) => {
     const campaign = await Campaign.create({
       brandId,
       locationId: locationId || null,
+      rewardId: rewardId || null,
       title: title.trim(),
       description: description || null,
       brief: brief || null,
@@ -123,6 +124,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (category) filter.category = category;
 
     const campaigns = await Campaign.find(filter)
+      .populate('rewardId', 'title type status cashConfig')
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -177,7 +179,7 @@ router.put('/:campaignId', requireAuth, async (req, res) => {
     }
 
     const allowedFields = ['title', 'description', 'brief', 'category',
-      'coverImageUrl', 'maxSubmissions', 'deadline', 'locationId'];
+      'coverImageUrl', 'maxSubmissions', 'deadline', 'locationId', 'rewardId'];
 
     const updates = {};
     for (const field of allowedFields) {

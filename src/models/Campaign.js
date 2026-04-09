@@ -15,6 +15,13 @@ const campaignSchema = new mongoose.Schema({
     default: null, // for location-scoped campaigns
   },
 
+  // Linked reward — determines what influencers earn for approved content in this campaign
+  rewardId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reward',
+    default: null, // null = falls back to brand-level active reward
+  },
+
   title: { type: String, required: true, maxlength: 60 },
   description: { type: String, maxlength: 500, default: null },
   brief: { type: String, maxlength: 2000, default: null },
