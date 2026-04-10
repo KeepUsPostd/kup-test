@@ -173,7 +173,8 @@
 
     /* Influencer info */
     .cm-influencer{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:var(--radius-md);margin-bottom:14px}
-    .cm-influencer .avatar{width:48px;height:48px;border-radius:50%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-weight:700;font-size:.85rem;flex-shrink:0}
+    .cm-influencer .avatar{width:48px;height:48px;min-width:48px;min-height:48px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.85rem;flex-shrink:0;overflow:hidden;position:relative}
+    .cm-influencer .avatar img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
     .cm-influencer .info .name{font-weight:600;font-size:.9rem}.cm-influencer .info .tier{font-size:.75rem;color:#888}
 
     /* Detail rows */
@@ -1268,7 +1269,7 @@
             <div id="approveModalType" style="font-size:.72rem;color:#9ca3af;font-weight:500;text-transform:uppercase;letter-spacing:.3px;">image</div>
           </div>
           <div style="flex-shrink:0;display:flex;align-items:center;gap:10px;padding-left:10px;border-left:1px solid #e5e7eb;">
-            <div id="approveModalAvatar" style="width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <div id="approveModalAvatar" style="width:36px;height:36px;min-width:36px;border-radius:50%;background:var(--kup-gradient);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">
               <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
             </div>
             <div>
@@ -1715,7 +1716,7 @@
       // Influencer avatar — show profile photo if available, else silhouette
       var cmAvatarEl = document.getElementById('cmAvatar');
       if (item.avatarUrl) {
-        cmAvatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+        cmAvatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML=PERSON_SVG">';
       } else {
         cmAvatarEl.innerHTML = PERSON_SVG;
       }
@@ -1926,7 +1927,7 @@
       // Avatar — use real influencer avatar if available
       var avatarEl = document.getElementById('approveModalAvatar');
       if (item.avatarUrl) {
-        avatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="" onerror="this.parentElement.innerHTML=PERSON_SVG">';
+        avatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="" onerror="this.parentElement.innerHTML=PERSON_SVG">';
       } else {
         avatarEl.innerHTML = '<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
       }
