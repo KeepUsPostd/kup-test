@@ -559,6 +559,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                   // Vault payment failed (insufficient funds, expired token, etc.)
                   paymentError = vaultErr.message;
                   console.error(`❌ Vault auto-capture FAILED: ${vaultErr.message}`);
+                  if (vaultErr.paypalResponse) console.error(`❌ PayPal details:`, JSON.stringify(vaultErr.paypalResponse));
                   // Fall through to redirect flow below
                 }
               }
