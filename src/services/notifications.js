@@ -250,9 +250,15 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       userId: influencer.userId,
       title: 'Content Approved!',
       message: msg,
-      type: 'content',
+      type: 'approval',
       link: '/app/submissions.html',
-      metadata: { contentSubmissionId: submission._id?.toString() },
+      metadata: {
+        contentSubmissionId: submission._id?.toString(),
+        brandName: brand.name,
+        brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+        contentType: submission.contentType,
+        thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
+      },
     });
     push(influencer.userId, {
       title: '✅ Content Approved!',
