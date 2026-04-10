@@ -655,6 +655,7 @@ router.delete('/:partnershipId', requireAuth, async (req, res) => {
 });
 
 // POST /api/partnerships/:partnershipId/rate — Influencer rates a brand partnership
+// Called from Flutter Rate Partnership screen after influencer receives payout
 router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
   try {
     const { communication, paymentTimeliness, creativeFreedom, overallExperience, feedback } = req.body;
@@ -688,17 +689,81 @@ router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
 
     await partnership.save();
 
-    // Roll up averageRating + ratingCount onto the InfluencerProfile
-    // Recalculate from all rated partnerships for this influencer (accurate aggregate)
+    // Roll up to Brand model — brand's average rating from all influencer feedback
     try {
-      const allRated = await Partnership.find({
-        influencerProfileId: partnership.influencerProfileId,
+      const allBrandRated = await Partnership.find({
+        brandId: partnership.brandId,
         'influencerRating.overall': { $ne: null },
       }, 'influencerRating.overall').lean();
 
-      const ratingCount = allRated.length;
+      const brandRatingCount = allBrandRated.length;
+      const brandAvgRating = brandRatingCount > 0
+        ? Math.round((allBrandRated.reduce((sum, p) => sum + p.influencerRating.overall, 0) / brandRatingCount) * 10) / 10
+        : null;
+
+      await Brand.findByIdAndUpdate(partnership.brandId, {
+        averageRating: brandAvgRating,
+        ratingCount: brandRatingCount,
+      });
+    } catch (rollupErr) {
+      console.error('Brand rating rollup error (non-blocking):', rollupErr.message);
+    }
+
+    console.log(`⭐ Influencer rated brand: partnership ${partnership._id} → ${overall}/5`);
+
+    res.json({ message: 'Rating saved', overall, partnership });
+  } catch (error) {
+    console.error('Rate partnership error:', error.message);
+    res.status(500).json({ error: 'Could not save rating' });
+  }
+});
+
+// POST /api/partnerships/:partnershipId/brand-rate — Brand rates influencer after content approval
+// Called from Content Manager after "Confirm Approval"
+router.post('/:partnershipId/brand-rate', requireAuth, async (req, res) => {
+  try {
+    const { contentQuality, timeliness, communication, briefCompliance, feedback, contentSubmissionId } = req.body;
+
+    // Validate all 4 required scores
+    const scores = { contentQuality, timeliness, communication, briefCompliance };
+    for (const [key, val] of Object.entries(scores)) {
+      if (!val || val < 1 || val > 5) {
+        return res.status(400).json({ error: `${key} must be between 1 and 5` });
+      }
+    }
+
+    const partnership = await Partnership.findById(req.params.partnershipId);
+    if (!partnership) {
+      return res.status(404).json({ error: 'Partnership not found' });
+    }
+
+    const overall = Math.round(
+      (contentQuality + timeliness + communication + briefCompliance) / 4
+    );
+
+    partnership.brandRating = {
+      contentQuality,
+      timeliness,
+      communication,
+      briefCompliance,
+      overall,
+      feedback: feedback || null,
+      ratedAt: new Date(),
+      contentSubmissionId: contentSubmissionId || null,
+    };
+
+    await partnership.save();
+
+    // Roll up to InfluencerProfile — influencer's average rating from all brand feedback
+    try {
+      const allInfluencerRated = await Partnership.find({
+        influencerProfileId: partnership.influencerProfileId,
+        'brandRating.overall': { $ne: null },
+      }, 'brandRating.overall').lean();
+
+      const ratingCount = allInfluencerRated.length;
       const averageRating = ratingCount > 0
-        ? Math.round((allRated.reduce((sum, p) => sum + p.influencerRating.overall, 0) / ratingCount) * 10) / 10
+        ? Math.round((allInfluencerRated.reduce((sum, p) => sum + p.brandRating.overall, 0) / ratingCount) * 10) / 10
         : null;
 
       await InfluencerProfile.findByIdAndUpdate(partnership.influencerProfileId, {
@@ -706,15 +771,15 @@ router.post('/:partnershipId/rate', requireAuth, async (req, res) => {
         ratingCount,
       });
     } catch (rollupErr) {
-      console.error('Rating rollup error (non-blocking):', rollupErr.message);
+      console.error('Influencer rating rollup error (non-blocking):', rollupErr.message);
     }
 
-    console.log(`⭐ Partnership ${partnership._id} rated: ${overall}/5`);
+    console.log(`⭐ Brand rated influencer: partnership ${partnership._id} → ${overall}/5`);
 
-    res.json({ message: 'Rating saved', overall, partnership });
+    res.json({ message: 'Brand rating saved', overall, partnership });
   } catch (error) {
-    console.error('Rate partnership error:', error.message);
-    res.status(500).json({ error: 'Could not save rating' });
+    console.error('Brand rate error:', error.message);
+    res.status(500).json({ error: 'Could not save brand rating' });
   }
 });
 

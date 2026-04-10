@@ -39,7 +39,19 @@ const partnershipSchema = new mongoose.Schema({
     default: null,
   },
 
-  // Influencer rating of the brand (submitted via Rate Partnership flow)
+  // Brand's rating of influencer (submitted after content approval)
+  brandRating: {
+    contentQuality: { type: Number, min: 1, max: 5, default: null },
+    timeliness: { type: Number, min: 1, max: 5, default: null },
+    communication: { type: Number, min: 1, max: 5, default: null },
+    briefCompliance: { type: Number, min: 1, max: 5, default: null },
+    overall: { type: Number, min: 1, max: 5, default: null },
+    feedback: { type: String, maxlength: 500, default: null },
+    ratedAt: { type: Date, default: null },
+    contentSubmissionId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContentSubmission', default: null },
+  },
+
+  // Influencer's rating of the brand (submitted after payout received)
   influencerRating: {
     communication: { type: Number, min: 1, max: 5, default: null },
     paymentTimeliness: { type: Number, min: 1, max: 5, default: null },

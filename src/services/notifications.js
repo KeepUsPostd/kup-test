@@ -2039,6 +2039,30 @@ async function brandReactivated({ brand }) {
   });
 }
 
+// PAY-020: Payout received + rate your brand prompt
+async function payoutReceived({ influencer, brand, amount, partnershipId, contentType }) {
+  if (!influencer.userId) return;
+
+  const msg = `You earned $${amount.toFixed(2)} from ${brand.name} for your ${contentType || 'content'}! Rate your experience.`;
+
+  // In-app notification with rating_request type — Flutter handles the routing
+  await createInApp({
+    userId: influencer.userId,
+    title: `You got paid $${amount.toFixed(2)}!`,
+    message: msg,
+    type: 'rating_request',
+    link: '/app/rate-partnership.html',
+    metadata: { partnershipId: partnershipId?.toString(), brandName: brand.name, amount },
+  });
+
+  push(influencer.userId, {
+    title: `You earned $${amount.toFixed(2)} from ${brand.name}!`,
+    body: `Tap to rate your experience with ${brand.name}`,
+    link: '/app/rate-partnership.html',
+    data: { type: 'rating_request', partnershipId: partnershipId?.toString() },
+  });
+}
+
 module.exports = {
   // ── Phase 1: Account (Critical) ──
   accountCreated,
@@ -2064,6 +2088,7 @@ module.exports = {
   cashoutFailed,
   cashRewardEarned,
   brandPaymentConfirmed,
+  payoutReceived,
 
   // ── Phase 2: Account (Standard) ──
   emailVerified,

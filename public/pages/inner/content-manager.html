@@ -2401,20 +2401,21 @@
       btn.disabled = true;
       btn.textContent = 'Submitting...';
 
-      var feedback = document.getElementById('ratingFeedbackText') ? document.getElementById('ratingFeedbackText').value : '';
+      var feedback = document.getElementById('ratingFeedback') ? document.getElementById('ratingFeedback').value : '';
 
-      // Try to save to backend if we have a partnershipId
+      // Brand rates influencer — uses brand-rate endpoint with correct field names
       if (partnershipId && isRealData) {
         try {
-          await kupApi.post('/api/partnerships/' + partnershipId + '/rate', {
-            communication:      ratingState.communication      || 0,
-            paymentTimeliness:  ratingState.paymentTimeliness  || 0,
-            creativeFreedom:    ratingState.creativeFreedom     || 0,
-            overallExperience:  ratingState.overallExperience   || 0,
-            feedback:           feedback || null,
+          await kupApi.post('/api/partnerships/' + partnershipId + '/brand-rate', {
+            contentQuality:   ratingState['content-quality']   || 0,
+            timeliness:       ratingState['timeliness']         || 0,
+            communication:    ratingState['communication']      || 0,
+            briefCompliance:  ratingState['brief-compliance']   || 0,
+            feedback:         feedback || null,
+            contentSubmissionId: item.mongoId || null,
           });
         } catch (e) {
-          console.warn('Rating API error (non-blocking):', e.message);
+          console.warn('Brand rating API error (non-blocking):', e.message);
         }
       }
 

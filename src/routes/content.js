@@ -31,7 +31,7 @@ const TIER_RATES = {
 // ── Auto-Payout Helper (Vault flow: KUP → influencer immediately) ──
 // After Vault captures brand's payment to KUP, send influencer their cut right away.
 // Non-blocking: if payout fails, brand charge still stands — admin can retry.
-async function sendAutoPayout(transaction, influencer, amount, tier, contentType) {
+async function sendAutoPayout(transaction, influencer, amount, tier, contentType, brand, partnershipId) {
   try {
     const influencerPaypalEmail = influencer.paypalEmail;
     if (influencerPaypalEmail) {
@@ -48,6 +48,15 @@ async function sendAutoPayout(transaction, influencer, amount, tier, contentType
       transaction.payoutSentAt = new Date();
       transaction.payoutMethod = 'auto_vault';
       console.log(`💸 Influencer payout sent: $${amount} to ${influencerPaypalEmail} (batch: ${transaction.payoutBatchId})`);
+
+      // Send payout received notification + rating request to influencer
+      notify.payoutReceived({
+        influencer: { userId: influencer.userId, displayName: influencer.displayName },
+        brand: { name: brand?.name || 'A brand' },
+        amount,
+        partnershipId,
+        contentType,
+      }).catch(() => {});
     } else {
       console.log(`ℹ️ No PayPal email for influencer — payout deferred to manual cashout`);
     }
@@ -540,6 +549,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
           let approvalUrl = null;
           let paymentStatus = 'pending'; // 'paid', 'pending', 'failed'
           let paymentError = null;
+          const brandForNotify = await Brand.findById(submission.brandId, 'name').lean();
           try {
             const freshInfluencer = influencer || await InfluencerProfile.findById(submission.influencerProfileId);
             if (freshInfluencer?.paypalMerchantId) {
@@ -571,7 +581,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                     console.log(`💳 Vault auto-capture SUCCESS: ${order.id} — $${brandPaysAmount}`);
 
                     // Auto-payout to influencer via Payouts API
-                    await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType);
+                    await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType, brandForNotify, submission.partnershipId);
                   } else {
                     // Order created but not captured — may need manual capture
                     console.log(`⚠️ Vault order ${order.id} status: ${captureStatus} — attempting capture...`);
@@ -583,7 +593,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                       console.log(`💳 Vault capture SUCCESS after retry: ${order.id}`);
 
                       // Auto-payout after manual capture too
-                      await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType);
+                      await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType, brandForNotify, submission.partnershipId);
                     } catch (captureErr) {
                       paymentError = captureErr.message;
                       console.error(`❌ Vault capture FAILED: ${order.id} — ${captureErr.message}`);
