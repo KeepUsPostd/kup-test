@@ -1,6 +1,6 @@
-// Wallet Routes — Influencer balance, transaction history, and cash-out
-// The wallet model: brand pays KUP via Orders API → money sits in KUP's PayPal
-// → influencer cashes out → KUP sends via Payouts API
+// Wallet Routes — Influencer earnings, transaction history, and PayPal payouts
+// Vault flow: brand pays KUP → KUP immediately pays influencer via Payouts API
+// App mirrors transactions as an "Earn Dashboard" for the wallet feel
 // Rule G5: PayPal Business ONLY
 const express = require('express');
 const router = express.Router();
@@ -12,31 +12,52 @@ const paypal = require('../config/paypal');
 const MINIMUM_CASHOUT = 5.00;              // Minimum cashout amount in USD
 const PAYPAL_PAYOUT_FEE = 0.25;           // PayPal Payouts API fee per item (KUP absorbs)
 
-// ── GET /api/wallet/balance — Get influencer's wallet balance ──
+// ── GET /api/wallet/balance — Earn Dashboard stats ──
 router.get('/balance', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencer) {
       return res.status(404).json({
         error: 'Influencer profile not found',
-        message: 'You need an influencer profile to view your wallet.',
+        message: 'You need an influencer profile to view your earnings.',
       });
     }
 
-    // Available: paid transactions that have NOT been withdrawn
-    const availableResult = await Transaction.aggregate([
+    // Paid to You: all paid transactions (auto-payout already sent to their PayPal)
+    const paidResult = await Transaction.aggregate([
       {
         $match: {
           payeeInfluencerId: influencer._id,
           status: 'paid',
-          withdrawalId: null,
         },
       },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    const available = availableResult.length > 0 ? availableResult[0].total : 0;
+    const paidToYou = paidResult.length > 0 ? paidResult[0].total : 0;
 
-    // Pending: transactions where brand hasn't paid yet
+    // This Month: paid transactions from current calendar month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const thisMonthResult = await Transaction.aggregate([
+      {
+        $match: {
+          payeeInfluencerId: influencer._id,
+          status: 'paid',
+          paidAt: { $gte: startOfMonth },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const thisMonth = thisMonthResult.length > 0 ? thisMonthResult[0].total : 0;
+
+    // Approved Submissions: count of paid transactions
+    const approvedCount = await Transaction.countDocuments({
+      payeeInfluencerId: influencer._id,
+      status: 'paid',
+    });
+
+    // Next Payout: pending transactions (awaiting brand approval/payment)
     const pendingResult = await Transaction.aggregate([
       {
         $match: {
@@ -46,9 +67,12 @@ router.get('/balance', requireAuth, async (req, res) => {
       },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    const pending = pendingResult.length > 0 ? pendingResult[0].total : 0;
+    const nextPayout = pendingResult.length > 0 ? pendingResult[0].total : 0;
 
-    // Withdrawn: sum of all successful cashouts (lifetime)
+    // Lifetime: everything earned
+    const lifetime = Math.round((paidToYou + nextPayout) * 100) / 100;
+
+    // Legacy: withdrawn total (for backward compat)
     const withdrawnResult = await Withdrawal.aggregate([
       {
         $match: {
@@ -60,16 +84,21 @@ router.get('/balance', requireAuth, async (req, res) => {
     ]);
     const withdrawn = withdrawnResult.length > 0 ? withdrawnResult[0].total : 0;
 
-    // Lifetime: everything earned (available + pending + withdrawn)
-    const lifetime = Math.round((available + pending + withdrawn) * 100) / 100;
-
-    console.log(`💰 Wallet balance for ${influencer.displayName}: $${available} available, $${pending} pending, $${withdrawn} withdrawn`);
+    console.log(`💰 Earn dashboard for ${influencer.displayName}: $${paidToYou} paid, $${thisMonth} this month, $${nextPayout} pending, ${approvedCount} approvals`);
 
     res.json({
-      available: Math.round(available * 100) / 100,
-      pending: Math.round(pending * 100) / 100,
-      withdrawn: Math.round(withdrawn * 100) / 100,
+      // Earn Dashboard fields
+      paidToYou: Math.round(paidToYou * 100) / 100,
+      thisMonth: Math.round(thisMonth * 100) / 100,
+      approvedCount,
+      nextPayout: Math.round(nextPayout * 100) / 100,
       lifetime,
+
+      // Legacy fields (backward compat with old wallet page)
+      available: Math.round(paidToYou * 100) / 100,
+      pending: Math.round(nextPayout * 100) / 100,
+      withdrawn: Math.round(withdrawn * 100) / 100,
+
       currency: 'USD',
       paypalConnected: !!influencer.paypalEmail,
     });
@@ -144,6 +173,9 @@ router.get('/transactions', requireAuth, async (req, res) => {
 });
 
 // ── POST /api/wallet/cashout — Request a cash-out to PayPal ──
+// Note: With Vault auto-payout, most transactions are already paid out.
+// This cashout is a fallback for transactions that weren't auto-paid
+// (e.g. influencer had no PayPal email at time of approval, payout failed, etc.)
 router.post('/cashout', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
@@ -175,13 +207,14 @@ router.post('/cashout', requireAuth, async (req, res) => {
       });
     }
 
-    // Calculate available balance
+    // Available for cashout: paid, NOT already auto-paid, NOT already withdrawn
     const availableResult = await Transaction.aggregate([
       {
         $match: {
           payeeInfluencerId: influencer._id,
           status: 'paid',
           withdrawalId: null,
+          payoutSentAt: null,  // Skip transactions already auto-paid via Vault
         },
       },
       { $group: { _id: null, total: { $sum: '$amount' } } },
@@ -220,10 +253,12 @@ router.post('/cashout', requireAuth, async (req, res) => {
     }
 
     // Find the transactions to cover this cashout (oldest first — FIFO)
+    // Only grab transactions NOT already auto-paid
     const eligibleTransactions = await Transaction.find({
       payeeInfluencerId: influencer._id,
       status: 'paid',
       withdrawalId: null,
+      payoutSentAt: null,
     }).sort({ createdAt: 1 });
 
     const coveredTransactionIds = [];
@@ -247,7 +282,7 @@ router.post('/cashout', requireAuth, async (req, res) => {
     // Mark covered transactions with this withdrawalId
     await Transaction.updateMany(
       { _id: { $in: coveredTransactionIds } },
-      { $set: { withdrawalId: withdrawal._id } }
+      { $set: { withdrawalId: withdrawal._id, payoutMethod: 'manual_cashout' } }
     );
 
     // Send via PayPal Payouts API
@@ -286,7 +321,7 @@ router.post('/cashout', requireAuth, async (req, res) => {
       // Un-link transactions so they're available again
       await Transaction.updateMany(
         { _id: { $in: coveredTransactionIds } },
-        { $set: { withdrawalId: null } }
+        { $set: { withdrawalId: null, payoutMethod: null } }
       );
 
       return res.status(502).json({
@@ -386,7 +421,7 @@ router.get('/cashout/:id/status', requireAuth, async (req, res) => {
           // Un-link transactions so they're available again
           await Transaction.updateMany(
             { _id: { $in: withdrawal.transactionIds } },
-            { $set: { withdrawalId: null } }
+            { $set: { withdrawalId: null, payoutMethod: null } }
           );
           console.log(`❌ Cashout failed (synced): ${withdrawal.paypalBatchId} — ${batchStatus}`);
         }

@@ -380,7 +380,7 @@ async function subscriptionCanceled({ brand, planTier }) {
 async function paypalMoneyWaiting({ influencer, brand, amount, isWeeklyReminder = false, hasPendingCash = false }) {
   if (!influencer.email) return;
 
-  const connectUrl = `${APP_URL}/app/influencer-wallet.html`;
+  const connectUrl = `${APP_URL}/app/influencer-earn.html`;
 
   let subject, headline, preheader, bodyHtml, pushTitle, pushBody;
 
@@ -444,12 +444,12 @@ async function paypalMoneyWaiting({ influencer, brand, amount, isWeeklyReminder 
         ? (hasPendingCash ? `You have ${$(amount)} in cash rewards waiting. Connect PayPal to claim it.` : 'Some brands on KUP pay cash. Connect PayPal so you never miss a payout.')
         : `${brand?.name || 'A brand'} approved your content. Connect PayPal to receive your payment.`,
       type: 'payment',
-      link: '/app/influencer-wallet.html',
+      link: '/app/influencer-earn.html',
     });
     push(influencer.userId, {
       title: pushTitle,
       body: pushBody,
-      link: '/app/influencer-wallet.html',
+      link: '/app/influencer-earn.html',
     });
   }
 }

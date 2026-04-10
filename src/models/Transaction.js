@@ -73,6 +73,15 @@ const transactionSchema = new mongoose.Schema({
   paypalOrderId: { type: String, default: null },
   paypalTransactionId: { type: String, default: null },
 
+  // Auto-payout tracking (Vault flow: KUP pays influencer immediately)
+  payoutBatchId: { type: String, default: null },      // PayPal Payouts batch ID
+  payoutSentAt: { type: Date, default: null },          // When payout was sent to influencer
+  payoutMethod: {                                        // How influencer was paid
+    type: String,
+    enum: ['auto_vault', 'manual_cashout', null],
+    default: null,
+  },
+
   // Wallet: links this transaction to a cashout (prevents double-counting)
   withdrawalId: {
     type: mongoose.Schema.Types.ObjectId,
