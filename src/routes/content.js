@@ -34,8 +34,12 @@ const TIER_RATES = {
 async function sendAutoPayout(transaction, influencer, amount, tier, contentType, brand, partnershipId) {
   try {
     const influencerPaypalEmail = influencer.paypalEmail;
+    console.log(`💸 Auto-payout attempt: influencer=${influencer.displayName}, email=${influencerPaypalEmail || 'NONE'}, amount=$${amount}, tier=${tier}`);
+
     if (influencerPaypalEmail) {
       const payoutBatchId = `cpa-${transaction._id}-${Date.now()}`;
+      console.log(`💸 Calling PayPal Payouts API: $${amount} → ${influencerPaypalEmail} (batch: ${payoutBatchId})`);
+
       const payoutResult = await paypal.createPayout(
         [{
           email: influencerPaypalEmail,
@@ -44,6 +48,9 @@ async function sendAutoPayout(transaction, influencer, amount, tier, contentType
         }],
         payoutBatchId
       );
+
+      console.log(`💸 PayPal Payouts API response:`, JSON.stringify(payoutResult?.batch_header || payoutResult));
+
       transaction.payoutBatchId = payoutResult.batch_header?.payout_batch_id || payoutBatchId;
       transaction.payoutSentAt = new Date();
       transaction.payoutMethod = 'auto_vault';
@@ -61,7 +68,8 @@ async function sendAutoPayout(transaction, influencer, amount, tier, contentType
       console.log(`ℹ️ No PayPal email for influencer — payout deferred to manual cashout`);
     }
   } catch (payoutErr) {
-    console.error(`❌ Influencer payout failed (non-blocking): ${payoutErr.message}`);
+    console.error(`❌ Influencer payout FAILED: ${payoutErr.message}`);
+    if (payoutErr.paypalResponse) console.error(`❌ PayPal payout response:`, JSON.stringify(payoutErr.paypalResponse));
     // Transaction stays 'paid' — brand was charged. Payout can be retried from admin.
   }
 }
