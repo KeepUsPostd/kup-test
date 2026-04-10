@@ -1005,7 +1005,7 @@
         <!-- Action Buttons (pending only) -->
         <p style="font-size:.68rem;color:#999;line-height:1.4;margin-bottom:10px;">Approving grants you a license to use this content per KeepUsPostd's <a href="terms.html" target="_blank" style="color:#2EA5DD;font-weight:600;text-decoration:none;">Terms</a>. Ensure FTC disclosure is included.</p>
         <div class="cm-actions" id="cmActions">
-          <button class="btn-action approve" onclick="approveContent()"><i class="ph ph-check"></i> Approve Content</button>
+          <button class="btn-action approve" onclick="openApproveModal()"><i class="ph ph-check"></i> Approve Content</button>
           <button class="btn-action reject" onclick="rejectContent()"><i class="ph ph-x"></i> Reject Content</button>
         </div>
 
@@ -1242,6 +1242,46 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js?v=1774619962"></script>
   <script src="/js/api.js?v=1774619962"></script>
+
+  <!-- Approve Confirmation Modal -->
+  <div class="kup-modal-overlay" id="approveModal" role="dialog" aria-modal="true">
+    <div class="kup-modal" style="max-width:480px;text-align:center;padding:36px 32px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:rgba(22,163,74,0.1);margin-bottom:16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 style="font-size:1.15rem;font-weight:800;margin:0 0 4px;">Approve Content</h3>
+      <p style="font-size:1rem;font-weight:700;color:#1a1a1a;margin:0 0 20px;">Top-Notch! Approve Reviews You Can Use!</p>
+
+      <div style="border:1px solid #eee;border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:20px;text-align:left;">
+        <div style="flex-shrink:0;">
+          <div id="approveModalThumb" style="width:56px;height:56px;border-radius:var(--radius-sm);background:#f0f0f0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:.7rem;color:#999;">image</span>
+          </div>
+          <div id="approveModalType" style="font-size:.68rem;color:#999;text-align:center;margin-top:2px;">image</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div id="approveModalFile" style="font-size:.85rem;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">File name</div>
+        </div>
+        <div style="flex-shrink:0;display:flex;align-items:center;gap:10px;">
+          <div id="approveModalAvatar" style="width:40px;height:40px;border-radius:50%;background:#eee;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="#ccc" width="60%" height="60%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          </div>
+          <div>
+            <div id="approveModalHandle" style="font-size:.85rem;font-weight:700;color:#1a1a1a;">@username</div>
+            <div id="approveModalTier" style="font-size:.75rem;color:#888;">Micro tier</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:.82rem;color:#888;line-height:1.5;margin:0 0 12px;">Approving content may initiate cash payments, unlock a reward and/or process points to your influencer partners — according to your brand's settings.</p>
+      <p style="font-size:.78rem;color:#e74c3c;font-weight:600;margin:0 0 24px;">Content not approved or rejected within (10) days<br>of submission is automatically approved.</p>
+
+      <div style="display:flex;gap:12px;">
+        <button onclick="closeApproveModal()" style="flex:1;padding:14px;border-radius:var(--radius-sm);border:none;background:#f0f0f0;font-family:var(--kup-font);font-weight:700;font-size:.9rem;color:#666;cursor:pointer;transition:all .2s;">Cancel</button>
+        <button id="confirmApproveBtn" onclick="confirmApproval()" style="flex:1;padding:14px;border-radius:var(--radius-sm);border:none;background:#16a34a;font-family:var(--kup-font);font-weight:700;font-size:.9rem;color:white;cursor:pointer;transition:all .2s;">Confirm Approval</button>
+      </div>
+    </div>
+  </div>
 
   <div class="kup-toast-container" id="toastContainer"></div>
   <script>
@@ -1849,6 +1889,54 @@
         }
       }
     }
+
+    // ========== Approve Confirmation Modal ==========
+    function openApproveModal() {
+      var item = contentItems[currentIndex];
+      if (!item) return;
+
+      // Populate modal with current content info
+      var handle = item.influencer || '@username';
+      var tier = item.tier || 'Startup';
+      var tierDisplay = { unverified:'Startup', nano:'Nano', micro:'Micro', rising:'Mid', established:'Macro', premium:'Mega', celebrity:'Celebrity' };
+      var contentType = item.contentType || 'image';
+
+      document.getElementById('approveModalHandle').textContent = handle;
+      document.getElementById('approveModalTier').textContent = (tierDisplay[tier] || tier) + ' tier';
+      document.getElementById('approveModalType').textContent = contentType;
+      document.getElementById('approveModalFile').textContent = item.fileName || item.title || ('File #' + (currentIndex + 1));
+
+      // Thumbnail
+      var thumbEl = document.getElementById('approveModalThumb');
+      if (item.thumbnailUrl || item.fileUrl) {
+        var src = item.thumbnailUrl || item.fileUrl;
+        thumbEl.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;" alt="">';
+      } else {
+        thumbEl.innerHTML = '<span style="font-size:.7rem;color:#999;">' + contentType + '</span>';
+      }
+
+      // Avatar
+      var avatarEl = document.getElementById('approveModalAvatar');
+      if (item.avatarUrl) {
+        avatarEl.innerHTML = '<img src="' + item.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="">';
+      }
+
+      document.getElementById('approveModal').classList.add('show');
+    }
+
+    function closeApproveModal() {
+      document.getElementById('approveModal').classList.remove('show');
+    }
+
+    function confirmApproval() {
+      closeApproveModal();
+      approveContent();
+    }
+
+    // Close approve modal on overlay click
+    document.getElementById('approveModal').addEventListener('click', function(e) {
+      if (e.target === this) closeApproveModal();
+    });
 
     // ========== Approve / Reject (API-connected) ==========
     async function approveContent() {
