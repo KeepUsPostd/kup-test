@@ -554,12 +554,18 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
       title: `You earned ${$(amount)}!`,
       message: msg,
       type: 'payment',
-      link: '/app/wallet.html',
+      link: '/app/influencer-earn.html',
+      metadata: {
+        brandName: brand?.name || 'KeepUsPostd',
+        brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+        amount,
+        paymentType: type,
+      },
     });
     push(influencer.userId, {
-      title: `💰 You earned ${$(amount)}!`,
+      title: `You earned ${$(amount)}!`,
       body: msg,
-      link: '/app/wallet.html',
+      link: '/app/influencer-earn.html',
     });
   }
 }
