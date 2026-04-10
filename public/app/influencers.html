@@ -228,7 +228,7 @@
     .inf-tab:hover { color: #444; }
     .inf-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
     .inf-tab-badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       min-width: 22px;
@@ -240,6 +240,7 @@
       line-height: 1;
       background: #f0f0f0;
       color: #888;
+      align-self: center;
     }
     .inf-tab.active .inf-tab-badge { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
     .inf-tab-badge.alert { background: rgba(237,132,68,0.12); color: var(--kup-orange); }
