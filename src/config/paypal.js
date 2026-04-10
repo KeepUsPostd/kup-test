@@ -64,7 +64,7 @@ async function getAccessToken() {
  * @param {object} [body] - Request body (will be JSON-serialized)
  * @returns {Promise<object>} Parsed JSON response
  */
-async function paypalRequest(method, path, body = null) {
+async function paypalRequest(method, path, body = null, extraHeaders = {}) {
   const token = await getAccessToken();
 
   const options = {
@@ -73,6 +73,7 @@ async function paypalRequest(method, path, body = null) {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
+      ...extraHeaders,
     },
   };
 
@@ -496,8 +497,12 @@ async function createOrderWithVault(amount, description, vaultPaymentTokenId, me
     },
   };
 
-  console.log(`💳 Vault order payload: ${JSON.stringify(orderPayload).substring(0, 300)}`);
-  return paypalRequest('POST', '/v2/checkout/orders', orderPayload);
+  // PayPal requires PayPal-Request-Id header when payment_source includes vault_id
+  const requestId = `kup-vault-${customId || Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  console.log(`💳 Vault order: amount=$${amount.toFixed(2)}, requestId=${requestId}, vaultToken=${vaultPaymentTokenId.substring(0, 8)}...`);
+  return paypalRequest('POST', '/v2/checkout/orders', orderPayload, {
+    'PayPal-Request-Id': requestId,
+  });
 }
 
 module.exports = {
