@@ -1801,7 +1801,9 @@
       closeModal('influencerProfileModal');
       var handle = document.getElementById('ipModalHandle').textContent;
       var name = document.getElementById('ipName').textContent;
-      document.getElementById('cNoticeAvatar').innerHTML = PERSON_SVG;
+      // Copy avatar from profile modal (has real image if available)
+      var profileAvHtml = document.getElementById('ipAvatar').innerHTML;
+      document.getElementById('cNoticeAvatar').innerHTML = profileAvHtml || PERSON_SVG;
       document.getElementById('cNoticeModalName').textContent = name;
       document.getElementById('cNoticeHandle').textContent = handle;
       resetNoticeForm();

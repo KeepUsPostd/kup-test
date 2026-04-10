@@ -388,6 +388,24 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/content/brand/:brandId — Get approved content for a brand (used by Flutter brand profile)
+router.get('/brand/:brandId', requireAuth, async (req, res) => {
+  try {
+    const submissions = await ContentSubmission.find({
+      brandId: req.params.brandId,
+      status: { $in: ['approved', 'postd'] },
+    })
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .sort({ submittedAt: -1 })
+      .limit(50);
+
+    res.json({ submissions });
+  } catch (error) {
+    console.error('Brand content error:', error.message);
+    res.status(500).json({ error: 'Could not fetch brand content' });
+  }
+});
+
 // GET /api/content/:submissionId — Get single submission
 router.get('/:submissionId', requireAuth, async (req, res) => {
   try {
