@@ -362,7 +362,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (influencerProfileId) filter.influencerProfileId = influencerProfileId;
 
     const rawSubmissions = await ContentSubmission.find(filter)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isHidden isVerified')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isHidden isVerified userId')
       .populate('campaignId', 'title status')
       .sort({ submittedAt: -1 })
       .limit(100);
@@ -370,6 +370,15 @@ router.get('/', requireAuth, async (req, res) => {
     // Filter out content from hidden influencers (auto-created/test accounts)
     // Hidden influencers still work in the native app — this only affects the brand portal
     const submissions = rawSubmissions.filter(s => !s.influencerProfileId?.isHidden);
+
+    // Backfill avatar from User model for influencers whose InfluencerProfile.avatarUrl is null
+    // (happens when photo was saved via PUT /api/auth/profile before the sync fix)
+    for (const sub of submissions) {
+      if (sub.influencerProfileId && !sub.influencerProfileId.avatarUrl && sub.influencerProfileId.userId) {
+        const user = await User.findById(sub.influencerProfileId.userId, 'avatarUrl').lean();
+        if (user?.avatarUrl) sub.influencerProfileId.avatarUrl = user.avatarUrl;
+      }
+    }
 
     // Gather stats
     const allForBrand = await ContentSubmission.countDocuments({ brandId });
@@ -410,12 +419,20 @@ router.get('/brand/:brandId', requireAuth, async (req, res) => {
 router.get('/:submissionId', requireAuth, async (req, res) => {
   try {
     const submission = await ContentSubmission.findById(req.params.submissionId)
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isVerified')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier bio realFollowerCount engagementRate totalReviews totalBrandsPartnered isVerified userId')
       .populate('campaignId', 'title status')
       .populate('reviewedBy', 'email legalFirstName legalLastName');
 
     if (!submission) {
       return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    // Fallback: if influencer profile has no avatarUrl, check User model
+    if (submission.influencerProfileId && !submission.influencerProfileId.avatarUrl && submission.influencerProfileId.userId) {
+      const user = await User.findById(submission.influencerProfileId.userId, 'avatarUrl').lean();
+      if (user?.avatarUrl) {
+        submission.influencerProfileId.avatarUrl = user.avatarUrl;
+      }
     }
 
     res.json({ submission });

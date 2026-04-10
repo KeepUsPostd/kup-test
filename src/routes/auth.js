@@ -444,6 +444,15 @@ router.put('/profile', requireAuth, async (req, res) => {
 
     await user.save();
 
+    // Sync avatarUrl to InfluencerProfile too (content manager reads from there)
+    if (avatarUrl !== undefined) {
+      const { InfluencerProfile } = require('../models');
+      await InfluencerProfile.findOneAndUpdate(
+        { userId: user._id },
+        { avatarUrl },
+      ).catch(() => {});
+    }
+
     res.json({
       success: true,
       user: {
