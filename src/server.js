@@ -136,15 +136,10 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
       res.setHeader('Content-Type', 'video/mp4');
     }
     if (/\.(html|js)$/i.test(filePath)) {
-      if (isProduction) {
-        // Short cache in production (5 min) — allows quick updates
-        res.setHeader('Cache-Control', 'public, max-age=300');
-      } else {
-        // No cache in development
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-      }
+      // No cache on HTML/JS — ensures latest code is always served after deploy
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
     }
   }
 }));
