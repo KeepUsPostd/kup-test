@@ -1411,8 +1411,10 @@
     }
     .notice-avatar {
       width: 44px; height: 44px;
+      min-width: 44px; min-height: 44px;
       border-radius: 50%;
       overflow: hidden;
+      flex-shrink: 0;
       background: var(--kup-gradient);
       display: flex;
       align-items: center;
@@ -1420,7 +1422,14 @@
       color: white;
       font-weight: 700;
       font-size: 0.78rem;
-      flex-shrink: 0;
+      position: relative;
+    }
+    .notice-avatar img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
     .notice-user-name { font-weight: 700; font-size: 0.92rem; color: #1a1a1a; }
     .notice-user-handle { font-size: 0.78rem; color: #888; }

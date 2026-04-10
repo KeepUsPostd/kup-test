@@ -187,7 +187,7 @@ router.get('/transactions', requireAuth, async (req, res) => {
     if (type) filter.type = type;
 
     const rawTransactions = await Transaction.find(filter)
-      .populate('payeeInfluencerId', 'displayName handle influenceTier isHidden')
+      .populate('payeeInfluencerId', 'displayName handle avatarUrl influenceTier isHidden')
       .populate('payerBrandId', 'name')
       .populate('contentSubmissionId', 'contentType status')
       .sort({ createdAt: -1 })

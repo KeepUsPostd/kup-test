@@ -1462,18 +1462,46 @@
         return;
       }
 
+      var typeLabels = {
+        'cash_per_approval': 'Cash Per Approval',
+        'bonus_cash': 'Bonus Cash',
+        'postd_pay': 'Postd Pay',
+        'viral_bonus': 'Viral Bonus',
+        'platform_bonus': 'Platform Bonus',
+        'referral_bonus': 'Referral Bonus',
+      };
+
       var html = '';
       pageItems.forEach(function(tx) {
         var amt = tx.amountCents != null ? tx.amountCents : (tx.amount != null ? Math.round(tx.amount * 100) : 0);
         var amtClass = amt < 0 ? 'negative' : 'positive';
         var sc = statusClass(tx.status);
-        var influencer = tx.payeeName || tx.influencerHandle || tx.influencer || '--';
-        if (influencer !== '--' && influencer.charAt(0) !== '@') influencer = '@' + influencer;
+
+        // Influencer info from populated payeeInfluencerId
+        var inf = tx.payeeInfluencerId || {};
+        var infHandle = inf.handle || tx.payeeName || tx.influencerHandle || '--';
+        if (infHandle !== '--' && infHandle.charAt(0) !== '@') infHandle = '@' + infHandle;
+        var infTier = inf.influenceTier || '';
+        var tierMap = { unverified:'Startup', nano:'Nano', micro:'Micro', rising:'Mid', established:'Macro', premium:'Mega', celebrity:'Celebrity' };
+        var tierLabel = tierMap[infTier] || infTier || '';
+
+        // Description from transaction type
+        var desc = tx.description || tx.memo || typeLabels[tx.type] || tx.type || '--';
+
+        // Influencer cell with avatar + handle + tier
+        var infAvatarHtml = inf.avatarUrl
+          ? '<img src="' + inf.avatarUrl + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle" onerror="this.style.display=\'none\'" alt="">'
+          : '<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2EA5DD,#707BBB);margin-right:8px;vertical-align:middle"></span>';
+        var infCellHtml = '<div style="display:flex;align-items:center;gap:8px">'
+          + infAvatarHtml
+          + '<div><div style="font-weight:600;font-size:.82rem;color:#1a1a1a">' + infHandle + '</div>'
+          + (tierLabel ? '<div style="font-size:.7rem;color:#888">' + tierLabel + '</div>' : '')
+          + '</div></div>';
 
         html += '<tr>'
           + '<td data-label="Date" class="tx-date-cell">' + fmtDate(tx.createdAt || tx.date) + '</td>'
-          + '<td data-label="Description" class="tx-desc-cell">' + (tx.description || tx.memo || '--') + '</td>'
-          + '<td data-label="Influencer" class="tx-influencer-cell">' + influencer + '</td>'
+          + '<td data-label="Description" class="tx-desc-cell">' + desc + '</td>'
+          + '<td data-label="Influencer" class="tx-influencer-cell">' + infCellHtml + '</td>'
           + '<td data-label="Amount" class="tx-amount-cell ' + amtClass + '">' + fmtAmount(amt) + '</td>'
           + '<td data-label="Status"><span class="status-badge ' + sc + '">' + statusLabel(tx.status) + '</span></td>'
           + '</tr>';
