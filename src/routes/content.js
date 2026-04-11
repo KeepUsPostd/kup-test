@@ -256,38 +256,79 @@ router.post('/', requireAuth, async (req, res) => {
 
 // ── Public Feed Endpoints ────────────────────────────────────────────────────
 
-// GET /api/content/feed — Platform-wide approved content for the "For You" feed
+// GET /api/content/feed/categories — Categories that have approved content (for filter pills)
+router.get('/feed/categories', async (req, res) => {
+  try {
+    const brandIdsWithContent = await ContentSubmission.distinct('brandId', { status: 'approved' });
+    const categories = await Brand.distinct('category', {
+      _id: { $in: brandIdsWithContent },
+      category: { $ne: null },
+    });
+    res.json({ categories: categories.sort() });
+  } catch (error) {
+    console.error('[GET /content/feed/categories]', error.message);
+    res.status(500).json({ error: 'Could not load categories' });
+  }
+});
+
+// GET /api/content/feed — Platform-wide approved content for the video discovery feed
 // No auth required — Apple reviewers with any account (or none) see real content
+// Optional filters: ?category=Food+%26+Beverage  ?brandIds=id1,id2,id3
 router.get('/feed', async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const skip = (page - 1) * limit;
+    const { category, brandIds } = req.query;
 
-    const submissions = await ContentSubmission.find({ status: 'approved' })
+    // Build filter
+    const contentFilter = { status: 'approved' };
+
+    // Category filter — find brands in this category, then filter content by those brands
+    if (category && category.toLowerCase() !== 'all') {
+      const matchingBrands = await Brand.find({
+        category: { $regex: `^${category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
+      }).select('_id').lean();
+      contentFilter.brandId = { $in: matchingBrands.map(b => b._id) };
+    }
+
+    // Brand IDs filter — for "My Brands" pill (comma-separated)
+    if (brandIds) {
+      const ids = brandIds.split(',').filter(Boolean);
+      if (contentFilter.brandId) {
+        // Intersect with category filter
+        const categorySet = new Set(contentFilter.brandId.$in.map(String));
+        contentFilter.brandId = { $in: ids.filter(id => categorySet.has(id)) };
+      } else {
+        contentFilter.brandId = { $in: ids };
+      }
+    }
+
+    const submissions = await ContentSubmission.find(contentFilter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
-      .populate('brandId', 'name logoUrl generatedColor')
+      .populate('brandId', 'name logoUrl generatedColor category')
       .sort({ approvedAt: -1, submittedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
     const feed = submissions.map(s => ({
-      _id:         s._id,
-      displayName: s.influencerProfileId?.displayName || 'Creator',
-      handle:      s.influencerProfileId?.handle || 'creator',
-      avatarUrl:   s.influencerProfileId?.avatarUrl || null,
-      verified:    s.influencerProfileId?.verificationStatus === 'verified',
-      caption:     s.caption || '',
-      brandName:   s.brandId?.name || 'Brand',
-      brandLogo:   s.brandId?.logoUrl || null,
-      brandColor:  s.brandId?.generatedColor || '#1A1A1A',
-      mediaUrls:   s.mediaUrls || [],
-      posterUrl:   s.posterUrl || null,
-      contentType: s.contentType,
-      likes:       s.metrics?.likes || 0,
-      comments:    s.metrics?.comments || 0,
-      shares:      s.metrics?.shares || 0,
+      _id:           s._id,
+      displayName:   s.influencerProfileId?.displayName || 'Creator',
+      handle:        s.influencerProfileId?.handle || 'creator',
+      avatarUrl:     s.influencerProfileId?.avatarUrl || null,
+      verified:      s.influencerProfileId?.verificationStatus === 'verified',
+      caption:       s.caption || '',
+      brandName:     s.brandId?.name || 'Brand',
+      brandLogo:     s.brandId?.logoUrl || null,
+      brandColor:    s.brandId?.generatedColor || '#1A1A1A',
+      brandCategory: s.brandId?.category || null,
+      mediaUrls:     s.mediaUrls || [],
+      posterUrl:     s.posterUrl || null,
+      contentType:   s.contentType,
+      likes:         s.metrics?.likes || 0,
+      comments:      s.metrics?.comments || 0,
+      shares:        s.metrics?.shares || 0,
     }));
 
     res.json({ feed, page, hasMore: submissions.length === limit });
@@ -297,7 +338,7 @@ router.get('/feed', async (req, res) => {
   }
 });
 
-// GET /api/content/mine — Current influencer's own approved submissions (Following tab)
+// GET /api/content/mine — Current influencer's own approved submissions
 router.get('/mine', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
