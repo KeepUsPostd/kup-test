@@ -404,34 +404,43 @@ router.get('/my-progress', requireAuth, async (req, res) => {
     // Get active rewards for this brand
     const rewards = await Reward.find({ brandId, status: 'active' }).lean();
 
-    // Calculate content points: submitted, approved, postd
+    // Calculate content points: submitted (any status = was submitted), approved, postd
     const [submitted, approved, postd] = await Promise.all([
-      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, status: { $in: ['approved', 'rejected', 'pending'] } }),
+      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id }),
       ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, status: 'approved' }),
-      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, postdPlatform: { $ne: null } }),
+      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, status: 'postd' }),
     ]);
 
     // Calculate purchase points from PurchasePointsLog
-    const purchaseAgg = await PurchasePointsLog.aggregate([
-      {
-        $match: {
-          brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId),
-          influencerProfileId: profile._id,
+    let purchasePoints = 0;
+    let purchaseCount = 0;
+    try {
+      const purchaseAgg = await PurchasePointsLog.aggregate([
+        {
+          $match: {
+            brandId: new (require('mongoose').Types.ObjectId)(brandId),
+            influencerProfileId: profile._id,
+          },
         },
-      },
-      { $group: { _id: null, totalPoints: { $sum: '$pointsAwarded' }, count: { $sum: 1 } } },
-    ]);
-    const purchasePoints = purchaseAgg[0]?.totalPoints ?? 0;
-    const purchaseCount = purchaseAgg[0]?.count ?? 0;
+        { $group: { _id: null, totalPoints: { $sum: '$pointsAwarded' }, count: { $sum: 1 } } },
+      ]);
+      purchasePoints = purchaseAgg[0]?.totalPoints ?? 0;
+      purchaseCount = purchaseAgg[0]?.count ?? 0;
+    } catch (aggErr) {
+      // Non-fatal — purchase points just show 0
+      console.warn('[my-progress] Purchase aggregate error:', aggErr.message);
+    }
 
     // Build progress per reward
     const progress = rewards.map(reward => {
       const pc = reward.pointConfig || {};
       let contentPts = 0;
       if (pc.contentEnabled) {
-        const submitPts = (pc.contentPointValues?.submitted || 10) * submitted;
-        const approvePts = (pc.contentPointValues?.approved || 25) * approved;
-        const postdPts = (pc.contentPointValues?.published || 40) * postd;
+        // Use contentPoints (the actual field name from Reward schema)
+        const pts = pc.contentPoints || {};
+        const submitPts = (pts.submitted || 10) * submitted;
+        const approvePts = (pts.approved || 25) * approved;
+        const postdPts = (pts.published || 40) * postd;
         contentPts = submitPts + approvePts + postdPts;
       }
 
