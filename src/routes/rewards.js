@@ -418,7 +418,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
       const purchaseAgg = await PurchasePointsLog.aggregate([
         {
           $match: {
-            brandId: new (require('mongoose').Types.ObjectId)(brandId),
+            brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId),
             influencerProfileId: profile._id,
           },
         },

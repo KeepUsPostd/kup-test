@@ -256,13 +256,13 @@ router.post('/', requireAuth, async (req, res) => {
 
 // ── Public Feed Endpoints ────────────────────────────────────────────────────
 
-// GET /api/content/feed/categories — All brand categories for filter pills
-// Returns all categories from active brands (not just those with approved content)
+// GET /api/content/feed/categories — Categories that have approved content (for filter pills)
 router.get('/feed/categories', async (req, res) => {
   try {
+    const brandIdsWithContent = await ContentSubmission.distinct('brandId', { status: 'approved' });
     const categories = await Brand.distinct('category', {
+      _id: { $in: brandIdsWithContent },
       category: { $ne: null, $nin: ['', 'null', 'undefined'] },
-      status: 'active',
     });
     res.json({ categories: categories.sort() });
   } catch (error) {
@@ -389,6 +389,21 @@ router.get('/mine', requireAuth, async (req, res) => {
       .limit(limit)
       .lean();
 
+    // Fetch reward/payment info for these submissions
+    const subIds = submissions.map(s => s._id);
+    const { Transaction } = require('../models');
+    const transactions = await Transaction.find({
+      contentSubmissionId: { $in: subIds },
+      status: { $in: ['paid', 'pending', 'processing'] },
+    }).select('contentSubmissionId amount type status').lean();
+
+    // Map transactions by submission ID
+    const txMap = {};
+    transactions.forEach(tx => {
+      const sid = tx.contentSubmissionId?.toString();
+      if (sid) txMap[sid] = { amount: tx.amount, type: tx.type, payStatus: tx.status };
+    });
+
     const result = submissions.map(s => ({
       _id:         s._id,
       status:      s.status,           // needed for Stats tab approval rate
@@ -408,6 +423,8 @@ router.get('/mine', requireAuth, async (req, res) => {
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
       shares:      s.metrics?.shares || 0,
+      // Reward earned for this submission (if any)
+      reward:      txMap[s._id.toString()] || null,
     }));
 
     res.json({ submissions: result });
