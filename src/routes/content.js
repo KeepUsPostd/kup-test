@@ -256,13 +256,13 @@ router.post('/', requireAuth, async (req, res) => {
 
 // ── Public Feed Endpoints ────────────────────────────────────────────────────
 
-// GET /api/content/feed/categories — Categories that have approved content (for filter pills)
+// GET /api/content/feed/categories — All brand categories for filter pills
+// Returns all categories from active brands (not just those with approved content)
 router.get('/feed/categories', async (req, res) => {
   try {
-    const brandIdsWithContent = await ContentSubmission.distinct('brandId', { status: 'approved' });
     const categories = await Brand.distinct('category', {
-      _id: { $in: brandIdsWithContent },
-      category: { $ne: null },
+      category: { $ne: null, $nin: ['', 'null', 'undefined'] },
+      status: 'active',
     });
     res.json({ categories: categories.sort() });
   } catch (error) {

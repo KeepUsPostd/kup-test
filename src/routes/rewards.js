@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { Reward, InfluencerProfile, BrandProfile, Transaction } = require('../models');
+const { Reward, InfluencerProfile, BrandProfile, Transaction, ContentSubmission, PurchasePointsLog } = require('../models');
 const notify = require('../services/notifications');
 
 // Cash reward types (rule R5: these allow multi-select per brand)
@@ -387,6 +387,87 @@ router.post('/distribute', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Distribute reward error:', error.message);
     res.status(500).json({ error: 'Could not distribute reward' });
+  }
+});
+
+// GET /api/rewards/my-progress?brandId=xxx
+// Influencer-facing — returns point balance per reward for the current user's brand partnership
+router.get('/my-progress', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId required' });
+
+    // Find influencer profile for current user
+    const profile = await InfluencerProfile.findOne({ userId: req.user.uid }).lean();
+    if (!profile) return res.json({ rewards: [], points: {} });
+
+    // Get active rewards for this brand
+    const rewards = await Reward.find({ brandId, status: 'active' }).lean();
+
+    // Calculate content points: submitted, approved, postd
+    const [submitted, approved, postd] = await Promise.all([
+      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, status: { $in: ['approved', 'rejected', 'pending'] } }),
+      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, status: 'approved' }),
+      ContentSubmission.countDocuments({ brandId, influencerProfileId: profile._id, postdPlatform: { $ne: null } }),
+    ]);
+
+    // Calculate purchase points from PurchasePointsLog
+    const purchaseAgg = await PurchasePointsLog.aggregate([
+      {
+        $match: {
+          brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId),
+          influencerProfileId: profile._id,
+        },
+      },
+      { $group: { _id: null, totalPoints: { $sum: '$pointsAwarded' }, count: { $sum: 1 } } },
+    ]);
+    const purchasePoints = purchaseAgg[0]?.totalPoints ?? 0;
+    const purchaseCount = purchaseAgg[0]?.count ?? 0;
+
+    // Build progress per reward
+    const progress = rewards.map(reward => {
+      const pc = reward.pointConfig || {};
+      let contentPts = 0;
+      if (pc.contentEnabled) {
+        const submitPts = (pc.contentPointValues?.submitted || 10) * submitted;
+        const approvePts = (pc.contentPointValues?.approved || 25) * approved;
+        const postdPts = (pc.contentPointValues?.published || 40) * postd;
+        contentPts = submitPts + approvePts + postdPts;
+      }
+
+      const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
+      const totalPts = contentPts + purchasePts;
+      const threshold = pc.unlockThreshold || 300;
+      const percent = Math.min(Math.round((totalPts / threshold) * 100), 100);
+
+      return {
+        rewardId: reward._id,
+        title: reward.title,
+        type: reward.type,
+        earningMethod: reward.earningMethod,
+        totalPoints: totalPts,
+        unlockThreshold: threshold,
+        percentComplete: percent,
+        unlocked: totalPts >= threshold,
+        breakdown: {
+          content: {
+            points: contentPts,
+            submitted,
+            approved,
+            postd,
+          },
+          purchase: {
+            points: purchasePts,
+            transactions: purchaseCount,
+          },
+        },
+      };
+    });
+
+    res.json({ rewards: progress });
+  } catch (error) {
+    console.error('My progress error:', error.message);
+    res.status(500).json({ error: 'Could not load progress' });
   }
 });
 

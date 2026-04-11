@@ -373,7 +373,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     const partnerships = await Partnership.find(filter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier creatorTier stats isHidden isVerified realFollowerCount')
-      .populate('brandId', 'name initials generatedColor kioskBrandCode brandColors')
+      .populate('brandId', 'name initials generatedColor logoUrl avatarUrl category kioskBrandCode brandColors')
       .sort({ createdAt: -1 })
       .limit(200);
 
