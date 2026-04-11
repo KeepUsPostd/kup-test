@@ -277,18 +277,26 @@ router.get('/locations', requireAuth, async (req, res) => {
 // Save the selected location
 router.post('/select-location', requireAuth, async (req, res) => {
   try {
-    const { brandId, locationId, locationName, locationAddress } = req.body;
+    const { brandId, locationId, locationName, locationAddress, placeId } = req.body;
     if (!brandId || !locationId) return res.status(400).json({ error: 'brandId and locationId required' });
+
+    // Build review URL from Place ID or fallback to Google Maps search
+    let reviewUrl = null;
+    if (placeId) {
+      reviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+    } else if (locationName) {
+      reviewUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationName + (locationAddress ? ' ' + locationAddress : ''))}`;
+    }
 
     const config = await GoogleBusinessConfig.findOneAndUpdate(
       { brandId },
-      { locationId, locationName, locationAddress },
+      { locationId, locationName, locationAddress, placeId: placeId || null, reviewUrl },
       { new: true }
     );
 
     if (!config) return res.status(404).json({ error: 'GBP config not found' });
 
-    res.json({ message: 'Location saved', locationName, locationAddress });
+    res.json({ message: 'Location saved', locationName, locationAddress, reviewUrl });
   } catch (err) {
     console.error('[GBP] select-location error:', err.message);
     res.status(500).json({ error: 'Could not save location' });
@@ -322,6 +330,39 @@ router.delete('/disconnect', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('[GBP] disconnect error:', err.message);
     res.status(500).json({ error: 'Could not disconnect' });
+  }
+});
+
+// GET /api/google-business/review-url?brandId=xxx
+// Public — returns the Google review URL for a brand (used by influencer app share sheet)
+router.get('/review-url', async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId required' });
+
+    const config = await GoogleBusinessConfig.findOne({ brandId }).select('reviewUrl locationName locationAddress').lean();
+    if (!config || !config.reviewUrl) {
+      // Fallback: try to build a search URL from brand name + address
+      const brand = await Brand.findById(brandId).select('name city state address').lean();
+      if (brand && brand.name) {
+        const searchQuery = [brand.name, brand.address, brand.city, brand.state].filter(Boolean).join(' ');
+        return res.json({
+          reviewUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`,
+          locationName: brand.name,
+          connected: false,
+        });
+      }
+      return res.json({ reviewUrl: null, connected: false });
+    }
+
+    res.json({
+      reviewUrl: config.reviewUrl,
+      locationName: config.locationName,
+      connected: true,
+    });
+  } catch (err) {
+    console.error('[GBP] review-url error:', err.message);
+    res.status(500).json({ error: 'Could not fetch review URL' });
   }
 });
 

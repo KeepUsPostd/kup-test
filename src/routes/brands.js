@@ -450,8 +450,8 @@ router.put('/:brandId', requireAuth, requireBrandRole('admin'), async (req, res)
   try {
     const allowedFields = ['name', 'category', 'subcategory', 'description',
       'websiteUrl', 'tags', 'logoUrl', 'heroImageUrl', 'location',
-      'email', 'phone', 'address', 'city', 'state', 'zip', 'socialLinks',
-      'brandColors'];
+      'email', 'phone', 'address', 'city', 'state', 'zip', 'coordinates',
+      'socialLinks', 'brandColors'];
 
     const updates = {};
     for (const field of allowedFields) {

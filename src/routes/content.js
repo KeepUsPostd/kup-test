@@ -279,17 +279,46 @@ router.get('/feed', async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const skip = (page - 1) * limit;
-    const { category, brandIds } = req.query;
+    const { category, brandIds, lat, lon, radiusMi } = req.query;
 
     // Build filter
     const contentFilter = { status: 'approved' };
+
+    // Geo filter — find brands near the user's coordinates
+    if (lat && lon) {
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lon);
+      const radius = Math.min(parseFloat(radiusMi) || 25, 100); // default 25mi, max 100mi
+      const radiusMeters = radius * 1609.34;
+
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        const nearbyBrands = await Brand.find({
+          coordinates: {
+            $nearSphere: {
+              $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+              $maxDistance: radiusMeters,
+            },
+          },
+          status: 'active',
+        }).select('_id').lean();
+
+        contentFilter.brandId = { $in: nearbyBrands.map(b => b._id) };
+      }
+    }
 
     // Category filter — find brands in this category, then filter content by those brands
     if (category && category.toLowerCase() !== 'all') {
       const matchingBrands = await Brand.find({
         category: { $regex: `^${category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
       }).select('_id').lean();
-      contentFilter.brandId = { $in: matchingBrands.map(b => b._id) };
+      const categoryIds = matchingBrands.map(b => b._id);
+      if (contentFilter.brandId) {
+        // Intersect with geo filter
+        const geoSet = new Set(contentFilter.brandId.$in.map(String));
+        contentFilter.brandId = { $in: categoryIds.filter(id => geoSet.has(String(id))) };
+      } else {
+        contentFilter.brandId = { $in: categoryIds };
+      }
     }
 
     // Brand IDs filter — for "My Brands" pill (comma-separated)
@@ -306,7 +335,7 @@ router.get('/feed', async (req, res) => {
 
     const submissions = await ContentSubmission.find(contentFilter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
-      .populate('brandId', 'name logoUrl generatedColor category')
+      .populate('brandId', 'name logoUrl generatedColor category city')
       .sort({ approvedAt: -1, submittedAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -323,6 +352,7 @@ router.get('/feed', async (req, res) => {
       brandLogo:     s.brandId?.logoUrl || null,
       brandColor:    s.brandId?.generatedColor || '#1A1A1A',
       brandCategory: s.brandId?.category || null,
+      brandCity:     s.brandId?.city || null,
       mediaUrls:     s.mediaUrls || [],
       posterUrl:     s.posterUrl || null,
       contentType:   s.contentType,

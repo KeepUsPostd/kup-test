@@ -46,6 +46,11 @@ const brandSchema = new mongoose.Schema({
   city: { type: String, default: null },
   state: { type: String, default: null },
   zip: { type: String, default: null },
+  // GeoJSON Point — for proximity-based feed filtering
+  coordinates: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: undefined },
+  },
   socialLinks: {
     facebook: { type: String, default: null },
     instagram: { type: String, default: null },
@@ -128,5 +133,6 @@ brandSchema.index({ parentBrandId: 1 }, { sparse: true });
 brandSchema.index({ status: 1 });
 brandSchema.index({ tags: 1 });
 brandSchema.index({ createdBy: 1 });
+brandSchema.index({ coordinates: '2dsphere' }, { sparse: true });
 
 module.exports = mongoose.model('Brand', brandSchema);

@@ -190,7 +190,13 @@ async function contentSubmitted({ brand, influencer, submission }) {
       message: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
       type: 'content',
       link: '/pages/inner/content.html',
-      metadata: { contentSubmissionId: submission._id?.toString() },
+      metadata: {
+        contentSubmissionId: submission._id?.toString(),
+        brandName: brand.name,
+        brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+        contentType: submission.contentType,
+        thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
+      },
     });
     push(brand.ownerId, {
       title: 'New Content Submitted',
@@ -300,7 +306,13 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
       message: msg,
       type: 'content',
       link: '/app/submissions.html',
-      metadata: { contentSubmissionId: submission._id?.toString() },
+      metadata: {
+        contentSubmissionId: submission._id?.toString(),
+        brandName: brand.name,
+        brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+        contentType: submission.contentType,
+        thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
+      },
     });
     push(influencer.userId, {
       title: 'Content Update',
@@ -1328,7 +1340,7 @@ async function newInfluencerPartner({ brand, influencer }) {
       message: `${influencer.displayName || 'An influencer'} partnered with ${brand.name}.`,
       type: 'partnership',
       link: '/pages/inner/influencers.html',
-      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
     push(brand.ownerId, {
       title: 'New Partner!',
@@ -1368,7 +1380,7 @@ async function newBrandPartnership({ influencer, brand }) {
       message: `${brand.name} accepted your partnership.`,
       type: 'partnership',
       link: '/app/brands.html',
-      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
     push(influencer.userId, {
       title: '🤝 Partnership Accepted!',
@@ -1404,7 +1416,7 @@ async function partnershipRemoved({ influencer, brand, reason = '' }) {
       message: `${brand.name} ended the partnership.`,
       type: 'partnership',
       link: '/app/brands.html',
-      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || null },
+      metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
   }
 }
@@ -2064,7 +2076,12 @@ async function payoutReceived({ influencer, brand, amount, partnershipId, conten
     message: msg,
     type: 'rating_request',
     link: '/app/rate-partnership.html',
-    metadata: { partnershipId: partnershipId?.toString(), brandName: brand.name, amount },
+    metadata: {
+      partnershipId: partnershipId?.toString(),
+      brandName: brand.name,
+      brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+      amount,
+    },
   });
 
   push(influencer.userId, {

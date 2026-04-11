@@ -9,6 +9,8 @@ const googleBusinessConfigSchema = new mongoose.Schema({
   locationId:      { type: String, default: null },  // full resource name e.g. "accounts/123/locations/456"
   locationName:    { type: String, default: null },
   locationAddress: { type: String, default: null },
+  placeId:         { type: String, default: null },  // Google Maps Place ID for direct review links
+  reviewUrl:       { type: String, default: null },  // Direct URL to leave a Google review
 
   // OAuth tokens (never returned in standard queries)
   accessToken:  { type: String, select: false, default: null },
