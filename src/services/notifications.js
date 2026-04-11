@@ -260,6 +260,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       link: '/app/submissions.html',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
+        partnershipId: submission.partnershipId?.toString() || null,
         brandName: brand.name,
         brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
         contentType: submission.contentType,
@@ -308,6 +309,7 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
       link: '/app/submissions.html',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
+        partnershipId: submission.partnershipId?.toString() || null,
         brandName: brand.name,
         brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
         contentType: submission.contentType,
@@ -531,7 +533,7 @@ async function cashoutFailed({ influencer, amount, reason = '' }) {
 }
 
 // RWD-003: Cash reward distributed → notify influencer
-async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_approval' }) {
+async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_approval', partnershipId = null }) {
   if (!influencer.email) return;
 
   const typeLabel = {
@@ -570,6 +572,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
       metadata: {
         brandName: brand?.name || 'KeepUsPostd',
         brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+        partnershipId: partnershipId || null,
         amount,
         paymentType: type,
       },

@@ -790,7 +790,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
         const inf = { ...influencer.toObject(), email: infUser?.email || influencer.paypalEmail || '', userId: influencer.userId };
         notify.contentApproved({ influencer: inf, brand, submission, reward: rewardTriggered }).catch(() => {});
         if (rewardTriggered) {
-          notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval' }).catch(() => {});
+          notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval', partnershipId: submission.partnershipId?.toString() }).catch(() => {});
         }
       }
     } catch (notifyErr) {
