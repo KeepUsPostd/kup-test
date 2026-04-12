@@ -152,6 +152,24 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
         partnershipId,
         showRating: stage === 'approved',
       }).catch(() => {});
+
+      // 🎉 Check if any level was JUST unlocked by this point award
+      const previousPts = totalPts - points;
+      for (const lvl of levels) {
+        if (totalPts >= lvl.threshold && previousPts < lvl.threshold) {
+          // Level just unlocked!
+          console.log(`🎉 Level unlocked! ${lvl.rewardValue} (${lvl.threshold} pts) for ${influencer.displayName}`);
+          notify.levelUnlocked({
+            influencer,
+            brand,
+            rewardValue: lvl.rewardValue,
+            rewardType: lvl.rewardType,
+            threshold: lvl.threshold,
+            totalPoints: totalPts,
+            partnershipId,
+          }).catch(() => {});
+        }
+      }
     }
   } catch (err) {
     console.error('[Points] Award error (non-blocking):', err.message);

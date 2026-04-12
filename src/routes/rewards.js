@@ -157,7 +157,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
     const { brandId } = req.query;
     if (!brandId) return res.status(400).json({ error: 'brandId required' });
 
-    const profile = await InfluencerProfile.findOne({ userId: req.user.uid }).lean();
+    const profile = await InfluencerProfile.findOne({ userId: req.user._id }).lean();
     if (!profile) return res.json({ rewards: [], points: {} });
 
     const rewards = await Reward.find({ brandId, status: 'active' }).lean();

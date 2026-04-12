@@ -2165,6 +2165,63 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
   });
 }
 
+// LEVEL-001: Reward level unlocked → notify influencer + brand
+async function levelUnlocked({ influencer, brand, rewardValue, rewardType, threshold, totalPoints, partnershipId }) {
+  // Notify influencer — celebration
+  if (influencer?.userId) {
+    const emoji = rewardType === 'free' ? '🎁' : '🏷️';
+    const msg = `${emoji} You unlocked ${rewardValue}! Reached ${threshold} pts with ${brand?.name || 'your brand partner'}.`;
+    await createInApp({
+      userId: influencer.userId,
+      title: 'Reward Unlocked!',
+      message: msg,
+      type: 'reward',
+      link: '/app/rewards.html',
+      metadata: {
+        brandName: brand?.name || '',
+        brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+        rewardValue,
+        rewardType,
+        threshold,
+        totalPoints,
+        partnershipId,
+        isLevelUnlock: true,
+      },
+    });
+    push(influencer.userId, {
+      title: 'Reward Unlocked!',
+      body: msg,
+    });
+  }
+
+  // Notify brand owner — "Influencer unlocked a reward, distribute it"
+  if (brand) {
+    const BrandProfile = require('../models/BrandProfile');
+    const bp = await BrandProfile.findOne({ ownedBrandIds: brand._id });
+    if (bp?.userId) {
+      const msg = `${influencer?.displayName || 'An influencer'} unlocked ${rewardValue} (${threshold} pts). Distribute the reward from Cash & Rewards.`;
+      await createInApp({
+        userId: bp.userId,
+        title: 'Reward Ready to Distribute!',
+        message: msg,
+        type: 'reward',
+        link: '/pages/inner/cash-rewards.html',
+        metadata: {
+          influencerName: influencer?.displayName,
+          influencerHandle: influencer?.handle,
+          rewardValue,
+          threshold,
+          partnershipId,
+        },
+      });
+      push(bp.userId, {
+        title: 'Distribute Reward',
+        body: msg,
+      });
+    }
+  }
+}
+
 module.exports = {
   // ── Phase 1: Account (Critical) ──
   accountCreated,
@@ -2192,6 +2249,7 @@ module.exports = {
   brandPaymentConfirmed,
   payoutReceived,
   pointsEarned,
+  levelUnlocked,
 
   // ── Phase 2: Account (Standard) ──
   emailVerified,
