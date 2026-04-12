@@ -16,6 +16,7 @@
 const { sendEmail } = require('../config/email');
 const { sendPushToUser } = require('../config/push');
 const Notification = require('../models/Notification');
+const Reward = require('../models/Reward');
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 
@@ -224,26 +225,31 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
     variant: 'influencer',
   });
 
-  // In-app notification
+  // In-app notification — skip if point-based rewards exist (awardContentPoints handles it with point info)
+  // This prevents duplicate notifications when both submission + points fire
   if (influencer.userId) {
-    const msg = `Your ${submission.contentType || 'content'} for ${brand.name} was submitted. The brand will review it soon.`;
-    await createInApp({
-      userId: influencer.userId,
-      title: 'Content Submitted!',
-      message: msg,
-      type: 'content',
-      link: '/app/submissions.html',
-      metadata: {
-        contentSubmissionId: submission._id?.toString(),
-        brandName: brand.name,
-        brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
-        contentType: submission.contentType,
-        thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
-      },
-    });
+    // Check if brand has point-based rewards — if so, the point notification covers the submission
+    const activePointRewards = await Reward.find({ brandId: brand._id, status: 'active', earningMethod: 'point_based' }).countDocuments();
+    if (activePointRewards === 0) {
+      // No point rewards — send standalone submission notification
+      const msg = `Your ${submission.contentType || 'content'} for ${brand.name} was submitted. The brand will review it soon.`;
+      await createInApp({
+        userId: influencer.userId,
+        title: 'Content Submitted!',
+        message: msg,
+        type: 'content',
+        link: '/app/submissions.html',
+        metadata: {
+          contentSubmissionId: submission._id?.toString(),
+          brandName: brand.name,
+          brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+          contentType: submission.contentType,
+        },
+      });
+    }
     push(influencer.userId, {
       title: 'Content Submitted!',
-      body: msg,
+      body: `Your ${submission.contentType || 'content'} for ${brand.name} was submitted.`,
     });
   }
 }

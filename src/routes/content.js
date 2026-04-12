@@ -287,8 +287,9 @@ router.post('/', requireAuth, async (req, res) => {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
-    // 🏆 Award "submitted" content points for all active point-based rewards
-    awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted' });
+    // 🏆 Award "submitted" content points — fires point notifications per reward
+    awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted' })
+      .catch(() => {});
 
     res.status(201).json({
       message: 'Content submitted for review',

@@ -402,7 +402,7 @@
     }
 
     /* Data Table */
-    .data-table {
+    .data-table { max-height: 600px; overflow-y: auto;
       background: white;
       border: 1px solid #eee;
       border-radius: var(--radius-md);
@@ -772,8 +772,8 @@
     .manage-rewards-toggle:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
     .manage-rewards-toggle .toggle-chevron { margin-left: auto; transition: transform 0.2s; font-size: 0.7rem; }
     .manage-rewards-toggle.expanded .toggle-chevron { transform: rotate(180deg); }
-    .manage-rewards-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-    .manage-rewards-body.expanded { max-height: 3000px; padding-top: 16px; }
+    .manage-rewards-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .manage-rewards-body.expanded { max-height: 800px; overflow-y: auto; padding-top: 16px; }
 
     /* ============== DISTRIBUTE REWARD BUTTON ============== */
     .btn-distribute {
