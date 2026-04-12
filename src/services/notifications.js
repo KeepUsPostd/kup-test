@@ -223,6 +223,29 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
     ctaUrl: `${APP_URL}/app/submissions.html`,
     variant: 'influencer',
   });
+
+  // In-app notification
+  if (influencer.userId) {
+    const msg = `Your ${submission.contentType || 'content'} for ${brand.name} was submitted. The brand will review it soon.`;
+    await createInApp({
+      userId: influencer.userId,
+      title: 'Content Submitted!',
+      message: msg,
+      type: 'content',
+      link: '/app/submissions.html',
+      metadata: {
+        contentSubmissionId: submission._id?.toString(),
+        brandName: brand.name,
+        brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+        contentType: submission.contentType,
+        thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
+      },
+    });
+    push(influencer.userId, {
+      title: 'Content Submitted!',
+      body: msg,
+    });
+  }
 }
 
 // CON-003: Content approved → notify influencer
@@ -2113,7 +2136,7 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
     userId: influencer.userId,
     title: `+${points} Points Earned!`,
     message: msg,
-    type: 'points',
+    type: 'reward',
     link: '/app/rewards.html',
     metadata: {
       brandName: brand?.name || '',
