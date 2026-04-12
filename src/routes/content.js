@@ -91,7 +91,7 @@ const VIRAL_THRESHOLDS = [
 ];
 
 // ── Helper: Award content points + notify for all active point-based rewards ──
-async function awardContentPoints({ brandId, influencerProfileId, stage }) {
+async function awardContentPoints({ brandId, influencerProfileId, stage, partnershipId = null }) {
   try {
     const rewards = await Reward.find({ brandId, status: 'active', earningMethod: 'point_based' });
     if (!rewards.length) return;
@@ -100,6 +100,12 @@ async function awardContentPoints({ brandId, influencerProfileId, stage }) {
     const brand = await Brand.findById(brandId);
     if (!influencer || !brand) return;
 
+    // Look up partnershipId if not provided
+    if (!partnershipId) {
+      const p = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' }).select('_id').lean();
+      if (p) partnershipId = p._id.toString();
+    }
+
     for (const reward of rewards) {
       const pc = reward.pointConfig || {};
       if (!pc.contentEnabled) continue;
@@ -107,7 +113,6 @@ async function awardContentPoints({ brandId, influencerProfileId, stage }) {
       const points = pts[stage] || 0;
       if (points <= 0) continue;
 
-      // Calculate total points for this influencer toward this reward
       const [submitted, approved, postd] = await Promise.all([
         ContentSubmission.countDocuments({ brandId, influencerProfileId }),
         ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
@@ -126,6 +131,8 @@ async function awardContentPoints({ brandId, influencerProfileId, stage }) {
         stage,
         totalPoints: totalPts,
         unlockThreshold: pc.unlockThreshold || 300,
+        partnershipId,
+        showRating: stage === 'approved',
       }).catch(() => {});
     }
   } catch (err) {
@@ -863,8 +870,8 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
-    // 🏆 Award "approved" content points for all active point-based rewards
-    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'approved' });
+    // 🏆 Award "approved" content points — includes rating option
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'approved', partnershipId: submission.partnershipId?.toString() });
 
     res.json({ message: 'Content approved', submission, rewardTriggered, rewardGateNote });
   } catch (error) {

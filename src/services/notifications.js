@@ -2126,7 +2126,7 @@ async function payoutReceived({ influencer, brand, amount, partnershipId, conten
 
 // POINTS-001: Points earned toward a reward → notify influencer
 // Triggered at each content lifecycle stage: submitted, approved, postd, bonus
-async function pointsEarned({ influencer, brand, rewardTitle, points, stage, totalPoints, unlockThreshold }) {
+async function pointsEarned({ influencer, brand, rewardTitle, points, stage, totalPoints, unlockThreshold, partnershipId = null, showRating = false }) {
   if (!influencer?.userId) return;
 
   const stageLabels = {
@@ -2155,6 +2155,8 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
       stage,
       totalPoints,
       unlockThreshold,
+      partnershipId: partnershipId || null,
+      showRating: showRating || false,
     },
   });
   push(influencer.userId, {
