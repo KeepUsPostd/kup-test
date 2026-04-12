@@ -2095,6 +2095,42 @@ async function payoutReceived({ influencer, brand, amount, partnershipId, conten
   });
 }
 
+// POINTS-001: Points earned toward a reward → notify influencer
+// Triggered at each content lifecycle stage: submitted, approved, postd, bonus
+async function pointsEarned({ influencer, brand, rewardTitle, points, stage, totalPoints, unlockThreshold }) {
+  if (!influencer?.userId) return;
+
+  const stageLabels = {
+    submitted: 'submitting content',
+    approved: 'content approval',
+    published: 'posting your review',
+    bonus: 'bonus',
+  };
+  const stageLabel = stageLabels[stage] || stage;
+  const msg = `+${points} pts toward ${rewardTitle} for ${stageLabel}! (${totalPoints}/${unlockThreshold} pts)`;
+
+  await createInApp({
+    userId: influencer.userId,
+    title: `+${points} Points Earned!`,
+    message: msg,
+    type: 'points',
+    link: '/app/rewards.html',
+    metadata: {
+      brandName: brand?.name || '',
+      brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+      rewardTitle,
+      points,
+      stage,
+      totalPoints,
+      unlockThreshold,
+    },
+  });
+  push(influencer.userId, {
+    title: `+${points} Points!`,
+    body: msg,
+  });
+}
+
 module.exports = {
   // ── Phase 1: Account (Critical) ──
   accountCreated,
@@ -2121,6 +2157,7 @@ module.exports = {
   cashRewardEarned,
   brandPaymentConfirmed,
   payoutReceived,
+  pointsEarned,
 
   // ── Phase 2: Account (Standard) ──
   emailVerified,

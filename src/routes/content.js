@@ -90,6 +90,49 @@ const VIRAL_THRESHOLDS = [
   { views: 1000000, bonus: 500, label: '1M views' },
 ];
 
+// ── Helper: Award content points + notify for all active point-based rewards ──
+async function awardContentPoints({ brandId, influencerProfileId, stage }) {
+  try {
+    const rewards = await Reward.find({ brandId, status: 'active', earningMethod: 'point_based' });
+    if (!rewards.length) return;
+
+    const influencer = await InfluencerProfile.findById(influencerProfileId);
+    const brand = await Brand.findById(brandId);
+    if (!influencer || !brand) return;
+
+    for (const reward of rewards) {
+      const pc = reward.pointConfig || {};
+      if (!pc.contentEnabled) continue;
+      const pts = pc.contentPoints || {};
+      const points = pts[stage] || 0;
+      if (points <= 0) continue;
+
+      // Calculate total points for this influencer toward this reward
+      const [submitted, approved, postd] = await Promise.all([
+        ContentSubmission.countDocuments({ brandId, influencerProfileId }),
+        ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
+        ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'postd' }),
+      ]);
+      const totalPts =
+        (pts.submitted || 0) * submitted +
+        (pts.approved || 0) * approved +
+        (pts.published || 0) * postd;
+
+      notify.pointsEarned({
+        influencer,
+        brand,
+        rewardTitle: reward.title,
+        points,
+        stage,
+        totalPoints: totalPts,
+        unlockThreshold: pc.unlockThreshold || 300,
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('[Points] Award error (non-blocking):', err.message);
+  }
+}
+
 // POST /api/content — Submit new content
 // Called by influencers when they submit content for a brand
 router.post('/', requireAuth, async (req, res) => {
@@ -243,6 +286,9 @@ router.post('/', requireAuth, async (req, res) => {
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
+
+    // 🏆 Award "submitted" content points for all active point-based rewards
+    awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted' });
 
     res.status(201).json({
       message: 'Content submitted for review',
@@ -816,6 +862,9 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
+    // 🏆 Award "approved" content points for all active point-based rewards
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'approved' });
+
     res.json({ message: 'Content approved', submission, rewardTriggered, rewardGateNote });
   } catch (error) {
     console.error('Approve content error:', error.message);
@@ -1017,6 +1066,11 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
+
+    // 🏆 Award "published" + "bonus" content points for all active point-based rewards
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'published' });
+    // Bonus points also fire on postd (separate notification)
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'bonus' });
 
     res.json({ message: 'Content marked as Postd (published)', submission, rewardTriggered });
   } catch (error) {
