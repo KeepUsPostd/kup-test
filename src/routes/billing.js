@@ -679,4 +679,97 @@ router.delete('/payment-method', requireAuth, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// BRAND-DIRECT PPCP — Brand pays influencer directly
+// Brand connects their PayPal as a PPCP merchant so payments
+// route directly to influencers. KUP takes platform fee.
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/billing/brand-paypal-onboard — Start brand PPCP onboarding
+router.get('/brand-paypal-onboard', requireAuth, async (req, res) => {
+  try {
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (!brandProfile) return res.status(404).json({ error: 'Brand profile not found' });
+
+    // Already connected?
+    if (brandProfile.brandPaypalMerchantId) {
+      return res.json({ connected: true, merchantId: brandProfile.brandPaypalMerchantId });
+    }
+
+    const trackingId = `BRAND-${brandProfile._id}-${Date.now()}`;
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+    const returnUrl = `${APP_URL}/api/billing/brand-paypal-onboard/return`;
+
+    const result = await paypal.createPartnerReferral(trackingId, returnUrl);
+
+    // Save tracking ID
+    brandProfile.brandPaypalTrackingId = trackingId;
+    brandProfile.brandPaypalOnboardingStatus = 'pending';
+    await brandProfile.save();
+
+    // Find the action URL from PayPal response
+    const actionUrl = result.links?.find(l => l.rel === 'action_url')?.href;
+
+    console.log(`💳 Brand PPCP onboarding started: ${trackingId}`);
+    res.json({ actionUrl, trackingId });
+  } catch (error) {
+    console.error('Brand PPCP onboard error:', error.message);
+    res.status(500).json({ error: 'Could not start PayPal onboarding' });
+  }
+});
+
+// GET /api/billing/brand-paypal-onboard/return — PayPal redirects here after brand authorizes
+router.get('/brand-paypal-onboard/return', async (req, res) => {
+  try {
+    const merchantId = req.query.merchantIdInPayPal || req.query.merchantId;
+    const trackingId = req.query.tracking_id;
+
+    if (!merchantId || !trackingId) {
+      const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+      return res.redirect(`${APP_URL}/app/cash-account.html?paypal_error=missing_params`);
+    }
+
+    // Find the brand profile by tracking ID
+    const brandProfile = await BrandProfile.findOne({ brandPaypalTrackingId: trackingId });
+    if (!brandProfile) {
+      const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+      return res.redirect(`${APP_URL}/app/cash-account.html?paypal_error=profile_not_found`);
+    }
+
+    brandProfile.brandPaypalMerchantId = merchantId;
+    brandProfile.brandPaypalOnboardingStatus = 'completed';
+    brandProfile.brandPaypalConnectedAt = new Date();
+    await brandProfile.save();
+
+    console.log(`✅ Brand PPCP connected: merchant ${merchantId} for brand profile ${brandProfile._id}`);
+
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+    res.redirect(`${APP_URL}/app/cash-account.html?paypal_connected=true`);
+  } catch (error) {
+    console.error('Brand PPCP return error:', error.message);
+    const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+    res.redirect(`${APP_URL}/app/cash-account.html?paypal_error=server_error`);
+  }
+});
+
+// GET /api/billing/brand-paypal-status — Check brand's PPCP connection status
+router.get('/brand-paypal-status', requireAuth, async (req, res) => {
+  try {
+    const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
+    if (!brandProfile) return res.json({ connected: false });
+
+    res.json({
+      connected: !!brandProfile.brandPaypalMerchantId,
+      merchantId: brandProfile.brandPaypalMerchantId || null,
+      status: brandProfile.brandPaypalOnboardingStatus || 'not_started',
+      connectedAt: brandProfile.brandPaypalConnectedAt || null,
+      // Also report vault status for reference
+      vaultConnected: !!brandProfile.paypalVaultPaymentTokenId,
+    });
+  } catch (error) {
+    console.error('Brand PayPal status error:', error.message);
+    res.status(500).json({ error: 'Could not check status' });
+  }
+});
+
 module.exports = router;

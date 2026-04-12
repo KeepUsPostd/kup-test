@@ -742,12 +742,39 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             if (freshInfluencer?.paypalMerchantId) {
               const desc = `KUP CPA: ${freshInfluencer.displayName || 'Influencer'} — ${tier} tier ${submission.contentType}`;
 
-              // Check if brand has a saved Vault payment token for auto-capture
+              // Check brand's payment setup
               const brandProfile = await BrandProfile.findOne({ ownedBrandIds: submission.brandId });
+              const brandMerchantId = brandProfile?.brandPaypalMerchantId;
               const vaultToken = brandProfile?.paypalVaultPaymentTokenId;
 
-              if (vaultToken) {
-                // === SEAMLESS AUTO-CAPTURE (no redirect) ===
+              // === BRAND-DIRECT PPCP (brand pays influencer directly) ===
+              if (brandMerchantId) {
+                try {
+                  const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+                  const returnUrl = `${APP_URL}/api/payouts/pay/capture?transactionId=${transaction._id}`;
+                  const cancelUrl = `${APP_URL}/pages/inner/cash-rewards.html?payment=canceled`;
+
+                  const order = await paypal.createOrder(
+                    brandPaysAmount, desc, returnUrl, cancelUrl,
+                    freshInfluencer.paypalMerchantId, FEES.kup.flat, String(transaction._id)
+                  );
+
+                  const approvalLink = order.links?.find(l => l.rel === 'payer-action' || l.rel === 'approve');
+                  approvalUrl = approvalLink ? approvalLink.href : null;
+                  transaction.paypalOrderId = order.id;
+                  transaction.paymentRouting = 'brand_direct';
+                  transaction.payoutMethod = 'brand_direct';
+                  await transaction.save();
+
+                  paymentStatus = 'pending'; // Awaiting brand's PayPal approval
+                  console.log(`💳 Brand-Direct order created: ${order.id} — brand pays $${brandPaysAmount} → influencer (PPCP)`);
+                } catch (directErr) {
+                  paymentError = directErr.message;
+                  console.error(`❌ Brand-Direct order FAILED: ${directErr.message}`);
+                  // Fall through to vault or redirect fallback
+                }
+              } else if (vaultToken && paymentStatus !== 'paid') {
+                // === VAULT v3 AUTO-CAPTURE (KUP collects → KUP pays out) ===
                 try {
                   const order = await paypal.createOrderWithVault(
                     brandPaysAmount,
@@ -796,8 +823,8 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                 }
               }
 
-              // === REDIRECT FALLBACK (no vault token or vault failed) ===
-              if (paymentStatus !== 'paid') {
+              // === REDIRECT FALLBACK (no vault, no brand-direct, or both failed) ===
+              if (paymentStatus !== 'paid' && !approvalUrl) {
                 const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
                 const returnUrl = `${APP_URL}/api/payouts/pay/capture?transactionId=${transaction._id}`;
                 const cancelUrl = `${APP_URL}/pages/inner/cash-rewards.html?payment=canceled`;
