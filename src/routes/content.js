@@ -123,14 +123,32 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
         (pts.approved || 0) * approved +
         (pts.published || 0) * postd;
 
+      // Find the next level the influencer is working toward
+      const levels = pc.levels || [];
+      let nextLevel = null;
+      let displayThreshold = pc.unlockThreshold || 300;
+      let displayRewardTitle = reward.title;
+      if (levels.length > 0) {
+        nextLevel = levels.find(l => totalPts < l.threshold);
+        if (nextLevel) {
+          displayThreshold = nextLevel.threshold;
+          displayRewardTitle = nextLevel.rewardValue || reward.title;
+        } else {
+          // All levels unlocked — show the last one
+          const lastLevel = levels[levels.length - 1];
+          displayThreshold = lastLevel.threshold;
+          displayRewardTitle = lastLevel.rewardValue || reward.title;
+        }
+      }
+
       notify.pointsEarned({
         influencer,
         brand,
-        rewardTitle: reward.title,
+        rewardTitle: displayRewardTitle,
         points,
         stage,
         totalPoints: totalPts,
-        unlockThreshold: pc.unlockThreshold || 300,
+        unlockThreshold: displayThreshold,
         partnershipId,
         showRating: stage === 'approved',
       }).catch(() => {});
