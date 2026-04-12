@@ -295,7 +295,7 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // 🏆 Award "submitted" content points — fires point notifications per reward
-    awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted' })
+    awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted', partnershipId: submission.partnershipId?.toString() })
       .catch(() => {});
 
     res.status(201).json({
@@ -1076,9 +1076,8 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
     }
 
     // 🏆 Award "published" + "bonus" content points for all active point-based rewards
-    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'published' });
-    // Bonus points also fire on postd (separate notification)
-    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'bonus' });
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'published', partnershipId: submission.partnershipId?.toString() });
+    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'bonus', partnershipId: submission.partnershipId?.toString() });
 
     res.json({ message: 'Content marked as Postd (published)', submission, rewardTriggered });
   } catch (error) {

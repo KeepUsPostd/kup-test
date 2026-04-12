@@ -176,6 +176,27 @@ router.post('/', requireAuth, async (req, res) => {
           console.warn('Influencer reactivation notification error:', notifyErr.message);
         }
 
+        // 🏆 Award "join" gratitude points on re-partnership
+        try {
+          const { Reward } = require('../models');
+          const rewards = await Reward.find({ brandId, status: 'active', earningMethod: 'point_based' });
+          for (const reward of rewards) {
+            const pc = reward.pointConfig || {};
+            if (!pc.gratitudeEnabled) continue;
+            const gp = pc.gratitudePoints || {};
+            const joinPts = gp.join || 0;
+            if (joinPts <= 0) continue;
+            notify.pointsEarned({
+              influencer, brand: brandDoc,
+              rewardTitle: reward.title, points: joinPts, stage: 'join',
+              totalPoints: joinPts, unlockThreshold: pc.unlockThreshold || 300,
+              partnershipId: existing._id?.toString(),
+            }).catch(() => {});
+          }
+        } catch (gratErr) {
+          console.warn('Re-partnership gratitude points error:', gratErr.message);
+        }
+
         return res.json({ message: 'Partnership reactivated', partnership: existing });
       }
       return res.status(409).json({
@@ -277,6 +298,7 @@ router.post('/', requireAuth, async (req, res) => {
           stage: 'join',
           totalPoints: joinPts,
           unlockThreshold: pc.unlockThreshold || 300,
+          partnershipId: partnership._id?.toString(),
         }).catch(() => {});
       }
     } catch (gratErr) {
@@ -887,6 +909,56 @@ router.post('/invite', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Influencer invite error:', error.message);
     res.status(500).json({ error: 'Could not send invitations' });
+  }
+});
+
+// POST /api/partnerships/:partnershipId/award-gratitude — Award gratitude points manually
+// Used for birthday, anniversary, or admin-triggered gratitude events
+// Body: { stage: 'birthday' | 'anniversary' }
+router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => {
+  try {
+    const { stage } = req.body;
+    if (!stage || !['birthday', 'anniversary', 'join'].includes(stage)) {
+      return res.status(400).json({ error: 'stage must be birthday, anniversary, or join' });
+    }
+
+    const partnership = await Partnership.findById(req.params.partnershipId)
+      .populate('influencerProfileId', 'displayName handle avatarUrl userId')
+      .lean();
+    if (!partnership) return res.status(404).json({ error: 'Partnership not found' });
+
+    const { Reward, Brand } = require('../models');
+    const brand = await Brand.findById(partnership.brandId);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const rewards = await Reward.find({ brandId: partnership.brandId, status: 'active', earningMethod: 'point_based' });
+    let awarded = 0;
+
+    for (const reward of rewards) {
+      const pc = reward.pointConfig || {};
+      if (!pc.gratitudeEnabled) continue;
+      const gp = pc.gratitudePoints || {};
+      const points = gp[stage] || 0;
+      if (points <= 0) continue;
+
+      await notify.pointsEarned({
+        influencer: partnership.influencerProfileId,
+        brand,
+        rewardTitle: reward.title,
+        points,
+        stage,
+        totalPoints: points,
+        unlockThreshold: pc.unlockThreshold || 300,
+        partnershipId: partnership._id.toString(),
+      });
+      awarded += points;
+    }
+
+    console.log(`🎁 Gratitude ${stage} points awarded: ${awarded} pts for partnership ${partnership._id}`);
+    res.json({ message: `${stage} gratitude points awarded`, awarded });
+  } catch (error) {
+    console.error('Award gratitude error:', error.message);
+    res.status(500).json({ error: 'Could not award gratitude points' });
   }
 });
 
