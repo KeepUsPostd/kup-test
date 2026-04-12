@@ -2126,8 +2126,11 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
   const stageLabels = {
     submitted: 'submitting content',
     approved: 'content approval',
-    published: 'posting your review',
-    bonus: 'bonus',
+    published: 'brand featuring your content',
+    bonus: 'sharing to your socials',
+    join: 'joining the partnership',
+    birthday: 'your birthday',
+    anniversary: 'your partnership anniversary',
   };
   const stageLabel = stageLabels[stage] || stage;
   const msg = `+${points} pts toward ${rewardTitle} for ${stageLabel}! (${totalPoints}/${unlockThreshold} pts)`;

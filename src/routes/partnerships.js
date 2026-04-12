@@ -258,6 +258,31 @@ router.post('/', requireAuth, async (req, res) => {
       console.warn('Influencer partnership notification error:', notifyErr.message);
     }
 
+    // 🏆 Award "join" gratitude points for all active point-based rewards
+    try {
+      const { Reward } = require('../models');
+      const rewards = await Reward.find({ brandId, status: 'active', earningMethod: 'point_based' });
+      for (const reward of rewards) {
+        const pc = reward.pointConfig || {};
+        if (!pc.gratitudeEnabled) continue;
+        const gp = pc.gratitudePoints || {};
+        const joinPts = gp.join || 0;
+        if (joinPts <= 0) continue;
+
+        notify.pointsEarned({
+          influencer,
+          brand: brandDoc,
+          rewardTitle: reward.title,
+          points: joinPts,
+          stage: 'join',
+          totalPoints: joinPts,
+          unlockThreshold: pc.unlockThreshold || 300,
+        }).catch(() => {});
+      }
+    } catch (gratErr) {
+      console.warn('Gratitude points error:', gratErr.message);
+    }
+
     res.status(201).json({
       message: 'Partnership created',
       partnership,

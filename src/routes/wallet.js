@@ -109,6 +109,12 @@ router.get('/balance', requireAuth, async (req, res) => {
 });
 
 // ── GET /api/wallet/transactions — Get influencer's transaction history ──
+// Alias: /history → same as /transactions (Flutter app uses /history)
+router.get('/history', requireAuth, (req, res, next) => {
+  req.url = '/transactions';
+  next();
+});
+
 router.get('/transactions', requireAuth, async (req, res) => {
   try {
     const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
