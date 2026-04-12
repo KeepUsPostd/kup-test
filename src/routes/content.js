@@ -742,89 +742,15 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             if (freshInfluencer?.paypalMerchantId) {
               const desc = `KUP CPA: ${freshInfluencer.displayName || 'Influencer'} — ${tier} tier ${submission.contentType}`;
 
-              // Check brand's payment setup
-              const brandProfile = await BrandProfile.findOne({ ownedBrandIds: submission.brandId });
-              const brandMerchantId = brandProfile?.brandPaypalMerchantId;
-              const vaultToken = brandProfile?.paypalVaultPaymentTokenId;
-
-              // === BRAND-DIRECT PPCP (brand pays influencer directly) ===
-              if (brandMerchantId) {
-                try {
-                  const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
-                  const returnUrl = `${APP_URL}/api/payouts/pay/capture?transactionId=${transaction._id}`;
-                  const cancelUrl = `${APP_URL}/pages/inner/cash-rewards.html?payment=canceled`;
-
-                  const order = await paypal.createOrder(
-                    brandPaysAmount, desc, returnUrl, cancelUrl,
-                    freshInfluencer.paypalMerchantId, FEES.kup.flat, String(transaction._id)
-                  );
-
-                  const approvalLink = order.links?.find(l => l.rel === 'payer-action' || l.rel === 'approve');
-                  approvalUrl = approvalLink ? approvalLink.href : null;
-                  transaction.paypalOrderId = order.id;
-                  transaction.paymentRouting = 'brand_direct';
-                  transaction.payoutMethod = 'brand_direct';
-                  await transaction.save();
-
-                  paymentStatus = 'pending'; // Awaiting brand's PayPal approval
-                  console.log(`💳 Brand-Direct order created: ${order.id} — brand pays $${brandPaysAmount} → influencer (PPCP)`);
-                } catch (directErr) {
-                  paymentError = directErr.message;
-                  console.error(`❌ Brand-Direct order FAILED: ${directErr.message}`);
-                  // Fall through to vault or redirect fallback
-                }
-              } else if (vaultToken && paymentStatus !== 'paid') {
-                // === VAULT v3 AUTO-CAPTURE (KUP collects → KUP pays out) ===
-                try {
-                  const order = await paypal.createOrderWithVault(
-                    brandPaysAmount,
-                    desc,
-                    vaultToken,
-                    freshInfluencer.paypalMerchantId,
-                    FEES.kup.flat,
-                    String(transaction._id)
-                  );
-
-                  transaction.paypalOrderId = order.id;
-                  const captureStatus = order.status; // 'COMPLETED' if auto-captured
-
-                  if (captureStatus === 'COMPLETED') {
-                    transaction.status = 'paid';
-                    transaction.paidAt = new Date();
-                    paymentStatus = 'paid';
-                    console.log(`💳 Vault auto-capture SUCCESS: ${order.id} — $${brandPaysAmount}`);
-
-                    // Auto-payout to influencer via Payouts API
-                    await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType, brandForNotify, submission.partnershipId);
-                  } else {
-                    // Order created but not captured — may need manual capture
-                    console.log(`⚠️ Vault order ${order.id} status: ${captureStatus} — attempting capture...`);
-                    try {
-                      await paypal.captureOrder(order.id);
-                      transaction.status = 'paid';
-                      transaction.paidAt = new Date();
-                      paymentStatus = 'paid';
-                      console.log(`💳 Vault capture SUCCESS after retry: ${order.id}`);
-
-                      // Auto-payout after manual capture too
-                      await sendAutoPayout(transaction, freshInfluencer, amount, tier, submission.contentType, brandForNotify, submission.partnershipId);
-                    } catch (captureErr) {
-                      paymentError = captureErr.message;
-                      console.error(`❌ Vault capture FAILED: ${order.id} — ${captureErr.message}`);
-                    }
-                  }
-                  await transaction.save();
-                } catch (vaultErr) {
-                  // Vault payment failed (insufficient funds, expired token, etc.)
-                  paymentError = vaultErr.message;
-                  console.error(`❌ Vault auto-capture FAILED: ${vaultErr.message}`);
-                  if (vaultErr.paypalResponse) console.error(`❌ PayPal details:`, JSON.stringify(vaultErr.paypalResponse));
-                  // Fall through to redirect flow below
-                }
-              }
-
-              // === REDIRECT FALLBACK (no vault, no brand-direct, or both failed) ===
-              if (paymentStatus !== 'paid' && !approvalUrl) {
+              // === BRAND-DIRECT: Brand approves payment in PayPal ===
+              // Creates order with influencer as payee. Brand sees PayPal
+              // approval page after KUP approval. Money goes Brand → Influencer
+              // directly. KUP gets $0.50 via platform_fees. No KUP balance needed.
+              //
+              // Vault v3 (auto-capture, KUP pays) is preserved in paypal.js
+              // but disabled here. To re-enable: check paypalVaultPaymentTokenId
+              // and call createOrderWithVault() + sendAutoPayout().
+              {
                 const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
                 const returnUrl = `${APP_URL}/api/payouts/pay/capture?transactionId=${transaction._id}`;
                 const cancelUrl = `${APP_URL}/pages/inner/cash-rewards.html?payment=canceled`;
@@ -834,11 +760,12 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                   freshInfluencer.paypalMerchantId, FEES.kup.flat, String(transaction._id)
                 );
 
-                const approvalLink = order.links && order.links.find(l => l.rel === 'payer-action' || l.rel === 'approve');
+                const approvalLink = order.links?.find(l => l.rel === 'payer-action' || l.rel === 'approve');
                 approvalUrl = approvalLink ? approvalLink.href : null;
                 transaction.paypalOrderId = order.id;
+                transaction.paymentRouting = 'brand_direct';
                 await transaction.save();
-                console.log(`💳 PayPal Order created (redirect): ${order.id} (PPCP → ${freshInfluencer.paypalMerchantId})`);
+                console.log(`💳 Brand-Direct order created: ${order.id} — brand approves $${brandPaysAmount} in PayPal → influencer`);
               }
             } else {
               console.log(`ℹ️ No PPCP merchant ID for influencer ${submission.influencerProfileId} — transaction logged as pending`);
