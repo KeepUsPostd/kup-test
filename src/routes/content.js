@@ -419,6 +419,8 @@ router.get('/mine', requireAuth, async (req, res) => {
       mediaUrls:   s.mediaUrls || [],
       posterUrl:   s.posterUrl || null,
       contentType: s.contentType,
+      platform:    s.platform || null,
+      postdAt:     s.postdAt || null,
       submittedAt: s.submittedAt,
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
