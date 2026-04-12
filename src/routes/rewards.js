@@ -249,6 +249,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
     const { Partnership } = require('../models');
     const partnerships = await Partnership.find({ brandId, status: 'active' })
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .sort({ createdAt: -1 })
       .lean();
 
     // For each partnership, calculate point progress
@@ -315,6 +316,13 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         rewards: rewardProgress,
       });
     }
+
+    // Sort by highest total points first (most active influencers at top)
+    influencerProgress.sort((a, b) => {
+      const aMax = Math.max(...(a.rewards || []).map(r => r.totalPoints || 0), 0);
+      const bMax = Math.max(...(b.rewards || []).map(r => r.totalPoints || 0), 0);
+      return bMax - aMax;
+    });
 
     res.json({ influencers: influencerProgress, rewards });
   } catch (error) {
