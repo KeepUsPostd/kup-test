@@ -545,14 +545,83 @@
             </div>
           </div>
 
-          <!-- D. Unlock Threshold (always visible) -->
+          <!-- D. Reward Levels (1-3 milestones) -->
           <div class="unlock-threshold">
-            <h6><i class="ph ph-lock"></i> Unlock Threshold</h6>
-            <div class="threshold-row">
-              <span style="font-size:.85rem;font-weight:500;color:#444">Total points to unlock:</span>
-              <input type="number" id="unlockThreshold" value="500" min="1">
-              <span class="threshold-suffix">pts</span>
+            <h6><i class="ph ph-trophy"></i> Reward Levels</h6>
+            <p style="font-size:.78rem;color:#888;margin:0 0 12px;">Set 1-3 reward milestones. Influencers earn points and unlock each level progressively. Points reset when a level is claimed.</p>
+
+            <!-- Level 1 (always visible) -->
+            <div class="level-row" id="level1Row" style="margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">1</span>
+                <span style="font-weight:700;font-size:.85rem;">Level 1</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <select id="level1Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                  <option value="discount">Discount</option>
+                  <option value="free">Free Product/Service</option>
+                </select>
+                <input type="text" id="level1Value" placeholder="e.g. 20% OFF SHORTS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                <input type="number" id="level1Threshold" value="500" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+              </div>
+              <input type="text" id="level1Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
             </div>
+
+            <!-- Level 2 (toggle) -->
+            <div id="level2Container">
+              <div id="level2Toggle" style="margin-bottom:10px;">
+                <button type="button" onclick="toggleLevel(2)" id="level2Btn" style="background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 2</button>
+              </div>
+              <div class="level-row" id="level2Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">2</span>
+                    <span style="font-weight:700;font-size:.85rem;">Level 2</span>
+                  </div>
+                  <button type="button" onclick="removeLevel(2)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <select id="level2Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                    <option value="discount">Discount</option>
+                    <option value="free">Free Product/Service</option>
+                  </select>
+                  <input type="text" id="level2Value" placeholder="e.g. 50% OFF SNEAKERS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                  <input type="number" id="level2Threshold" value="700" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                  <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+                </div>
+                <input type="text" id="level2Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+              </div>
+            </div>
+
+            <!-- Level 3 (toggle) -->
+            <div id="level3Container">
+              <div id="level3Toggle" style="margin-bottom:10px;">
+                <button type="button" onclick="toggleLevel(3)" id="level3Btn" style="display:none;background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 3</button>
+              </div>
+              <div class="level-row" id="level3Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">3</span>
+                    <span style="font-weight:700;font-size:.85rem;">Level 3</span>
+                  </div>
+                  <button type="button" onclick="removeLevel(3)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <select id="level3Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                    <option value="discount">Discount</option>
+                    <option value="free" selected>Free Product/Service</option>
+                  </select>
+                  <input type="text" id="level3Value" placeholder="e.g. FREE JACKET" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                  <input type="number" id="level3Threshold" value="1000" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                  <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+                </div>
+                <input type="text" id="level3Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+              </div>
+            </div>
+
+            <!-- Hidden legacy field for backward compat -->
+            <input type="hidden" id="unlockThreshold" value="500">
           </div>
         </div>
 
@@ -851,6 +920,65 @@
 
     /* ============ STEP NAVIGATION ============ */
     // Internal steps: 1=Type, 2=Details, 3=EarningMethod(non-cash only), 4=Review(always #step4 div)
+    // ── Level Builder Functions ──
+    function toggleLevel(num) {
+      var row = document.getElementById('level' + num + 'Row');
+      var btn = document.getElementById('level' + num + 'Btn');
+      if (row) { row.style.display = 'block'; }
+      if (btn) { btn.style.display = 'none'; }
+      // Show next level's add button
+      if (num === 2) {
+        var l3btn = document.getElementById('level3Btn');
+        if (l3btn) l3btn.style.display = 'block';
+      }
+    }
+
+    function removeLevel(num) {
+      var row = document.getElementById('level' + num + 'Row');
+      var btn = document.getElementById('level' + num + 'Btn');
+      if (row) { row.style.display = 'none'; }
+      if (btn) { btn.style.display = 'block'; }
+      // Clear values
+      var typeEl = document.getElementById('level' + num + 'Type');
+      var valEl = document.getElementById('level' + num + 'Value');
+      var threshEl = document.getElementById('level' + num + 'Threshold');
+      var descEl = document.getElementById('level' + num + 'Desc');
+      if (typeEl) typeEl.value = num === 3 ? 'free' : 'discount';
+      if (valEl) valEl.value = '';
+      if (threshEl) threshEl.value = num === 2 ? '700' : '1000';
+      if (descEl) descEl.value = '';
+      // If removing level 2, also remove level 3
+      if (num === 2) {
+        removeLevel(3);
+        var l3btn = document.getElementById('level3Btn');
+        if (l3btn) l3btn.style.display = 'none';
+      }
+    }
+
+    function _collectLevels() {
+      var levels = [];
+      for (var i = 1; i <= 3; i++) {
+        var row = document.getElementById('level' + i + 'Row');
+        if (!row || row.style.display === 'none') continue;
+        var type = (document.getElementById('level' + i + 'Type') || {}).value || 'discount';
+        var value = (document.getElementById('level' + i + 'Value') || {}).value || '';
+        var threshold = parseInt((document.getElementById('level' + i + 'Threshold') || {}).value) || 0;
+        var desc = (document.getElementById('level' + i + 'Desc') || {}).value || '';
+        if (threshold > 0 && value) {
+          levels.push({ threshold: threshold, rewardType: type, rewardValue: value, description: desc });
+        }
+      }
+      // Sort by threshold ascending
+      levels.sort(function(a, b) { return a.threshold - b.threshold; });
+      return levels;
+    }
+
+    function _getHighestLevelThreshold() {
+      var levels = _collectLevels();
+      if (levels.length > 0) return levels[levels.length - 1].threshold;
+      return parseInt((document.getElementById('level1Threshold') || {}).value) || 500;
+    }
+
     function goToStep(step) {
       // Validate before going forward
       if (step > currentStep && !validateStep(currentStep)) return;
@@ -1328,7 +1456,16 @@
               rows.push({l:'Grat: Anniversary', v:cat.values.anniversary + ' pts'});
             }
           });
-          rows.push({l:'Unlock Threshold', v:config.threshold + ' pts'});
+          // Show levels in review
+          var levels = _collectLevels();
+          if (levels.length > 0) {
+            levels.forEach(function(lvl, idx) {
+              var typeIcon = lvl.rewardType === 'free' ? '🎁' : '🏷️';
+              rows.push({l: 'Level ' + (idx + 1), v: typeIcon + ' ' + lvl.rewardValue + ' — ' + lvl.threshold + ' pts'});
+            });
+          } else {
+            rows.push({l:'Unlock Threshold', v:config.threshold + ' pts'});
+          }
         }
       }
 
@@ -1440,7 +1577,8 @@
               birthday: parseInt((document.getElementById('ptGratBday') || {}).value) || 0,
               anniversary: parseInt((document.getElementById('ptGratAnniv') || {}).value) || 0
             },
-            unlockThreshold: parseInt((document.getElementById('unlockThreshold') || {}).value) || 100
+            unlockThreshold: _getHighestLevelThreshold(),
+            levels: _collectLevels()
           };
         }
       } else if (selectedType === 'free-product') {
@@ -1556,6 +1694,22 @@
               if (document.getElementById('ptGratAnniv')) document.getElementById('ptGratAnniv').value = pc.gratitudePoints.anniversary || 0;
             }
             if (document.getElementById('unlockThreshold')) document.getElementById('unlockThreshold').value = pc.unlockThreshold || 100;
+
+            // Populate levels on edit
+            if (pc.levels && pc.levels.length > 0) {
+              pc.levels.forEach(function(lvl, idx) {
+                var num = idx + 1;
+                if (num > 1) toggleLevel(num);
+                var typeEl = document.getElementById('level' + num + 'Type');
+                var valEl = document.getElementById('level' + num + 'Value');
+                var threshEl = document.getElementById('level' + num + 'Threshold');
+                var descEl = document.getElementById('level' + num + 'Desc');
+                if (typeEl) typeEl.value = lvl.rewardType || 'discount';
+                if (valEl) valEl.value = lvl.rewardValue || '';
+                if (threshEl) threshEl.value = lvl.threshold || 500;
+                if (descEl) descEl.value = lvl.description || '';
+              });
+            }
           }
         } else if (frontendType === 'free-product') {
           if (document.getElementById('fpTitle')) document.getElementById('fpTitle').value = r.title || '';
