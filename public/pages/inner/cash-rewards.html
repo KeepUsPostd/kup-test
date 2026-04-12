@@ -2398,32 +2398,60 @@
           avatarUrl: inf.avatarUrl || null,
         };
 
-        // Show a row per reward for this influencer
+        // Show one row per influencer with level milestones
         var rewardEntries = entry.rewards || [];
         if (rewardEntries.length === 0) return;
 
-        rewardEntries.forEach(function(rw, rwIdx) {
-          var target = rw.unlockThreshold || 300;
-          var current = Math.min(rw.totalPoints || 0, target);
-          var pct = rw.percentComplete || 0;
-          var statusClass = rw.unlocked ? 'unlocked' : (pct > 0 ? 'in-progress' : 'not-started');
-          var statusLabel = rw.unlocked ? 'Unlocked' : (pct > 0 ? pct + '% Complete' : 'Not Started');
-          var progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + pct + '%"></div></div><span class="progress-mini-text">' + current + '/' + target + ' pts</span></div>';
-          var statusHtml = '<span class="reward-status-badge ' + statusClass + '">' + statusLabel + '</span>';
+        // Use the first (and should be only) point-based reward
+        var rw = rewardEntries[0];
+        var totalPts = rw.totalPoints || 0;
+        var levels = rw.levels || [];
 
-          html += '<tr data-influencer-row="' + handle + '" data-partner-id="' + (entry.partnershipId || '') + '">' +
-            '<td data-label="Influencer"><div class="check-influencer">' +
-              '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + handle + '">' +
-              '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
-                rwAvHtml +
-                '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
-              '</div></div></td>' +
-            '<td data-label="Reward" style="text-align:center;" class="reward-col"><span style="color:var(--kup-blue);font-weight:600;">' + (rw.rewardTitle || 'Reward') + '</span></td>' +
-            '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
-            '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
-          '</tr>';
-          count++;
-        });
+        // Build level milestones display
+        var levelsHtml = '';
+        if (levels.length > 0) {
+          levelsHtml = '<div style="display:flex;gap:4px;flex-direction:column;">';
+          levels.forEach(function(lvl) {
+            var isUnlocked = lvl.unlocked;
+            var isClaimed = lvl.claimed;
+            var color = isUnlocked ? '#16a34a' : '#ccc';
+            var icon = isUnlocked ? '✓' : lvl.level;
+            var badge = isClaimed ? '<span style="color:#16a34a;font-size:0.7rem;font-weight:600;margin-left:4px;">Claimed</span>' : '';
+            levelsHtml += '<div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;">' +
+              '<span style="width:18px;height:18px;border-radius:50%;background:' + color + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">' + icon + '</span>' +
+              '<span style="color:' + (isUnlocked ? '#16a34a' : '#666') + ';font-weight:' + (isUnlocked ? '700' : '500') + ';">' + (lvl.rewardValue || 'Level ' + lvl.level) + '</span>' +
+              '<span style="color:#bbb;font-size:0.7rem;">' + lvl.threshold + ' pts</span>' + badge +
+            '</div>';
+          });
+          levelsHtml += '</div>';
+        } else {
+          // Fallback: single threshold
+          var target = rw.unlockThreshold || 300;
+          var pct = rw.percentComplete || 0;
+          levelsHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + pct + '%"></div></div><span class="progress-mini-text">' + totalPts + '/' + target + ' pts</span></div>';
+        }
+
+        // Find next level for status
+        var nextLevel = levels.find(function(l) { return !l.unlocked; });
+        var statusLabel = nextLevel
+          ? totalPts + '/' + nextLevel.threshold + ' pts'
+          : (levels.length > 0 ? 'All Unlocked!' : rw.percentComplete + '% Complete');
+        var statusClass = !nextLevel && levels.length > 0 ? 'unlocked' : 'in-progress';
+
+        var progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + (rw.percentComplete || 0) + '%"></div></div><span class="progress-mini-text">' + totalPts + ' pts total</span></div>';
+
+        html += '<tr data-influencer-row="' + handle + '" data-partner-id="' + (entry.partnershipId || '') + '">' +
+          '<td data-label="Influencer"><div class="check-influencer">' +
+            '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + handle + '">' +
+            '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+              rwAvHtml +
+              '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
+            '</div></div></td>' +
+          '<td data-label="Reward" style="text-align:center;" class="reward-col">' + levelsHtml + '</td>' +
+          '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
+          '<td data-label="Status" style="text-align:center;"><span class="reward-status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+        '</tr>';
+        count++;
       });
 
       tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">No point-based reward progress yet.</td></tr>';
@@ -2448,13 +2476,29 @@
         // Point categories
         var tags = '';
         if (r.pointConfig) {
-          if (r.pointConfig.contentPoints) tags += '<span class="point-cat-tag content-pts">Content Pts</span>';
-          if (r.pointConfig.purchasePoints) tags += '<span class="point-cat-tag purchase-pts">Purchase Pts</span>';
-          if (r.pointConfig.gratitudePoints) tags += '<span class="point-cat-tag gratitude-pts">Gratitude</span>';
+          if (r.pointConfig.contentEnabled) tags += '<span class="point-cat-tag content-pts">Content Pts</span>';
+          if (r.pointConfig.purchaseEnabled) tags += '<span class="point-cat-tag purchase-pts">Purchase Pts</span>';
+          if (r.pointConfig.gratitudeEnabled) tags += '<span class="point-cat-tag gratitude-pts">Gratitude</span>';
         }
         if (tags) metaHtml += '<div class="point-cat-tags">' + tags + '</div>';
-        var pts = (r.pointConfig && r.pointConfig.pointsToUnlock) || 0;
-        if (pts) metaHtml += '<span class="unlock-badge"><i class="ph ph-lock"></i> ' + pts + ' pts to unlock</span>';
+
+        // Show levels if they exist
+        var levels = r.pointConfig && r.pointConfig.levels;
+        if (levels && levels.length > 0) {
+          metaHtml += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">';
+          levels.forEach(function(lvl, idx) {
+            var icon = lvl.rewardType === 'free' ? '🎁' : '🏷️';
+            metaHtml += '<div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;">' +
+              '<span style="width:20px;height:20px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;">' + (idx + 1) + '</span>' +
+              '<span style="font-weight:600;">' + (lvl.rewardValue || 'Level ' + (idx + 1)) + '</span>' +
+              '<span style="color:#bbb;">' + lvl.threshold + ' pts</span>' +
+            '</div>';
+          });
+          metaHtml += '</div>';
+        } else {
+          var pts = (r.pointConfig && r.pointConfig.unlockThreshold) || 0;
+          if (pts) metaHtml += '<span class="unlock-badge"><i class="ph ph-lock"></i> ' + pts + ' pts to unlock</span>';
+        }
       }
 
       var statusBadge = '';
