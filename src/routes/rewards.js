@@ -181,6 +181,11 @@ router.get('/my-progress', requireAuth, async (req, res) => {
       console.warn('[my-progress] Purchase aggregate error:', aggErr.message);
     }
 
+    // Get partnership for claimed level tracking
+    const { Partnership } = require('../models');
+    const partnership = await Partnership.findOne({ brandId, influencerProfileId: profile._id, status: 'active' }).lean();
+    const claimedLevels = partnership?.claimedLevels || [];
+
     const progress = rewards.map(reward => {
       const pc = reward.pointConfig || {};
       let contentPts = 0;
@@ -190,7 +195,24 @@ router.get('/my-progress', requireAuth, async (req, res) => {
       }
       const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
       const totalPts = contentPts + purchasePts;
-      const threshold = pc.unlockThreshold || 300;
+
+      // Build levels progress (new 3-level system)
+      const levels = (pc.levels && pc.levels.length > 0)
+        ? pc.levels.map((lvl, idx) => ({
+            level: idx + 1,
+            threshold: lvl.threshold,
+            rewardType: lvl.rewardType,
+            rewardValue: lvl.rewardValue,
+            description: lvl.description,
+            unlocked: totalPts >= lvl.threshold,
+            claimed: claimedLevels.includes(idx),
+          }))
+        : null;
+
+      // Fallback to legacy single threshold if no levels defined
+      const threshold = levels
+        ? (levels.find(l => !l.unlocked)?.threshold || levels[levels.length - 1]?.threshold || 300)
+        : (pc.unlockThreshold || 300);
       const percent = Math.min(Math.round((totalPts / threshold) * 100), 100);
 
       return {
@@ -198,6 +220,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
         earningMethod: reward.earningMethod, totalPoints: totalPts,
         unlockThreshold: threshold, percentComplete: percent,
         unlocked: totalPts >= threshold,
+        levels: levels,
         breakdown: {
           content: { points: contentPts, submitted, approved, postd },
           purchase: { points: purchasePts, transactions: purchaseCount },
@@ -240,13 +263,29 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id, status: 'postd' }),
       ]);
 
+      const claimedLevels = p.claimedLevels || [];
       const rewardProgress = rewards.map(reward => {
         const pc = reward.pointConfig || {};
         const pts = pc.contentPoints || {};
         const contentPts = pc.contentEnabled
           ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd
           : 0;
-        const threshold = pc.unlockThreshold || 300;
+
+        // Build levels progress
+        const levels = (pc.levels && pc.levels.length > 0)
+          ? pc.levels.map((lvl, idx) => ({
+              level: idx + 1,
+              threshold: lvl.threshold,
+              rewardType: lvl.rewardType,
+              rewardValue: lvl.rewardValue,
+              unlocked: contentPts >= lvl.threshold,
+              claimed: claimedLevels.includes(idx),
+            }))
+          : null;
+
+        const threshold = levels
+          ? (levels.find(l => !l.unlocked)?.threshold || levels[levels.length - 1]?.threshold || 300)
+          : (pc.unlockThreshold || 300);
         const percent = Math.min(Math.round((contentPts / threshold) * 100), 100);
 
         return {
@@ -257,6 +296,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
           unlockThreshold: threshold,
           percentComplete: percent,
           unlocked: contentPts >= threshold,
+          levels: levels,
         };
       });
 

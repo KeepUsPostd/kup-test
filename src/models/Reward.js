@@ -60,7 +60,18 @@ const rewardSchema = new mongoose.Schema({
       birthday: { type: Number, default: 25 },
       anniversary: { type: Number, default: 100 },
     },
-    unlockThreshold: { type: Number, default: null }, // must be > 0
+    unlockThreshold: { type: Number, default: null }, // legacy single threshold (use levels[] instead)
+
+    // 3-Level Progressive Unlock System
+    // Each reward has up to 3 milestone levels based on brand's subscription plan:
+    //   Startup: 1 level, Growth: 2 levels, Pro/Agency: 3 levels
+    // Points reset to 0 when influencer claims a level reward
+    levels: [{
+      threshold: { type: Number, required: true },    // points needed to unlock
+      rewardType: { type: String, enum: ['discount', 'free'], required: true },
+      rewardValue: { type: String, default: null },    // e.g. '10%', '25%', 'Free Sneakers'
+      description: { type: String, maxlength: 100, default: null },
+    }], // max 3 levels
   },
 
   // Cash config (for cash_per_approval, bonus_cash, postd_pay)

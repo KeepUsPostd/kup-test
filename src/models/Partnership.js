@@ -31,6 +31,10 @@ const partnershipSchema = new mongoose.Schema({
   totalCashEarned: { type: Number, default: 0 },
   totalPointsEarned: { type: Number, default: 0 },
 
+  // Point-based reward level tracking — points reset on claim
+  rewardPoints: { type: Number, default: 0 },  // current points (resets on claim)
+  claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2)
+
   startedAt: { type: Date, default: Date.now },
   endedAt: { type: Date, default: null },
   endedBy: {
