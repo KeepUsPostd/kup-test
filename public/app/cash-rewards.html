@@ -2357,11 +2357,15 @@
       '</tr>';
     }
 
-    function renderRewardTable(rewards, partnerships) {
+    function renderRewardTable(rewards, partnerships, brandProgress) {
       var tbody = document.getElementById('rewardTableBody');
       if (!tbody) return;
-      if (!partnerships || partnerships.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:0.9rem;">No influencer partners yet — partners will appear here once they join your brand.</td></tr>';
+
+      // Use brand-progress data if available (real point calculations from backend)
+      var progressList = brandProgress || [];
+
+      if (progressList.length === 0 && (!partnerships || partnerships.length === 0)) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#999;font-size:0.9rem;">No influencer partners yet — partners will appear here once they join your brand.</td></tr>';
         var footer = document.getElementById('rewardTableShowing');
         if (footer) footer.textContent = 'Showing 0 influencers';
         return;
@@ -2369,69 +2373,62 @@
 
       var html = '';
       var count = 0;
-      // Map each partnership to its closest reward for display
-      (partnerships || []).forEach(function(p, idx) {
-        var inf = p.influencerProfileId || {};
+
+      // Render from brand-progress data (real calculated points)
+      progressList.forEach(function(entry) {
+        var inf = entry.influencer || {};
         var handle = inf.handle || inf.displayName || 'Unknown';
         var tier = TIER_LABELS[inf.influenceTier] || inf.influenceTier || 'Influencer';
-        var bg = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-        var totalPts = inf.totalPointsEarned || 0;
-
-        // Pick the best-fit reward for this influencer
-        var assignedReward = rewards[idx % rewards.length] || rewards[0];
-        if (!assignedReward) return;
-
-        var rewardTitle = assignedReward.title || 'Untitled';
-        var progressHtml = '';
-        var statusHtml = '';
-
-        if (assignedReward.earningMethod === 'per_approval' || assignedReward.type === 'cash_per_approval' || assignedReward.type === 'bonus_cash') {
-          progressHtml = '<span class="per-approval-badge"><i class="ph ph-lightning"></i> Per Approval</span>';
-          statusHtml = '<span class="reward-status-badge approved">Active</span>';
-        } else {
-          var target = (assignedReward.pointConfig && assignedReward.pointConfig.pointsToUnlock) || 100;
-          var current = Math.min(totalPts, target);
-          var pct = Math.round((current / target) * 100);
-          var statusClass = pct >= 100 ? 'unlocked' : 'in-progress';
-          var statusLabel = pct >= 100 ? 'Unlocked' : 'In Progress';
-          progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + pct + '%"></div></div><span class="progress-mini-text">' + current + '/' + target + '</span></div>';
-          statusHtml = '<span class="reward-status-badge ' + statusClass + '">' + statusLabel + '</span>';
-        }
-
-        var partnerId = p._id || p.influencerId || '';
         var infKey = (handle || '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '_');
-        // Populate lookup for profile modal
+
         var rwAvHtml = inf.avatarUrl
           ? '<div class="avatar" style="overflow:hidden"><img src="' + inf.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'
           : '<div class="avatar">' + PERSON_SVG + '</div>';
+
+        // Populate lookup for profile modal
         _influencerLookup[infKey] = {
           handle: '@' + (handle || '').replace(/^@/, ''),
-          name: inf.displayName || inf.name || handle,
+          name: inf.displayName || handle,
           tier: tier,
           tierClass: (inf.influenceTier || 'micro').toLowerCase(),
-          followers: _fmtNum(inf.followerCount || inf.followers || 0),
-          engagement: (inf.engagementRate || inf.engagement || 0) + '%',
-          posts: String(inf.totalSubmissions || inf.posts || 0),
-          bio: inf.bio || '',
+          followers: '0',
+          engagement: '0%',
+          posts: String(entry.submitted || 0),
+          bio: '',
           avatarUrl: inf.avatarUrl || null,
         };
-        html += '<tr data-influencer-row="' + handle + '" data-partner-id="' + partnerId + '">' +
-          '<td data-label="Influencer"><div class="check-influencer">' +
-            '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + handle + '">' +
-            '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
-              rwAvHtml +
-              '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
-            '</div></div></td>' +
-          '<td data-label="Reward" style="text-align:center;" class="reward-col"><a href="brand-reward-settings.html" style="color:var(--kup-blue);font-weight:600;text-decoration:none">' + rewardTitle + '</a></td>' +
-          '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
-          '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
-        '</tr>';
-        count++;
+
+        // Show a row per reward for this influencer
+        var rewardEntries = entry.rewards || [];
+        if (rewardEntries.length === 0) return;
+
+        rewardEntries.forEach(function(rw, rwIdx) {
+          var target = rw.unlockThreshold || 300;
+          var current = Math.min(rw.totalPoints || 0, target);
+          var pct = rw.percentComplete || 0;
+          var statusClass = rw.unlocked ? 'unlocked' : (pct > 0 ? 'in-progress' : 'not-started');
+          var statusLabel = rw.unlocked ? 'Unlocked' : (pct > 0 ? pct + '% Complete' : 'Not Started');
+          var progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:' + pct + '%"></div></div><span class="progress-mini-text">' + current + '/' + target + ' pts</span></div>';
+          var statusHtml = '<span class="reward-status-badge ' + statusClass + '">' + statusLabel + '</span>';
+
+          html += '<tr data-influencer-row="' + handle + '" data-partner-id="' + (entry.partnershipId || '') + '">' +
+            '<td data-label="Influencer"><div class="check-influencer">' +
+              '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + handle + '">' +
+              '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
+                rwAvHtml +
+                '<div><div class="name">@' + handle + '</div><div class="tier">' + tier + '</div></div>' +
+              '</div></div></td>' +
+            '<td data-label="Reward" style="text-align:center;" class="reward-col"><span style="color:var(--kup-blue);font-weight:600;">' + (rw.rewardTitle || 'Reward') + '</span></td>' +
+            '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
+            '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
+          '</tr>';
+          count++;
+        });
       });
 
-      tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">No influencer reward activity yet.</td></tr>';
+      tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center; padding:2rem; color:#999;">No point-based reward progress yet.</td></tr>';
       var footerEl = document.getElementById('rewardTableShowing');
-      if (footerEl) footerEl.textContent = 'Showing ' + count + ' influencer' + (count !== 1 ? 's' : '');
+      if (footerEl) footerEl.textContent = 'Showing ' + count + ' reward entr' + (count !== 1 ? 'ies' : 'y');
     }
 
     // ---- MANAGE REWARDS: Non-cash and cash cards ----
@@ -2575,11 +2572,13 @@
       Promise.all([
         kupApi.get('/api/payouts/transactions?brandId=' + brandId),
         kupApi.get('/api/rewards?brandId=' + brandId),
-        kupApi.get('/api/partnerships?brandId=' + brandId)
+        kupApi.get('/api/partnerships?brandId=' + brandId),
+        kupApi.get('/api/rewards/brand-progress?brandId=' + brandId).catch(function() { return {}; }),
       ]).then(function(results) {
         var txData = results[0] || {};
         var rewardData = results[1] || {};
         var partnerData = results[2] || {};
+        var progressData = results[3] || {};
 
         var transactions = txData.transactions || txData || [];
         if (!Array.isArray(transactions)) transactions = [];
@@ -2589,6 +2588,8 @@
 
         var partnerships = partnerData.partnerships || partnerData || [];
         if (!Array.isArray(partnerships)) partnerships = [];
+
+        var brandProgress = progressData.influencers || [];
 
         // Frontend self-filter: exclude any partnership where the influencer handle
         // matches the current user's email handle (safety net for backend filter)
@@ -2608,9 +2609,10 @@
         updateCashStats(transactions);
         renderCashTable(transactions);
 
-        // Rewards tab
+        // Rewards tab — use real progress data
+        var pointRewards = rewards.filter(function(r) { return r.earningMethod === 'point_based'; });
         renderRewardPills(rewards);
-        renderRewardTable(rewards, partnerships);
+        renderRewardTable(pointRewards, partnerships, brandProgress);
         renderManageRewards(rewards);
 
         // Bind all influencer profile click handlers on new DOM rows

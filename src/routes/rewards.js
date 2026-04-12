@@ -212,6 +212,77 @@ router.get('/my-progress', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/rewards/brand-progress?brandId=xxx — Brand-side: all influencer progress across rewards
+// Used by web dashboard Cash & Rewards → Rewards tab
+router.get('/brand-progress', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId required' });
+
+    // Get active point-based rewards
+    const rewards = await Reward.find({ brandId, status: 'active', earningMethod: 'point_based' }).lean();
+
+    // Get all active partnerships for this brand
+    const { Partnership } = require('../models');
+    const partnerships = await Partnership.find({ brandId, status: 'active' })
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .lean();
+
+    // For each partnership, calculate point progress
+    const influencerProgress = [];
+    for (const p of partnerships) {
+      const inf = p.influencerProfileId;
+      if (!inf) continue;
+
+      const [submitted, approved, postd] = await Promise.all([
+        ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id }),
+        ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id, status: 'approved' }),
+        ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id, status: 'postd' }),
+      ]);
+
+      const rewardProgress = rewards.map(reward => {
+        const pc = reward.pointConfig || {};
+        const pts = pc.contentPoints || {};
+        const contentPts = pc.contentEnabled
+          ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd
+          : 0;
+        const threshold = pc.unlockThreshold || 300;
+        const percent = Math.min(Math.round((contentPts / threshold) * 100), 100);
+
+        return {
+          rewardId: reward._id,
+          rewardTitle: reward.title,
+          rewardType: reward.type,
+          totalPoints: contentPts,
+          unlockThreshold: threshold,
+          percentComplete: percent,
+          unlocked: contentPts >= threshold,
+        };
+      });
+
+      influencerProgress.push({
+        influencer: {
+          _id: inf._id,
+          displayName: inf.displayName,
+          handle: inf.handle,
+          avatarUrl: inf.avatarUrl,
+          influenceTier: inf.influenceTier,
+        },
+        partnershipId: p._id,
+        submitted,
+        approved,
+        postd,
+        rewards: rewardProgress,
+      });
+    }
+
+    res.json({ influencers: influencerProgress, rewards });
+  } catch (error) {
+    console.error('Brand progress error:', error.message);
+    res.status(500).json({ error: 'Could not load brand progress' });
+  }
+});
+
 // GET /api/rewards/:rewardId — Get single reward
 router.get('/:rewardId', requireAuth, async (req, res) => {
   try {
