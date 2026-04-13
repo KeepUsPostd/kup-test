@@ -879,6 +879,16 @@
             Purchase Points
           </a>
         </li>
+        <li>
+          <a href="brand-catalog.html" id="navCatalog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            Catalog
+          </a>
+        </li>
       </ul>
 
       <div class="nav-divider"></div>
@@ -911,6 +921,16 @@
               <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
             Kiosk Mode
+          </a>
+        </li>
+        <li>
+          <a href="brand-music.html" id="navMusic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+            Music
           </a>
         </li>
       </ul>
@@ -1252,8 +1272,18 @@
           if (headerSpan) headerSpan.textContent = '| ' + brand.name;
         }
 
-        // Load brand data (for logo, colors) + rewards
+        // Append brandId to sidebar nav links
         var brandId = brand ? (brand.mongoId || brand._id || brand.id) : null;
+        if (brandId) {
+          document.querySelectorAll('.brand-nav a').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && href.indexOf('brandId') === -1) {
+              link.href = href + (href.indexOf('?') !== -1 ? '&' : '?') + 'brandId=' + brandId;
+            }
+          });
+        }
+
+        // Load brand data (for logo, colors) + rewards
         if (brandId) {
           kupApi.get('/api/brands/' + brandId).then(function(bData) {
             if (bData && bData.brand) {
