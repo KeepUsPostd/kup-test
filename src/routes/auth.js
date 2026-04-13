@@ -306,15 +306,11 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = req.user;
 
-    let influencerProfile = null;
-    let brandProfile = null;
-
-    if (user.hasInfluencerProfile) {
-      influencerProfile = await InfluencerProfile.findOne({ userId: user._id });
-    }
-    if (user.hasBrandProfile) {
-      brandProfile = await BrandProfile.findOne({ userId: user._id }).populate('ownedBrandIds');
-    }
+    // Parallelize profile queries for speed
+    const [influencerProfile, brandProfile] = await Promise.all([
+      user.hasInfluencerProfile ? InfluencerProfile.findOne({ userId: user._id }) : null,
+      user.hasBrandProfile ? BrandProfile.findOne({ userId: user._id }).populate('ownedBrandIds') : null,
+    ]);
 
     res.json({
       user: {

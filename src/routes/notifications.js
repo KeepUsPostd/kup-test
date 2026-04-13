@@ -29,17 +29,20 @@ router.get('/', async (req, res) => {
       filter.read = false;
     }
 
-    const [notifications, total] = await Promise.all([
+    const unreadFilter = { userId: req.user._id.toString(), read: false };
+    const [notifications, total, unreadCount] = await Promise.all([
       Notification.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       Notification.countDocuments(filter),
+      Notification.countDocuments(unreadFilter),
     ]);
 
     res.json({
       notifications,
+      unreadCount,
       pagination: {
         page,
         limit,
