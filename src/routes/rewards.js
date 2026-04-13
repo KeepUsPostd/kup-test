@@ -259,12 +259,17 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
       const inf = p.influencerProfileId;
       if (!inf) continue;
 
-      const [submitted, approved, postd] = await Promise.all([
+      const [submitted, approved, postd, purchaseAgg] = await Promise.all([
         ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id }),
         ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id, status: 'approved' }),
         ContentSubmission.countDocuments({ brandId, influencerProfileId: inf._id, status: 'postd' }),
+        PurchasePointsLog.aggregate([
+          { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId), influencerProfileId: inf._id } },
+          { $group: { _id: null, totalPoints: { $sum: '$pointsAwarded' }, count: { $sum: 1 } } },
+        ]).catch(() => []),
       ]);
 
+      const purchasePoints = purchaseAgg[0]?.totalPoints ?? 0;
       const claimedLevels = p.claimedLevels || [];
       const rewardProgress = rewards.map(reward => {
         const pc = reward.pointConfig || {};
@@ -272,8 +277,9 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const contentPts = pc.contentEnabled
           ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd
           : 0;
+        const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
         const giftPts = p.giftedPoints || 0;
-        const totalContentPts = contentPts + giftPts;
+        const totalPts = contentPts + purchasePts + giftPts;
 
         // Build levels progress
         const levels = (pc.levels && pc.levels.length > 0)
@@ -282,7 +288,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
               threshold: lvl.threshold,
               rewardType: lvl.rewardType,
               rewardValue: lvl.rewardValue,
-              unlocked: totalContentPts >= lvl.threshold,
+              unlocked: totalPts >= lvl.threshold,
               claimed: claimedLevels.includes(idx),
             }))
           : null;
@@ -290,16 +296,16 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const threshold = levels
           ? (levels.find(l => !l.unlocked)?.threshold || levels[levels.length - 1]?.threshold || 300)
           : (pc.unlockThreshold || 300);
-        const percent = Math.min(Math.round((totalContentPts / threshold) * 100), 100);
+        const percent = Math.min(Math.round((totalPts / threshold) * 100), 100);
 
         return {
           rewardId: reward._id,
           rewardTitle: reward.title,
           rewardType: reward.type,
-          totalPoints: totalContentPts,
+          totalPoints: totalPts,
           unlockThreshold: threshold,
           percentComplete: percent,
-          unlocked: contentPts >= threshold,
+          unlocked: totalPts >= threshold,
           levels: levels,
         };
       });

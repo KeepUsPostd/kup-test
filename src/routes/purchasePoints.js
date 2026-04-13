@@ -312,6 +312,77 @@ router.post('/award', requireAuth, async (req, res) => {
 
     const log = await PurchasePointsLog.create(logData);
 
+    // Notify influencer + brand on successful award
+    if (accountFound) {
+      try {
+        const brand = await Brand.findById(brandId).select('name logoUrl avatarUrl createdBy').lean();
+        const brandName = brand?.name || 'Brand';
+        const brandLogo = brand?.logoUrl || brand?.avatarUrl || '';
+        const Notification = require('../models/Notification');
+        const { sendEmail } = require('../config/email');
+
+        // Influencer in-app notification
+        if (influencer.userId) {
+          await Notification.create({
+            userId: influencer.userId.toString(),
+            title: 'Purchase Points Earned',
+            message: `+${points} pts from ${brandName} for your $${spendAmount} purchase`,
+            type: 'reward',
+            metadata: {
+              brandName,
+              brandLogoUrl: brandLogo,
+              points,
+              totalPoints: (influencer.purchasePointsBalance || 0) + points,
+              rewardTitle: 'Purchase Points',
+              isPurchasePoints: true,
+            },
+          });
+        }
+
+        // Influencer email
+        const infUser = influencer.userId ? await User.findById(influencer.userId, 'email') : null;
+        if (infUser?.email) {
+          await sendEmail({
+            to: infUser.email,
+            subject: `+${points} Purchase Points from ${brandName}`,
+            headline: 'Purchase Points Earned',
+            preheader: `You earned ${points} points for your $${spendAmount} purchase`,
+            bodyHtml: `
+              <p>Your purchase at <strong>${brandName}</strong> earned you points!</p>
+              <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
+                <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">+${points} pts</p>
+                <p style="font-size:13px;color:#666;margin:8px 0 0">$${spendAmount} purchase — Level ${levelIndex}</p>
+              </div>
+              <p>Keep earning points toward your next reward!</p>
+            `,
+            ctaText: 'View Rewards',
+            ctaUrl: 'keepuspostd://rewards',
+            variant: 'influencer',
+          }).catch(e => console.error('[purchase-points] influencer email error:', e.message));
+        }
+
+        // Brand in-app notification
+        const brandUserId = brand?.createdBy;
+        if (brandUserId) {
+          await Notification.create({
+            userId: brandUserId.toString(),
+            title: 'Purchase Points Awarded',
+            message: `${influencer.displayName} earned ${points} pts from a $${spendAmount} purchase`,
+            type: 'reward',
+            metadata: {
+              influencerName: influencer.displayName,
+              influencerHandle: influencer.handle,
+              points,
+              spendAmount,
+              isPurchasePoints: true,
+            },
+          });
+        }
+      } catch (notifErr) {
+        console.error('[purchase-points] notification error:', notifErr.message);
+      }
+    }
+
     if (accountFound) {
       console.log(`✅ Purchase points awarded: ${points}pts to ${influencer.displayName} (brand ${brandId}, $${spendAmount} spent, Level ${levelIndex})`);
     } else {
@@ -779,6 +850,47 @@ router.post('/staff-award', async (req, res) => {
           totalPurchasePointsEarned: points,
         },
       });
+      // Notify influencer + brand
+      try {
+        const brand = await Brand.findById(brandId).select('name logoUrl avatarUrl createdBy').lean();
+        const brandName = brand?.name || 'Brand';
+        const Notification = require('../models/Notification');
+
+        if (influencer.userId) {
+          await Notification.create({
+            userId: influencer.userId.toString(),
+            title: 'Purchase Points Earned',
+            message: `+${points} pts from ${brandName} for your $${spend} purchase`,
+            type: 'reward',
+            metadata: {
+              brandName,
+              brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+              points,
+              totalPoints: (influencer.purchasePointsBalance || 0) + points,
+              rewardTitle: 'Purchase Points',
+              isPurchasePoints: true,
+            },
+          });
+        }
+        if (brand?.createdBy) {
+          await Notification.create({
+            userId: brand.createdBy.toString(),
+            title: 'Purchase Points Awarded',
+            message: `${influencer.displayName} earned ${points} pts from a $${spend} purchase`,
+            type: 'reward',
+            metadata: {
+              influencerName: influencer.displayName,
+              influencerHandle: influencer.handle,
+              points,
+              spendAmount: spend,
+              isPurchasePoints: true,
+            },
+          });
+        }
+      } catch (notifErr) {
+        console.error('[staff-award] notification error:', notifErr.message);
+      }
+
       console.log(`✅ Staff PIN: ${points}pts → ${influencer.displayName} (brand ${brandId}, $${spend}, Level ${levelIndex})`);
     } else {
       logData.customerName = 'Guest';
