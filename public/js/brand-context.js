@@ -163,8 +163,7 @@ var KUP_BRAND_CONTEXT = (function() {
 
     var css = '' +
       /* Brand Context Bar */
-      '.kup-bcb{background:' + (isDark ? '#1e2030' : '#f8f9fa') + ';border-bottom:1px solid ' + (isDark ? '#2a2d3e' : '#eee') + ';border-left:4px solid ' + brandColor + ';font-family:Montserrat,sans-serif;position:relative;z-index:99;animation:kupBcbSlide .2s ease-out;}' +
-      '@keyframes kupBcbSlide{from{max-height:0;opacity:0;overflow:hidden}to{max-height:36px;opacity:1}}' +
+      '.kup-bcb{background:' + (isDark ? '#1e2030' : '#f8f9fa') + ';border-bottom:1px solid ' + (isDark ? '#2a2d3e' : '#eee') + ';border-left:4px solid ' + brandColor + ';font-family:Montserrat,sans-serif;position:relative;z-index:99;}' +
       '.kup-bcb-inner{max-width:1400px;margin:0 auto;padding:0 32px;height:36px;display:flex;align-items:center;justify-content:space-between;}' +
       '.kup-bcb-left{display:flex;align-items:center;gap:10px;}' +
       '.kup-bcb-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}' +
@@ -468,10 +467,6 @@ var KUP_BRAND_CONTEXT = (function() {
   }
 
   function syncBrandElements() {
-    // Batch all DOM updates into a single animation frame to prevent flickering
-    requestAnimationFrame(_syncBrandElementsInner);
-  }
-  function _syncBrandElementsInner() {
     var ab = getActiveBrand();
     var abbr = ab.abbreviation || 'KP';
     var name = ab.name || 'KeepUsPostd';
