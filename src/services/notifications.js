@@ -184,9 +184,10 @@ async function contentSubmitted({ brand, influencer, submission }) {
   });
 
   // In-app + push notification for brand owner
-  if (brand.ownerId) {
+  const brandOwnerId = (brand.ownerId || brand.createdBy);
+  if (brandOwnerId) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: brandOwnerId,
       title: 'New Content Submitted',
       message: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
       type: 'content',
@@ -199,7 +200,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
         thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
       },
     });
-    push(brand.ownerId, {
+    push(brandOwnerId, {
       title: 'New Content Submitted',
       body: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
       link: '/pages/inner/content.html',
@@ -860,9 +861,9 @@ async function brandPublished({ user, brand }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'Brand Published!',
       message: `${brand.name} is now live on the marketplace.`,
       type: 'account',
@@ -894,9 +895,9 @@ async function brandVerificationChanged({ brand, status }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: isVerified ? 'Brand Verified!' : 'Verification Update',
       message: isVerified
         ? `${brand.name} is now verified.`
@@ -966,15 +967,15 @@ async function contentResubmitted({ brand, influencer, submission }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'Revised Content Submitted',
       message: `${influencer.displayName || 'An influencer'} resubmitted revised content.`,
       type: 'content',
       link: '/pages/inner/content.html',
     });
-    push(brand.ownerId, {
+    push((brand.ownerId || brand.createdBy), {
       title: 'Revised Content',
       body: `${influencer.displayName || 'An influencer'} resubmitted revised content for review.`,
       link: '/pages/inner/content.html',
@@ -1044,9 +1045,9 @@ async function campaignLive({ brand, campaign }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'Campaign is Live!',
       message: `${campaign.name} is now active.`,
       type: 'campaign',
@@ -1109,15 +1110,15 @@ async function campaignApplication({ brand, influencer, campaign }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'New Campaign Application',
       message: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
       type: 'campaign',
       link: '/pages/inner/campaigns.html',
     });
-    push(brand.ownerId, {
+    push((brand.ownerId || brand.createdBy), {
       title: 'New Application',
       body: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
       link: '/pages/inner/campaigns.html',
@@ -1283,8 +1284,8 @@ async function campaignMilestone100({ brand, campaign }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
-    push(brand.ownerId, {
+  if ((brand.ownerId || brand.createdBy)) {
+    push((brand.ownerId || brand.createdBy), {
       title: '🎉 Goal Reached!',
       body: `"${campaign.name}" hit 100% of its target!`,
       link: '/pages/inner/campaigns.html',
@@ -1365,16 +1366,16 @@ async function newInfluencerPartner({ brand, influencer }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'New Partner!',
       message: `${influencer.displayName || 'An influencer'} partnered with ${brand.name}.`,
       type: 'partnership',
       link: '/pages/inner/influencers.html',
       metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
-    push(brand.ownerId, {
+    push((brand.ownerId || brand.createdBy), {
       title: 'New Partner!',
       body: `${influencer.displayName || 'An influencer'} wants to partner with ${brand.name}.`,
       link: '/pages/inner/influencers.html',
@@ -1510,8 +1511,8 @@ async function newInfluencerMessage({ brand, influencer }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
-    push(brand.ownerId, {
+  if ((brand.ownerId || brand.createdBy)) {
+    push((brand.ownerId || brand.createdBy), {
       title: 'New Message',
       body: `${influencer.displayName || 'An influencer'} sent you a message.`,
       link: '/pages/inner/messages.html',
@@ -1590,9 +1591,9 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
+  if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
-      userId: brand.ownerId,
+      userId: (brand.ownerId || brand.createdBy),
       title: 'Plan Upgraded!',
       message: `Upgraded to ${newTier} plan.`,
       type: 'payment',
@@ -1705,8 +1706,8 @@ async function trialEndingSoon({ brand, trialEndDate }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
-    push(brand.ownerId, {
+  if ((brand.ownerId || brand.createdBy)) {
+    push((brand.ownerId || brand.createdBy), {
       title: '⏰ Trial Ending Soon',
       body: 'Your free trial ends in 3 days. Subscribe to keep your features.',
       link: '/pages/inner/cash-account.html',
@@ -1744,8 +1745,8 @@ async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
     variant: 'brand',
   });
 
-  if (brand.ownerId) {
-    push(brand.ownerId, {
+  if ((brand.ownerId || brand.createdBy)) {
+    push((brand.ownerId || brand.createdBy), {
       title: '🎉 14-Day Free Trial Started',
       body: `You have full Pro access until ${endDate}. No credit card needed.`,
       link: '/pages/inner/manage-brands.html',
@@ -2163,6 +2164,25 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
     title: `+${points} Points!`,
     body: msg,
   });
+
+  // Send email for significant point events (gift, level-close milestones)
+  if (stage && (stage.includes('gift') || stage === 'approved') && influencer.email) {
+    try {
+      await sendEmail({
+        to: influencer.email,
+        subject: `+${points} Points Earned — ${brand?.name || 'KeepUsPostd'}`,
+        headline: `+${points} Points!`,
+        preheader: msg,
+        bodyHtml: `
+          <p><strong>${msg}</strong></p>
+          <p>Keep earning points to unlock your next reward from <strong>${brand?.name || 'your brand partner'}</strong>!</p>
+        `,
+        ctaText: 'View Rewards',
+        ctaUrl: `${APP_URL}/app/rewards.html`,
+        variant: 'influencer',
+      });
+    } catch (_) {}
+  }
 }
 
 // LEVEL-001: Reward level unlocked → notify influencer + brand
