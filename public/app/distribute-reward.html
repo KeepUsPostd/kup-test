@@ -539,7 +539,13 @@
         return;
       }
 
-      kupApi.get('/api/rewards/brand-progress?brandId=' + brandId).then(function(data) {
+      Promise.all([
+        kupApi.get('/api/rewards/brand-progress?brandId=' + brandId),
+        kupApi.get('/api/rewards?brandId=' + brandId),
+      ]).then(function(results) {
+        var data = results[0];
+        var allRewardsData = results[1];
+        var allRewards = allRewardsData.rewards || [];
         var influencers = data.influencers || [];
         var rewards = data.rewards || [];
 
@@ -616,6 +622,37 @@
           html += '</div>';
         });
 
+        // Per-Approval Rewards section
+        var perApprovalRewards = allRewards.filter(function(r) {
+          return r.earningMethod === 'per_approval' && r.status === 'active';
+        });
+        if (perApprovalRewards.length > 0) {
+          html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;">';
+          html += '<h4 style="font-size:0.95rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">Per-Approval Rewards</h4>';
+          html += '<p style="font-size:0.82rem;color:#888;margin:0 0 12px;">These rewards are distributed each time you approve this influencer\'s content.</p>';
+          perApprovalRewards.forEach(function(r) {
+            var typeIcon = r.type === 'free_product' ? '🎁' : (r.type === 'discount' ? '🏷️' : '🎯');
+            html += '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:10px;background:#f9fafb;">';
+            html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+            html += '<span style="font-size:1.1rem;">' + typeIcon + '</span>';
+            html += '<span style="font-weight:700;">' + (r.title || 'Per-Approval Reward') + '</span>';
+            html += '<span style="margin-left:auto;font-size:0.75rem;color:#16a34a;font-weight:600;background:rgba(22,163,74,0.08);padding:2px 8px;border-radius:9999px;">ACTIVE</span>';
+            html += '</div>';
+            if (r.description) html += '<p style="font-size:0.82rem;color:#666;margin:0 0 8px;">' + r.description + '</p>';
+
+            // Distribution form for per-approval
+            html += '<div style="margin-top:8px;">';
+            html += '<label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:6px;">Send Redemption Code</label>';
+            html += '<div style="display:flex;gap:8px;">';
+            html += '<input type="text" id="perApprovalCode_' + r._id + '" placeholder="Enter coupon code or details" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;">';
+            html += '<button onclick="submitPerApproval(\'' + r._id + '\')" style="padding:10px 16px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">Send</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+
         container.innerHTML = html;
       }).catch(function(err) {
         console.error('[distribute] Load error:', err);
@@ -664,6 +701,31 @@
       }).catch(function(err) {
         console.error('[distribute] Error:', err);
         kupToast(err.message || 'Failed to distribute reward', 'error');
+      });
+    }
+
+    function submitPerApproval(rewardId) {
+      var codeEl = document.getElementById('perApprovalCode_' + rewardId);
+      var code = codeEl ? codeEl.value.trim() : '';
+      if (!code) {
+        kupToast('Please enter a coupon code or redemption details', 'error');
+        return;
+      }
+
+      // Use the distribute-level endpoint with a special flag for per-approval
+      kupApi.post('/api/rewards/distribute-level', {
+        partnershipId: _distributePartnershipId,
+        rewardId: rewardId,
+        levelIndex: 0,
+        method: 'email',
+        code: code,
+      }).then(function() {
+        kupToast('Redemption code sent to influencer!', 'success');
+        if (codeEl) codeEl.value = '';
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('successMsgText').textContent = 'Redemption code has been sent.';
+      }).catch(function(err) {
+        kupToast(err.message || 'Failed to send code', 'error');
       });
     }
 
@@ -874,24 +936,34 @@
     });
 
     // Hydrate the influencer card with real data
-    function hydrateInfluencer(inf) {
-      var name = inf.influencerName || inf.name || 'Influencer';
-      var handle = inf.handle || inf.username || '';
-      var tier = inf.tier || inf.influenceTier || 'Influencer';
-      var followers = inf.followers || inf.followerCount || 0;
-      var engagement = inf.engagement || inf.engagementRate || 0;
-      var posts = inf.posts || inf.postCount || 0;
+    function hydrateInfluencer(data) {
+      // Handle both flat object and partnership with nested influencerProfileId
+      var inf = data.influencerProfileId || data;
+      var name = inf.displayName || inf.influencerName || inf.name || data.influencerName || 'Influencer';
+      var handle = inf.handle || inf.username || data.handle || '';
+      var tier = inf.influenceTier || inf.tier || data.tier || 'Influencer';
+      var followers = inf.followerCount || inf.followers || data.followers || 0;
+      var engagement = inf.engagementRate || inf.engagement || data.engagement || 0;
+      var posts = inf.totalReviews || inf.postCount || inf.posts || data.posts || 0;
 
       var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
 
       var avatarEl = document.querySelector('.influencer-avatar');
-      if (avatarEl) avatarEl.innerHTML = PERSON_SVG;
+      var avatarUrl = inf.avatarUrl || inf.avatar || null;
+      if (avatarEl) {
+        if (avatarUrl) {
+          avatarEl.innerHTML = '<img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML=\'' + PERSON_SVG.replace(/'/g, "\\'") + '\'">';
+        } else {
+          avatarEl.innerHTML = PERSON_SVG;
+        }
+      }
       var nameEl = document.querySelector('.influencer-name');
       if (nameEl) nameEl.textContent = name;
       var handleEl = document.querySelector('.influencer-handle');
       if (handleEl) handleEl.textContent = handle ? '@' + handle.replace(/^@/, '') : '';
       var tierEl = document.querySelector('.influencer-tier');
-      if (tierEl) tierEl.textContent = tier;
+      var TIER_LABELS = { nano:'Nano', micro:'Micro', mid:'Mid-Tier', macro:'Macro', mega:'Mega', celebrity:'Celebrity', startup:'Startup', unverified:'Startup' };
+      if (tierEl) tierEl.textContent = (TIER_LABELS[(tier || '').toLowerCase()] || tier || 'Influencer');
 
       var stats = document.querySelectorAll('.influencer-stat .stat-num');
       if (stats.length >= 3) {
