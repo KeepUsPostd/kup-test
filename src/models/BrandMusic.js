@@ -41,8 +41,8 @@ const brandMusicSchema = new mongoose.Schema({
     rightsHolderName: { type: String, required: true, trim: true },
     attestation: { type: Boolean, required: true, default: false },
     // "I certify I own or have obtained all necessary rights to distribute
-    //  this music on KeepUsPostd and agree to indemnify KeepUsPostd against
-    //  any claims arising from this upload."
+    //  this music on the KeepUsPostd Corporation platform and agree to indemnify
+    //  KeepUsPostd Corporation against any claims arising from this upload."
     attestedAt: { type: Date, default: null },
     attestedFromIp: { type: String, default: null },
     expiryDate: { type: Date, default: null }, // null = perpetual
