@@ -1999,23 +1999,6 @@
       window.location.href = url;
     });
 
-    /* ============== REWARD ROW CLICK → DISTRIBUTE ============== */
-    document.getElementById('rewardTableBody').addEventListener('click', function(e) {
-      // Skip checkbox clicks
-      if (e.target.type === 'checkbox') return;
-      var row = e.target.closest('tr[data-partner-id]');
-      if (!row) return;
-      var partnerId = row.getAttribute('data-partner-id');
-      var infCell = row.querySelector('[data-influencer]');
-      var infKey = infCell ? infCell.getAttribute('data-influencer') : '';
-      var infData = _influencerLookup[infKey] || {};
-      var params = [];
-      if (partnerId) params.push('partnershipId=' + encodeURIComponent(partnerId));
-      if (infData.name) params.push('name=' + encodeURIComponent(infData.name));
-      if (infData.handle) params.push('handle=' + encodeURIComponent(infData.handle.replace(/^@/, '')));
-      window.location.href = 'distribute-reward.html' + (params.length ? '?' + params.join('&') : '');
-    });
-
     /* ============== MANAGE REWARDS TOGGLE ============== */
     function toggleManageRewards() {
       var toggle = document.getElementById('manageRewardsToggle');

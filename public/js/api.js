@@ -141,18 +141,9 @@ const kupApi = {
       default: return this.get(path);
     }
   },
-
-  // Auth helper (used by catalog + music pages)
   auth: {
-    isAuthenticated() {
-      return typeof auth !== 'undefined' && !!auth.currentUser;
-    },
-    async getToken() {
-      if (typeof getAuthToken === 'function') return await getAuthToken();
-      return null;
-    },
+    isAuthenticated() { return typeof auth !== 'undefined' && !!auth.currentUser; },
+    async getToken() { if (typeof getAuthToken === 'function') return await getAuthToken(); return null; },
   },
 };
-
-// Alias for newer pages
 const KUP_API = kupApi;
