@@ -8,47 +8,6 @@
   <link rel="stylesheet" href="/css/mobile-inner.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--kup-blue:#2EA5DD;--kup-orange:#ED8444;--kup-purple:#707BBB;--kup-white:#fff;--kup-font:'Montserrat',sans-serif;--radius-md:12px;--kup-gradient:linear-gradient(135deg,#2EA5DD,#707BBB)}
-    *{box-sizing:border-box}body{margin:0;font-family:var(--kup-font);background:#f8f9fa;color:#1a1a1a}
-    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
-    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
-    .auth-logo img{height:30px}
-    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
-    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s;text-decoration:none}
-    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
-    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
-    .auth-right{display:flex;align-items:center;gap:16px}
-    .notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:8px}
-    .notif-btn svg{width:22px;height:22px;stroke:#666;fill:none}
-    .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#ef4444}
-    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:8px;border:none;background:none;transition:background .15s}
-    .profile-trigger:hover{background:#f0f0f0}
-    .profile-trigger .avatar{width:36px;height:36px;border-radius:50%;overflow:hidden}
-    .profile-trigger .avatar img{width:100%;height:100%;object-fit:cover}
-    .profile-info .name{font-size:.82rem;font-weight:600;color:#1a1a1a;line-height:1.2}
-    .profile-info .brand{font-size:.72rem;color:#888}
-    .auth-footer{text-align:center;padding:20px;font-size:.78rem;color:#999;font-family:var(--kup-font)}
-    .auth-footer a{color:var(--kup-blue);text-decoration:none}
-    .kup-notif-popover{display:none;position:absolute;right:0;top:calc(100% + 8px);width:380px;max-height:500px;background:#fff;border:1px solid #eee;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:200;overflow:hidden}
-    .kup-notif-popover.show{display:block}
-    .notif-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f0f0}
-    .notif-header h4{font-size:1rem;font-weight:700;margin:0}
-    .notif-mark-read{background:none;border:none;color:var(--kup-blue);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--kup-font)}
-    .notif-tabs{display:flex;border-bottom:1px solid #f0f0f0}
-    .notif-tab{flex:1;padding:10px;text-align:center;font-size:.82rem;font-weight:600;color:#888;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--kup-font)}
-    .notif-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
-    .notif-list{max-height:380px;overflow-y:auto}
-    .notif-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f8f8f8;transition:background .15s}
-    .notif-item:hover{background:#fafafa}
-    .notif-item.unread{background:#f0f8ff}
-    .notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
-    .notif-body{flex:1;min-width:0}
-    .notif-body p{margin:0;font-size:.82rem;color:#333;line-height:1.4}
-    .notif-body .time{font-size:.72rem;color:#999;margin-top:4px}
-    .profile-dropdown{display:none;position:absolute;right:0;top:calc(100% + 8px);width:220px;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:200;overflow:hidden}
-    .profile-dropdown.show{display:block}
-    .profile-dropdown a,.profile-dropdown button{display:block;width:100%;padding:10px 16px;font-size:.82rem;color:#333;text-decoration:none;background:none;border:none;text-align:left;cursor:pointer;font-family:var(--kup-font);transition:background .15s}
-    .profile-dropdown a:hover,.profile-dropdown button:hover{background:#f5f5f5}
     .page-header{max-width:1200px;margin:0 auto;padding:28px 32px 0}
     .page-header-top{display:flex;align-items:baseline;gap:16px;margin-bottom:4px}
     .page-header h1{font-size:1.5rem;font-weight:800;margin:0;color:#1a1a1a}
@@ -198,14 +157,34 @@
 
   <div class="distribute-layout">
     <div class="influencer-card">
-      <div class="influencer-avatar" id="infAvatar">...</div>
-      <h2 class="influencer-name" id="infName">Loading...</h2>
-      <p class="influencer-handle" id="infHandle">@...</p>
-      <span class="influencer-tier" id="infTier">—</span>
+      <div class="influencer-avatar">JD</div>
+      <h2 class="influencer-name">Jessica Davis</h2>
+      <p class="influencer-handle">@jessicadavis</p>
+      <span class="influencer-tier">Micro Influencer</span>
       <div class="influencer-stats">
-        <div class="influencer-stat"><div class="stat-num" id="infSubmissions">—</div><div class="stat-label">Submissions</div></div>
-        <div class="influencer-stat"><div class="stat-num" id="infApproved">—</div><div class="stat-label">Approved</div></div>
-        <div class="influencer-stat"><div class="stat-num" id="infPoints">—</div><div class="stat-label">Points</div></div>
+        <div class="influencer-stat">
+          <div class="stat-num">12.4K</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="influencer-stat">
+          <div class="stat-num">3.2%</div>
+          <div class="stat-label">Engagement</div>
+        </div>
+        <div class="influencer-stat">
+          <div class="stat-num">47</div>
+          <div class="stat-label">Posts</div>
+        </div>
+      </div>
+      <div class="influencer-socials">
+        <button class="social-icon" title="Instagram">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </button>
+        <button class="social-icon" title="TikTok">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        </button>
+        <button class="social-icon" title="YouTube">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+        </button>
       </div>
     </div>
 
@@ -227,8 +206,28 @@
 
       <div class="tab-content">
         <div class="tab-pane active" id="pane-distribute">
-          <div id="levelsContainer" style="display:flex;flex-direction:column;gap:12px;">
-            <p style="text-align:center;color:#999;padding:20px;">Loading reward levels...</p>
+          <div class="reward-offer">
+            <div class="reward-icon">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+            </div>
+            <span class="reward-type-indicator non-cash">NON-CASH</span>
+            <h3>20% Off First Order</h3>
+            <p>Brand reward for KeepUsPostd influencer partners</p>
+            <div class="point-cat-tags">
+              <span class="point-cat-tag content-pts">Content Pts</span>
+              <span class="point-cat-tag purchase-pts">Purchase Pts</span>
+            </div>
+            <div class="point-progress-wrap">
+              <div class="point-progress-bar"><div class="point-progress-fill" style="width:65%"></div></div>
+              <p class="point-progress-text"><strong>325</strong> / 500 pts</p>
+            </div>
+          </div>
+          <button class="btn-distribute" id="btnDistribute" onclick="distributeReward()">Distribute Reward</button>
+          <p class="confirm-text">Clicking here confirms that your brand reward has been sent to Jessica Davis.</p>
+          <div class="success-message" id="successMsg">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <h4>Reward Distributed!</h4>
+            <p>Jessica Davis has been sent the "20% Off First Order" reward.</p>
           </div>
         </div>
 
@@ -238,7 +237,7 @@
               <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
             <h3>Purchase Points</h3>
-            <p>Buy points to send to this influencer as a cash incentive</p>
+            <p>Buy points to send to Jessica Davis as a cash incentive</p>
           </div>
           <div class="points-form">
             <div class="input-group-custom">
@@ -259,7 +258,7 @@
               <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
             </div>
             <h3>Gift Points</h3>
-            <p>Gift points from your account balance to this influencer</p>
+            <p>Gift points from your account balance to Jessica Davis</p>
           </div>
           <div class="points-form">
             <input type="number" class="points-input" id="giftAmount" placeholder="Enter point amount" min="0">
@@ -311,7 +310,6 @@
   <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
   <script>
-  // Auth guard — wait for Firebase to initialize (async) before checking
   auth.onAuthStateChanged(function(user) {
     if (!user) window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
   });
@@ -408,153 +406,17 @@
       document.getElementById('pane-' + tab).classList.add('active');
     }
 
-    /* ============== LOAD REAL DATA FROM API ============== */
-    var _params = new URLSearchParams(window.location.search);
-    var _partnershipId = _params.get('partnershipId') || _params.get('influencerId') || '';
-    var _infName = _params.get('name') || '';
-    var _infHandle = _params.get('handle') || '';
-    var _brandId = '';
-    var _rewardId = '';
-    var _rewardLevels = [];
-
-    // Populate influencer card from URL params immediately
-    if (_infName) document.getElementById('infName').textContent = _infName;
-    if (_infHandle) document.getElementById('infHandle').textContent = '@' + _infHandle.replace(/^@/, '');
-    if (_infName) document.getElementById('infAvatar').textContent = _infName.split(' ').map(function(w){return w[0]}).join('').toUpperCase().substring(0,2);
-
-    function loadPageData() {
-      // Get brandId from brand context
-      if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
-        var ab = KUP_BRAND_CONTEXT.getActiveBrand();
-        if (ab) _brandId = ab.mongoId || ab._id || ab.id || '';
-      }
-
-      // Load brand-progress to get real reward data for this influencer
-      if (_brandId) {
-        kupApi.get('/api/rewards/brand-progress?brandId=' + _brandId).then(function(res) {
-          var progressList = (res && (res.influencers || res.influencerProgress)) || [];
-          // Find this influencer's progress
-          var match = null;
-          for (var i = 0; i < progressList.length; i++) {
-            var inf = progressList[i].influencer || {};
-            var handle = (inf.handle || '').toLowerCase();
-            if (handle === _infHandle.toLowerCase() || (inf.displayName || '').toLowerCase() === _infName.toLowerCase()) {
-              match = progressList[i];
-              break;
-            }
-          }
-
-          if (match) {
-            var inf = match.influencer || {};
-            // Update influencer card with real data
-            document.getElementById('infName').textContent = inf.displayName || _infName;
-            document.getElementById('infHandle').textContent = '@' + (inf.handle || _infHandle);
-            document.getElementById('infTier').textContent = inf.influenceTier ? inf.influenceTier.replace(/_/g, ' ').replace(/\b\w/g, function(c){return c.toUpperCase()}) : 'Influencer';
-            if (inf.avatarUrl) {
-              document.getElementById('infAvatar').innerHTML = '<img src="' + inf.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
-              document.getElementById('infAvatar').style.background = 'none';
-            }
-            document.getElementById('infSubmissions').textContent = match.submitted || 0;
-            document.getElementById('infApproved').textContent = match.approved || 0;
-
-            // Render reward levels
-            var rewards = match.rewards || [];
-            if (rewards.length > 0) {
-              var rw = rewards[0];
-              _rewardId = rw.rewardId;
-              _rewardLevels = rw.levels || [];
-              document.getElementById('infPoints').textContent = (rw.totalPoints || 0) + ' pts';
-              renderLevels(rw);
-            }
-          }
-        }).catch(function(err) {
-          console.error('brand-progress error:', err);
-        });
-
-        // Also load distribution history
-        loadDistributionHistory();
-      }
-    }
-
-    function renderLevels(rw) {
-      var container = document.getElementById('levelsContainer');
-      var levels = rw.levels || [];
-      var totalPts = rw.totalPoints || 0;
-
-      if (levels.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">No reward levels configured yet.</p>';
-        return;
-      }
-
-      var html = '';
-      levels.forEach(function(lvl, idx) {
-        var pct = Math.min(Math.round((totalPts / lvl.threshold) * 100), 100);
-        var isUnlocked = lvl.unlocked;
-        var isClaimed = lvl.claimed;
-        var borderColor = isUnlocked ? '#16a34a' : '#eee';
-        var bgColor = isUnlocked ? 'rgba(22,163,74,0.04)' : '#f8f9fa';
-        var statusHtml = isClaimed
-          ? '<span style="color:#16a34a;font-weight:700;font-size:.78rem">Claimed</span>'
-          : isUnlocked
-            ? '<button class="btn-distribute-level" onclick="distributeLevel(' + idx + ',\'' + (lvl.rewardValue || '').replace(/'/g, "\\'") + '\')" style="padding:8px 18px;background:linear-gradient(135deg,#2ea5dd,#7c3aed);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:var(--kup-font)">Send Code / Distribute</button>'
-            : '<span style="color:#999;font-size:.78rem">' + totalPts + ' / ' + lvl.threshold + ' pts</span>';
-
-        html += '<div style="border:2px solid ' + borderColor + ';border-radius:14px;padding:18px;background:' + bgColor + '">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">' +
-            '<div>' +
-              '<div style="font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Level ' + (idx + 1) + '</div>' +
-              '<div style="font-size:1.05rem;font-weight:700;color:#1a1a1a">' + (lvl.rewardValue || 'Reward') + '</div>' +
-              '<div style="font-size:.78rem;color:#888;margin-top:2px">' + lvl.threshold + ' pts required</div>' +
-            '</div>' +
-            '<div style="text-align:right">' + statusHtml + '</div>' +
-          '</div>' +
-          (isUnlocked && !isClaimed ? '<div style="margin-top:12px"><label style="font-size:.78rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Reward Code (optional)</label><input type="text" id="levelCode' + idx + '" placeholder="e.g. REWARD20OFF" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;font-family:var(--kup-font)"></div>' : '') +
-          (!isUnlocked ? '<div style="margin-top:10px"><div style="height:6px;background:#eee;border-radius:99px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#2ea5dd,#707bbb);border-radius:99px;width:' + pct + '%"></div></div></div>' : '') +
-        '</div>';
-      });
-
-      container.innerHTML = html;
-    }
-
-    function distributeLevel(levelIndex, rewardValue) {
-      var code = document.getElementById('levelCode' + levelIndex);
-      var codeVal = code ? code.value.trim() : '';
-
-      kupApi.post('/api/rewards/distribute-level', {
-        partnershipId: _partnershipId,
-        rewardId: _rewardId,
-        levelIndex: levelIndex,
-        method: 'email',
-        code: codeVal || null,
-      }).then(function(res) {
-        kupToast('Reward "' + rewardValue + '" distributed!', 'success');
-        // Reload to reflect claimed status
-        loadPageData();
-      }).catch(function(err) {
-        kupToast('Error distributing reward: ' + (err.message || 'Unknown error'), 'error');
-      });
-    }
-
-    /* ============== GIFT POINTS ============== */
-    function applyGift() {
-      var amount = document.getElementById('giftAmount').value;
-      if (!amount || parseInt(amount) <= 0) {
-        kupToast('Please enter a valid point amount', 'warning');
-        document.getElementById('giftAmount').focus();
-        return;
-      }
-      kupApi.post('/api/rewards/award-gratitude', {
-        brandId: _brandId,
-        partnershipId: _partnershipId,
-        points: parseInt(amount),
-        reason: 'Brand gifted points',
-      }).then(function() {
-        kupToast(parseInt(amount) + ' points gifted!', 'success');
-        document.getElementById('giftAmount').value = '';
-        loadPageData();
-      }).catch(function(err) {
-        kupToast('Error: ' + (err.message || 'Could not gift points'), 'error');
-      });
+    /* ============== DISTRIBUTE REWARD ============== */
+    function distributeReward() {
+      var btn = document.getElementById('btnDistribute');
+      btn.textContent = 'Sending...';
+      btn.style.opacity = '0.7';
+      setTimeout(function() {
+        btn.textContent = 'Reward Sent';
+        btn.classList.add('sent');
+        document.getElementById('successMsg').classList.add('show');
+        kupToast('Reward distributed to Jessica Davis!', 'success');
+      }, 800);
     }
 
     /* ============== PURCHASE POINTS ============== */
@@ -565,24 +427,21 @@
         document.getElementById('purchaseAmount').focus();
         return;
       }
-      kupApi.post('/api/purchase-points/award', {
-        brandId: _brandId,
-        influencerProfileId: _partnershipId,
-        spendAmount: parseFloat(amount),
-        channel: 'instore',
-      }).then(function(res) {
-        var pts = (res && res.pointsAwarded) || 0;
-        kupToast(pts + ' purchase points awarded for $' + parseFloat(amount).toFixed(2), 'success');
-        document.getElementById('purchaseAmount').value = '';
-        loadPageData();
-      }).catch(function(err) {
-        kupToast('Error: ' + (err.message || 'Could not award points'), 'error');
-      });
+      kupToast('$' + parseFloat(amount).toFixed(2) + ' in points purchased for Jessica Davis', 'success');
+      document.getElementById('purchaseAmount').value = '';
     }
 
-    // Wait for brand context to load, then fetch data
-    setTimeout(loadPageData, 500);
-
+    /* ============== GIFT POINTS ============== */
+    function applyGift() {
+      var amount = document.getElementById('giftAmount').value;
+      if (!amount || parseInt(amount) <= 0) {
+        kupToast('Please enter a valid point amount', 'warning');
+        document.getElementById('giftAmount').focus();
+        return;
+      }
+      kupToast(parseInt(amount) + ' points gifted to Jessica Davis', 'success');
+      document.getElementById('giftAmount').value = '';
+    }
     /* ============== DISTRIBUTION HISTORY ============== */
     function loadDistributionHistory() {
       var params = new URLSearchParams(window.location.search);
