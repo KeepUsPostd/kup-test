@@ -2282,8 +2282,8 @@
       </div>
       <div class="ip-actions">
         <button class="btn-ip-outline" id="ipNoticeBtn">Send Notice</button>
-        <button class="btn-ip-primary">Send Reward</button>
-        <button class="btn-ip-outline">View Content</button>
+        <button class="btn-ip-primary" id="ipSendRewardBtn">Send Reward</button>
+        <button class="btn-ip-outline" id="ipViewContentBtn">View Content</button>
       </div>
     </div>
   </div>
@@ -2991,6 +2991,29 @@
     document.getElementById('ipModalClose').addEventListener('click', function() {
       closeModal('influencerProfileModal');
     });
+    // Profile modal → Send Reward button opens distribute-reward page
+    var _currentModalData = null;
+    var _origOpenInfluencerModal = openInfluencerModal;
+    openInfluencerModal = function(data) {
+      _currentModalData = data;
+      _origOpenInfluencerModal(data);
+    };
+    document.getElementById('ipSendRewardBtn').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+      if (!_currentModalData) return;
+      var params = [];
+      if (_currentModalData.partnershipId) params.push('partnershipId=' + encodeURIComponent(_currentModalData.partnershipId));
+      if (_currentModalData.name) params.push('name=' + encodeURIComponent(_currentModalData.name));
+      if (_currentModalData.handle) params.push('handle=' + encodeURIComponent(_currentModalData.handle.replace(/^@/, '')));
+      window.location.href = 'distribute-reward.html' + (params.length ? '?' + params.join('&') : '');
+    });
+
+    // Profile modal → View Content button
+    document.getElementById('ipViewContentBtn').addEventListener('click', function() {
+      closeModal('influencerProfileModal');
+      window.location.href = 'content.html';
+    });
+
     // Profile modal → Notice button opens notice composer
     document.getElementById('ipNoticeBtn').addEventListener('click', function() {
       closeModal('influencerProfileModal');
