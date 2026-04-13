@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Catalog — KeepUsPostd</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --kup-orange: #ED8444;
+      --kup-blue: #2EA5DD;
+      --kup-black: #000000;
+      --kup-body-bg: #F5F6FA;
+      --kup-purple: #707BBB;
+      --kup-gradient: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%);
+      --kup-white: #FFFFFF;
+      --kup-font: 'Montserrat', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: var(--kup-font);
+      background-color: var(--kup-body-bg);
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+
+    /* AUTH HEADER */
+    .auth-header { background: var(--kup-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .auth-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 64px; max-width: 1400px; margin: 0 auto; }
+    .auth-logo img { height: 32px; }
+    .auth-nav { display: flex; gap: 0; margin: 0; padding: 0; list-style: none; height: 64px; }
+    .auth-nav li a { display: flex; align-items: center; padding: 0 24px; height: 64px; font-size: 0.9rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .auth-nav li a:hover { color: var(--kup-blue); background: rgba(46, 165, 221, 0.04); }
+    .auth-nav li a.active { color: var(--kup-blue); font-weight: 700; border-bottom-color: var(--kup-blue); }
+    .auth-right { display: flex; align-items: center; gap: 20px; }
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap { position: relative; }
+    .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.15s; }
+    .notif-btn:hover { background: #f0f0f0; }
+    .notif-btn svg { width: 22px; height: 22px; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; border: 2px solid var(--kup-white); }
+    .kup-notif-popover { position: absolute; top: calc(100% + 12px); right: -60px; width: 380px; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: none; z-index: 300; overflow: hidden; }
+    .kup-notif-popover.show { display: block; }
+    .notif-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+    .notif-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .notif-mark-read { background: none; border: none; font-size: 0.78rem; color: var(--kup-blue); font-weight: 600; cursor: pointer; font-family: var(--kup-font); }
+    .notif-tabs { display: flex; border-bottom: 1px solid #f0f0f0; padding: 0 20px; }
+    .notif-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; font-family: var(--kup-font); transition: all 0.2s; }
+    .notif-tab.active { color: var(--kup-blue); border-bottom-color: var(--kup-blue); }
+    .notif-list { max-height: 360px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .notif-item { display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f8f8f8; cursor: pointer; transition: background 0.15s; }
+    .notif-item:hover { background: #fafbfc; }
+    .notif-item.unread { background: rgba(46,165,221,0.03); }
+    .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-icon.submission { background: rgba(46,165,221,0.1); color: var(--kup-blue); }
+    .notif-icon.approval { background: rgba(237,132,68,0.1); color: var(--kup-orange); }
+    .notif-icon.payment { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .notif-icon.joined { background: rgba(112,123,187,0.1); color: #707BBB; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text { font-size: 0.82rem; color: #444; line-height: 1.4; margin: 0; }
+    .notif-text strong { font-weight: 700; color: #1a1a1a; }
+    .notif-time { font-size: 0.72rem; color: #bbb; margin-top: 3px; }
+    /* Profile Dropdown */
+    .profile-menu { position: relative; }
+    .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); border: none; background: none; transition: background 0.2s; }
+    .profile-trigger:hover { background: #f0f0f0; }
+    .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--kup-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; }
+    .profile-info { text-align: left; }
+    .profile-info .name { font-weight: 600; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .profile-info .brand { font-size: 0.72rem; color: #888; line-height: 1.2; }
+    .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid #eee; border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(0,0,0,0.1); min-width: 220px; display: none; z-index: 200; overflow: hidden; }
+    .profile-dropdown.show { display: block; }
+    .profile-dropdown a { display: block; padding: 12px 20px; font-size: 0.85rem; color: #444; }
+    .profile-dropdown a:hover { background: #f8f9fa; color: var(--kup-blue); }
+    .profile-dropdown .divider { border-top: 1px solid #eee; margin: 4px 0; }
+    .profile-dropdown a.logout { color: #e74c3c; }
+    /* Toast Notifications */
+    .kup-toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .kup-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff; border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.12); font-family: var(--kup-font); font-size: 0.85rem; font-weight: 600; color: #1a1a1a; min-width: 280px; max-width: 400px; transform: translateX(120%); animation: kupToastIn 0.3s ease forwards; border-left: 4px solid var(--kup-blue); }
+    .kup-toast.success { border-left-color: #16a34a; }
+    .kup-toast.error { border-left-color: #dc2626; }
+    .kup-toast.info { border-left-color: var(--kup-blue); }
+    .kup-toast.warning { border-left-color: #f59e0b; }
+    .kup-toast.dismissing { animation: kupToastOut 0.3s ease forwards; }
+    @keyframes kupToastIn { to { transform: translateX(0); } }
+    @keyframes kupToastOut { to { transform: translateX(120%); opacity: 0; } }
+
+    /* =============================================
+       BRAND CATALOG — Two Column Layout
+       Left: Brand sidebar nav (shared)
+       Right: Catalog item management
+       ============================================= */
+    .brand-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* Brand Sidebar */
+    .brand-sidebar {
+      background: var(--kup-white);
+      border-right: 1px solid #eee;
+      padding: 32px 28px;
+    }
+
+    .brand-sidebar h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+    }
+
+    .brand-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: var(--radius-md);
+      margin-bottom: 28px;
+    }
+
+    .brand-identity .logo {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-sm);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .brand-identity .brand-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    /* Sidebar Nav */
+    .brand-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 24px;
+    }
+
+    .brand-nav-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+
+    .brand-nav li a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #444;
+      transition: all 0.15s;
+    }
+    .brand-nav li a:hover {
+      background: rgba(46, 165, 221, 0.06);
+      color: var(--kup-blue);
+    }
+    .brand-nav li a.active {
+      background: rgba(46, 165, 221, 0.1);
+      color: var(--kup-blue);
+      font-weight: 700;
+    }
+    .brand-nav li a svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    .nav-divider {
+      border-top: 1px solid #eee;
+      margin: 16px 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: #888;
+      margin-top: 20px;
+      padding: 8px 0;
+    }
+    .back-link:hover { color: var(--kup-blue); }
+
+    /* Right Content: App Display Preview */
+    .brand-preview {
+      padding: 32px 24px;
+    }
+
+    .preview-header {
+      margin-bottom: 24px;
+    }
+    .preview-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .preview-header h3 span {
+      font-weight: 400;
+      color: #888;
+    }
+
+    /* Preview Area — tips left, phone right, aligned left near sidebar */
+    .preview-area{display:flex;gap:32px;align-items:flex-start;justify-content:flex-start;width:100%}
+    /* Tips Column */
+    .tips-column{width:300px;flex-shrink:0;padding-top:40px}
+    .edit-brand-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 20px;background:linear-gradient(135deg,#6c5ce7,#a855f7);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(108,92,231,.25);margin-bottom:24px;text-decoration:none}
+    .edit-brand-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(108,92,231,.35)}
+    .edit-brand-btn svg{width:18px;height:18px;flex-shrink:0}
+    .tips-column .section-label{font-size:.82rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+    /* Phone Column */
+    .phone-column{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+    .phone-frame{width:310px;height:640px;background:#fff;border-radius:38px;position:relative;border:1px solid #e0e0e0;box-shadow:0 8px 40px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);overflow:hidden;flex-shrink:0}
+    .phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:#1a1a1a;border-radius:14px;z-index:50}
+    .phone-status-bar{display:flex;justify-content:space-between;align-items:flex-end;padding:0 24px;font-size:.7rem;font-weight:600;color:#fff;position:absolute;top:0;left:0;right:0;z-index:45;height:44px;pointer-events:none}
+    .phone-status-bar .status-time{font-size:.78rem;font-weight:700;padding-bottom:4px}
+    .phone-status-bar .status-icons{display:flex;gap:4px;align-items:center;font-size:.6rem;padding-bottom:5px}
+    .phone-status-bar .status-icons span{display:inline-block}
+    .phone-screen{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .phone-screen::-webkit-scrollbar{display:none}
+    .app-preview-banner{height:150px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative}
+    .app-preview-banner .back-btn-mock,.app-preview-banner .more-btn-mock{position:absolute;top:50px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    .app-preview-banner .back-btn-mock{left:12px}
+    .app-preview-banner .more-btn-mock{right:12px}
+    .app-preview-avatar-wrap{display:flex;justify-content:center;margin-top:-32px;position:relative;z-index:10}
+    .app-preview-logo{width:64px;height:64px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+    .app-preview-info{text-align:center;padding:8px 16px 0}
+    .app-preview-name{font-size:1.05rem;font-weight:800;margin:0 0 2px;color:#1a1a1a;min-height:22px;word-break:break-word;display:flex;align-items:center;justify-content:center;gap:4px}
+    .app-preview-category{font-size:.72rem;color:var(--kup-blue);font-weight:600;margin-bottom:1px;min-height:16px}
+    .app-preview-location{font-size:.68rem;color:#888;margin-bottom:6px;min-height:14px}
+    .app-preview-badge-row{display:flex;justify-content:center;margin-top:4px;margin-bottom:4px}
+    .app-preview-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:rgba(22,163,74,.08);color:#16a34a}
+    .app-preview-stats{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-stat-box{flex:1;background:#f8f9fa;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center}
+    .app-preview-stat-box .stat-num{font-size:.9rem;font-weight:800;color:#1a1a1a;line-height:1.2}
+    .app-preview-stat-box .stat-label{font-size:.55rem;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px}
+    .app-preview-actions{display:flex;gap:6px;padding:10px 14px 0}
+    .app-preview-actions .btn-mock{flex:1;padding:8px 0;border-radius:8px;font-family:var(--kup-font);font-size:.72rem;font-weight:700;text-align:center;border:none;cursor:default}
+    .app-preview-actions .btn-mock-primary{background:var(--kup-blue);color:#fff}
+    .app-preview-actions .btn-mock-secondary{background:#f0f0f0;color:#aaa;border:1px solid #e0e0e0}
+    .app-preview-tabs{display:flex;padding:12px 14px 0;border-bottom:1px solid #eee;gap:0}
+    .app-preview-tab{flex:1;text-align:center;padding:8px 0;font-size:.65rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;cursor:default}
+    .app-preview-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
+    .app-preview-body{padding:12px 16px 70px}
+    .app-preview-desc{font-size:.72rem;color:#888;line-height:1.6;min-height:36px;word-break:break-word}
+    .app-preview-nav{position:absolute;bottom:14px;left:0;right:0;height:50px;background:#fff;border-top:1px solid #eee;display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:30}
+    .app-preview-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.52rem;color:#ccc;font-weight:600}
+    .app-preview-nav-item.active{color:var(--kup-blue)}
+    .app-preview-nav-item .nav-icon-mock{font-size:.9rem}
+    .app-preview-nav-fab{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;box-shadow:0 3px 10px rgba(46,165,221,.3);margin-top:-10px}
+    .preview-hint{font-size:.78rem;color:#bbb;text-align:center;margin-top:12px;font-style:italic;width:310px}
+    .preview-label{font-size:.85rem;font-weight:700;color:#444;margin-bottom:12px;text-align:center}
+    .phone-home-bar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#ccc;border-radius:4px;z-index:60}
+    /* Dashboard Tips */
+    .dashboard-tips{}
+    .step-tip{display:flex;gap:10px;padding:14px 16px;background:#fff;border-radius:var(--radius-md);margin-bottom:12px;font-size:.82rem;color:#555;line-height:1.5;border:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .step-tip .tip-icon{font-size:1.1rem;flex-shrink:0}
+    .step-tip a{color:var(--kup-blue);font-weight:600}
+    .step-tip strong{display:block;margin-bottom:2px;color:#1a1a1a}
+
+    /* ============== CAMPAIGN SECTION (nested under brand) ============== */
+    .app-campaigns {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .app-campaigns-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .app-campaigns-header h5 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .campaign-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(46,165,221,0.1);
+      color: var(--kup-blue);
+      font-size: 0.72rem;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+    }
+    .app-campaigns-see-all {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--kup-blue);
+      cursor: pointer;
+    }
+    .app-campaigns-see-all:hover { text-decoration: underline; }
+
+    .campaign-card-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .campaign-card-mini {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      border: 1px solid #eee;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .campaign-card-mini:hover {
+      border-color: rgba(46,165,221,0.3);
+      background: rgba(46,165,221,0.03);
+    }
+    .campaign-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .campaign-card-icon.promo { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+    .campaign-card-icon.launch { background: linear-gradient(135deg, #2EA5DD 0%, #707BBB 100%); }
+    .campaign-card-icon.holiday { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+    .campaign-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .campaign-card-body h6 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: 0 0 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .campaign-card-body p {
+      font-size: 0.75rem;
+      color: #888;
+      margin: 0;
+      line-height: 1.3;
+    }
+    .campaign-status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .campaign-status-dot.active { background: #16a34a; }
+    .campaign-status-dot.draft { background: #f59e0b; }
+    .campaign-status-dot.paused { background: #888; }
+
+    .campaign-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .campaign-card-stat {
+      font-size: 0.72rem;
+      color: #999;
+      text-align: right;
+      line-height: 1.3;
+    }
+    .campaign-card-stat strong {
+      display: block;
+      font-size: 0.85rem;
+      color: #1a1a1a;
+      font-weight: 700;
+    }
+    .campaign-card-arrow {
+      color: #ccc;
+      flex-shrink: 0;
+    }
+
+    /* Reward snippet on campaign card */
+    .campaign-reward-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--kup-orange);
+      background: rgba(237,132,68,0.08);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 4px;
+    }
+
+    /* Footer */
+    .auth-footer {
+      text-align: center;
+      padding: 24px 32px;
+      font-size: 0.78rem;
+      color: #999;
+      border-top: 1px solid #eee;
+      background: var(--kup-white);
+    }
+    .auth-footer a { color: var(--kup-blue); font-weight: 500; }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .preview-area { gap: 20px; }
+      .tips-column { width: 260px; }
+    }
+    @media (max-width: 1024px) {
+      .brand-layout { grid-template-columns: 280px 1fr; }
+      .brand-preview { padding: 28px; }
+      .preview-area { flex-direction: column-reverse; align-items: center; }
+      .tips-column { width: 310px; padding-top: 0; }
+    }
+    @media (max-width: 768px) {
+      .brand-layout { grid-template-columns: 1fr; }
+      .brand-sidebar { border-right: none; border-bottom: 1px solid #eee; padding: 20px 16px; }
+      .brand-preview { padding: 20px 16px; display:flex; justify-content:center; }
+      .auth-header-inner { padding: 0 16px; }
+      .auth-nav li a { padding: 0 14px; font-size: 0.82rem; }
+      .profile-info { display: none; }
+      .phone-frame { width: 280px; height: 580px; }
+      .preview-hint { width: 280px; }
+      .tips-column { width: 280px; }
+    }
+    @media (max-width: 480px) {
+      .phone-frame { width: 260px; height: 540px; }
+      .preview-hint { width: 260px; }
+      .tips-column { width: 260px; }
+    }
+  
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- AUTH HEADER -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo">
+        <img src="/images/kup_black_new_logo_2.png" alt="KeepUsPostd">
+      </a>
+      <ul class="auth-nav" role="tablist">
+        <li><a href="activity.html" role="tab">Activity</a></li>
+        <li><a href="campaigns.html" role="tab">Campaigns</a></li>
+        <li><a href="content.html" role="tab">Content</a></li>
+        <li><a href="influencers.html" role="tab">Influencers</a></li>
+        <li><a href="cash-rewards.html" role="tab">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+          <div class="kup-notif-popover" id="notifPopover" role="region" aria-label="Notifications">
+            <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
+            <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
+            <ul class="notif-list" id="notifList">
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar" id="headerAvatar">ST</div>
+            <div class="profile-info"><div class="name" id="headerName">Santana T.</div><div class="brand" id="headerBrand">KeepUsPostd</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="manage-brands.html">Manage Brands</a>
+            <a href="cash-account.html">Cash Transactions</a>
+              <a href="brand-referral.html">Brand Referral</a>
+            <a href="pricing-upgrade.html">Pricing</a>
+            <a href="owner-account.html">Owners Account</a>
+            <div class="divider"></div>
+            <a href="help-center.html">Help Center</a>
+            <div class="divider"></div>
+            <a href="#" class="logout" onclick="kupSignOut(); return false;">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================
+       BRAND HOME — Sidebar + App Preview
+       Source: manage-brand-home.component.html
+       Nielsen #2: Match between system and real world
+       — App Display shows how brand appears to influencers
+       Nielsen #6: Recognition over recall
+       — Sidebar nav with icons for brand management
+       ============================================ -->
+  <div class="brand-layout">
+    <!-- SIDEBAR -->
+    <aside class="brand-sidebar">
+      <h3>Manage Brand</h3>
+
+      <!-- Brand identity -->
+      <div class="brand-identity">
+        <div class="logo">KP</div>
+        <div class="brand-name">KeepUsPostd</div>
+      </div>
+
+      <!-- Brand nav -->
+      <p class="brand-nav-label">Brand Settings</p>
+      <ul class="brand-nav">
+        <li>
+          <a href="brand-profile.html" class="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Brand Profile
+          </a>
+        </li>
+        <li>
+          <a href="brand-reward-settings.html?v=2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="7"></circle>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+            </svg>
+            Brand Reward
+          </a>
+        </li>
+        <li>
+          <a href="purchase-points-setup.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            Purchase Points
+          </a>
+        </li>
+        <li>
+          <a href="brand-catalog.html" id="navCatalog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            Catalog
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-divider"></div>
+
+      <p class="brand-nav-label">Tools</p>
+      <ul class="brand-nav">
+        <li>
+          <a href="market-code.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            Market Code
+          </a>
+        </li>
+        <li>
+          <a href="google-business.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Google Business
+          </a>
+        </li>
+        <li>
+          <a href="kiosk-mode.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            Kiosk Mode
+          </a>
+        </li>
+        <li>
+          <a href="brand-music.html" id="navMusic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+            Music
+          </a>
+        </li>
+      </ul>
+
+      <!-- Back link -->
+      <a href="manage-brands.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 12L6 8L10 4"/>
+        </svg>
+        Back to All Brands
+      </a>
+    </aside>
+
+    <!-- RIGHT CONTENT -->
+    <main class="brand-preview" style="padding:32px 40px;">
+      <div style="max-width:900px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+          <h1 style="font-size:1.4rem;font-weight:800;margin:0;">Brand Catalog</h1>
+          <span id="itemCount" style="font-size:.78rem;font-weight:600;color:#888;"></span>
+        </div>
+        <p style="font-size:.82rem;color:#888;margin-bottom:24px;">Add products, menu items, or experiences that influencers can tag in their reviews.</p>
+
+        <!-- Add Item Form -->
+        <div style="background:#fff;border:1px solid #eee;border-radius:var(--radius-md);padding:24px;margin-bottom:24px;">
+          <h2 style="font-size:.95rem;font-weight:700;margin:0 0 16px;">Add Catalog Item</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <div style="margin-bottom:12px;"><label style="display:block;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Item Name *</label><input type="text" id="itemName" placeholder="e.g. Mango Smoothie Bowl" maxlength="120" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;font-family:var(--kup-font);"></div>
+              <div style="margin-bottom:12px;"><label style="display:block;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Description</label><textarea id="itemDesc" placeholder="Brief description..." maxlength="300" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;font-family:var(--kup-font);resize:vertical;min-height:50px;"></textarea></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label style="display:block;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Price</label><input type="text" id="itemPrice" placeholder="e.g. $12.99" maxlength="20" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;font-family:var(--kup-font);"></div>
+                <div><label style="display:block;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Category</label><input type="text" id="itemCategory" placeholder="e.g. Bowls" maxlength="50" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;font-family:var(--kup-font);"></div>
+              </div>
+            </div>
+            <div>
+              <div style="margin-bottom:12px;"><label style="display:block;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Item Image</label><div id="imgUploadArea" style="width:100%;height:120px;border:2px dashed #ddd;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;"><span id="imgPlaceholder" style="text-align:center;color:#bbb;font-size:.78rem;">Click to upload</span><img id="imgPreview" style="display:none;width:100%;height:100%;object-fit:cover;"><input type="file" id="itemImage" accept="image/*" onchange="previewImg(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></div></div>
+              <div style="margin-top:16px;"><button onclick="addItem()" id="btnAdd" style="display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:var(--kup-gradient);color:#fff;border:none;border-radius:12px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:var(--kup-font);">+ Add Item</button><span id="addStatus" style="margin-left:10px;font-size:.82rem;"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div id="catTabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
+
+        <!-- Items Grid -->
+        <div id="itemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+          <div id="emptyState" style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#888;"><div style="font-size:3rem;">📦</div><p>No catalog items yet. Add your first product, dish, or experience above.</p></div>
+        </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="auth-footer">
+    Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="kup-toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============== TOAST NOTIFICATIONS ============== */
+    function kupToast(message, type) {
+      type = type || 'info';
+      var container = document.getElementById('toastContainer');
+      var toast = document.createElement('div');
+      toast.className = 'kup-toast ' + type;
+      var icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠' };
+      toast.innerHTML = '<span style="font-size:1.1rem">' + (icons[type]||icons.info) + '</span> ' + message;
+      container.appendChild(toast);
+      setTimeout(function() { toast.classList.add('dismissing'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+    }
+
+    /* ============== NOTIFICATION CENTER ============== */
+    var notifBtn = document.getElementById('notifBtn');
+    var notifPopover = document.getElementById('notifPopover');
+    if (notifBtn && notifPopover) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = notifPopover.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) notifPopover.classList.add('show');
+      });
+    }
+    var markAllBtn = document.getElementById('markAllRead');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        document.querySelectorAll('.notif-item.unread').forEach(function(n) { n.classList.remove('unread'); });
+        var dot = document.querySelector('.notif-dot');
+        if (dot) dot.style.display = 'none';
+        kupToast('All notifications marked as read', 'success');
+      });
+    }
+    document.querySelectorAll('.notif-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.notif-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.getAttribute('data-tab');
+        document.querySelectorAll('.notif-item').forEach(function(item) {
+          if (filter === 'all') { item.style.display = ''; }
+          else { item.style.display = item.classList.contains('unread') ? '' : 'none'; }
+        });
+      });
+    });
+
+    /* ============== PROFILE DROPDOWN ============== */
+    var profileTrigger = document.getElementById('profileTrigger');
+    var profileDropdown = document.getElementById('profileDropdown');
+    if (profileTrigger && profileDropdown) {
+      profileTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = profileDropdown.classList.contains('show');
+        closeAllPopovers();
+        if (!isOpen) profileDropdown.classList.add('show');
+      });
+    }
+
+    function closeAllPopovers() {
+      if (notifPopover) notifPopover.classList.remove('show');
+      if (profileDropdown) profileDropdown.classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      if (notifPopover && !notifPopover.contains(e.target) && e.target !== notifBtn) notifPopover.classList.remove('show');
+      if (profileDropdown && !profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) profileDropdown.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAllPopovers(); });
+  </script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js?v=1774619962"></script>
+  <script src="/js/api.js?v=1774619962"></script>
+
+  <script>
+    // Auth gate + load brand data
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+
+      // Get brandId from URL or localStorage
+      const params = new URLSearchParams(window.location.search);
+      let brandId = params.get('brandId');
+      if (!brandId) {
+        try {
+          const stored = localStorage.getItem('kup_active_brand');
+          if (stored) brandId = JSON.parse(stored).id;
+        } catch(e) {}
+      }
+
+      if (!brandId) {
+        // No brand selected — go to manage brands
+        window.location.href = 'manage-brands.html';
+        return;
+      }
+
+      try {
+        const data = await kupApi.get('/api/brands/' + brandId);
+        const brand = data.brand;
+        if (brand) {
+          // Sidebar brand identity
+          const sidebarLogo = document.querySelector('.brand-identity .logo');
+          const sidebarName = document.querySelector('.brand-identity .brand-name');
+          const initials = brand.initials || brand.name.charAt(0).toUpperCase();
+          if (sidebarLogo) {
+            if (brand.logoUrl) { sidebarLogo.innerHTML = '<img src="' + brand.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" alt="">'; sidebarLogo.style.background = '#fff'; }
+            else { sidebarLogo.textContent = initials; }
+          }
+          if (sidebarName) sidebarName.textContent = brand.name;
+          document.title = brand.name + ' Catalog — KeepUsPostd';
+          localStorage.setItem('kup_active_brand', JSON.stringify({ id: brand._id, name: brand.name }));
+        }
+        // Load catalog items
+        loadItems(brandId);
+      } catch (err) {
+        console.error('Failed to load brand:', err);
+      }
+
+      // Wire logout
+      const logoutLink = document.querySelector('.logout');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) { e.preventDefault(); kupSignOut(); });
+      }
+    });
+
+    /* ============== CATALOG API ============== */
+    var _allItems = [];
+    var _allCategories = [];
+    var _activeFilter = null;
+    var _catalogBrandId = new URLSearchParams(window.location.search).get('brandId') || '';
+
+    function previewImg(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) { document.getElementById('imgPreview').src = e.target.result; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('imgPlaceholder').style.display = 'none'; };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    async function addItem() {
+      var name = document.getElementById('itemName').value.trim();
+      if (!name) { kupToast('Item name is required', 'warning'); return; }
+      var btn = document.getElementById('btnAdd');
+      var status = document.getElementById('addStatus');
+      btn.disabled = true; btn.textContent = 'Adding...'; status.textContent = '';
+      try {
+        var imageUrl = null;
+        var imageInput = document.getElementById('itemImage');
+        if (imageInput.files[0]) {
+          var form = new FormData(); form.append('file', imageInput.files[0]);
+          var token = await firebase.auth().currentUser.getIdToken();
+          var uploadRes = await fetch('/api/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: form });
+          var uploadData = await uploadRes.json();
+          imageUrl = uploadData.url || null;
+        }
+        await kupApi.post('/api/catalog', { brandId: _catalogBrandId, name: name, description: document.getElementById('itemDesc').value.trim() || null, imageUrl: imageUrl, price: document.getElementById('itemPrice').value.trim() || null, category: document.getElementById('itemCategory').value.trim() || null });
+        document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemCategory').value = '';
+        imageInput.value = ''; document.getElementById('imgPreview').style.display = 'none'; document.getElementById('imgPlaceholder').style.display = '';
+        btn.textContent = '+ Add Item'; btn.disabled = false; status.textContent = 'Item added!'; status.style.color = '#16a34a';
+        loadItems(_catalogBrandId);
+      } catch(err) { btn.textContent = '+ Add Item'; btn.disabled = false; status.textContent = 'Error'; status.style.color = '#ef4444'; }
+    }
+
+    async function loadItems(brandId) {
+      if (!brandId) return;
+      _catalogBrandId = brandId;
+      try {
+        var res = await kupApi.get('/api/catalog/all?brandId=' + brandId);
+        _allItems = (res && res.items) || []; _allCategories = (res && res.categories) || [];
+        document.getElementById('itemCount').textContent = _allItems.length + ' item' + (_allItems.length !== 1 ? 's' : '');
+        renderCatTabs(); renderItems();
+      } catch(err) { console.error('Load items:', err); }
+    }
+
+    function renderCatTabs() {
+      var el = document.getElementById('catTabs');
+      if (_allCategories.length === 0) { el.innerHTML = ''; return; }
+      var html = '<div style="padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid ' + (!_activeFilter ? 'var(--kup-blue)' : '#eee') + ';background:' + (!_activeFilter ? 'var(--kup-blue)' : '#fff') + ';color:' + (!_activeFilter ? '#fff' : '#333') + ';" onclick="filterCat(null)">All</div>';
+      _allCategories.forEach(function(cat) {
+        var active = _activeFilter === cat;
+        html += '<div style="padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid ' + (active ? 'var(--kup-blue)' : '#eee') + ';background:' + (active ? 'var(--kup-blue)' : '#fff') + ';color:' + (active ? '#fff' : '#333') + ';" onclick="filterCat(\'' + cat.replace(/'/g, "\\'") + '\')">' + cat + '</div>';
+      });
+      el.innerHTML = html;
+    }
+    function filterCat(cat) { _activeFilter = cat; renderCatTabs(); renderItems(); }
+
+    function renderItems() {
+      var grid = document.getElementById('itemsGrid');
+      var filtered = _activeFilter ? _allItems.filter(function(i) { return i.category === _activeFilter; }) : _allItems;
+      if (filtered.length === 0) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#888;"><div style="font-size:3rem;">📦</div><p>No catalog items yet.</p></div>'; return; }
+      var html = '';
+      filtered.forEach(function(item) {
+        var statusPill = item.status === 'active' ? '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;background:rgba(22,163,74,.08);color:#16a34a;">Active</span>' : '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;background:rgba(237,132,68,.08);color:#ed8444;">Paused</span>';
+        var catPill = item.category ? '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;background:rgba(46,165,221,.08);color:#2ea5dd;">' + item.category + '</span>' : '';
+        html += '<div style="background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden;">' +
+          '<div style="width:100%;height:140px;background:#f5f6fa;display:flex;align-items:center;justify-content:center;overflow:hidden;">' + (item.imageUrl ? '<img src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;" alt="">' : '<div style="color:#ccc;font-size:2rem;">📦</div>') + '</div>' +
+          '<div style="padding:12px 14px;">' +
+            '<div style="font-size:.88rem;font-weight:700;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + item.name + '</div>' +
+            (item.description ? '<div style="font-size:.72rem;color:#888;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + item.description + '</div>' : '') +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">' + (item.price ? '<span style="font-size:.82rem;font-weight:700;">' + item.price + '</span>' : '<span></span>') + '<span style="font-size:.68rem;color:#888;">' + (item.tagCount || 0) + ' tags</span></div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">' + statusPill + catPill + '</div>' +
+            '<div style="display:flex;gap:6px;margin-top:8px;">' +
+              (item.status === 'active' ? '<div onclick="toggleItem(\'' + item._id + '\',\'paused\')" style="flex:1;padding:6px 0;text-align:center;border:1px solid #eee;border-radius:8px;font-size:.7rem;font-weight:600;cursor:pointer;">Pause</div>' : '<div onclick="toggleItem(\'' + item._id + '\',\'active\')" style="flex:1;padding:6px 0;text-align:center;border:1px solid #eee;border-radius:8px;font-size:.7rem;font-weight:600;cursor:pointer;">Activate</div>') +
+              '<div onclick="removeItem(\'' + item._id + '\',\'' + item.name.replace(/'/g, "\\'") + '\')" style="flex:1;padding:6px 0;text-align:center;border:1px solid #fecaca;border-radius:8px;font-size:.7rem;font-weight:600;cursor:pointer;color:#ef4444;">Remove</div>' +
+            '</div>' +
+          '</div></div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    async function toggleItem(id, newStatus) { try { await kupApi.put('/api/catalog/' + id, { status: newStatus }); loadItems(_catalogBrandId); } catch(e) { kupToast('Could not update', 'error'); } }
+    async function removeItem(id, name) { if (!confirm('Remove "' + name + '"?')) return; try { await kupApi.delete('/api/catalog/' + id); loadItems(_catalogBrandId); } catch(e) { kupToast('Could not remove', 'error'); } }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/brand-context.js?v=1774619962"></script>
+    <script>
+      // Hydrate header profile from brand context
+      (function() {
+        try {
+          var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+          if (brand && brand.name) {
+            var brandEl = document.getElementById('headerBrand');
+            if (brandEl) brandEl.textContent = brand.name;
+            // Set edit brand link with brand ID
+            var editBtn = document.getElementById('editBrandBtn');
+            var brandId = brand.mongoId || brand._id || brand.id;
+            if (editBtn && brandId) editBtn.href = 'add-brand.html?edit=true&brandId=' + brandId;
+            var catLink = document.getElementById('navCatalog');
+            var musLink = document.getElementById('navMusic');
+            if (catLink && brandId) catLink.href = 'brand-catalog.html?brandId=' + brandId;
+            if (musLink && brandId) musLink.href = 'brand-music.html?brandId=' + brandId;
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <script src="/js/resume-banner.js?v=1774619962"></script>
+    <script src="/js/onboarding.js?v=1774619962"></script>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="kup-mobile-nav" aria-label="Mobile navigation">
+    <a href="activity.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a href="campaigns.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Campaigns</span></a>
+    <a href="content.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Content</span></a>
+    <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
+    <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
+  </nav>
+</body>
+</html>
