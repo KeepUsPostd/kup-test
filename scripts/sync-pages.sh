@@ -60,7 +60,13 @@ for file in "$INNER_DIR"/*.html; do
       echo "⚠️  $filename — /pages/inner/ is NEWER ($inner_size bytes vs $app_size bytes)"
       if [ "$APPLY" = true ]; then
         cp "$file" "$app_file"
-        echo "   ✅ Copied /pages/inner/ → /app/"
+        # Fix relative paths for /app/ directory (../../ → / absolute)
+        sed -i '' 's|../../js/|/js/|g' "$app_file"
+        sed -i '' 's|../../css/|/css/|g' "$app_file"
+        sed -i '' 's|../../assets/|/assets/|g' "$app_file"
+        sed -i '' "s|href=\"../login.html\"|href=\"/pages/login.html\"|g" "$app_file"
+        sed -i '' "s|href='../login.html'|href='/pages/login.html'|g" "$app_file"
+        echo "   ✅ Copied /pages/inner/ → /app/ (paths fixed)"
       else
         echo "   → Would copy /pages/inner/ → /app/"
       fi
