@@ -266,7 +266,7 @@
 
   <!-- QR Scanner Section (always visible) -->
   <div style="max-width:1200px;margin:0 auto;padding:12px 32px 0">
-    <div class="scan-section" id="scanSection">
+    <div class="scan-section" id="scanSection" style="display:none;">
       <div class="scan-section-header">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         <h2>Scan Influencer QR</h2>
@@ -952,8 +952,11 @@
           }).catch(function(err) {
             console.warn('[distribute-reward] Could not load partnerships:', err);
           });
+        } else {
+          // No influencerId — show scanner for QR scan flow
+          var scanSec = document.getElementById('scanSection');
+          if (scanSec) scanSec.style.display = 'block';
         }
-        // else: no influencerId — scanner stays visible, layout stays hidden
 
         // Load reward options from API
         kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
