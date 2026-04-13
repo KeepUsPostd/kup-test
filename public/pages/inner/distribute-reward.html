@@ -906,12 +906,22 @@
           // Then load full data from API
           kupApi.get('/api/partnerships?brandId=' + brandId).then(function(data) {
             var partnerships = data.partnerships || data || [];
+            var urlHandle = params.get('handle');
             var match = partnerships.find(function(p) {
-              return (p._id === influencerId || p.influencerId === influencerId);
+              var inf = p.influencerProfileId || {};
+              return (
+                p._id === influencerId ||
+                String(p._id) === String(influencerId) ||
+                (inf._id && String(inf._id) === String(influencerId)) ||
+                (urlHandle && inf.handle === urlHandle)
+              );
             });
             if (match) {
               _currentInfluencer = match;
               hydrateInfluencer(match);
+              console.log('[distribute] Matched partnership:', match._id, 'avatar:', (match.influencerProfileId || {}).avatarUrl ? 'YES' : 'NO');
+            } else {
+              console.warn('[distribute] No match found for', influencerId, 'in', partnerships.length, 'partnerships');
             }
           }).catch(function(err) {
             console.warn('[distribute-reward] Could not load partnerships:', err);
