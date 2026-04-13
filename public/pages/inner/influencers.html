@@ -3452,9 +3452,9 @@
       var verified = inf.isVerified === true;
       var avatarUrl = inf.avatarUrl;
       var gradient = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
-      var rating = inf.stats ? inf.stats.averageRating : (inf.averageRating || null);
-      var ratingCount = inf.stats ? inf.stats.ratingCount : (inf.ratingCount || 0);
-      var subs = p.totalSubmissions || 0;
+      var rating = inf.averageRating || (inf.stats ? inf.stats.averageRating : null);
+      var ratingCount = inf.ratingCount || (inf.stats ? inf.stats.ratingCount : 0);
+      var subs = inf.totalReviews || p.totalSubmissions || p.totalApproved || 0;
       var statusClass = p.status === 'active' ? 'active-status' : (p.status === 'paused' ? 'pending-status' : 'inactive-status');
       var statusLabel = p.status.charAt(0).toUpperCase() + p.status.slice(1);
 
