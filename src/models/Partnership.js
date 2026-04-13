@@ -35,6 +35,18 @@ const partnershipSchema = new mongoose.Schema({
   rewardPoints: { type: Number, default: 0 },  // current points (resets on claim)
   giftedPoints: { type: Number, default: 0 },  // bonus points gifted by brand (added to content total)
   claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2)
+  distributions: [{                              // full distribution log for brand records
+    levelIndex: { type: Number, required: true },
+    rewardValue: { type: String },               // e.g. "20% OFF SHORTS"
+    rewardType: { type: String },                 // discount, free, credit, custom
+    method: { type: String, enum: ['email', 'instore', 'mail'] },
+    code: { type: String, default: null },
+    trackingNumber: { type: String, default: null },
+    notes: { type: String, default: null },
+    influencerName: { type: String },
+    influencerHandle: { type: String },
+    distributedAt: { type: Date, default: Date.now },
+  }],
 
   startedAt: { type: Date, default: Date.now },
   endedAt: { type: Date, default: null },

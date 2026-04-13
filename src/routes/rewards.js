@@ -459,6 +459,46 @@ router.delete('/:rewardId', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/rewards/distribution-history?brandId=xxx — All distributions for a brand
+router.get('/distribution-history', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const { Partnership } = require('../models');
+    const partnerships = await Partnership.find({
+      brandId,
+      'distributions.0': { $exists: true },
+    }, 'distributions influencerProfileId')
+      .populate('influencerProfileId', 'displayName handle avatarUrl')
+      .sort({ 'distributions.distributedAt': -1 })
+      .lean();
+
+    // Flatten all distributions across partnerships
+    const history = [];
+    for (const p of partnerships) {
+      const inf = p.influencerProfileId || {};
+      for (const d of (p.distributions || [])) {
+        history.push({
+          ...d,
+          influencerName: d.influencerName || inf.displayName || '',
+          influencerHandle: d.influencerHandle || inf.handle || '',
+          influencerAvatar: inf.avatarUrl || '',
+          partnershipId: p._id,
+        });
+      }
+    }
+
+    // Sort by date descending
+    history.sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
+
+    res.json({ distributions: history, total: history.length });
+  } catch (error) {
+    console.error('Distribution history error:', error.message);
+    res.status(500).json({ error: 'Could not fetch distribution history' });
+  }
+});
+
 // POST /api/rewards/distribute — Distribute a reward to one or more influencers
 // Called by distribute-reward.html when a brand sends a reward to a partner
 router.post('/distribute', requireAuth, async (req, res) => {
@@ -607,11 +647,24 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
     const inf = partnership.influencerProfileId;
     const brand = await Brand.findById(partnership.brandId);
 
-    // Mark level as claimed
+    // Mark level as claimed + log distribution
     if (!partnership.claimedLevels) partnership.claimedLevels = [];
     if (!partnership.claimedLevels.includes(levelIndex)) {
       partnership.claimedLevels.push(levelIndex);
     }
+    if (!partnership.distributions) partnership.distributions = [];
+    partnership.distributions.push({
+      levelIndex,
+      rewardValue: level.rewardValue,
+      rewardType: level.rewardType,
+      method,
+      code: method === 'email' ? (code || null) : null,
+      trackingNumber: method === 'mail' ? (trackingNumber || null) : null,
+      notes: notes || null,
+      influencerName: inf?.displayName || '',
+      influencerHandle: inf?.handle || '',
+      distributedAt: new Date(),
+    });
     await partnership.save();
 
     // Notify influencer based on method
