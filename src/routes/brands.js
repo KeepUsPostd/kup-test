@@ -168,8 +168,12 @@ router.post('/', requireAuth, async (req, res) => {
       brand,
     });
   } catch (error) {
-    console.error('Create brand error:', error.message);
-    res.status(500).json({ error: 'Could not create brand' });
+    console.error('Create brand error:', error.message, error.stack);
+    // Surface the actual error message for debugging (E11000 duplicate key, etc.)
+    const msg = error.code === 11000
+      ? 'A brand with that name or code already exists. Please try a different name.'
+      : error.message || 'Could not create brand';
+    res.status(500).json({ error: msg });
   }
 });
 

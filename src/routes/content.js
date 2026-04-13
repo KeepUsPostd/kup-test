@@ -118,10 +118,26 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
         ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
         ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'postd' }),
       ]);
-      const totalPts =
+      const contentPts =
         (pts.submitted || 0) * submitted +
         (pts.approved || 0) * approved +
         (pts.published || 0) * postd;
+
+      // Include purchase + gift points in total (same logic as my-progress API)
+      let purchasePts = 0;
+      if (pc.purchaseEnabled) {
+        try {
+          const PurchasePointsLog = require('../models/PurchasePointsLog');
+          const agg = await PurchasePointsLog.aggregate([
+            { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId.toString()), influencerProfileId } },
+            { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
+          ]);
+          purchasePts = agg[0]?.total ?? 0;
+        } catch (_) {}
+      }
+      const partnership = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' }).select('giftedPoints').lean();
+      const giftPts = partnership?.giftedPoints || 0;
+      const totalPts = contentPts + purchasePts + giftPts;
 
       // Find the next level the influencer is working toward
       const levels = pc.levels || [];
