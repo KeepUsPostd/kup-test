@@ -148,7 +148,7 @@
   </div>
 
   <script src="/js/api.js"></script>
-  <script>if(typeof KUP_API!=='undefined'&&!KUP_API.auth.isAuthenticated()){window.location.href='/pages/login.html';}</script>
+  <script>if(typeof auth!=='undefined'){auth.onAuthStateChanged(function(u){if(!u)window.location.href='/pages/login.html?redirect='+encodeURIComponent(window.location.pathname+window.location.search);});}</script>
   <script>
     var brandId = new URLSearchParams(window.location.search).get('brandId');
     var allItems = [];

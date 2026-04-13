@@ -306,7 +306,14 @@
   <div class="kup-toast-container" id="toastContainer"></div>
 
   <script src="/js/api.js"></script>
-  <script>if(typeof KUP_API!=='undefined'&&!KUP_API.auth.isAuthenticated()){window.location.href='/pages/login.html';}</script>
+  <script>
+  // Auth guard — wait for Firebase to initialize (async) before checking
+  if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(function(user) {
+      if (!user) window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+    });
+  }
+  </script>
 
   <script>
     function kupToast(message, type) {
