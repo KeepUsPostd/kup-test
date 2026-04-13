@@ -832,16 +832,38 @@
     }
 
     /* ============== GIFT POINTS ============== */
-    function applyGift() {
+    async function applyGift() {
       var amount = document.getElementById('giftAmount').value;
       if (!amount || parseInt(amount) <= 0) {
         kupToast('Please enter a valid point amount', 'warning');
         document.getElementById('giftAmount').focus();
         return;
       }
-      var infName = _currentInfluencer ? (_currentInfluencer.influencerName || _currentInfluencer.name || 'Influencer') : 'Influencer';
-      kupToast(parseInt(amount) + ' points gifted to ' + infName, 'success');
-      document.getElementById('giftAmount').value = '';
+
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+      var params = new URLSearchParams(window.location.search);
+      var partnerId = params.get('influencerId') || params.get('partnerId');
+
+      if (!brandId || !partnerId) {
+        kupToast('Missing brand or partner context', 'error');
+        return;
+      }
+
+      try {
+        await kupApi.post('/api/partnerships/' + partnerId + '/award-gratitude', {
+          stage: 'gift',
+          giftPoints: parseInt(amount),
+        });
+        var infName = _currentInfluencer ? ((_currentInfluencer.influencerProfileId || _currentInfluencer).displayName || 'Influencer') : 'Influencer';
+        kupToast(parseInt(amount) + ' points gifted to ' + infName + '!', 'success');
+        document.getElementById('giftAmount').value = '';
+        // Reload levels to reflect new points
+        setTimeout(loadDistributeLevels, 500);
+      } catch(err) {
+        kupToast(err.message || 'Failed to gift points', 'error');
+      }
     }
   </script>
   <!--

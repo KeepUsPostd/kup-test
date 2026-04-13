@@ -33,6 +33,7 @@ const partnershipSchema = new mongoose.Schema({
 
   // Point-based reward level tracking — points reset on claim
   rewardPoints: { type: Number, default: 0 },  // current points (resets on claim)
+  giftedPoints: { type: Number, default: 0 },  // bonus points gifted by brand (added to content total)
   claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2)
 
   startedAt: { type: Date, default: Date.now },

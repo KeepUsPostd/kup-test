@@ -194,7 +194,8 @@ router.get('/my-progress', requireAuth, async (req, res) => {
         contentPts = (pts.submitted || 10) * submitted + (pts.approved || 25) * approved + (pts.published || 40) * postd;
       }
       const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
-      const totalPts = contentPts + purchasePts;
+      const giftPts = partnership?.giftedPoints || 0;
+      const totalPts = contentPts + purchasePts + giftPts;
 
       // Build levels progress (new 3-level system)
       const levels = (pc.levels && pc.levels.length > 0)
@@ -271,6 +272,8 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const contentPts = pc.contentEnabled
           ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd
           : 0;
+        const giftPts = p.giftedPoints || 0;
+        const totalContentPts = contentPts + giftPts;
 
         // Build levels progress
         const levels = (pc.levels && pc.levels.length > 0)
@@ -279,7 +282,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
               threshold: lvl.threshold,
               rewardType: lvl.rewardType,
               rewardValue: lvl.rewardValue,
-              unlocked: contentPts >= lvl.threshold,
+              unlocked: totalContentPts >= lvl.threshold,
               claimed: claimedLevels.includes(idx),
             }))
           : null;
@@ -287,13 +290,13 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const threshold = levels
           ? (levels.find(l => !l.unlocked)?.threshold || levels[levels.length - 1]?.threshold || 300)
           : (pc.unlockThreshold || 300);
-        const percent = Math.min(Math.round((contentPts / threshold) * 100), 100);
+        const percent = Math.min(Math.round((totalContentPts / threshold) * 100), 100);
 
         return {
           rewardId: reward._id,
           rewardTitle: reward.title,
           rewardType: reward.type,
-          totalPoints: contentPts,
+          totalPoints: totalContentPts,
           unlockThreshold: threshold,
           percentComplete: percent,
           unlocked: contentPts >= threshold,

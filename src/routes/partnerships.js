@@ -917,9 +917,9 @@ router.post('/invite', requireAuth, async (req, res) => {
 // Body: { stage: 'birthday' | 'anniversary' }
 router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => {
   try {
-    const { stage } = req.body;
-    if (!stage || !['birthday', 'anniversary', 'join'].includes(stage)) {
-      return res.status(400).json({ error: 'stage must be birthday, anniversary, or join' });
+    const { stage, giftPoints } = req.body;
+    if (!stage || !['birthday', 'anniversary', 'join', 'gift'].includes(stage)) {
+      return res.status(400).json({ error: 'stage must be birthday, anniversary, join, or gift' });
     }
 
     const partnership = await Partnership.findById(req.params.partnershipId)
@@ -927,7 +927,7 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
       .lean();
     if (!partnership) return res.status(404).json({ error: 'Partnership not found' });
 
-    const { Reward, Brand } = require('../models');
+    const { Reward, Brand, ContentSubmission } = require('../models');
     const brand = await Brand.findById(partnership.brandId);
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
@@ -936,26 +936,75 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
 
     for (const reward of rewards) {
       const pc = reward.pointConfig || {};
-      if (!pc.gratitudeEnabled) continue;
-      const gp = pc.gratitudePoints || {};
-      const points = gp[stage] || 0;
+
+      // For gift stage: use custom giftPoints amount, no gratitude check needed
+      let points;
+      if (stage === 'gift') {
+        points = parseInt(giftPoints) || 0;
+      } else {
+        if (!pc.gratitudeEnabled) continue;
+        const gp = pc.gratitudePoints || {};
+        points = gp[stage] || 0;
+      }
       if (points <= 0) continue;
+
+      // Calculate current total for the notification
+      const infId = partnership.influencerProfileId._id || partnership.influencerProfileId;
+      const [submitted, approved, postd] = await Promise.all([
+        ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId }),
+        ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId, status: 'approved' }),
+        ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId, status: 'postd' }),
+      ]);
+      const pts = pc.contentPoints || {};
+      const contentTotal = (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd;
+      const totalWithGift = contentTotal + points;
+
+      // Find next level
+      const levels = pc.levels || [];
+      const nextLevel = levels.find(l => totalWithGift < l.threshold);
+      const displayThreshold = nextLevel ? nextLevel.threshold : (pc.unlockThreshold || 300);
+      const displayTitle = nextLevel ? (nextLevel.rewardValue || reward.title) : reward.title;
 
       await notify.pointsEarned({
         influencer: partnership.influencerProfileId,
         brand,
-        rewardTitle: reward.title,
+        rewardTitle: displayTitle,
         points,
-        stage,
-        totalPoints: points,
-        unlockThreshold: pc.unlockThreshold || 300,
+        stage: stage === 'gift' ? 'gift from brand' : stage,
+        totalPoints: totalWithGift,
+        unlockThreshold: displayThreshold,
         partnershipId: partnership._id.toString(),
       });
+
+      // Check if any level was just unlocked by this gift
+      const previousTotal = contentTotal;
+      for (const lvl of levels) {
+        if (totalWithGift >= lvl.threshold && previousTotal < lvl.threshold) {
+          console.log(`🎉 Gift unlocked level: ${lvl.rewardValue} for ${partnership.influencerProfileId.displayName}`);
+          notify.levelUnlocked({
+            influencer: partnership.influencerProfileId,
+            brand,
+            rewardValue: lvl.rewardValue,
+            rewardType: lvl.rewardType,
+            threshold: lvl.threshold,
+            totalPoints: totalWithGift,
+            partnershipId: partnership._id.toString(),
+          }).catch(() => {});
+        }
+      }
+
       awarded += points;
     }
 
-    console.log(`🎁 Gratitude ${stage} points awarded: ${awarded} pts for partnership ${partnership._id}`);
-    res.json({ message: `${stage} gratitude points awarded`, awarded });
+    // Persist gifted points on partnership
+    if (stage === 'gift' && awarded > 0) {
+      await Partnership.findByIdAndUpdate(partnership._id, {
+        $inc: { giftedPoints: awarded, totalPointsEarned: awarded },
+      });
+    }
+
+    console.log(`🎁 ${stage} points awarded: ${awarded} pts for partnership ${partnership._id}`);
+    res.json({ message: `${awarded} points awarded`, awarded });
   } catch (error) {
     console.error('Award gratitude error:', error.message);
     res.status(500).json({ error: 'Could not award gratitude points' });
