@@ -150,7 +150,7 @@ router.put('/config', requireAuth, async (req, res) => {
       const hasAnyTiers = allTiers.length > 0 || (config.online?.levels || []).some(l => l.minSpend > 0 && l.points > 0);
 
       const rewardSync = await Reward.findOneAndUpdate(
-        { brandId, rewardType: 'points', status: { $ne: 'deleted' } },
+        { brandId, earningMethod: 'point_based', status: 'active' },
         {
           $set: {
             'pointConfig.purchaseEnabled': hasAnyTiers,
