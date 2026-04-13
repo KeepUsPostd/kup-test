@@ -432,7 +432,7 @@
       // Load brand-progress to get real reward data for this influencer
       if (_brandId) {
         kupApi.get('/api/rewards/brand-progress?brandId=' + _brandId).then(function(res) {
-          var progressList = (res && res.influencerProgress) || [];
+          var progressList = (res && (res.influencers || res.influencerProgress)) || [];
           // Find this influencer's progress
           var match = null;
           for (var i = 0; i < progressList.length; i++) {
