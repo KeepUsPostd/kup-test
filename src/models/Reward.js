@@ -71,6 +71,7 @@ const rewardSchema = new mongoose.Schema({
       rewardType: { type: String, enum: ['discount', 'free'], required: true },
       rewardValue: { type: String, default: null },    // e.g. '10%', '25%', 'Free Sneakers'
       description: { type: String, maxlength: 100, default: null },
+      imageUrl: { type: String, default: null },       // banner image for carousel display
     }], // max 3 levels
   },
 

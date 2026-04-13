@@ -566,6 +566,13 @@
                 <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
               </div>
               <input type="text" id="level1Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+              <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                <button type="button" onclick="uploadLevelImage(1)" style="background:none;border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-family:var(--kup-font);font-size:.78rem;color:#888;cursor:pointer;">📷 Upload Banner</button>
+                <img id="level1ImagePreview" style="display:none;width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                <span id="level1ImageStatus" style="font-size:.75rem;color:#888;"></span>
+                <input type="file" id="level1ImageInput" accept="image/*" style="display:none;" onchange="handleLevelImage(1)">
+                <input type="hidden" id="level1ImageUrl">
+              </div>
             </div>
 
             <!-- Level 2 (toggle) -->
@@ -591,6 +598,13 @@
                   <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
                 </div>
                 <input type="text" id="level2Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+                <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                  <button type="button" onclick="uploadLevelImage(2)" style="background:none;border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-family:var(--kup-font);font-size:.78rem;color:#888;cursor:pointer;">📷 Upload Banner</button>
+                  <img id="level2ImagePreview" style="display:none;width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                  <span id="level2ImageStatus" style="font-size:.75rem;color:#888;"></span>
+                  <input type="file" id="level2ImageInput" accept="image/*" style="display:none;" onchange="handleLevelImage(2)">
+                  <input type="hidden" id="level2ImageUrl">
+                </div>
               </div>
             </div>
 
@@ -617,6 +631,13 @@
                   <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
                 </div>
                 <input type="text" id="level3Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+                <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                  <button type="button" onclick="uploadLevelImage(3)" style="background:none;border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-family:var(--kup-font);font-size:.78rem;color:#888;cursor:pointer;">📷 Upload Banner</button>
+                  <img id="level3ImagePreview" style="display:none;width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                  <span id="level3ImageStatus" style="font-size:.75rem;color:#888;"></span>
+                  <input type="file" id="level3ImageInput" accept="image/*" style="display:none;" onchange="handleLevelImage(3)">
+                  <input type="hidden" id="level3ImageUrl">
+                </div>
               </div>
             </div>
 
@@ -955,6 +976,44 @@
       }
     }
 
+    function uploadLevelImage(num) {
+      var input = document.getElementById('level' + num + 'ImageInput');
+      if (input) input.click();
+    }
+
+    async function handleLevelImage(num) {
+      var input = document.getElementById('level' + num + 'ImageInput');
+      var file = input && input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { kupToast('Image must be under 2 MB', 'error'); return; }
+
+      var preview = document.getElementById('level' + num + 'ImagePreview');
+      var status = document.getElementById('level' + num + 'ImageStatus');
+      var urlField = document.getElementById('level' + num + 'ImageUrl');
+
+      if (preview) { preview.src = URL.createObjectURL(file); preview.style.display = 'block'; }
+      if (status) status.textContent = 'Uploading...';
+
+      try {
+        var token = await getAuthToken();
+        var formData = new FormData();
+        formData.append('media', file);
+        var resp = await fetch('/api/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+        var data = await resp.json();
+        if (data.urls && data.urls.length > 0) {
+          if (urlField) urlField.value = data.urls[0];
+          if (status) status.textContent = 'Uploaded';
+          kupToast('Level ' + num + ' banner uploaded', 'success');
+        } else {
+          if (status) status.textContent = 'Failed';
+          kupToast('Upload failed', 'error');
+        }
+      } catch(e) {
+        if (status) status.textContent = 'Error';
+        kupToast('Upload error: ' + e.message, 'error');
+      }
+    }
+
     function _collectLevels() {
       var levels = [];
       for (var i = 1; i <= 3; i++) {
@@ -964,8 +1023,9 @@
         var value = (document.getElementById('level' + i + 'Value') || {}).value || '';
         var threshold = parseInt((document.getElementById('level' + i + 'Threshold') || {}).value) || 0;
         var desc = (document.getElementById('level' + i + 'Desc') || {}).value || '';
+        var imageUrl = (document.getElementById('level' + i + 'ImageUrl') || {}).value || '';
         if (threshold > 0 && value) {
-          levels.push({ threshold: threshold, rewardType: type, rewardValue: value, description: desc });
+          levels.push({ threshold: threshold, rewardType: type, rewardValue: value, description: desc, imageUrl: imageUrl || null });
         }
       }
       // Sort by threshold ascending
@@ -1708,6 +1768,15 @@
                 if (valEl) valEl.value = lvl.rewardValue || '';
                 if (threshEl) threshEl.value = lvl.threshold || 500;
                 if (descEl) descEl.value = lvl.description || '';
+                // Populate level image
+                if (lvl.imageUrl) {
+                  var imgUrlEl = document.getElementById('level' + num + 'ImageUrl');
+                  var imgPreview = document.getElementById('level' + num + 'ImagePreview');
+                  var imgStatus = document.getElementById('level' + num + 'ImageStatus');
+                  if (imgUrlEl) imgUrlEl.value = lvl.imageUrl;
+                  if (imgPreview) { imgPreview.src = lvl.imageUrl; imgPreview.style.display = 'block'; }
+                  if (imgStatus) imgStatus.textContent = 'Uploaded';
+                }
               });
             }
           }
