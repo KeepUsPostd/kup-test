@@ -1434,12 +1434,16 @@
 
         // Find the partnership for the target influencer, or use the first one
         var match = null;
-        if (targetInfluencerId) {
+        var urlHandle = getUrlParam('handle');
+        if (targetInfluencerId || urlHandle) {
           for (var i = 0; i < partnerships.length; i++) {
             var p = partnerships[i];
-            var inf = p.influencer || p;
+            var inf = p.influencerProfileId || p.influencer || p;
             var infId = inf._id || inf.influencerId || '';
-            if (infId === targetInfluencerId) {
+            var infHandle = (inf.handle || '').toLowerCase();
+            // Match by ID or handle
+            if ((targetInfluencerId && (infId === targetInfluencerId || p._id === targetInfluencerId)) ||
+                (urlHandle && infHandle === urlHandle.toLowerCase())) {
               match = p;
               break;
             }
@@ -1451,34 +1455,43 @@
 
         if (match) {
           currentPartnership = match;
-          var inf = match.influencer || match;
+          var inf = match.influencerProfileId || match.influencer || match;
           currentInfluencer = inf;
 
-          var displayName = (inf.firstName || '') + ' ' + (inf.lastName || '');
-          displayName = displayName.trim() || inf.username || inf.handle || 'Influencer';
-          var handle = inf.handle || inf.username || inf.email || 'influencer';
-          var tier = inf.tier || match.tier || 'Influencer';
-          var followers = inf.followers || inf.followerCount || '--';
-          var engagement = inf.engagement || inf.engagementRate || '--';
-          var reviews = inf.reviewCount || inf.reviews || '--';
+          var displayName = inf.displayName || ((inf.firstName || '') + ' ' + (inf.lastName || '')).trim() || inf.handle || 'Influencer';
+          var handle = inf.handle || inf.displayName || 'influencer';
+          var tier = inf.influenceTier || inf.tier || match.tier || 'Influencer';
+          var followers = inf.realFollowerCount || inf.followerCount || '--';
+          var engagement = inf.engagementRate || inf.engagement || '--';
+          var reviews = inf.totalReviews || inf.reviewCount || '--';
 
           // Update influencer profile card
-          document.querySelector('.influencer-avatar').innerHTML = PERSON_SVG;
+          // Avatar — real photo or fallback
+          var avatarEl = document.querySelector('.influencer-avatar');
+          if (inf.avatarUrl) {
+            avatarEl.innerHTML = '<img src="' + inf.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML=PERSON_SVG" alt="">';
+          } else {
+            avatarEl.innerHTML = PERSON_SVG;
+          }
           document.querySelector('.influencer-username').textContent = displayName;
           document.querySelector('.influencer-handle').textContent = '@' + handle;
-          document.querySelector('.influencer-tier').textContent = tier;
+          document.querySelector('.influencer-tier').textContent = tier.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
 
           // Update stats
           var statValues = document.querySelectorAll('.influencer-stat-value');
           if (statValues[0]) statValues[0].textContent = formatFollowers(followers);
-          if (statValues[1]) statValues[1].textContent = typeof engagement === 'number' ? engagement.toFixed(1) + '%' : engagement;
+          if (statValues[1]) statValues[1].textContent = typeof engagement === 'number' ? engagement.toFixed(1) + '%' : (engagement !== '--' ? engagement + '%' : '--');
           if (statValues[2]) statValues[2].textContent = reviews;
 
           // Update payment form subtitle
           document.querySelector('.postdpay-subtitle').textContent = 'Pay @' + handle + ' via PostdPay';
 
           // Update messaging modal defaults
-          document.getElementById('msgAvatar').innerHTML = PERSON_SVG;
+          if (inf.avatarUrl) {
+            document.getElementById('msgAvatar').innerHTML = '<img src="' + inf.avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
+          } else {
+            document.getElementById('msgAvatar').innerHTML = PERSON_SVG;
+          }
           document.getElementById('msgModalName').textContent = displayName;
           document.getElementById('msgHandle').textContent = '@' + handle;
 
