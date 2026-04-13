@@ -1415,7 +1415,9 @@
 
           var displayName = inf.displayName || ((inf.firstName || '') + ' ' + (inf.lastName || '')).trim() || inf.handle || 'Influencer';
           var handle = inf.handle || inf.displayName || 'influencer';
-          var tier = inf.influenceTier || inf.tier || match.tier || 'Influencer';
+          // Use same logic as Flutter profile: isVerified → "Startup" when tier is unverified
+          var rawTier = inf.influenceTier || inf.tier || 'unverified';
+          var tier = inf.isVerified && rawTier === 'unverified' ? 'Startup' : (rawTier === 'unverified' ? 'Unverified' : rawTier);
           var followers = inf.realFollowerCount || inf.followerCount || '--';
           var engagement = inf.engagementRate || inf.engagement || '--';
           var reviews = inf.totalReviews || inf.reviewCount || '--';
