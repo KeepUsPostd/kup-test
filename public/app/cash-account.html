@@ -1290,26 +1290,6 @@
   </div>
 
   <!-- ============================================
-       PAYPAL CONNECT — Brand-Direct Payments
-       ============================================ -->
-  <div class="container" style="max-width:800px; margin: 32px auto;">
-    <div style="background:#fff; border-radius:12px; padding:28px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1px solid #eee;">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-        <div style="width:40px;height:40px;background:linear-gradient(135deg,#003087,#009cde);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-          <span style="color:#fff;font-weight:800;font-size:14px;">PP</span>
-        </div>
-        <div>
-          <h3 style="margin:0;font-size:1.1rem;font-weight:700;">Connect PayPal to Pay Creators</h3>
-          <p style="margin:0;font-size:0.8rem;color:#888;">Pay influencers directly from your PayPal when you approve content</p>
-        </div>
-      </div>
-      <div id="brandPaypalStatus">
-        <p style="color:#999;font-size:0.85rem;">Checking connection status...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================
        FOOTER
        ============================================ -->
   <footer class="auth-footer">
@@ -1596,52 +1576,7 @@
     } else {
       loadCashAccount();
     }
-
-    // ── Brand PayPal Connect Status ──
-    var statusEl = document.getElementById('brandPaypalStatus');
-    if (statusEl) {
-      // Check URL params for return from PayPal
-      var urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('paypal_connected') === 'true') {
-        statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">' +
-          '<span style="color:#16a34a;font-size:1.2rem;">✅</span>' +
-          '<span style="color:#16a34a;font-weight:600;">PayPal connected successfully! You can now pay creators directly.</span></div>';
-      } else if (urlParams.get('paypal_error')) {
-        statusEl.innerHTML = '<div style="padding:12px;background:#fef2f2;border-radius:8px;border:1px solid #fecaca;color:#dc2626;">Connection failed. Please try again.</div>';
-      }
-
-      // Load current status
-      kupApi.get('/api/billing/brand-paypal-status').then(function(data) {
-        if (data.connected) {
-          statusEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">' +
-            '<div><span style="color:#16a34a;font-weight:700;">● Connected</span><br><span style="font-size:0.8rem;color:#888;">Merchant ID: ' + (data.merchantId || '').substring(0, 12) + '...</span></div>' +
-            '<span style="font-size:0.75rem;color:#888;">Since ' + (data.connectedAt ? new Date(data.connectedAt).toLocaleDateString() : 'recently') + '</span></div>';
-        } else {
-          statusEl.innerHTML = '<div style="text-align:center;padding:16px;">' +
-            '<p style="color:#666;font-size:0.85rem;margin-bottom:12px;">Connect your PayPal Business account to pay influencers directly when you approve their content.</p>' +
-            '<button onclick="startBrandPaypalConnect()" style="background:linear-gradient(135deg,#003087,#009cde);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;">Connect PayPal</button></div>';
-        }
-      }).catch(function() {
-        statusEl.innerHTML = '<p style="color:#999;font-size:0.85rem;">Could not check PayPal status.</p>';
-      });
-    }
   })();
-
-  function startBrandPaypalConnect() {
-    var statusEl = document.getElementById('brandPaypalStatus');
-    if (statusEl) statusEl.innerHTML = '<p style="color:#2EA5DD;font-weight:600;">Redirecting to PayPal...</p>';
-    kupApi.get('/api/billing/brand-paypal-onboard').then(function(data) {
-      if (data.connected) {
-        statusEl.innerHTML = '<p style="color:#16a34a;font-weight:600;">Already connected!</p>';
-      } else if (data.actionUrl) {
-        window.location.href = data.actionUrl;
-      } else {
-        statusEl.innerHTML = '<p style="color:#dc2626;">Could not start PayPal setup. Please try again.</p>';
-      }
-    }).catch(function(err) {
-      statusEl.innerHTML = '<p style="color:#dc2626;">Error: ' + (err.message || 'Connection failed') + '</p>';
-    });
-  }
   </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
