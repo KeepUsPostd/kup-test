@@ -880,7 +880,7 @@
         }
 
         // Get brandId and influencerId from URL params
-        var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+        var brandId = brand && (brand.mongoId || brand._id || brand.id) || null;
         var params = new URLSearchParams(window.location.search);
         var influencerId = params.get('influencerId') || params.get('partnerId');
 
