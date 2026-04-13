@@ -323,6 +323,9 @@ app.use('/api/scan-analytics', require('./routes/scan-analytics'));
 // Purchase Points routes (brand config, award, stats, history)
 app.use('/api/purchase-points', require('./routes/purchasePoints'));
 
+// Brand Music routes (upload, manage, licensing for capture flow)
+app.use('/api/music', require('./routes/music'));
+
 // Google Business Profile routes (OAuth + config + post creation)
 app.use('/api/google-business', require('./routes/googleBusiness'));
 

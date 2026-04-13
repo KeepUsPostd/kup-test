@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Music — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .page-wrap{max-width:900px;margin:0 auto;padding:28px 24px 60px}
+    h1{font-size:1.4rem;font-weight:800;margin:0 0 4px;font-family:'Montserrat',sans-serif}
+    .subtitle{font-size:.82rem;color:#888;margin-bottom:28px;font-family:'Montserrat',sans-serif}
+    .upload-card{background:#fff;border:2px dashed #ddd;border-radius:16px;padding:32px;text-align:center;margin-bottom:28px;transition:border-color .2s}
+    .upload-card:hover{border-color:var(--kup-blue,#2ea5dd)}
+    .upload-card h3{font-size:1rem;font-weight:700;margin:12px 0 4px;font-family:'Montserrat',sans-serif}
+    .upload-card p{font-size:.82rem;color:#888;margin:0;font-family:'Montserrat',sans-serif}
+    .form-section{background:#fff;border:1px solid #eee;border-radius:16px;padding:28px;margin-bottom:20px}
+    .form-section h2{font-size:.95rem;font-weight:700;margin:0 0 16px;font-family:'Montserrat',sans-serif}
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:.75rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;font-family:'Montserrat',sans-serif}
+    .field input,.field select,.field textarea{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;font-family:'Montserrat',sans-serif;transition:border-color .2s}
+    .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--kup-blue,#2ea5dd)}
+    .field textarea{resize:vertical;min-height:60px}
+    .license-box{background:#f8f9fa;border:1px solid #eee;border-radius:12px;padding:16px;margin-top:8px}
+    .license-box label{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:#333;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:500;line-height:1.5}
+    .license-box input[type=checkbox]{margin-top:3px;width:18px;height:18px;accent-color:var(--kup-blue,#2ea5dd);flex-shrink:0}
+    .btn-upload{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#2ea5dd,#7c3aed);color:#fff;border:none;border-radius:12px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;transition:opacity .2s}
+    .btn-upload:hover{opacity:.9}
+    .btn-upload:disabled{opacity:.5;cursor:not-allowed}
+    .track-list{margin-top:28px}
+    .track-list h2{font-size:1rem;font-weight:700;margin:0 0 12px;font-family:'Montserrat',sans-serif}
+    .track-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #eee;border-radius:14px;padding:14px 18px;margin-bottom:10px;transition:box-shadow .2s}
+    .track-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .track-play{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2ea5dd,#7c3aed);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;color:#fff;font-size:1.1rem}
+    .track-info{flex:1;min-width:0}
+    .track-title{font-size:.88rem;font-weight:700;color:#1a1a1a;font-family:'Montserrat',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .track-meta{font-size:.72rem;color:#888;font-family:'Montserrat',sans-serif;margin-top:2px}
+    .track-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    .track-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;font-family:'Montserrat',sans-serif}
+    .pill-active{background:rgba(22,163,74,.08);color:#16a34a}
+    .pill-paused{background:rgba(237,132,68,.08);color:#ed8444}
+    .pill-license{background:rgba(46,165,221,.08);color:#2ea5dd}
+    .track-actions{display:flex;gap:8px}
+    .track-btn{padding:6px 12px;border:1px solid #ddd;border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:#fff;font-family:'Montserrat',sans-serif;transition:all .2s}
+    .track-btn:hover{background:#f5f5f5}
+    .track-btn.danger{color:#ef4444;border-color:#fecaca}
+    .track-btn.danger:hover{background:#fef2f2}
+    .empty-tracks{text-align:center;padding:40px 20px;color:#888;font-family:'Montserrat',sans-serif}
+    .empty-tracks svg{width:48px;height:48px;stroke:#ccc;fill:none;margin-bottom:12px}
+    .back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500;color:#888;text-decoration:none;margin-bottom:16px;font-family:'Montserrat',sans-serif}
+    .back-link:hover{color:var(--kup-blue,#2ea5dd)}
+    .audio-preview{margin-top:8px}
+    .audio-preview audio{width:100%;height:36px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <a href="brand-home.html" class="back-link">← Back to Dashboard</a>
+    <h1>Brand Music</h1>
+    <p class="subtitle">Upload tracks for influencers to use in their reviews. All uploads require licensing attestation.</p>
+
+    <!-- Upload Form -->
+    <div class="form-section" id="uploadForm">
+      <h2>Upload a Track</h2>
+
+      <!-- Audio file upload -->
+      <div class="field">
+        <label>Audio File (MP3, WAV, M4A — max 20MB)</label>
+        <input type="file" id="audioFile" accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,.mp3,.wav,.m4a">
+        <div class="audio-preview" id="audioPreview" style="display:none">
+          <audio id="audioPlayer" controls></audio>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="field">
+          <label>Track Title *</label>
+          <input type="text" id="trackTitle" placeholder="e.g. Summer Vibes" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Artist Name</label>
+          <input type="text" id="trackArtist" placeholder="e.g. DJ Fresh" maxlength="100">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="field">
+          <label>Genre</label>
+          <input type="text" id="trackGenre" placeholder="e.g. Hip-Hop, Pop, R&B" maxlength="50">
+        </div>
+        <div class="field">
+          <label>Cover Image (optional)</label>
+          <input type="file" id="coverFile" accept="image/*">
+        </div>
+      </div>
+
+      <!-- Licensing Section -->
+      <h2 style="margin-top:24px">Licensing Agreement</h2>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="field">
+          <label>License Type *</label>
+          <select id="licenseType">
+            <option value="">Select...</option>
+            <option value="original">Original Work — I created this</option>
+            <option value="licensed">Licensed — I have permission to use</option>
+            <option value="royalty_free">Royalty-Free — No restrictions</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Rights Holder Name *</label>
+          <input type="text" id="rightsHolder" placeholder="Full legal name or entity">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="field">
+          <label>License Expiry (leave blank for perpetual)</label>
+          <input type="date" id="licenseExpiry">
+        </div>
+        <div class="field">
+          <label>Territory</label>
+          <select id="licenseTerritory">
+            <option value="worldwide">Worldwide</option>
+            <option value="us_only">United States Only</option>
+            <option value="north_america">North America</option>
+            <option value="custom">Custom (specify in notes)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Licensing Notes (optional)</label>
+        <textarea id="licenseNotes" placeholder="Any additional licensing terms or restrictions..." maxlength="500"></textarea>
+      </div>
+
+      <div class="license-box">
+        <label>
+          <input type="checkbox" id="attestCheckbox">
+          I certify that I own or have obtained all necessary rights to distribute this music on KeepUsPostd. I agree to indemnify KeepUsPostd, its officers, and affiliates against any and all claims, damages, or liabilities arising from the use of this music. I understand that uploading music without proper rights may result in account suspension and legal liability.
+        </label>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:12px;align-items:center">
+        <button class="btn-upload" id="btnUpload" onclick="uploadTrack()" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Track
+        </button>
+        <span id="uploadStatus" style="font-size:.82rem;color:#888;font-family:'Montserrat',sans-serif"></span>
+      </div>
+    </div>
+
+    <!-- Track List -->
+    <div class="track-list" id="trackList">
+      <h2>Your Tracks</h2>
+      <div id="tracksContainer">
+        <div class="empty-tracks" id="emptyTracks">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+          <p>No tracks uploaded yet. Upload your first track above.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>if(typeof KUP_API!=='undefined'&&!KUP_API.auth.isAuthenticated()){window.location.href='../login.html';}</script>
+  <script>
+    var brandId = new URLSearchParams(window.location.search).get('brandId');
+    var audioFileUrl = null;
+    var coverFileUrl = null;
+    var currentAudio = null;
+
+    // Enable upload button when attestation is checked
+    document.getElementById('attestCheckbox').addEventListener('change', function() {
+      document.getElementById('btnUpload').disabled = !this.checked;
+    });
+
+    // Audio file preview
+    document.getElementById('audioFile').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (file) {
+        var url = URL.createObjectURL(file);
+        document.getElementById('audioPlayer').src = url;
+        document.getElementById('audioPreview').style.display = 'block';
+      }
+    });
+
+    // Upload track
+    async function uploadTrack() {
+      var title = document.getElementById('trackTitle').value.trim();
+      var artist = document.getElementById('trackArtist').value.trim();
+      var genre = document.getElementById('trackGenre').value.trim();
+      var licenseType = document.getElementById('licenseType').value;
+      var rightsHolder = document.getElementById('rightsHolder').value.trim();
+      var territory = document.getElementById('licenseTerritory').value;
+      var expiryDate = document.getElementById('licenseExpiry').value || null;
+      var notes = document.getElementById('licenseNotes').value.trim() || null;
+      var attestation = document.getElementById('attestCheckbox').checked;
+
+      if (!title) return alert('Track title is required');
+      if (!licenseType) return alert('Please select a license type');
+      if (!rightsHolder) return alert('Rights holder name is required');
+      if (!attestation) return alert('You must accept the licensing agreement');
+
+      var audioInput = document.getElementById('audioFile');
+      var coverInput = document.getElementById('coverFile');
+
+      if (!audioInput.files[0]) return alert('Please select an audio file');
+
+      var btn = document.getElementById('btnUpload');
+      var status = document.getElementById('uploadStatus');
+      btn.disabled = true;
+      btn.textContent = 'Uploading audio...';
+      status.textContent = '';
+
+      try {
+        // Upload audio file to R2
+        var audioForm = new FormData();
+        audioForm.append('file', audioInput.files[0]);
+        var audioRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + (await KUP_API.auth.getToken()) },
+          body: audioForm,
+        });
+        var audioData = await audioRes.json();
+        if (!audioData.url) throw new Error('Audio upload failed');
+        audioFileUrl = audioData.url;
+
+        // Upload cover image if provided
+        if (coverInput.files[0]) {
+          btn.textContent = 'Uploading cover...';
+          var coverForm = new FormData();
+          coverForm.append('file', coverInput.files[0]);
+          var coverRes = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + (await KUP_API.auth.getToken()) },
+            body: coverForm,
+          });
+          var coverData = await coverRes.json();
+          coverFileUrl = coverData.url || null;
+        }
+
+        // Get audio duration
+        var duration = 0;
+        try {
+          var audio = document.getElementById('audioPlayer');
+          duration = Math.round(audio.duration || 0);
+        } catch(e) {}
+
+        // Save track metadata + licensing
+        btn.textContent = 'Saving...';
+        var res = await KUP_API.request('POST', '/api/music', {
+          body: {
+            brandId: brandId,
+            title: title,
+            artist: artist || null,
+            genre: genre || null,
+            duration: duration,
+            audioUrl: audioFileUrl,
+            coverImageUrl: coverFileUrl,
+            licenseType: licenseType,
+            rightsHolderName: rightsHolder,
+            attestation: true,
+            expiryDate: expiryDate,
+            territory: territory,
+            notes: notes,
+          },
+        });
+
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Track';
+        btn.disabled = false;
+        status.textContent = 'Track uploaded successfully!';
+        status.style.color = '#16a34a';
+
+        // Reset form
+        document.getElementById('trackTitle').value = '';
+        document.getElementById('trackArtist').value = '';
+        document.getElementById('trackGenre').value = '';
+        document.getElementById('licenseType').value = '';
+        document.getElementById('rightsHolder').value = '';
+        document.getElementById('licenseExpiry').value = '';
+        document.getElementById('licenseNotes').value = '';
+        document.getElementById('attestCheckbox').checked = false;
+        audioInput.value = '';
+        coverInput.value = '';
+        document.getElementById('audioPreview').style.display = 'none';
+        audioFileUrl = null;
+        coverFileUrl = null;
+
+        loadTracks();
+      } catch(err) {
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Track';
+        btn.disabled = false;
+        status.textContent = 'Error: ' + (err.message || 'Upload failed');
+        status.style.color = '#ef4444';
+      }
+    }
+
+    // Load existing tracks
+    async function loadTracks() {
+      if (!brandId || typeof KUP_API === 'undefined') return;
+      try {
+        var res = await KUP_API.request('GET', '/api/music/all?brandId=' + brandId);
+        var tracks = (res && res.tracks) || [];
+        var container = document.getElementById('tracksContainer');
+        var empty = document.getElementById('emptyTracks');
+
+        if (tracks.length === 0) {
+          container.innerHTML = '';
+          container.appendChild(empty);
+          empty.style.display = 'block';
+          return;
+        }
+
+        container.innerHTML = '';
+        tracks.forEach(function(t) {
+          var statusPill = t.status === 'active'
+            ? '<span class="track-pill pill-active">Active</span>'
+            : '<span class="track-pill pill-paused">Paused</span>';
+          var licensePill = '<span class="track-pill pill-license">' + (t.licensing?.licenseType || 'unknown').replace('_', ' ') + '</span>';
+          var duration = t.duration ? Math.floor(t.duration/60) + ':' + String(t.duration%60).padStart(2,'0') : '';
+          var date = new Date(t.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+
+          var card = document.createElement('div');
+          card.className = 'track-card';
+          card.innerHTML =
+            '<button class="track-play" onclick="previewTrack(\'' + t.audioUrl + '\', this)" title="Preview">&#9654;</button>' +
+            '<div class="track-info">' +
+              '<div class="track-title">' + t.title + '</div>' +
+              '<div class="track-meta">' + (t.artist || 'Unknown Artist') + (duration ? ' &bull; ' + duration : '') + ' &bull; ' + date + ' &bull; ' + t.usageCount + ' uses</div>' +
+              '<div class="track-pills">' + statusPill + licensePill + '</div>' +
+            '</div>' +
+            '<div class="track-actions">' +
+              (t.status === 'active'
+                ? '<button class="track-btn" onclick="toggleTrack(\'' + t._id + '\',\'paused\')">Pause</button>'
+                : '<button class="track-btn" onclick="toggleTrack(\'' + t._id + '\',\'active\')">Activate</button>') +
+              '<button class="track-btn danger" onclick="removeTrack(\'' + t._id + '\',\'' + t.title.replace(/'/g,"\\'") + '\')">Remove</button>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      } catch(err) {
+        console.error('Load tracks error:', err);
+      }
+    }
+
+    // Preview audio
+    function previewTrack(url, btn) {
+      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+      currentAudio = new Audio(url);
+      currentAudio.play();
+      currentAudio.onended = function() { currentAudio = null; };
+    }
+
+    // Toggle track status
+    async function toggleTrack(trackId, newStatus) {
+      try {
+        await KUP_API.request('PUT', '/api/music/' + trackId, { body: { status: newStatus } });
+        loadTracks();
+      } catch(err) { alert('Could not update track'); }
+    }
+
+    // Remove track
+    async function removeTrack(trackId, title) {
+      if (!confirm('Remove "' + title + '"? Influencers will no longer see this track.')) return;
+      try {
+        await KUP_API.request('DELETE', '/api/music/' + trackId);
+        loadTracks();
+      } catch(err) { alert('Could not remove track'); }
+    }
+
+    // Load on page ready
+    loadTracks();
+  </script>
+</body>
+</html>

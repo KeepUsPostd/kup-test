@@ -26,4 +26,5 @@ module.exports = {
   GoogleBusinessConfig: require('./GoogleBusinessConfig'),
   ContentReport: require('./ContentReport'),
   UserBlock: require('./UserBlock'),
+  BrandMusic: require('./BrandMusic'),
 };
