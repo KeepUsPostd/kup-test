@@ -16,6 +16,12 @@ const kupApi = {
     return null;
   },
 
+  // Redirect to login preserving current page as return URL
+  _redirectToLogin() {
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = '/pages/login.html?redirect=' + returnUrl;
+  },
+
   // Build headers with auth token
   async getHeaders(extraHeaders = {}) {
     const token = await this.getToken();
@@ -43,7 +49,7 @@ const kupApi = {
           if (retry.ok) return await retry.json();
         } catch(e) {}
       }
-      window.location.href = '/pages/login.html';
+      this._redirectToLogin();
       return;
     }
     return await response.json();
@@ -65,7 +71,7 @@ const kupApi = {
           if (retry.ok) return await retry.json();
         } catch(e) {}
       }
-      window.location.href = '/pages/login.html';
+      this._redirectToLogin();
       return;
     }
     return await response.json();
@@ -87,15 +93,13 @@ const kupApi = {
           if (retry.ok) return await retry.json();
         } catch(e) {}
       }
-      window.location.href = '/pages/login.html';
+      this._redirectToLogin();
       return;
     }
     return await response.json();
   },
 
   // UPLOAD request — sends files via FormData (multipart)
-  // Usage: const result = await kupApi.upload('/api/upload', fileInput.files, 'media');
-  // Or single file: await kupApi.upload('/api/upload', [file], 'media');
   async upload(path, files, fieldName = 'media') {
     const token = await this.getToken();
     const formData = new FormData();
@@ -104,14 +108,13 @@ const kupApi = {
     }
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    // Don't set Content-Type — browser sets it automatically with multipart boundary
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
       headers,
       body: formData,
     });
     if (response.status === 401) {
-      window.location.href = '/pages/login.html';
+      this._redirectToLogin();
       return;
     }
     return await response.json();
@@ -125,9 +128,34 @@ const kupApi = {
       headers,
     });
     if (response.status === 401) {
-      window.location.href = '/pages/login.html';
+      this._redirectToLogin();
       return;
     }
     return await response.json();
   },
+
+  // Generic request method (used by newer pages: brand-catalog, brand-music, etc.)
+  async request(method, path, options = {}) {
+    switch (method.toUpperCase()) {
+      case 'GET': return this.get(path);
+      case 'POST': return this.post(path, options.body || {});
+      case 'PUT': return this.put(path, options.body || {});
+      case 'DELETE': return this.delete(path);
+      default: return this.get(path);
+    }
+  },
+
+  // Auth helper (used by newer pages for token access)
+  auth: {
+    isAuthenticated() {
+      return typeof auth !== 'undefined' && !!auth.currentUser;
+    },
+    async getToken() {
+      if (typeof getAuthToken === 'function') return await getAuthToken();
+      return null;
+    },
+  },
 };
+
+// Alias — newer pages use KUP_API
+const KUP_API = kupApi;
