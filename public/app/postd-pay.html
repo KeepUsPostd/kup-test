@@ -983,23 +983,23 @@
 
             <div class="influencer-stats">
               <div class="influencer-stat-item">
-                <div class="influencer-stat-value">12.4K</div>
+                <div class="influencer-stat-value">--</div>
                 <div class="influencer-stat-label">Followers</div>
               </div>
               <div class="influencer-stat-item">
-                <div class="influencer-stat-value">3.2%</div>
+                <div class="influencer-stat-value">--</div>
                 <div class="influencer-stat-label">Engagement</div>
               </div>
               <div class="influencer-stat-item">
-                <div class="influencer-stat-value">28</div>
+                <div class="influencer-stat-value">--</div>
                 <div class="influencer-stat-label">Reviews</div>
               </div>
             </div>
 
-            <!-- Message Button -->
+            <!-- Send Notice Button -->
             <button class="influencer-message-link" id="influencerMsgBtn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Message
+              Send Notice
             </button>
           </div>
         </div>
@@ -1279,7 +1279,7 @@
           amountInput.value = '';
           memoInput.value = '';
           // Refresh transaction history
-          loadTransactions();
+          // Transaction history removed — all records on Cash Transactions page
         } else {
           kupToast(result.error || 'Payment failed — please try again', 'error');
         }
@@ -1379,7 +1379,6 @@
         document.querySelector('.influencer-username').textContent = urlName || 'Influencer';
         document.querySelector('.influencer-handle').textContent = '@' + h.replace(/^@/, '');
         document.querySelector('.postdpay-subtitle').textContent = 'Pay @' + h.replace(/^@/, '') + ' via PostdPay';
-        document.querySelector('.tx-history-title').textContent = 'Recent Payments to @' + h.replace(/^@/, '');
       }
       var targetInfluencerId = getUrlParam('influencerId');
 
@@ -1451,72 +1450,12 @@
           document.getElementById('msgModalName').textContent = displayName;
           document.getElementById('msgHandle').textContent = '@' + handle;
 
-          // Update tx history title
-          document.querySelector('.tx-history-title').textContent = 'Recent Payments to @' + handle;
         }
       } catch (err) {
         console.error('Failed to load influencer profile:', err);
       }
     }
 
-    // --- Load transaction history from API ---
-    async function loadTransactions() {
-      var brand = null;
-      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
-      var brandId = brand && (brand.mongoId || brand._id || brand.id);
-      if (!brandId) {
-        try {
-          var brandData = await kupApi.get('/api/brands');
-          var brands = brandData && brandData.brands ? brandData.brands : [];
-          if (brands.length > 0) brandId = brands[0]._id;
-        } catch(e) {}
-      }
-      if (!brandId) return;
-      var txContainer = document.querySelector('.tx-history');
-      var titleEl = txContainer.querySelector('.tx-history-title');
-      var titleText = titleEl ? titleEl.outerHTML : '';
-
-      try {
-        var url = '/api/payouts/transactions?brandId=' + brandId;
-        var targetInfluencerId = getUrlParam('influencerId');
-        if (targetInfluencerId) {
-          url += '&influencerId=' + targetInfluencerId;
-        }
-
-        var data = await kupApi.get(url);
-        var transactions = data.transactions || data.items || data || [];
-        if (!Array.isArray(transactions)) transactions = [];
-
-        // Keep the title, replace the tx-items
-        var html = titleText;
-
-        if (transactions.length === 0) {
-          html += '<div style="text-align:center;padding:24px 0;color:#999;font-size:0.85rem;">No transactions yet</div>';
-        } else {
-          transactions.forEach(function(tx) {
-            var desc = tx.memo || tx.description || tx.type || 'Payment';
-            var date = tx.createdAt ? formatDate(tx.createdAt) : '--';
-            var amount = parseFloat(tx.amount || 0);
-            var amountClass = amount >= 0 ? 'credit' : 'debit';
-            var amountStr = (amount < 0 ? '-' : '-') + '$' + Math.abs(amount).toFixed(2);
-
-            html += '<div class="tx-item">'
-              + '<div class="tx-left">'
-              + '<div class="tx-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg></div>'
-              + '<div>'
-              + '<div class="tx-desc">' + escapeHtml(desc) + '</div>'
-              + '<div class="tx-date">' + date + '</div>'
-              + '</div></div>'
-              + '<div class="tx-amount ' + amountClass + '">' + amountStr + '</div>'
-              + '</div>';
-          });
-        }
-
-        txContainer.innerHTML = html;
-      } catch (err) {
-        console.error('Failed to load transactions:', err);
-      }
-    }
 
     // --- Utility helpers ---
     var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
@@ -1546,7 +1485,7 @@
       auth.onAuthStateChanged(function(user) {
         if (user) {
           loadInfluencerProfile();
-          loadTransactions();
+          // Transaction history removed — all records on Cash Transactions page
         } else {
           window.location.href = '/pages/login.html';
         }
