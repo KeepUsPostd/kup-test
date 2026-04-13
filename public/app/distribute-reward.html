@@ -305,14 +305,15 @@
   <!-- Toast Container -->
   <div class="kup-toast-container" id="toastContainer"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
   <script>
   // Auth guard — wait for Firebase to initialize (async) before checking
-  if (typeof auth !== 'undefined') {
-    auth.onAuthStateChanged(function(user) {
-      if (!user) window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-    });
-  }
+  auth.onAuthStateChanged(function(user) {
+    if (!user) window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+  });
   </script>
 
   <script>

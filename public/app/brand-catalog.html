@@ -147,8 +147,11 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
   <script src="/js/api.js"></script>
-  <script>if(typeof auth!=='undefined'){auth.onAuthStateChanged(function(u){if(!u)window.location.href='/pages/login.html?redirect='+encodeURIComponent(window.location.pathname+window.location.search);});}</script>
+  <script>auth.onAuthStateChanged(function(u){if(!u)window.location.href='/pages/login.html?redirect='+encodeURIComponent(window.location.pathname+window.location.search);});</script>
   <script>
     var brandId = new URLSearchParams(window.location.search).get('brandId');
     var allItems = [];
