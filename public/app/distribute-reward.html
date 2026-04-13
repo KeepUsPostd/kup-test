@@ -8,6 +8,24 @@
   <link rel="stylesheet" href="/css/mobile-inner.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root{--kup-orange:#ED8444;--kup-blue:#2EA5DD;--kup-black:#000;--kup-body-bg:#F5F6FA;--kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%);--kup-white:#FFF;--kup-font:'Montserrat',sans-serif;--radius-sm:6px;--radius-md:12px;--kup-green:#16a34a}
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:var(--kup-font);background:var(--kup-body-bg);color:#1a1a1a;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+    a{text-decoration:none;color:inherit;transition:all .2s}
+    .auth-header{background:var(--kup-white);border-bottom:1px solid #eee;position:sticky;top:0;z-index:100}
+    .auth-header-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;max-width:1400px;margin:0 auto}
+    .auth-logo img{height:32px}
+    .auth-nav{display:flex;gap:0;margin:0;padding:0;list-style:none;height:64px}
+    .auth-nav li a{display:flex;align-items:center;padding:0 24px;height:64px;font-size:.9rem;font-weight:500;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+    .auth-nav li a:hover{color:var(--kup-blue);background:rgba(46,165,221,.04)}
+    .auth-nav li a.active{color:var(--kup-blue);font-weight:700;border-bottom-color:var(--kup-blue)}
+    .auth-right{display:flex;align-items:center;gap:20px}
+    .profile-trigger{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-md);border:none;background:none;transition:background .2s}
+    .profile-trigger:hover{background:#f0f0f0}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem}
+    .profile-info{text-align:left}
+    .profile-info .name{font-weight:600;font-size:.85rem;color:#1a1a1a;line-height:1.2}
+    .profile-info .brand{font-size:.72rem;color:#888;line-height:1.2}
     .page-header{max-width:1200px;margin:0 auto;padding:28px 32px 0}
     .page-header-top{display:flex;align-items:baseline;gap:16px;margin-bottom:4px}
     .page-header h1{font-size:1.5rem;font-weight:800;margin:0;color:#1a1a1a}
@@ -15,7 +33,7 @@
     .back-link:hover{color:var(--kup-blue)}
     .distribute-layout{max-width:1200px;margin:0 auto;padding:24px 32px 40px;display:grid;grid-template-columns:5fr 7fr;gap:28px;align-items:start}
     .influencer-card{background:var(--kup-white);border:1px solid #eee;border-radius:var(--radius-md);padding:40px 32px;text-align:center}
-    .influencer-avatar{width:130px;height:130px;border-radius:50%;background:var(--kup-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:2.2rem;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46,165,221,.2)}
+    .influencer-avatar{width:130px;height:130px;border-radius:50%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-weight:800;font-size:2.2rem;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46,165,221,.2)}
     .influencer-name{font-size:1.3rem;font-weight:700;margin:0 0 4px}
     .influencer-handle{font-size:.88rem;color:#888;margin-bottom:16px}
     .influencer-tier{display:inline-block;padding:6px 18px;border-radius:20px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:rgba(46,165,221,.08);color:var(--kup-blue);margin-bottom:20px}
@@ -83,6 +101,51 @@
     .auth-footer{text-align:center;padding:16px 32px;font-size:.78rem;color:#999;border-top:1px solid #eee;background:var(--kup-white)}
     .auth-footer a{color:var(--kup-blue);font-weight:500}
 
+    /* ============== NOTIFICATION CENTER ============== */
+    .notif-wrap{position:relative}
+    .notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:8px;border-radius:50%;transition:background .2s}
+    .notif-btn:hover{background:#f0f0f0}
+    .notif-btn svg{width:22px;height:22px}
+    .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#e74c3c;border-radius:50%;border:2px solid var(--kup-white)}
+    .kup-notif-popover{position:absolute;top:calc(100% + 8px);right:-60px;width:380px;max-height:480px;background:var(--kup-white);border:1px solid #eee;border-radius:var(--radius-md);box-shadow:0 12px 40px rgba(0,0,0,.12);z-index:300;display:none;overflow:hidden}
+    .kup-notif-popover.show{display:block}
+    .notif-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 12px}
+    .notif-header h4{font-size:1rem;font-weight:700;margin:0}
+    .notif-mark-read{font-size:.78rem;color:var(--kup-blue);cursor:pointer;background:none;border:none;font-family:var(--kup-font);font-weight:600}
+    .notif-tabs{display:flex;border-bottom:1px solid #f0f0f0;padding:0 20px}
+    .notif-tab{flex:1;text-align:center;padding:10px 0;font-size:.82rem;font-weight:600;color:#888;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:var(--kup-font);transition:all .2s}
+    .notif-tab.active{color:var(--kup-blue);border-bottom-color:var(--kup-blue)}
+    .notif-list{max-height:360px;overflow-y:auto;padding:0;margin:0;list-style:none}
+    .notif-item{display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #f8f8f8;cursor:pointer;transition:background .15s}
+    .notif-item:hover{background:#fafbfc}
+    .notif-item.unread{background:rgba(46,165,221,.03)}
+    .notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .notif-icon.submission{background:rgba(46,165,221,.1);color:var(--kup-blue)}
+    .notif-icon.approval{background:rgba(237,132,68,.1);color:var(--kup-orange)}
+    .notif-icon.payment{background:rgba(22,163,74,.1);color:#16a34a}
+    .notif-icon.joined{background:rgba(112,123,187,.1);color:#707BBB}
+    .notif-body{flex:1;min-width:0}
+    .notif-text{font-size:.82rem;color:#444;line-height:1.4;margin:0}
+    .notif-text strong{font-weight:700;color:#1a1a1a}
+    .notif-time{font-size:.72rem;color:#bbb;margin-top:3px}
+    /* Profile Dropdown */
+    .profile-menu{position:relative}
+    .profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #eee;border-radius:var(--radius-md);box-shadow:0 8px 30px rgba(0,0,0,.1);min-width:220px;display:none;z-index:200;overflow:hidden}
+    .profile-dropdown.show{display:block}
+    .profile-dropdown a{display:block;padding:12px 20px;font-size:.85rem;color:#444}
+    .profile-dropdown a:hover{background:#f8f9fa;color:var(--kup-blue)}
+    .profile-dropdown .divider{border-top:1px solid #eee;margin:4px 0}
+    .profile-dropdown a.logout{color:#e74c3c}
+    /* Toast Notifications */
+    .kup-toast-container{position:fixed;top:80px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .kup-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--kup-white);border-radius:var(--radius-sm);box-shadow:0 8px 30px rgba(0,0,0,.12);font-family:var(--kup-font);font-size:.85rem;font-weight:600;color:#1a1a1a;min-width:280px;max-width:400px;transform:translateX(120%);animation:kupToastIn .3s ease forwards;border-left:4px solid var(--kup-blue)}
+    .kup-toast.success{border-left-color:#16a34a}
+    .kup-toast.error{border-left-color:#dc2626}
+    .kup-toast.info{border-left-color:var(--kup-blue)}
+    .kup-toast.warning{border-left-color:#f59e0b}
+    .kup-toast.dismissing{animation:kupToastOut .3s ease forwards}
+    @keyframes kupToastIn{to{transform:translateX(0)}}
+    @keyframes kupToastOut{to{transform:translateX(120%);opacity:0}}
 
     @media(max-width:1024px){
       .distribute-layout{grid-template-columns:4fr 8fr;gap:20px;padding:20px 24px 32px}
@@ -92,6 +155,8 @@
     @media(max-width:768px){
       .distribute-layout{grid-template-columns:1fr;padding:20px 16px 32px}
       .page-header{padding:20px 16px 0}
+      .auth-header-inner{padding:0 16px}
+      .auth-nav li a{padding:0 12px;font-size:.8rem}
       .reward-tabs{overflow-x:auto}
       .reward-tab{min-width:0;padding:14px 10px 10px;font-size:.75rem}
       .reward-tab svg{width:20px;height:20px}
@@ -99,12 +164,59 @@
       .influencer-stats{gap:16px}
     }
   
-    </style>
+    /* ============== QR SCAN SECTION ============== */
+    .scan-toggle-row{display:none}
+    .btn-scan-toggle{display:none}
+    .scan-section{background:var(--kup-white);border:1px solid #eee;border-radius:var(--radius-md);padding:32px;text-align:center;max-width:1200px;margin:0 auto;display:block}
+    .scan-section-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+    .scan-section-header svg{width:28px;height:28px;color:var(--kup-blue)}
+    .scan-section-header h2{font-size:1.3rem;font-weight:800;margin:0}
+    .scan-subtitle{font-size:.88rem;color:#888;margin:0 0 24px}
+    .scan-viewfinder{position:relative;width:280px;height:280px;margin:0 auto 24px;background:#0d0d1a;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .scan-viewfinder video{width:100%;height:100%;object-fit:cover;border-radius:16px}
+    .scan-corners{position:absolute;inset:20px;pointer-events:none}
+    .scan-corners::before,.scan-corners::after,.scan-corner-bl::before,.scan-corner-br::before{content:'';position:absolute;width:32px;height:32px;border-color:var(--kup-blue);border-style:solid}
+    .scan-corners::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+    .scan-corners::after{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+    .scan-corner-bl::before{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+    .scan-corner-br::before{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+    .scan-line{position:absolute;left:24px;right:24px;height:2px;background:var(--kup-blue);box-shadow:0 0 8px rgba(46,165,221,.6);animation:scanMove 2s ease-in-out infinite}
+    @keyframes scanMove{0%,100%{top:24px}50%{top:calc(100% - 24px)}}
+    .scan-placeholder-icon{font-size:3rem;color:rgba(255,255,255,.3)}
+    .scan-placeholder-text{font-size:.82rem;color:rgba(255,255,255,.5);margin-top:8px}
+    .btn-scan{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 40px;background:var(--kup-gradient);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--kup-font);font-weight:700;font-size:1rem;cursor:pointer;transition:all .2s;min-height:52px}
+    .btn-scan:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(46,165,221,.3)}
+    .btn-scan svg{width:22px;height:22px}
+    .btn-scan.active{background:#dc2626}
+    .btn-scan.active:hover{box-shadow:0 6px 20px rgba(220,38,38,.3)}
+    .scan-instructions{margin-top:20px;font-size:.78rem;color:#999;line-height:1.6}
+    .scan-instructions strong{color:#666}
+    .scan-result{display:none;margin-top:24px;padding:20px;background:#f8fdf9;border:1px solid #d1e7dd;border-radius:var(--radius-md);text-align:left}
+    .scan-result.show{display:block}
+    .scan-result.error{background:#fef8f8;border-color:#f8d7da}
+    .scan-result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .scan-result-icon{width:40px;height:40px;border-radius:50%;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .scan-result.error .scan-result-icon{background:rgba(220,38,38,.1)}
+    .scan-result-title{font-weight:700;font-size:1rem}
+    .scan-result-details{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:.85rem}
+    .scan-result-details .srd-label{color:#888;font-weight:600}
+    .scan-result-details .srd-value{font-weight:600;color:#1a1a1a}
+    .scan-result-actions{display:flex;gap:10px;margin-top:16px}
+    .btn-use-influencer{flex:1;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--kup-green);color:#fff;font-family:var(--kup-font);font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s}
+    .btn-use-influencer:hover{background:#15803d}
+    .btn-scan-again{flex:1;padding:12px;border:1px solid #ddd;border-radius:var(--radius-sm);background:#fff;font-family:var(--kup-font);font-weight:600;font-size:.88rem;color:#666;cursor:pointer;transition:all .2s}
+    .btn-scan-again:hover{background:#f5f6fa;border-color:#bbb}
+
+    /* Sticky Footer */
+    body{display:flex;flex-direction:column;min-height:100vh}
+    main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
+    footer{margin-top:auto;flex-shrink:0}
+  </style>
 </head>
 <body>
   <header class="auth-header">
     <div class="auth-header-inner">
-      <a href="activity.html" class="auth-logo"><img src="/assets/images/kup_BLK_new_logo.png" alt="KeepUsPostd"></a>
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_black_new_logo_2.png" alt="KeepUsPostd"></a>
       <ul class="auth-nav">
         <li><a href="activity.html">Activity</a></li>
         <li><a href="campaigns.html" role="tab">Campaigns</a></li>
@@ -119,10 +231,7 @@
             <div class="notif-header"><h4>Notifications</h4><button class="notif-mark-read" id="markAllRead">Mark all read</button></div>
             <div class="notif-tabs"><button class="notif-tab active" data-tab="all">All</button><button class="notif-tab" data-tab="unread">Unread</button></div>
             <ul class="notif-list" id="notifList">
-              <li class="notif-item unread"><div class="notif-icon submission"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@jessicadavis</strong> submitted a new video for Summer Campaign</p><div class="notif-time">2 minutes ago</div></div></li>
-              <li class="notif-item unread"><div class="notif-icon approval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>3 items</strong> awaiting your approval in Content Manager</p><div class="notif-time">15 minutes ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon payment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="notif-body"><p class="notif-text">Payment of <strong>$45.00</strong> sent to @marcusking</p><div class="notif-time">1 hour ago</div></div></li>
-              <li class="notif-item"><div class="notif-icon joined"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="notif-body"><p class="notif-text"><strong>@tyreese_r</strong> joined your brand as an influencer</p><div class="notif-time">3 hours ago</div></div></li>
+              <li class="notif-item" style="text-align:center;padding:24px 16px;color:#94a3b8;font-size:.82rem;">No notifications yet</li>
             </ul>
           </div>
         </div>
@@ -141,7 +250,7 @@
             <div class="divider"></div>
             <a href="help-center.html">Help Center</a>
             <div class="divider"></div>
-            <a href="/pages/login.html" class="logout">Log Out</a>
+            <a href="#" class="logout" onclick="kupSignOut(); return false;">Log Out</a>
           </div>
         </div>
       </div>
@@ -155,23 +264,75 @@
     </div>
   </div>
 
-  <div class="distribute-layout">
+  <!-- QR Scanner Section (always visible) -->
+  <div style="max-width:1200px;margin:0 auto;padding:12px 32px 0">
+    <div class="scan-section" id="scanSection" style="display:none;">
+      <div class="scan-section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <h2>Scan Influencer QR</h2>
+      </div>
+      <p class="scan-subtitle">Scan an influencer's KeepUsPostd QR code to identify them and distribute rewards</p>
+
+      <div class="scan-viewfinder" id="scanViewfinder">
+        <video id="scanVideo" autoplay playsinline muted style="display:none;"></video>
+        <div id="scanPlaceholder">
+          <div class="scan-placeholder-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" width="48" height="48"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <div class="scan-placeholder-text">Camera preview</div>
+        </div>
+        <div class="scan-corners"><div class="scan-corner-bl"></div><div class="scan-corner-br"></div></div>
+        <div class="scan-line" id="scanLine" style="display:none;"></div>
+      </div>
+
+      <button class="btn-scan" id="btnScan" onclick="toggleScan()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg>
+        Start Scanning
+      </button>
+
+      <div class="scan-instructions">
+        <strong>How it works:</strong> Have the influencer show their KeepUsPostd QR code on their phone. Tap "Start Scanning" to open your camera, then point it at the QR code. Once identified, the influencer card will load and you can choose a reward to distribute.
+      </div>
+
+      <!-- Scan Result (shown after successful scan) -->
+      <div class="scan-result" id="scanResult">
+        <div class="scan-result-header">
+          <div class="scan-result-icon">&#10003;</div>
+          <div class="scan-result-title" id="scanResultTitle">Influencer Found</div>
+        </div>
+        <div class="scan-result-details">
+          <span class="srd-label">Handle</span>
+          <span class="srd-value" id="scanInfluencer">—</span>
+          <span class="srd-label">Name</span>
+          <span class="srd-value" id="scanName">—</span>
+          <span class="srd-label">Tier</span>
+          <span class="srd-value" id="scanTier">—</span>
+        </div>
+        <div class="scan-result-actions">
+          <button class="btn-use-influencer" onclick="useScanResult()">Use This Influencer</button>
+          <button class="btn-scan-again" onclick="resetScan()">Scan Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="distribute-layout" id="distributeLayout" style="display:none;opacity:0;transition:opacity 0.3s ease;">
     <div class="influencer-card">
-      <div class="influencer-avatar">JD</div>
-      <h2 class="influencer-name">Jessica Davis</h2>
-      <p class="influencer-handle">@jessicadavis</p>
-      <span class="influencer-tier">Micro Influencer</span>
+      <div class="influencer-avatar" style="overflow:hidden;"></div>
+      <h2 class="influencer-name" style="min-height:1.4em;"></h2>
+      <p class="influencer-handle" style="min-height:1.2em;"></p>
+      <span class="influencer-tier" style="min-height:1.6em;"></span>
       <div class="influencer-stats">
         <div class="influencer-stat">
-          <div class="stat-num">12.4K</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Followers</div>
         </div>
         <div class="influencer-stat">
-          <div class="stat-num">3.2%</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Engagement</div>
         </div>
         <div class="influencer-stat">
-          <div class="stat-num">47</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Posts</div>
         </div>
       </div>
@@ -206,49 +367,37 @@
 
       <div class="tab-content">
         <div class="tab-pane active" id="pane-distribute">
-          <div class="reward-offer">
-            <div class="reward-icon">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-            </div>
-            <span class="reward-type-indicator non-cash">NON-CASH</span>
-            <h3>20% Off First Order</h3>
-            <p>Brand reward for KeepUsPostd influencer partners</p>
-            <div class="point-cat-tags">
-              <span class="point-cat-tag content-pts">Content Pts</span>
-              <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-            </div>
-            <div class="point-progress-wrap">
-              <div class="point-progress-bar"><div class="point-progress-fill" style="width:65%"></div></div>
-              <p class="point-progress-text"><strong>325</strong> / 500 pts</p>
-            </div>
+          <!-- Unlocked levels will be rendered here by JS -->
+          <div id="distributeLevelsContainer">
+            <p style="text-align:center;color:#999;padding:24px;">Loading reward levels...</p>
           </div>
-          <button class="btn-distribute" id="btnDistribute" onclick="distributeReward()">Distribute Reward</button>
-          <p class="confirm-text">Clicking here confirms that your brand reward has been sent to Jessica Davis.</p>
-          <div class="success-message" id="successMsg">
+          <div class="success-message" id="successMsg" style="display:none;">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <h4>Reward Distributed!</h4>
-            <p>Jessica Davis has been sent the "20% Off First Order" reward.</p>
+            <p id="successMsgText"></p>
           </div>
         </div>
 
         <div class="tab-pane" id="pane-purchase">
           <div class="reward-offer">
             <div class="reward-icon">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </div>
-            <h3>Purchase Points</h3>
-            <p>Buy points to send to Jessica Davis as a cash incentive</p>
+            <h3>Award Purchase Points</h3>
+            <p id="purchaseTabDesc">Enter the customer's purchase total — points are awarded based on your tier configuration.</p>
           </div>
           <div class="points-form">
             <div class="input-group-custom">
               <div class="input-prefix">$</div>
               <input type="number" id="purchaseAmount" placeholder="0.00" min="0" step="0.01">
             </div>
-            <p class="helper">Enter the dollar amount you would like to convert to points.</p>
+            <p class="helper">Customer's total purchase amount (before tax). Points awarded based on your tier config.</p>
             <div class="btn-row">
-              <button class="btn-clear" onclick="document.getElementById('purchaseAmount').value=''">Clear</button>
-              <button class="btn-apply" onclick="applyPurchase()">Apply</button>
+              <button class="btn-clear" onclick="document.getElementById('purchaseAmount').value=''; document.getElementById('purchaseResult').style.display='none';">Clear</button>
+              <button class="btn-apply" id="btnApplyPurchase" onclick="applyPurchase()">Award Points</button>
             </div>
+            <!-- Result display -->
+            <div id="purchaseResult" style="display:none;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
           </div>
         </div>
 
@@ -273,49 +422,13 @@
     </div>
   </div>
 
-  <!-- Distribution History -->
-  <div class="distribution-history" id="distributionHistory" style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h2 style="font-size:1.1rem;font-weight:700;margin:0;color:#1a1a1a;font-family:var(--kup-font)">Distribution History</h2>
-      <span class="dist-count" id="distCount" style="font-size:.78rem;font-weight:600;color:#888;font-family:var(--kup-font)"></span>
-    </div>
-    <div id="distTableWrap" style="background:var(--kup-white);border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden">
-      <div id="distEmpty" style="padding:40px;text-align:center;display:none">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-        <p style="color:#888;font-size:.88rem;margin:12px 0 0;font-family:var(--kup-font)">No rewards distributed yet</p>
-      </div>
-      <table class="dist-table" id="distTable" style="width:100%;border-collapse:collapse;font-family:var(--kup-font);display:none">
-        <thead>
-          <tr style="background:#f8f9fa;border-bottom:2px solid #eee">
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Date</th>
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Influencer</th>
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Reward</th>
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Method</th>
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Code / Tracking</th>
-            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Notes</th>
-          </tr>
-        </thead>
-        <tbody id="distBody"></tbody>
-      </table>
-    </div>
-  </div>
-
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
 
   <!-- Toast Container -->
   <div class="kup-toast-container" id="toastContainer"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="/js/firebase-client.js"></script>
-  <script src="/js/api.js"></script>
   <script>
-  auth.onAuthStateChanged(function(user) {
-    if (!user) window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-  });
-  </script>
-
-  <script>
+    /* ============== TOAST NOTIFICATIONS ============== */
     function kupToast(message, type) {
       type = type || 'info';
       var container = document.getElementById('toastContainer');
@@ -330,6 +443,7 @@
       }, 4000);
     }
 
+    /* ============== NOTIFICATION CENTER ============== */
     var notifBtn = document.getElementById('notifBtn');
     var notifPopover = document.getElementById('notifPopover');
     if (notifBtn && notifPopover) {
@@ -406,134 +520,542 @@
       document.getElementById('pane-' + tab).classList.add('active');
     }
 
-    /* ============== DISTRIBUTE REWARD ============== */
-    function distributeReward() {
-      var btn = document.getElementById('btnDistribute');
-      btn.textContent = 'Sending...';
-      btn.style.opacity = '0.7';
-      setTimeout(function() {
-        btn.textContent = 'Reward Sent';
-        btn.classList.add('sent');
-        document.getElementById('successMsg').classList.add('show');
-        kupToast('Reward distributed to Jessica Davis!', 'success');
-      }, 800);
+    /* ============== DISTRIBUTE REWARD — Level-Aware ============== */
+    var _distributeRewardId = null;
+    var _distributePartnershipId = null;
+
+    function loadDistributeLevels() {
+      var container = document.getElementById('distributeLevelsContainer');
+      if (!container) return;
+
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand?.mongoId || brand?._id || brand?.id;
+      var params = new URLSearchParams(window.location.search);
+      _distributePartnershipId = params.get('influencerId') || params.get('partnerId');
+
+      if (!brandId || !_distributePartnershipId) {
+        container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">Missing brand or partner context.</p>';
+        return;
+      }
+
+      Promise.all([
+        kupApi.get('/api/rewards/brand-progress?brandId=' + brandId),
+        kupApi.get('/api/rewards?brandId=' + brandId),
+      ]).then(function(results) {
+        var data = results[0];
+        var allRewardsData = results[1];
+        var allRewards = allRewardsData.rewards || [];
+        var influencers = data.influencers || [];
+        var rewards = data.rewards || [];
+
+        // Find this influencer's progress
+        var entry = influencers.find(function(e) { return String(e.partnershipId) === String(_distributePartnershipId); });
+        if (!entry || !entry.rewards || entry.rewards.length === 0) {
+          container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">No point-based rewards configured for this brand.</p>';
+          return;
+        }
+
+        var rw = entry.rewards[0]; // Single reward with levels
+        _distributeRewardId = rw.rewardId;
+        var levels = rw.levels || [];
+        var totalPts = rw.totalPoints || 0;
+
+        if (levels.length === 0) {
+          container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">No reward levels configured. Set up levels in the reward wizard.</p>';
+          return;
+        }
+
+        var html = '<div style="margin-bottom:16px;">' +
+          '<p style="font-size:0.85rem;color:#666;margin:0 0 8px;">Total points: <strong>' + totalPts + '</strong></p></div>';
+
+        levels.forEach(function(lvl, idx) {
+          var isUnlocked = lvl.unlocked;
+          var isClaimed = lvl.claimed;
+          var icon = lvl.rewardType === 'free' ? '🎁' : '🏷️';
+          var borderColor = isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#e5e7eb');
+          var bgColor = isClaimed ? '#f0fdf4' : (isUnlocked ? '#fffbeb' : '#f9fafb');
+
+          html += '<div style="border:2px solid ' + borderColor + ';border-radius:12px;padding:16px;margin-bottom:12px;background:' + bgColor + ';">';
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
+          html += '<div style="display:flex;align-items:center;gap:8px;">';
+          html += '<span style="width:28px;height:28px;border-radius:50%;background:' + (isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#ccc')) + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;">' + (isClaimed ? '✓' : (idx + 1)) + '</span>';
+          html += '<span style="font-weight:700;font-size:1rem;">' + icon + ' ' + (lvl.rewardValue || 'Level ' + (idx + 1)) + '</span>';
+          html += '</div>';
+          html += '<span style="font-size:0.8rem;color:#888;">' + lvl.threshold + ' pts</span>';
+          html += '</div>';
+
+          if (isClaimed) {
+            html += '<div style="color:#16a34a;font-weight:600;font-size:0.85rem;">✅ Distributed</div>';
+          } else if (isUnlocked) {
+            // Show distribution form
+            html += '<div style="margin-top:8px;">';
+            html += '<label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:6px;">Distribution Method</label>';
+            html += '<div style="display:flex;gap:6px;margin-bottom:10px;">';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="email" onclick="selectDistMethod(' + idx + ',\'email\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">📧 Email Code</button>';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="instore" onclick="selectDistMethod(' + idx + ',\'instore\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">🏪 In-Store</button>';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="mail" onclick="selectDistMethod(' + idx + ',\'mail\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">📦 Mail</button>';
+            html += '</div>';
+
+            // Email form
+            html += '<div id="distForm_email_' + idx + '" style="display:none;">';
+            html += '<input type="text" id="distCode_' + idx + '" placeholder="Enter coupon code or redemption link" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;margin-bottom:8px;">';
+            html += '<button onclick="submitDistribute(' + idx + ',\'email\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Send Code to Influencer</button>';
+            html += '</div>';
+
+            // In-store form
+            html += '<div id="distForm_instore_' + idx + '" style="display:none;">';
+            html += '<p style="font-size:0.82rem;color:#666;margin:0 0 8px;">Influencer will show their Market Code QR at checkout. The reward will be marked as claimed when scanned.</p>';
+            html += '<button onclick="submitDistribute(' + idx + ',\'instore\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Mark Ready for Pickup</button>';
+            html += '</div>';
+
+            // Mail form
+            html += '<div id="distForm_mail_' + idx + '" style="display:none;">';
+            html += '<input type="text" id="distTracking_' + idx + '" placeholder="Tracking number (optional)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;margin-bottom:8px;">';
+            html += '<button onclick="submitDistribute(' + idx + ',\'mail\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Mark as Shipped</button>';
+            html += '</div>';
+
+            html += '</div>';
+          } else {
+            html += '<div style="color:#999;font-size:0.82rem;">🔒 Not yet unlocked (' + (lvl.threshold - totalPts) + ' pts to go)</div>';
+          }
+          html += '</div>';
+        });
+
+        // Per-Approval Rewards section
+        var perApprovalRewards = allRewards.filter(function(r) {
+          return r.earningMethod === 'per_approval' && r.status === 'active';
+        });
+        if (perApprovalRewards.length > 0) {
+          html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;">';
+          html += '<h4 style="font-size:0.95rem;font-weight:700;margin:0 0 12px;color:#1a1a1a;">Per-Approval Rewards</h4>';
+          html += '<p style="font-size:0.82rem;color:#888;margin:0 0 12px;">These rewards are distributed each time you approve this influencer\'s content.</p>';
+          perApprovalRewards.forEach(function(r) {
+            var typeIcon = r.type === 'free_product' ? '🎁' : (r.type === 'discount' ? '🏷️' : '🎯');
+            html += '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:10px;background:#f9fafb;">';
+            html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+            html += '<span style="font-size:1.1rem;">' + typeIcon + '</span>';
+            html += '<span style="font-weight:700;">' + (r.title || 'Per-Approval Reward') + '</span>';
+            html += '<span style="margin-left:auto;font-size:0.75rem;color:#16a34a;font-weight:600;background:rgba(22,163,74,0.08);padding:2px 8px;border-radius:9999px;">ACTIVE</span>';
+            html += '</div>';
+            if (r.description) html += '<p style="font-size:0.82rem;color:#666;margin:0 0 8px;">' + r.description + '</p>';
+
+            // Distribution form for per-approval
+            html += '<div style="margin-top:8px;">';
+            html += '<label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:6px;">Send Redemption Code</label>';
+            html += '<div style="display:flex;gap:8px;">';
+            html += '<input type="text" id="perApprovalCode_' + r._id + '" placeholder="Enter coupon code or details" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;">';
+            html += '<button onclick="submitPerApproval(\'' + r._id + '\')" style="padding:10px 16px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">Send</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+
+        container.innerHTML = html;
+      }).catch(function(err) {
+        console.error('[distribute] Load error:', err);
+        container.innerHTML = '<p style="text-align:center;color:#dc2626;padding:24px;">Could not load reward levels.</p>';
+      });
     }
 
-    /* ============== PURCHASE POINTS ============== */
-    function applyPurchase() {
-      var amount = document.getElementById('purchaseAmount').value;
-      if (!amount || parseFloat(amount) <= 0) {
-        kupToast('Please enter a valid dollar amount', 'warning');
+    function selectDistMethod(levelIdx, method) {
+      // Hide all forms for this level
+      ['email', 'instore', 'mail'].forEach(function(m) {
+        var form = document.getElementById('distForm_' + m + '_' + levelIdx);
+        if (form) form.style.display = 'none';
+      });
+      // Show selected form
+      var selected = document.getElementById('distForm_' + method + '_' + levelIdx);
+      if (selected) selected.style.display = 'block';
+      // Highlight button
+      document.querySelectorAll('.dist-method-btn[data-level="' + levelIdx + '"]').forEach(function(btn) {
+        btn.style.borderColor = btn.dataset.method === method ? 'var(--kup-blue)' : '#ddd';
+        btn.style.background = btn.dataset.method === method ? 'rgba(46,165,221,0.08)' : '#fff';
+      });
+    }
+
+    function submitDistribute(levelIdx, method) {
+      var code = method === 'email' ? (document.getElementById('distCode_' + levelIdx) || {}).value : null;
+      var trackingNumber = method === 'mail' ? (document.getElementById('distTracking_' + levelIdx) || {}).value : null;
+
+      if (method === 'email' && (!code || !code.trim())) {
+        kupToast('Please enter a coupon code or redemption link', 'error');
+        return;
+      }
+
+      kupApi.post('/api/rewards/distribute-level', {
+        partnershipId: _distributePartnershipId,
+        rewardId: _distributeRewardId,
+        levelIndex: levelIdx,
+        method: method,
+        code: code || null,
+        trackingNumber: trackingNumber || null,
+      }).then(function(data) {
+        kupToast('Reward distributed! Influencer has been notified.', 'success');
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('successMsgText').textContent = data.level + ' has been distributed via ' + method + '.';
+        // Reload to show updated claimed status
+        setTimeout(function() { loadDistributeLevels(); }, 1000);
+      }).catch(function(err) {
+        console.error('[distribute] Error:', err);
+        kupToast(err.message || 'Failed to distribute reward', 'error');
+      });
+    }
+
+    function submitPerApproval(rewardId) {
+      var codeEl = document.getElementById('perApprovalCode_' + rewardId);
+      var code = codeEl ? codeEl.value.trim() : '';
+      if (!code) {
+        kupToast('Please enter a coupon code or redemption details', 'error');
+        return;
+      }
+
+      // Use the distribute-level endpoint with a special flag for per-approval
+      kupApi.post('/api/rewards/distribute-level', {
+        partnershipId: _distributePartnershipId,
+        rewardId: rewardId,
+        levelIndex: 0,
+        method: 'email',
+        code: code,
+      }).then(function() {
+        kupToast('Redemption code sent to influencer!', 'success');
+        if (codeEl) codeEl.value = '';
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('successMsgText').textContent = 'Redemption code has been sent.';
+      }).catch(function(err) {
+        kupToast(err.message || 'Failed to send code', 'error');
+      });
+    }
+
+    // Load levels on page load
+    setTimeout(loadDistributeLevels, 500);
+
+    /* ============== PURCHASE POINTS — wired to /api/purchase-points/award ============== */
+    async function applyPurchase() {
+      var amountVal = document.getElementById('purchaseAmount').value;
+      var spendAmount = parseFloat(amountVal);
+      var resultEl = document.getElementById('purchaseResult');
+      var btn = document.getElementById('btnApplyPurchase');
+
+      if (!amountVal || isNaN(spendAmount) || spendAmount <= 0) {
+        kupToast('Please enter a valid purchase amount', 'warning');
         document.getElementById('purchaseAmount').focus();
         return;
       }
-      kupToast('$' + parseFloat(amount).toFixed(2) + ' in points purchased for Jessica Davis', 'success');
-      document.getElementById('purchaseAmount').value = '';
+
+      if (!_currentInfluencer) {
+        kupToast('Scan a customer QR code first', 'warning');
+        return;
+      }
+
+      // Get brand ID
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+      if (!brandId) { kupToast('No active brand selected', 'error'); return; }
+
+      // Get influencer profile ID from partnership object
+      var influencerProfileId = _currentInfluencer.influencerId
+        || _currentInfluencer.influencerProfileId
+        || _currentInfluencer._id
+        || null;
+
+      btn.disabled = true;
+      btn.textContent = 'Awarding…';
+      if (resultEl) resultEl.style.display = 'none';
+
+      try {
+        var token = await firebase.auth().currentUser.getIdToken();
+        var resp = await fetch('/api/purchase-points/award', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandId,
+            influencerProfileId,
+            spendAmount,
+            channel: 'instore',
+            processedBy: firebase.auth().currentUser.email || 'staff',
+          }),
+        });
+
+        var data = await resp.json();
+
+        if (!resp.ok) {
+          if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);color:#991b1b;';
+            resultEl.innerHTML = '❌ ' + (data.error || 'Could not award points — please try again.');
+          }
+          kupToast(data.error || 'Could not award points', 'error');
+          return;
+        }
+
+        var infName = _currentInfluencer.influencerName || _currentInfluencer.name || 'Customer';
+
+        if (data.awarded) {
+          // ✅ Points awarded
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.25);color:#166534;';
+            resultEl.innerHTML =
+              '✅ <strong>' + data.pointsAwarded + ' pts awarded</strong> to ' + infName +
+              ' for $' + spendAmount.toFixed(2) + ' purchase (Level ' + data.levelIndex + ')<br>' +
+              (data.newBalance !== null ? '<span style="font-size:0.78rem;opacity:0.8;">New balance: ' + data.newBalance + ' pts</span>' : '');
+          }
+          kupToast(data.pointsAwarded + ' pts awarded to ' + infName, 'success');
+          document.getElementById('purchaseAmount').value = '';
+        } else if (!data.accountFound) {
+          // ℹ️ No KUP account found — forward-earning message
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.3);color:#92400e;';
+            resultEl.innerHTML =
+              '⚠️ No KUP account found for this customer.<br>' +
+              '<span style="font-size:0.78rem;opacity:0.85;">They would have earned <strong>' + (data.pointsWouldEarn || 0) + ' pts</strong> — share your brand QR so they can join KUP and start earning.</span>';
+          }
+          kupToast('No KUP account found — ' + (data.pointsWouldEarn || 0) + ' pts missed', 'warning');
+          document.getElementById('purchaseAmount').value = '';
+        } else {
+          // Below tier floor
+          if (resultEl) {
+            resultEl.style.cssText = 'display:block;margin-top:16px;padding:14px 16px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:#f8f9fa;border:1px solid #e8e8e8;color:#666;';
+            resultEl.innerHTML = 'ℹ️ ' + (data.message || 'Purchase below minimum spend threshold — no points earned.');
+          }
+        }
+      } catch(e) {
+        console.error('applyPurchase error:', e);
+        kupToast('Could not award points — please check connection', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Award Points';
+      }
     }
 
     /* ============== GIFT POINTS ============== */
-    function applyGift() {
+    async function applyGift() {
       var amount = document.getElementById('giftAmount').value;
       if (!amount || parseInt(amount) <= 0) {
         kupToast('Please enter a valid point amount', 'warning');
         document.getElementById('giftAmount').focus();
         return;
       }
-      kupToast(parseInt(amount) + ' points gifted to Jessica Davis', 'success');
-      document.getElementById('giftAmount').value = '';
-    }
-    /* ============== DISTRIBUTION HISTORY ============== */
-    function loadDistributionHistory() {
+
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
       var params = new URLSearchParams(window.location.search);
-      var brandId = params.get('brandId');
-      if (!brandId || typeof KUP_API === 'undefined') return;
+      var partnerId = params.get('influencerId') || params.get('partnerId');
 
-      KUP_API.request('GET', '/api/rewards/distribution-history?brandId=' + brandId)
-        .then(function(res) {
-          var list = (res && res.distributions) || [];
-          var countEl = document.getElementById('distCount');
-          var tableEl = document.getElementById('distTable');
-          var emptyEl = document.getElementById('distEmpty');
-          var bodyEl = document.getElementById('distBody');
+      if (!brandId || !partnerId) {
+        kupToast('Missing brand or partner context', 'error');
+        return;
+      }
 
-          countEl.textContent = list.length + ' distributed';
-
-          if (list.length === 0) {
-            emptyEl.style.display = 'block';
-            tableEl.style.display = 'none';
-            return;
-          }
-
-          emptyEl.style.display = 'none';
-          tableEl.style.display = 'table';
-          bodyEl.innerHTML = '';
-
-          list.forEach(function(d) {
-            var date = new Date(d.distributedAt);
-            var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            var methodColors = { email: '#2ea5dd', instore: '#16a34a', mail: '#ed8444' };
-            var methodLabels = { email: 'Email', instore: 'In-Store', mail: 'Shipped' };
-            var methodColor = methodColors[d.method] || '#888';
-            var methodLabel = methodLabels[d.method] || d.method;
-            var codeOrTracking = d.code || d.trackingNumber || '—';
-
-            var tr = document.createElement('tr');
-            tr.style.borderBottom = '1px solid #f0f0f0';
-            tr.innerHTML =
-              '<td style="padding:14px 16px;font-size:.84rem;color:#555">' + dateStr + '</td>' +
-              '<td style="padding:14px 16px">' +
-                '<div style="font-size:.84rem;font-weight:600;color:#1a1a1a">' + (d.influencerName || 'Unknown') + '</div>' +
-                (d.influencerHandle ? '<div style="font-size:.72rem;color:#888">@' + d.influencerHandle + '</div>' : '') +
-              '</td>' +
-              '<td style="padding:14px 16px;font-size:.84rem;font-weight:600;color:#1a1a1a">' + (d.rewardValue || '—') + '</td>' +
-              '<td style="padding:14px 16px"><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;background:' + methodColor + '15;color:' + methodColor + '">' + methodLabel + '</span></td>' +
-              '<td style="padding:14px 16px;font-size:.82rem;font-family:monospace;color:#333">' + codeOrTracking + '</td>' +
-              '<td style="padding:14px 16px;font-size:.82rem;color:#888;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (d.notes || '—') + '</td>';
-            bodyEl.appendChild(tr);
-          });
-        })
-        .catch(function(err) {
-          console.error('Distribution history error:', err);
+      try {
+        await kupApi.post('/api/partnerships/' + partnerId + '/award-gratitude', {
+          stage: 'gift',
+          giftPoints: parseInt(amount),
         });
+        var infName = _currentInfluencer ? ((_currentInfluencer.influencerProfileId || _currentInfluencer).displayName || 'Influencer') : 'Influencer';
+        kupToast(parseInt(amount) + ' points gifted to ' + infName + '!', 'success');
+        document.getElementById('giftAmount').value = '';
+        // Reload levels to reflect new points
+        setTimeout(loadDistributeLevels, 500);
+      } catch(err) {
+        kupToast(err.message || 'Failed to gift points', 'error');
+      }
     }
-
-    // Load on page ready
-    loadDistributionHistory();
   </script>
   <!--
     PLATFORM CONFIG — Reward rules & tier gating defined in platform-config.js.
-    <script src="/js/brand-context.js"></script>
     See: /js/platform-config.js
-    <script src="/js/brand-context.js"></script>
     Architecture doc: /brands/KeepUsPostd/product/REWARD_SYSTEM_ARCHITECTURE.md
   -->
   <script src="/js/platform-config.js"></script>
-    <script src="/js/brand-context.js"></script>
-    <script src="/js/resume-banner.js"></script>
-    <script src="/js/onboarding.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-/* ============== LOAD REWARD DISTRIBUTION DATA ============== */
-    function loadDistribute() {
-      var brandId = '';
-      try { var u = JSON.parse(localStorage.getItem('kup_user') || '{}'); brandId = u.brand_id || ''; } catch(e) {}
-      if (!brandId) {
-        KUP_API.brands.getAll().then(function(r) {
-          if (r.status_code === 200 && r.data && r.data.length > 0) fetchDistributeData(r.data[0]._id || r.data[0].id);
-        });
-        return;
-      }
-      fetchDistributeData(brandId);
-    }
-    function fetchDistributeData(brandId) {
-      KUP_API.cashRewards.getRewardHistory(brandId).then(function(r) {
-        if (r.status_code === 200 && r.data) {
-          var unlocked = r.data.filter(function(item) { return item.unlocked_rewards > 0; });
-          var countEl = document.querySelector('.stat-num, .stat-value');
-          if (countEl) countEl.textContent = unlocked.length;
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase SDK (compat — must load BEFORE firebase-client.js) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/brand-context.js"></script>
+  <script src="/js/resume-banner.js"></script>
+  <script src="/js/onboarding.js"></script>
+
+  <!-- Auth gate + load influencer & reward data from API -->
+  <script>
+    var _currentInfluencer = null;
+    var _currentReward = null;
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+
+      // Hydrate header from brand context
+      try {
+        var brand = KUP_BRAND_CONTEXT.getActiveBrand();
+        if (brand && brand.name) {
+          var brandEl = document.querySelector('.profile-info .brand');
+          if (brandEl) brandEl.textContent = brand.name;
+          // Header profile stays as HTML defaults (consistent across all pages)
         }
-      });
+
+        // Get brandId and influencerId from URL params
+        var brandId = brand && (brand.mongoId || brand._id || brand.id) || null;
+        var params = new URLSearchParams(window.location.search);
+        var influencerId = params.get('influencerId') || params.get('partnerId');
+
+        if (!brandId) return;
+
+        // FLOW ROUTING:
+        // With influencerId → hide scanner, show layout with influencer + rewards
+        // Without influencerId → show scanner only, layout hidden until scan completes
+        if (influencerId) {
+          // Specific influencer flow — hide scanner, show layout
+          var scanSec = document.getElementById('scanSection');
+          if (scanSec) scanSec.style.display = 'none';
+          var layout = document.getElementById('distributeLayout');
+
+          // Hydrate from URL params first, then show with fade
+          var urlName = params.get('name');
+          var urlHandle = params.get('handle');
+          if (urlName || urlHandle) {
+            hydrateInfluencer({ influencerName: urlName || '', handle: urlHandle || '', tier: '', followers: 0, engagement: 0, posts: 0 });
+          }
+          // Show layout with smooth fade-in
+          if (layout) {
+            layout.style.display = '';
+            requestAnimationFrame(function() { layout.style.opacity = '1'; });
+          }
+
+          // Then load full data from API
+          kupApi.get('/api/partnerships?brandId=' + brandId).then(function(data) {
+            var partnerships = data.partnerships || data || [];
+            var urlHandle = params.get('handle');
+            var match = partnerships.find(function(p) {
+              var inf = p.influencerProfileId || {};
+              return (
+                p._id === influencerId ||
+                String(p._id) === String(influencerId) ||
+                (inf._id && String(inf._id) === String(influencerId)) ||
+                (urlHandle && inf.handle === urlHandle)
+              );
+            });
+            if (match) {
+              _currentInfluencer = match;
+              hydrateInfluencer(match);
+              console.log('[distribute] Matched partnership:', match._id, 'avatar:', (match.influencerProfileId || {}).avatarUrl ? 'YES' : 'NO');
+            } else {
+              console.warn('[distribute] No match found for', influencerId, 'in', partnerships.length, 'partnerships');
+            }
+          }).catch(function(err) {
+            console.warn('[distribute-reward] Could not load partnerships:', err);
+          });
+        } else {
+          // No influencerId — show scanner for QR scan flow
+          var scanSec = document.getElementById('scanSection');
+          if (scanSec) scanSec.style.display = 'block';
+        }
+
+        // Load reward options from API
+        kupApi.get('/api/rewards?brandId=' + brandId).then(function(data) {
+          var rewards = data.rewards || data || [];
+          // Use first active non-cash reward as default distribute option
+          var active = rewards.find(function(r) { return r.status === 'active'; });
+          if (active) {
+            _currentReward = active;
+            hydrateRewardOffer(active);
+          }
+        }).catch(function(err) {
+          console.warn('[distribute-reward] Could not load rewards:', err);
+        });
+
+      } catch(e) { console.warn('[distribute-reward] Brand context not available:', e); }
+    });
+
+    // Hydrate the influencer card with real data
+    function hydrateInfluencer(data) {
+      // Handle both flat object and partnership with nested influencerProfileId
+      var inf = data.influencerProfileId || data;
+      var name = inf.displayName || inf.influencerName || inf.name || data.influencerName || 'Influencer';
+      var handle = inf.handle || inf.username || data.handle || '';
+      var tier = inf.influenceTier || inf.tier || data.tier || 'Influencer';
+      var followers = inf.followerCount || inf.followers || data.followers || 0;
+      var engagement = inf.engagementRate || inf.engagement || data.engagement || 0;
+      var posts = inf.totalReviews || inf.postCount || inf.posts || data.posts || 0;
+
+      var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+
+      var avatarEl = document.querySelector('.influencer-avatar');
+      var avatarUrl = inf.avatarUrl || inf.avatar || data.avatarUrl || null;
+      console.log('[distribute] hydrateInfluencer: name=' + name + ', handle=' + handle + ', tier=' + tier + ', avatar=' + (avatarUrl ? 'YES' : 'NO'));
+      if (avatarEl) {
+        if (avatarUrl) {
+          avatarEl.style.overflow = 'hidden';
+          avatarEl.innerHTML = '<img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display=\'none\'">';
+        } else {
+          avatarEl.innerHTML = PERSON_SVG;
+        }
+      }
+      var nameEl = document.querySelector('.influencer-name');
+      if (nameEl) nameEl.textContent = name;
+      var handleEl = document.querySelector('.influencer-handle');
+      if (handleEl) handleEl.textContent = handle ? '@' + handle.replace(/^@/, '') : '';
+      var tierEl = document.querySelector('.influencer-tier');
+      var TIER_LABELS = { nano:'Nano', micro:'Micro', mid:'Mid-Tier', macro:'Macro', mega:'Mega', celebrity:'Celebrity', startup:'Startup', unverified:'Startup' };
+      if (tierEl) tierEl.textContent = (TIER_LABELS[(tier || '').toLowerCase()] || tier || 'Influencer');
+
+      var stats = document.querySelectorAll('.influencer-stat .stat-num');
+      if (stats.length >= 3) {
+        stats[0].textContent = formatNum(followers);
+        stats[1].textContent = (typeof engagement === 'number' ? engagement.toFixed(1) : engagement) + '%';
+        stats[2].textContent = posts;
+      }
+
+      // Update confirm text
+      var confirmEl = document.querySelector('.confirm-text');
+      if (confirmEl) confirmEl.textContent = 'Clicking here confirms that your brand reward has been sent to ' + name + '.';
+
+      // Update purchase points tab description with real customer name
+      var purchaseDesc = document.getElementById('purchaseTabDesc');
+      if (purchaseDesc) purchaseDesc.textContent = 'Enter ' + name + '\'s purchase total — points are awarded based on your tier configuration.';
+      var successP = document.querySelector('.success-message p');
+      if (successP && _currentReward) successP.textContent = name + ' has been sent the "' + (_currentReward.name || 'Reward') + '" reward.';
     }
-    document.addEventListener('DOMContentLoaded', loadDistribute);
+
+    // Hydrate the reward offer section with real data
+    function hydrateRewardOffer(reward) {
+      var offerEl = document.querySelector('#pane-distribute .reward-offer');
+      if (!offerEl) return;
+      var typeEl = offerEl.querySelector('.reward-type-indicator');
+      if (typeEl) {
+        var isCash = reward.type === 'cash' || reward.rewardType === 'cash';
+        typeEl.className = 'reward-type-indicator ' + (isCash ? 'cash' : 'non-cash');
+        typeEl.textContent = isCash ? 'CASH' : 'NON-CASH';
+      }
+      var h3 = offerEl.querySelector('h3');
+      if (h3) h3.textContent = reward.name || reward.title || 'Reward';
+      var p = offerEl.querySelector('p');
+      if (p) p.textContent = reward.description || 'Brand reward for influencer partners';
+
+      // Update point progress if available
+      if (reward.pointThreshold) {
+        var progFill = offerEl.querySelector('.point-progress-fill');
+        var progText = offerEl.querySelector('.point-progress-text');
+        if (_currentInfluencer && _currentInfluencer.points != null && progFill) {
+          var pct = Math.min(100, Math.round((_currentInfluencer.points / reward.pointThreshold) * 100));
+          progFill.style.width = pct + '%';
+          if (progText) progText.innerHTML = '<strong>' + (_currentInfluencer.points || 0) + '</strong> / ' + reward.pointThreshold + ' pts';
+        }
+      }
+    }
+
+    function formatNum(n) {
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return String(n);
+    }
   </script>
   <!-- Mobile Bottom Navigation -->
   <nav class="kup-mobile-nav" aria-label="Mobile navigation">
@@ -543,5 +1065,168 @@
     <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
     <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
   </nav>
+
+  <!-- QR Scanner Logic -->
+  <script>
+    var scanning = false;
+    var scanStream = null;
+    var _scannedInfluencer = null;
+
+    // Scanner is always visible — no toggle needed
+
+    function toggleScan() {
+      if (scanning) { stopScan(); } else { startScan(); }
+    }
+
+    function startScan() {
+      var btn = document.getElementById('btnScan');
+      var video = document.getElementById('scanVideo');
+      var placeholder = document.getElementById('scanPlaceholder');
+      var scanLine = document.getElementById('scanLine');
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(function(s) {
+            scanStream = s;
+            video.srcObject = s;
+            video.style.display = 'block';
+            placeholder.style.display = 'none';
+            scanLine.style.display = 'block';
+            scanning = true;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
+            btn.classList.add('active');
+
+            // Demo: simulate QR detection after 3 seconds
+            // In production, replace with real QR decode (e.g., jsQR library)
+            setTimeout(function() {
+              if (scanning) {
+                stopScan();
+                simulateScanResult();
+              }
+            }, 3000);
+          })
+          .catch(function(err) {
+            console.warn('[qr-scan] Camera error:', err);
+            placeholder.innerHTML = '<div class="scan-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" width="48" height="48"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div><div class="scan-placeholder-text">Camera access needed<br>Simulating scan...</div>';
+            scanLine.style.display = 'block';
+            scanning = true;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Stop Scanning';
+            btn.classList.add('active');
+
+            setTimeout(function() {
+              if (scanning) { stopScan(); simulateScanResult(); }
+            }, 2000);
+          });
+      } else {
+        // No getUserMedia — simulate
+        scanLine.style.display = 'block';
+        scanning = true;
+        btn.classList.add('active');
+        btn.innerHTML = 'Scanning...';
+        setTimeout(function() { stopScan(); simulateScanResult(); }, 2000);
+      }
+    }
+
+    function stopScan() {
+      var btn = document.getElementById('btnScan');
+      var video = document.getElementById('scanVideo');
+      var placeholder = document.getElementById('scanPlaceholder');
+      var scanLine = document.getElementById('scanLine');
+
+      if (scanStream) {
+        scanStream.getTracks().forEach(function(t) { t.stop(); });
+        scanStream = null;
+      }
+      video.style.display = 'none';
+      video.srcObject = null;
+      placeholder.style.display = '';
+      placeholder.innerHTML = '<div class="scan-placeholder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" width="48" height="48"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div><div class="scan-placeholder-text">Camera preview</div>';
+      scanLine.style.display = 'none';
+      scanning = false;
+      btn.classList.remove('active');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h-3"/></svg> Start Scanning';
+    }
+
+    // Demo scan result — in production this would parse the QR data
+    // QR code would contain: { influencerId: '...', handle: '...', name: '...' }
+    function simulateScanResult() {
+      // Try to load a real influencer from partnerships API
+      var brand = null;
+      try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
+      var brandId = brand && (brand.mongoId || brand._id || brand.id);
+
+      if (brandId && typeof kupApi !== 'undefined') {
+        kupApi.get('/api/partnerships?brandId=' + brandId).then(function(data) {
+          var partnerships = data.partnerships || data || [];
+          if (partnerships.length > 0) {
+            var match = partnerships[0]; // Use first partnership as scanned result
+            _scannedInfluencer = match;
+            showScanResultCard(match);
+          } else {
+            showDemoScanResult();
+          }
+        }).catch(function() { showDemoScanResult(); });
+      } else {
+        showDemoScanResult();
+      }
+    }
+
+    function showDemoScanResult() {
+      _scannedInfluencer = {
+        influencerName: 'Jessica Davis',
+        handle: 'jessicadavis',
+        tier: 'Micro Influencer',
+        followers: 12400,
+        engagement: 3.2,
+        posts: 47
+      };
+      showScanResultCard(_scannedInfluencer);
+    }
+
+    function showScanResultCard(inf) {
+      var name = inf.influencerName || inf.name || 'Influencer';
+      var handle = inf.handle || inf.username || '';
+      var tier = inf.tier || inf.influenceTier || 'Influencer';
+
+      document.getElementById('scanInfluencer').textContent = handle ? '@' + handle.replace(/^@/, '') : '—';
+      document.getElementById('scanName').textContent = name;
+      document.getElementById('scanTier').textContent = tier;
+      document.getElementById('scanResult').classList.add('show');
+      document.getElementById('btnScan').style.display = 'none';
+      kupToast('Influencer identified: ' + name, 'success');
+    }
+
+    function useScanResult() {
+      if (!_scannedInfluencer) return;
+      // Hydrate the influencer card in the left column
+      _currentInfluencer = _scannedInfluencer;
+      hydrateInfluencer(_scannedInfluencer);
+
+      // Update URL params so reward distribution has the influencerId
+      if (_scannedInfluencer._id || _scannedInfluencer.influencerId) {
+        var newId = _scannedInfluencer._id || _scannedInfluencer.influencerId;
+        var url = new URL(window.location);
+        url.searchParams.set('influencerId', newId);
+        window.history.replaceState({}, '', url);
+      }
+
+      // Hide scanner, show the influencer + reward layout
+      var section = document.getElementById('scanSection');
+      if (section) section.style.display = 'none';
+      var layout = document.getElementById('distributeLayout');
+      if (layout) layout.style.display = '';
+      kupToast('Influencer loaded — choose a reward tab to distribute', 'info');
+
+      // Scroll to reward card
+      var rewardCard = document.querySelector('.reward-card');
+      if (rewardCard) rewardCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetScan() {
+      _scannedInfluencer = null;
+      document.getElementById('scanResult').classList.remove('show');
+      document.getElementById('btnScan').style.display = '';
+    }
+  </script>
 </body>
 </html>
