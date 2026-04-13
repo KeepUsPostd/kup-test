@@ -367,28 +367,14 @@
 
       <div class="tab-content">
         <div class="tab-pane active" id="pane-distribute">
-          <div class="reward-offer">
-            <div class="reward-icon">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-            </div>
-            <span class="reward-type-indicator non-cash">NON-CASH</span>
-            <h3>20% Off First Order</h3>
-            <p>Brand reward for KeepUsPostd influencer partners</p>
-            <div class="point-cat-tags">
-              <span class="point-cat-tag content-pts">Content Pts</span>
-              <span class="point-cat-tag purchase-pts">Purchase Pts</span>
-            </div>
-            <div class="point-progress-wrap">
-              <div class="point-progress-bar"><div class="point-progress-fill" style="width:65%"></div></div>
-              <p class="point-progress-text"><strong>325</strong> / 500 pts</p>
-            </div>
+          <!-- Unlocked levels will be rendered here by JS -->
+          <div id="distributeLevelsContainer">
+            <p style="text-align:center;color:#999;padding:24px;">Loading reward levels...</p>
           </div>
-          <button class="btn-distribute" id="btnDistribute" onclick="distributeReward()">Distribute Reward</button>
-          <p class="confirm-text">Clicking here confirms that your brand reward has been sent to Jessica Davis.</p>
-          <div class="success-message" id="successMsg">
+          <div class="success-message" id="successMsg" style="display:none;">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <h4>Reward Distributed!</h4>
-            <p>Jessica Davis has been sent the "20% Off First Order" reward.</p>
+            <p id="successMsgText"></p>
           </div>
         </div>
 
@@ -534,47 +520,155 @@
       document.getElementById('pane-' + tab).classList.add('active');
     }
 
-    /* ============== DISTRIBUTE REWARD ============== */
-    function distributeReward() {
-      var btn = document.getElementById('btnDistribute');
-      btn.textContent = 'Sending...';
-      btn.style.opacity = '0.7';
+    /* ============== DISTRIBUTE REWARD — Level-Aware ============== */
+    var _distributeRewardId = null;
+    var _distributePartnershipId = null;
 
-      // Build API payload from current context
+    function loadDistributeLevels() {
+      var container = document.getElementById('distributeLevelsContainer');
+      if (!container) return;
+
       var brand = null;
       try { brand = KUP_BRAND_CONTEXT.getActiveBrand(); } catch(e) {}
-      var brandId = brand && brand._id ? brand._id : (brand && brand.id ? brand.id : null);
+      var brandId = brand?.mongoId || brand?._id || brand?.id;
       var params = new URLSearchParams(window.location.search);
-      var influencerId = params.get('influencerId') || params.get('partnerId');
-      var rewardId = _currentReward && (_currentReward._id || _currentReward.id);
-      var recipientName = _currentInfluencer ? (_currentInfluencer.influencerName || _currentInfluencer.name || 'Influencer') : 'Influencer';
+      _distributePartnershipId = params.get('influencerId') || params.get('partnerId');
 
-      if (brandId && influencerId && rewardId && typeof kupApi !== 'undefined') {
-        kupApi.post('/api/rewards/distribute', {
-          brandId: brandId,
-          influencerId: influencerId,
-          rewardId: rewardId
-        }).then(function() {
-          btn.textContent = 'Reward Sent';
-          btn.classList.add('sent');
-          document.getElementById('successMsg').classList.add('show');
-          kupToast('Reward distributed to ' + recipientName + '!', 'success');
-        }).catch(function(err) {
-          console.error('[distribute-reward] API error:', err);
-          btn.textContent = 'Distribute Reward';
-          btn.style.opacity = '1';
-          kupToast('Failed to distribute reward. Try again.', 'error');
-        });
-      } else {
-        // Fallback: no API context, show success after delay
-        setTimeout(function() {
-          btn.textContent = 'Reward Sent';
-          btn.classList.add('sent');
-          document.getElementById('successMsg').classList.add('show');
-          kupToast('Reward distributed to ' + recipientName + '!', 'success');
-        }, 800);
+      if (!brandId || !_distributePartnershipId) {
+        container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">Missing brand or partner context.</p>';
+        return;
       }
+
+      kupApi.get('/api/rewards/brand-progress?brandId=' + brandId).then(function(data) {
+        var influencers = data.influencers || [];
+        var rewards = data.rewards || [];
+
+        // Find this influencer's progress
+        var entry = influencers.find(function(e) { return String(e.partnershipId) === String(_distributePartnershipId); });
+        if (!entry || !entry.rewards || entry.rewards.length === 0) {
+          container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">No point-based rewards configured for this brand.</p>';
+          return;
+        }
+
+        var rw = entry.rewards[0]; // Single reward with levels
+        _distributeRewardId = rw.rewardId;
+        var levels = rw.levels || [];
+        var totalPts = rw.totalPoints || 0;
+
+        if (levels.length === 0) {
+          container.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">No reward levels configured. Set up levels in the reward wizard.</p>';
+          return;
+        }
+
+        var html = '<div style="margin-bottom:16px;">' +
+          '<p style="font-size:0.85rem;color:#666;margin:0 0 8px;">Total points: <strong>' + totalPts + '</strong></p></div>';
+
+        levels.forEach(function(lvl, idx) {
+          var isUnlocked = lvl.unlocked;
+          var isClaimed = lvl.claimed;
+          var icon = lvl.rewardType === 'free' ? '🎁' : '🏷️';
+          var borderColor = isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#e5e7eb');
+          var bgColor = isClaimed ? '#f0fdf4' : (isUnlocked ? '#fffbeb' : '#f9fafb');
+
+          html += '<div style="border:2px solid ' + borderColor + ';border-radius:12px;padding:16px;margin-bottom:12px;background:' + bgColor + ';">';
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
+          html += '<div style="display:flex;align-items:center;gap:8px;">';
+          html += '<span style="width:28px;height:28px;border-radius:50%;background:' + (isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#ccc')) + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;">' + (isClaimed ? '✓' : (idx + 1)) + '</span>';
+          html += '<span style="font-weight:700;font-size:1rem;">' + icon + ' ' + (lvl.rewardValue || 'Level ' + (idx + 1)) + '</span>';
+          html += '</div>';
+          html += '<span style="font-size:0.8rem;color:#888;">' + lvl.threshold + ' pts</span>';
+          html += '</div>';
+
+          if (isClaimed) {
+            html += '<div style="color:#16a34a;font-weight:600;font-size:0.85rem;">✅ Distributed</div>';
+          } else if (isUnlocked) {
+            // Show distribution form
+            html += '<div style="margin-top:8px;">';
+            html += '<label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:6px;">Distribution Method</label>';
+            html += '<div style="display:flex;gap:6px;margin-bottom:10px;">';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="email" onclick="selectDistMethod(' + idx + ',\'email\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">📧 Email Code</button>';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="instore" onclick="selectDistMethod(' + idx + ',\'instore\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">🏪 In-Store</button>';
+            html += '<button type="button" class="dist-method-btn" data-level="' + idx + '" data-method="mail" onclick="selectDistMethod(' + idx + ',\'mail\')" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:var(--kup-font);font-size:0.8rem;font-weight:600;cursor:pointer;">📦 Mail</button>';
+            html += '</div>';
+
+            // Email form
+            html += '<div id="distForm_email_' + idx + '" style="display:none;">';
+            html += '<input type="text" id="distCode_' + idx + '" placeholder="Enter coupon code or redemption link" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;margin-bottom:8px;">';
+            html += '<button onclick="submitDistribute(' + idx + ',\'email\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Send Code to Influencer</button>';
+            html += '</div>';
+
+            // In-store form
+            html += '<div id="distForm_instore_' + idx + '" style="display:none;">';
+            html += '<p style="font-size:0.82rem;color:#666;margin:0 0 8px;">Influencer will show their Market Code QR at checkout. The reward will be marked as claimed when scanned.</p>';
+            html += '<button onclick="submitDistribute(' + idx + ',\'instore\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Mark Ready for Pickup</button>';
+            html += '</div>';
+
+            // Mail form
+            html += '<div id="distForm_mail_' + idx + '" style="display:none;">';
+            html += '<input type="text" id="distTracking_' + idx + '" placeholder="Tracking number (optional)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:var(--kup-font);font-size:0.85rem;margin-bottom:8px;">';
+            html += '<button onclick="submitDistribute(' + idx + ',\'mail\')" style="width:100%;padding:10px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-family:var(--kup-font);font-weight:700;font-size:0.9rem;cursor:pointer;">Mark as Shipped</button>';
+            html += '</div>';
+
+            html += '</div>';
+          } else {
+            html += '<div style="color:#999;font-size:0.82rem;">🔒 Not yet unlocked (' + (lvl.threshold - totalPts) + ' pts to go)</div>';
+          }
+          html += '</div>';
+        });
+
+        container.innerHTML = html;
+      }).catch(function(err) {
+        console.error('[distribute] Load error:', err);
+        container.innerHTML = '<p style="text-align:center;color:#dc2626;padding:24px;">Could not load reward levels.</p>';
+      });
     }
+
+    function selectDistMethod(levelIdx, method) {
+      // Hide all forms for this level
+      ['email', 'instore', 'mail'].forEach(function(m) {
+        var form = document.getElementById('distForm_' + m + '_' + levelIdx);
+        if (form) form.style.display = 'none';
+      });
+      // Show selected form
+      var selected = document.getElementById('distForm_' + method + '_' + levelIdx);
+      if (selected) selected.style.display = 'block';
+      // Highlight button
+      document.querySelectorAll('.dist-method-btn[data-level="' + levelIdx + '"]').forEach(function(btn) {
+        btn.style.borderColor = btn.dataset.method === method ? 'var(--kup-blue)' : '#ddd';
+        btn.style.background = btn.dataset.method === method ? 'rgba(46,165,221,0.08)' : '#fff';
+      });
+    }
+
+    function submitDistribute(levelIdx, method) {
+      var code = method === 'email' ? (document.getElementById('distCode_' + levelIdx) || {}).value : null;
+      var trackingNumber = method === 'mail' ? (document.getElementById('distTracking_' + levelIdx) || {}).value : null;
+
+      if (method === 'email' && (!code || !code.trim())) {
+        kupToast('Please enter a coupon code or redemption link', 'error');
+        return;
+      }
+
+      kupApi.post('/api/rewards/distribute-level', {
+        partnershipId: _distributePartnershipId,
+        rewardId: _distributeRewardId,
+        levelIndex: levelIdx,
+        method: method,
+        code: code || null,
+        trackingNumber: trackingNumber || null,
+      }).then(function(data) {
+        kupToast('Reward distributed! Influencer has been notified.', 'success');
+        document.getElementById('successMsg').style.display = 'block';
+        document.getElementById('successMsgText').textContent = data.level + ' has been distributed via ' + method + '.';
+        // Reload to show updated claimed status
+        setTimeout(function() { loadDistributeLevels(); }, 1000);
+      }).catch(function(err) {
+        console.error('[distribute] Error:', err);
+        kupToast(err.message || 'Failed to distribute reward', 'error');
+      });
+    }
+
+    // Load levels on page load
+    setTimeout(loadDistributeLevels, 500);
 
     /* ============== PURCHASE POINTS — wired to /api/purchase-points/award ============== */
     async function applyPurchase() {

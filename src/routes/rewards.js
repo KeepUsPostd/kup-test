@@ -573,4 +573,82 @@ router.post('/distribute', requireAuth, async (req, res) => {
 
 // GET /api/rewards/my-progress?brandId=xxx
 // Influencer-facing — returns point balance per reward for the current user's brand partnership
+// POST /api/rewards/distribute-level — Distribute an unlocked reward level to an influencer
+// Body: { partnershipId, rewardId, levelIndex, method, code, trackingNumber, notes }
+// method: 'email' | 'instore' | 'mail'
+router.post('/distribute-level', requireAuth, async (req, res) => {
+  try {
+    const { partnershipId, rewardId, levelIndex, method, code, trackingNumber, notes } = req.body;
+
+    if (!partnershipId || rewardId === undefined || levelIndex === undefined) {
+      return res.status(400).json({ error: 'partnershipId, rewardId, and levelIndex are required' });
+    }
+    if (!method || !['email', 'instore', 'mail'].includes(method)) {
+      return res.status(400).json({ error: 'method must be email, instore, or mail' });
+    }
+
+    const { Partnership, Brand } = require('../models');
+    const partnership = await Partnership.findById(partnershipId)
+      .populate('influencerProfileId', 'displayName handle avatarUrl userId paypalEmail');
+    if (!partnership) return res.status(404).json({ error: 'Partnership not found' });
+
+    const reward = await Reward.findById(rewardId);
+    if (!reward) return res.status(404).json({ error: 'Reward not found' });
+
+    const levels = reward.pointConfig?.levels || [];
+    if (levelIndex < 0 || levelIndex >= levels.length) {
+      return res.status(400).json({ error: 'Invalid level index' });
+    }
+
+    const level = levels[levelIndex];
+    const inf = partnership.influencerProfileId;
+    const brand = await Brand.findById(partnership.brandId);
+
+    // Mark level as claimed
+    if (!partnership.claimedLevels) partnership.claimedLevels = [];
+    if (!partnership.claimedLevels.includes(levelIndex)) {
+      partnership.claimedLevels.push(levelIndex);
+    }
+    await partnership.save();
+
+    // Notify influencer based on method
+    const notify = require('../services/notifications');
+    if (inf?.userId) {
+      let msg = '';
+      if (method === 'email') {
+        msg = `Your reward "${level.rewardValue}" from ${brand?.name} is ready! Code: ${code || 'Check your email'}`;
+      } else if (method === 'instore') {
+        msg = `Your reward "${level.rewardValue}" from ${brand?.name} is ready for pickup! Show your Market Code QR at the store.`;
+      } else if (method === 'mail') {
+        msg = `Your reward "${level.rewardValue}" from ${brand?.name} has been shipped!${trackingNumber ? ' Tracking: ' + trackingNumber : ''}`;
+      }
+
+      // Create in-app notification directly (createInApp is internal to notifications.js)
+      const Notification = require('../models/Notification');
+      await Notification.create({
+        userId: inf.userId,
+        title: 'Reward Distributed!',
+        message: msg,
+        type: 'reward',
+        metadata: {
+          brandName: brand?.name || '',
+          brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
+          rewardValue: level.rewardValue,
+          rewardType: level.rewardType,
+          method,
+          code: method === 'email' ? code : null,
+          trackingNumber: method === 'mail' ? trackingNumber : null,
+          isDistribution: true,
+        },
+      });
+    }
+
+    console.log(`🎁 Reward distributed: "${level.rewardValue}" to ${inf?.displayName} via ${method}`);
+    res.json({ message: 'Reward distributed', level: level.rewardValue, method, claimedLevels: partnership.claimedLevels });
+  } catch (error) {
+    console.error('Distribute level error:', error.message);
+    res.status(500).json({ error: 'Could not distribute reward' });
+  }
+});
+
 module.exports = router;
