@@ -316,23 +316,23 @@
     </div>
   </div>
 
-  <div class="distribute-layout" id="distributeLayout" style="display:none;">
+  <div class="distribute-layout" id="distributeLayout" style="display:none;opacity:0;transition:opacity 0.3s ease;">
     <div class="influencer-card">
-      <div class="influencer-avatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
-      <h2 class="influencer-name">Jessica Davis</h2>
-      <p class="influencer-handle">@jessicadavis</p>
-      <span class="influencer-tier">Micro Influencer</span>
+      <div class="influencer-avatar" style="overflow:hidden;"></div>
+      <h2 class="influencer-name" style="min-height:1.4em;"></h2>
+      <p class="influencer-handle" style="min-height:1.2em;"></p>
+      <span class="influencer-tier" style="min-height:1.6em;"></span>
       <div class="influencer-stats">
         <div class="influencer-stat">
-          <div class="stat-num">12.4K</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Followers</div>
         </div>
         <div class="influencer-stat">
-          <div class="stat-num">3.2%</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Engagement</div>
         </div>
         <div class="influencer-stat">
-          <div class="stat-num">47</div>
+          <div class="stat-num">—</div>
           <div class="stat-label">Posts</div>
         </div>
       </div>
@@ -894,13 +894,17 @@
           var scanSec = document.getElementById('scanSection');
           if (scanSec) scanSec.style.display = 'none';
           var layout = document.getElementById('distributeLayout');
-          if (layout) layout.style.display = '';
 
-          // Try to hydrate from URL params first (instant display)
+          // Hydrate from URL params first, then show with fade
           var urlName = params.get('name');
           var urlHandle = params.get('handle');
           if (urlName || urlHandle) {
-            hydrateInfluencer({ influencerName: urlName || '', handle: urlHandle || '', tier: 'Influencer', followers: 0, engagement: 0, posts: 0 });
+            hydrateInfluencer({ influencerName: urlName || '', handle: urlHandle || '', tier: '', followers: 0, engagement: 0, posts: 0 });
+          }
+          // Show layout with smooth fade-in
+          if (layout) {
+            layout.style.display = '';
+            requestAnimationFrame(function() { layout.style.opacity = '1'; });
           }
 
           // Then load full data from API
