@@ -38,6 +38,17 @@ const contentSubmissionSchema = new mongoose.Schema({
   posterUrl: { type: String, default: null },  // Server-generated thumbnail (first frame of video)
   editedMediaUrls: [{ type: String }],         // Brand-edited versions (trimmed, cropped, etc.)
 
+  // Tagged catalog items (influencer selects during capture flow)
+  taggedItems: [{
+    catalogItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandCatalog' },
+    name: { type: String },
+    imageUrl: { type: String, default: null },
+    price: { type: String, default: null },
+  }],
+
+  // Music track used in the review
+  musicTrackId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandMusic', default: null },
+
   // Brand-applied overlays (saved from content manager editing tools)
   textOverlays: [{
     text: { type: String },

@@ -27,4 +27,5 @@ module.exports = {
   ContentReport: require('./ContentReport'),
   UserBlock: require('./UserBlock'),
   BrandMusic: require('./BrandMusic'),
+  BrandCatalog: require('./BrandCatalog'),
 };

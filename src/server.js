@@ -326,6 +326,9 @@ app.use('/api/purchase-points', require('./routes/purchasePoints'));
 // Brand Music routes (upload, manage, licensing for capture flow)
 app.use('/api/music', require('./routes/music'));
 
+// Brand Catalog routes (products, menu items, experiences — tagged in reviews)
+app.use('/api/catalog', require('./routes/catalog'));
+
 // Google Business Profile routes (OAuth + config + post creation)
 app.use('/api/google-business', require('./routes/googleBusiness'));
 
