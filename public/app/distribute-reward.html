@@ -422,6 +422,32 @@
     </div>
   </div>
 
+  <!-- Distribution History -->
+  <div style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 style="font-size:1.1rem;font-weight:700;margin:0;font-family:var(--kup-font)">Distribution History</h2>
+      <span id="distCount" style="font-size:.78rem;font-weight:600;color:#888;font-family:var(--kup-font)"></span>
+    </div>
+    <div style="background:var(--kup-white);border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden">
+      <div id="distEmpty" style="padding:40px;text-align:center;display:none">
+        <p style="color:#888;font-size:.88rem;margin:12px 0 0;font-family:var(--kup-font)">No rewards distributed yet</p>
+      </div>
+      <table id="distTable" style="width:100%;border-collapse:collapse;font-family:var(--kup-font);display:none">
+        <thead>
+          <tr style="background:#f8f9fa;border-bottom:2px solid #eee">
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Date</th>
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Influencer</th>
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Reward</th>
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Method</th>
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Code / Tracking</th>
+            <th style="padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="distBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="#">KeepUsPostd</a></footer>
 
   <!-- Toast Container -->
@@ -865,6 +891,64 @@
         kupToast(err.message || 'Failed to gift points', 'error');
       }
     }
+
+    /* ============== DISTRIBUTION HISTORY ============== */
+    function loadDistributionHistory() {
+      var brandId = '';
+      try {
+        if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
+          var ab = KUP_BRAND_CONTEXT.getActiveBrand();
+          if (ab) brandId = ab.mongoId || ab._id || ab.id || '';
+        }
+      } catch(e) {}
+      if (!brandId || typeof kupApi === 'undefined') return;
+
+      kupApi.get('/api/rewards/distribution-history?brandId=' + brandId).then(function(res) {
+        var list = (res && res.distributions) || [];
+        var countEl = document.getElementById('distCount');
+        var tableEl = document.getElementById('distTable');
+        var emptyEl = document.getElementById('distEmpty');
+        var bodyEl = document.getElementById('distBody');
+
+        if (countEl) countEl.textContent = list.length + ' distributed';
+
+        if (list.length === 0) {
+          if (emptyEl) emptyEl.style.display = 'block';
+          if (tableEl) tableEl.style.display = 'none';
+          return;
+        }
+
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (tableEl) tableEl.style.display = 'table';
+        if (bodyEl) bodyEl.innerHTML = '';
+
+        list.forEach(function(d) {
+          var date = new Date(d.distributedAt);
+          var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          var methodColors = { email: '#2ea5dd', instore: '#16a34a', mail: '#ed8444' };
+          var methodLabels = { email: 'Email', instore: 'In-Store', mail: 'Shipped' };
+          var methodColor = methodColors[d.method] || '#888';
+          var methodLabel = methodLabels[d.method] || d.method;
+          var codeOrTracking = d.code || d.trackingNumber || '—';
+
+          var tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f0f0f0';
+          tr.innerHTML =
+            '<td style="padding:14px 16px;font-size:.84rem;color:#555">' + dateStr + '</td>' +
+            '<td style="padding:14px 16px"><div style="font-size:.84rem;font-weight:600;color:#1a1a1a">' + (d.influencerName || 'Unknown') + '</div>' + (d.influencerHandle ? '<div style="font-size:.72rem;color:#888">@' + d.influencerHandle + '</div>' : '') + '</td>' +
+            '<td style="padding:14px 16px;font-size:.84rem;font-weight:600;color:#1a1a1a">' + (d.rewardValue || '—') + '</td>' +
+            '<td style="padding:14px 16px"><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;background:' + methodColor + '15;color:' + methodColor + '">' + methodLabel + '</span></td>' +
+            '<td style="padding:14px 16px;font-size:.82rem;font-family:monospace;color:#333">' + codeOrTracking + '</td>' +
+            '<td style="padding:14px 16px;font-size:.82rem;color:#888;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (d.notes || '—') + '</td>';
+          if (bodyEl) bodyEl.appendChild(tr);
+        });
+      }).catch(function(err) {
+        console.error('Distribution history error:', err);
+      });
+    }
+
+    // Load history after brand context is ready
+    setTimeout(loadDistributionHistory, 1000);
   </script>
   <!--
     PLATFORM CONFIG — Reward rules & tier gating defined in platform-config.js.
