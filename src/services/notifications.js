@@ -61,7 +61,7 @@ function $(amount) {
 async function accountCreated({ user, brandName }) {
   await sendEmail({
     to: user.email,
-    subject: `Welcome to KeepUsPostd, ${brandName}!`,
+    subject: `Welcome to KeepUsPostd, ${brandName}`,
     headline: 'Welcome to KeepUsPostd!',
     preheader: 'Your brand is ready to grow with real influencer partnerships.',
     bodyHtml: `
@@ -141,7 +141,7 @@ async function newDeviceLogin({ user, device, ip, variant = 'brand' }) {
 async function influencerWelcome({ user }) {
   await sendEmail({
     to: user.email,
-    subject: 'Welcome to KeepUsPostd!',
+    subject: 'Welcome to KeepUsPostd',
     headline: 'Welcome to KeepUsPostd!',
     preheader: 'Start partnering with the brands you love.',
     bodyHtml: `
@@ -778,7 +778,7 @@ async function accountDeletionCanceled({ user, variant = 'brand' }) {
 async function onboardingReminder24h({ user, brandName }) {
   await sendEmail({
     to: user.email,
-    subject: `Almost there, ${brandName || 'friend'}! Finish setting up your brand`,
+    subject: `Almost there, ${brandName || 'friend'} — Finish setting up your brand`,
     headline: 'Finish Setting Up Your Brand',
     preheader: 'You\'re just a few steps away from going live.',
     bodyHtml: `
@@ -844,7 +844,7 @@ async function brandPublished({ user, brand }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `${brand.name} is Live on the Marketplace!`,
+    subject: `${brand.name} is Live on the Marketplace`,
     headline: 'Your Brand is Live!',
     preheader: `${brand.name} is now visible to influencers on KeepUsPostd.`,
     bodyHtml: `
@@ -1033,7 +1033,7 @@ async function campaignLive({ brand, campaign }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `Campaign "${campaign.name}" is Live!`,
+    subject: `Campaign "${campaign.name}" is Live`,
     headline: 'Your Campaign is Live!',
     preheader: `${campaign.name} is now active and visible to influencers.`,
     bodyHtml: `
@@ -1062,7 +1062,7 @@ async function campaignInvitation({ influencer, brand, campaign }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `${brand.name} Invited You to a Campaign!`,
+    subject: `${brand.name} Invited You to a Campaign`,
     headline: 'You\'re Invited!',
     preheader: `${brand.name} wants you in their "${campaign.name}" campaign.`,
     bodyHtml: `
@@ -1132,7 +1132,7 @@ async function campaignApplicationAccepted({ influencer, brand, campaign }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `You're In! ${brand.name} Accepted You`,
+    subject: `You're In — ${brand.name} Accepted You`,
     headline: 'Application Accepted!',
     preheader: `You've been accepted into "${campaign.name}" by ${brand.name}.`,
     bodyHtml: `
@@ -1460,7 +1460,7 @@ async function influencerInvite({ influencer, brand }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `${brand.name} Wants to Partner With You!`,
+    subject: `${brand.name} Wants to Partner With You`,
     headline: 'Brand Invitation!',
     preheader: `${brand.name} invited you to partner on KeepUsPostd.`,
     bodyHtml: `
@@ -1579,7 +1579,7 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `Upgraded to ${newTier} Plan!`,
+    subject: `Upgraded to ${newTier} Plan`,
     headline: 'Plan Upgraded!',
     preheader: `You've upgraded from ${oldTier} to ${newTier}.`,
     bodyHtml: `
@@ -1784,7 +1784,7 @@ async function referralSignup({ referrer, referredName }) {
 
   await sendEmail({
     to: referrer.email,
-    subject: `${referredName || 'Someone'} Signed Up Using Your Referral!`,
+    subject: `${referredName || 'Someone'} Signed Up Using Your Referral`,
     headline: 'Referral Signed Up!',
     preheader: `${referredName || 'Someone'} joined KeepUsPostd through your link.`,
     bodyHtml: `
@@ -1819,7 +1819,7 @@ async function referralOnboarded({ referrer, referredName }) {
 
   await sendEmail({
     to: referrer.email,
-    subject: `Referral Complete — ${referredName || 'Your referral'} is all set up!`,
+    subject: `Referral Complete — ${referredName || 'Your referral'} is all set up`,
     headline: 'Referral Complete!',
     preheader: `${referredName || 'Your referral'} completed their setup.`,
     bodyHtml: `
@@ -1846,7 +1846,7 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
 
   await sendEmail({
     to: referrer.email,
-    subject: `You Earned ${$(amount)} — Referral Reward!`,
+    subject: `You Earned ${$(amount)} — Referral Reward`,
     headline: `You Earned ${$(amount)}!`,
     preheader: `Referral reward from ${referredName || 'your referral'}.`,
     bodyHtml: `
@@ -1868,7 +1868,7 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
       link: '/pages/inner/referrals.html',
     });
     push(userId, {
-      title: `💰 ${$(amount)} Referral Reward!`,
+      title: `💰 ${$(amount)} Referral Reward`,
       body: `You earned ${$(amount)} for referring ${referredName || 'a new user'}.`,
       link: '/pages/inner/referrals.html',
     });
@@ -1895,7 +1895,7 @@ async function socialInfluenceVerified({ influencer, tier }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `Social Influence Verified — ${tierDisplay} Tier!`,
+    subject: `Social Influence Verified — ${tierDisplay} Tier`,
     headline: 'You\'re Verified!',
     preheader: `Your social influence has been verified at the ${tierDisplay} level.`,
     bodyHtml: `
@@ -1963,7 +1963,7 @@ async function newBrandOnMarketplace({ influencer, brand }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `New Brand Alert — ${brand.name} is on KeepUsPostd!`,
+    subject: `New Brand Alert — ${brand.name} is on KeepUsPostd`,
     headline: 'New Brand Available!',
     preheader: `${brand.name} just joined the marketplace.`,
     bodyHtml: `
@@ -2083,7 +2083,7 @@ async function brandReactivated({ brand }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `${brand.name} is Back! — KeepUsPostd`,
+    subject: `${brand.name} is Back — KeepUsPostd`,
     headline: 'Welcome Back!',
     preheader: `${brand.name} has been reactivated.`,
     bodyHtml: `
@@ -2222,8 +2222,8 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
       if (infUser?.email) {
         await sendEmail({
           to: infUser.email,
-          subject: `You Unlocked ${rewardValue} from ${brand?.name}!`,
-          headline: 'Reward Unlocked!',
+          subject: `Reward Unlocked — ${rewardValue} from ${brand?.name}`,
+          headline: 'Reward Unlocked',
           preheader: `You reached ${threshold} pts and unlocked a reward`,
           bodyHtml: `
             <p>Congratulations! You've unlocked a reward from <strong>${brand?.name}</strong>.</p>
