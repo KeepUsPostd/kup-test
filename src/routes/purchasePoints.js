@@ -374,7 +374,7 @@ router.post('/award', requireAuth, async (req, res) => {
         if (infUser?.email) {
           await sendEmail({
             to: infUser.email,
-            subject: `+${points} Purchase Points from ${brandName}`,
+            subject: `${points} Purchase Points Earned from ${brandName}`,
             headline: 'Purchase Points Earned',
             preheader: `You earned ${points} points for your $${spendAmount} purchase`,
             bodyHtml: `
@@ -407,6 +407,27 @@ router.post('/award', requireAuth, async (req, res) => {
               isPurchasePoints: true,
             },
           });
+
+          // Brand email
+          const brandUser = await User.findById(brandUserId, 'email');
+          if (brandUser?.email) {
+            await sendEmail({
+              to: brandUser.email,
+              subject: `${influencer.displayName} Earned ${points} Purchase Points`,
+              headline: 'Purchase Points Awarded',
+              preheader: `${influencer.displayName} earned points from a $${spendAmount} purchase`,
+              bodyHtml: `
+                <p><strong>${influencer.displayName}</strong> (@${influencer.handle}) earned purchase points at your brand!</p>
+                <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
+                  <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${points} pts</p>
+                  <p style="font-size:13px;color:#666;margin:8px 0 0">$${spendAmount} purchase — Level ${levelIndex}</p>
+                </div>
+              `,
+              ctaText: 'View Rewards',
+              ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
+              variant: 'brand',
+            }).catch(e => console.error('[purchase-points] brand email error:', e.message));
+          }
         }
       } catch (notifErr) {
         console.error('[purchase-points] notification error:', notifErr.message);
@@ -934,6 +955,24 @@ router.post('/staff-award', async (req, res) => {
               isPurchasePoints: true,
             },
           });
+          // Brand email
+          try {
+            const User2 = require('../models/User');
+            const brandUser2 = await User2.findById(brand.createdBy, 'email');
+            if (brandUser2?.email) {
+              const { sendEmail: se2 } = require('../config/email');
+              await se2({
+                to: brandUser2.email,
+                subject: `${influencer.displayName} Earned ${points} Purchase Points`,
+                headline: 'Purchase Points Awarded',
+                preheader: `${influencer.displayName} earned points from a $${spend} purchase`,
+                bodyHtml: `<p><strong>${influencer.displayName}</strong> earned purchase points at your brand!</p><div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center"><p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${points} pts</p><p style="font-size:13px;color:#666;margin:8px 0 0">$${spend} purchase</p></div>`,
+                ctaText: 'View Rewards',
+                ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
+                variant: 'brand',
+              }).catch(e => console.error('[staff-award] brand email error:', e.message));
+            }
+          } catch(e) {}
         }
       } catch (notifErr) {
         console.error('[staff-award] notification error:', notifErr.message);
