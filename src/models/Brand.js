@@ -48,8 +48,8 @@ const brandSchema = new mongoose.Schema({
   zip: { type: String, default: null },
   // GeoJSON Point — for proximity-based feed filtering
   coordinates: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
-    coordinates: { type: [Number], default: undefined },
+    type: { type: String, enum: ['Point'] },
+    coordinates: { type: [Number] },
   },
   socialLinks: {
     facebook: { type: String, default: null },
@@ -111,7 +111,7 @@ const brandSchema = new mongoose.Schema({
   kioskBrandingLogo: { type: String, default: null }, // URL to logo for kiosk display
   kioskActiveLocations: { type: Number, default: 0 }, // how many kiosks currently active
   kioskBrandCode: { type: String, default: null, unique: true, sparse: true }, // short code for kiosk URL
-  brandHandle: { type: String, default: null, unique: true, sparse: true, lowercase: true }, // @handle for public profile URL
+  brandHandle: { type: String, unique: true, sparse: true, lowercase: true }, // @handle for public profile URL — NO default (sparse requires missing, not null)
 
   // System
   status: {

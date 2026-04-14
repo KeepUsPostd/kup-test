@@ -956,8 +956,22 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
         ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId, status: 'postd' }),
       ]);
       const pts = pc.contentPoints || {};
-      const contentTotal = (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd;
-      const totalWithGift = contentTotal + points;
+      const contentPts = (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd;
+
+      // Include purchase + existing gift points in total (same as my-progress API)
+      let purchasePts = 0;
+      if (pc.purchaseEnabled) {
+        try {
+          const PurchasePointsLog = require('../models/PurchasePointsLog');
+          const agg = await PurchasePointsLog.aggregate([
+            { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(partnership.brandId.toString()), influencerProfileId: infId } },
+            { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
+          ]);
+          purchasePts = agg[0]?.total ?? 0;
+        } catch (_) {}
+      }
+      const existingGiftPts = partnership.giftedPoints || 0;
+      const totalWithGift = contentPts + purchasePts + existingGiftPts + points;
 
       // Find next level
       const levels = pc.levels || [];

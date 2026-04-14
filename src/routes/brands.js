@@ -127,7 +127,7 @@ router.post('/', requireAuth, async (req, res) => {
       generatedColor,
       brandColors: brandColors || undefined,
       kioskBrandCode,
-      brandHandle,
+      ...(brandHandle ? { brandHandle } : {}),
     });
 
     // Create brand member with owner role (rule G2: one owner)
