@@ -321,6 +321,35 @@ router.post('/award', requireAuth, async (req, res) => {
         const Notification = require('../models/Notification');
         const { sendEmail } = require('../config/email');
 
+        // Calculate full total across all point types for the notification
+        const Reward = require('../models/Reward');
+        const { Partnership } = require('../models');
+        const ContentSubmission = require('../models/ContentSubmission');
+        const activeReward = await Reward.findOne({ brandId, status: 'active', earningMethod: 'point_based' }).lean();
+        const partnership = await Partnership.findOne({ brandId, influencerProfileId: influencer._id, status: 'active' }).lean();
+        const bl = partnership?.pointsResetSubmissionBaseline || {};
+
+        let fullTotal = 0;
+        let nextThreshold = '?';
+        let nextRewardTitle = activeReward?.title || 'Brand Rewards';
+        if (activeReward) {
+          const pc = activeReward.pointConfig || {};
+          const pts2 = pc.contentPoints || {};
+          const [sub, app, pst] = await Promise.all([
+            ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id }),
+            ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id, status: 'approved' }),
+            ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id, status: 'postd' }),
+          ]);
+          const contentPts = (pts2.submitted||0)*(sub-(bl.total||0)) + (pts2.approved||0)*(app-(bl.approved||0)) + (pts2.published||0)*(pst-(bl.postd||0)) + (pts2.bonus||0)*(pst-(bl.postd||0));
+          const purchTotal = Math.max(0, (influencer.purchasePointsBalance || 0) + points - (bl.purchasePoints || 0));
+          const giftPts = partnership?.giftedPoints || 0;
+          fullTotal = contentPts + purchTotal + giftPts;
+          const levels = pc.levels || [];
+          const nextLevel = levels.find(l => fullTotal < l.threshold);
+          if (nextLevel) { nextThreshold = nextLevel.threshold; nextRewardTitle = nextLevel.rewardValue || activeReward.title; }
+          else if (levels.length) { nextThreshold = levels[levels.length-1].threshold; nextRewardTitle = levels[levels.length-1].rewardValue || activeReward.title; }
+        }
+
         // Influencer in-app notification
         if (influencer.userId) {
           await Notification.create({
@@ -332,8 +361,9 @@ router.post('/award', requireAuth, async (req, res) => {
               brandName,
               brandLogoUrl: brandLogo,
               points,
-              totalPoints: (influencer.purchasePointsBalance || 0) + points,
-              rewardTitle: 'Purchase Points',
+              totalPoints: fullTotal,
+              unlockThreshold: nextThreshold,
+              rewardTitle: nextRewardTitle,
               isPurchasePoints: true,
             },
           });
@@ -857,6 +887,23 @@ router.post('/staff-award', async (req, res) => {
         const Notification = require('../models/Notification');
 
         if (influencer.userId) {
+          // Calculate full total for notification (same as /award endpoint)
+          const Reward2 = require('../models/Reward');
+          const { Partnership: P2 } = require('../models');
+          const ContentSubmission2 = require('../models/ContentSubmission');
+          const ar2 = await Reward2.findOne({ brandId, status: 'active', earningMethod: 'point_based' }).lean();
+          const ps2 = await P2.findOne({ brandId, influencerProfileId: influencer._id, status: 'active' }).lean();
+          const bl2 = ps2?.pointsResetSubmissionBaseline || {};
+          let ft2 = 0; let nt2 = '?'; let nrt2 = ar2?.title || 'Brand Rewards';
+          if (ar2) {
+            const pc2 = ar2.pointConfig || {}; const cp2 = pc2.contentPoints || {};
+            const [s2,a2,p2] = await Promise.all([ContentSubmission2.countDocuments({brandId,influencerProfileId:influencer._id}),ContentSubmission2.countDocuments({brandId,influencerProfileId:influencer._id,status:'approved'}),ContentSubmission2.countDocuments({brandId,influencerProfileId:influencer._id,status:'postd'})]);
+            const ct2 = (cp2.submitted||0)*(s2-(bl2.total||0))+(cp2.approved||0)*(a2-(bl2.approved||0))+(cp2.published||0)*(p2-(bl2.postd||0))+(cp2.bonus||0)*(p2-(bl2.postd||0));
+            const pt2 = Math.max(0,(influencer.purchasePointsBalance||0)+points-(bl2.purchasePoints||0));
+            ft2 = ct2+pt2+(ps2?.giftedPoints||0);
+            const lv2 = pc2.levels||[]; const nl2 = lv2.find(l=>ft2<l.threshold);
+            if(nl2){nt2=nl2.threshold;nrt2=nl2.rewardValue||ar2.title}else if(lv2.length){nt2=lv2[lv2.length-1].threshold;nrt2=lv2[lv2.length-1].rewardValue||ar2.title}
+          }
           await Notification.create({
             userId: influencer.userId.toString(),
             title: 'Purchase Points Earned',
@@ -866,8 +913,9 @@ router.post('/staff-award', async (req, res) => {
               brandName,
               brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
               points,
-              totalPoints: (influencer.purchasePointsBalance || 0) + points,
-              rewardTitle: 'Purchase Points',
+              totalPoints: ft2,
+              unlockThreshold: nt2,
+              rewardTitle: nrt2,
               isPurchasePoints: true,
             },
           });
