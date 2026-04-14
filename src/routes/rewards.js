@@ -229,7 +229,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
         unlocked: totalPts >= threshold,
         levels: levels,
         breakdown: {
-          content: { points: contentPts, submitted, approved, postd },
+          content: { points: contentPts, submitted: adjSubmitted, approved: adjApproved, postd: adjPostd },
           purchase: { points: purchasePts, transactions: purchaseCount },
         },
       };
