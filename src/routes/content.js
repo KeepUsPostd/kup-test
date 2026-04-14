@@ -1039,7 +1039,13 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
 
     submission.status = 'postd';
     submission.postdAt = new Date();
-    if (platform) submission.platform = platform;
+    // Normalize platform to lowercase to match schema enum
+    // App sends 'Instagram', 'TikTok', 'X/Twitter', etc.
+    if (platform) {
+      const normalized = platform.toLowerCase().replace('x/twitter', 'twitter').replace('google business', 'google_business');
+      const validPlatforms = ['instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'kiosk', 'google_business'];
+      submission.platform = validPlatforms.includes(normalized) ? normalized : null;
+    }
     if (platformPostUrl) submission.platformPostUrl = platformPostUrl;
     await submission.save();
 

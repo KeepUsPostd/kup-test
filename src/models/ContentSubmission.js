@@ -61,7 +61,7 @@ const contentSubmissionSchema = new mongoose.Schema({
 
   platform: {
     type: String,
-    enum: ['instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'kiosk'],
+    enum: ['instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'kiosk', 'google_business'],
     default: null,
   },
   platformPostUrl: { type: String, default: null },
