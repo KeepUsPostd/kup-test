@@ -708,7 +708,9 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
     // Send email to influencer with reward details
     try {
       const User = require('../models/User');
+      console.log('[distribute-level] Email step: inf.userId =', inf?.userId, '| method =', method, '| code =', code);
       const infUser = inf?.userId ? await User.findById(inf.userId, 'email') : null;
+      console.log('[distribute-level] User email lookup:', infUser?.email || 'NOT FOUND');
       if (infUser?.email) {
         const { sendEmail } = require('../config/email');
         let bodyHtml = '';
@@ -746,7 +748,8 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
           `;
         }
         if (subject) {
-          await sendEmail({
+          console.log('[distribute-level] Sending email to:', infUser.email, '| subject:', subject);
+          const emailResult = await sendEmail({
             to: infUser.email,
             subject,
             headline: 'Reward Distributed',
@@ -756,10 +759,15 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
             ctaUrl: `keepuspostd://rewards`,
             variant: 'influencer',
           });
+          console.log('[distribute-level] Email result:', JSON.stringify(emailResult));
+        } else {
+          console.log('[distribute-level] No subject generated — method:', method, '| code:', code, '| skipping email');
         }
+      } else {
+        console.log('[distribute-level] No user email found — skipping email');
       }
     } catch (emailErr) {
-      console.error('[rewards/distribute-level] email error:', emailErr.message);
+      console.error('[rewards/distribute-level] EMAIL ERROR:', emailErr.message, emailErr.stack?.substring(0, 200));
     }
 
     console.log(`🎁 Reward distributed: "${level.rewardValue}" to ${inf?.displayName} via ${method}`);
