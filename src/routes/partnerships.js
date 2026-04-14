@@ -972,7 +972,7 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
             { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(partnership.brandId.toString()), influencerProfileId: infId } },
             { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
           ]);
-          purchasePts = agg[0]?.total ?? 0;
+          purchasePts = Math.max(0, (agg[0]?.total ?? 0) - (bl.purchasePoints || 0));
         } catch (_) {}
       }
       const existingGiftPts = partnership.giftedPoints || 0;
