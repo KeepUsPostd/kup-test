@@ -119,7 +119,7 @@ async function passwordReset({ email, resetLink, variant = 'brand' }) {
 async function newDeviceLogin({ user, device, ip, variant = 'brand' }) {
   await sendEmail({
     to: user.email,
-    subject: '🔐 New Login Detected — KeepUsPostd',
+    subject: 'New Login Detected — KeepUsPostd',
     headline: 'New Login Detected',
     preheader: 'Someone signed into your account from a new device.',
     bodyHtml: `
@@ -266,7 +266,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
 
   await sendEmail({
     to: influencer.email,
-    subject: `✅ Content Approved — ${brand.name}`,
+    subject: `Content Approved — ${brand.name}`,
     headline: 'Your Content Was Approved!',
     preheader: `${brand.name} approved your ${submission.contentType || 'content'}.`,
     bodyHtml: `
@@ -365,7 +365,7 @@ async function contentPostd({ influencer, brand, submission, bonusAmount = null 
 
   await sendEmail({
     to: influencer.email,
-    subject: `🎉 Your Content Was Posted — ${brand.name}`,
+    subject: `Your Content Was Posted — ${brand.name}`,
     headline: 'Your Content is Live!',
     preheader: `${brand.name} posted your content!`,
     bodyHtml: `
@@ -390,7 +390,7 @@ async function subscriptionPaymentFailed({ brand, planTier }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: '⚠️ Subscription Payment Failed — KeepUsPostd',
+    subject: 'Subscription Payment Failed — KeepUsPostd',
     headline: 'Payment Failed',
     preheader: 'Your subscription payment could not be processed.',
     bodyHtml: `
@@ -510,7 +510,7 @@ async function paypalConnected({ influencer, maskedEmail }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: '✅ PayPal Connected — KeepUsPostd',
+    subject: 'PayPal Connected — KeepUsPostd',
     headline: 'PayPal Account Connected!',
     preheader: 'You can now receive payments through KeepUsPostd.',
     bodyHtml: `
@@ -529,7 +529,7 @@ async function cashoutCompleted({ influencer, amount, paypalEmail }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `💰 ${$(amount)} Sent to Your PayPal`,
+    subject: `${$(amount)} Sent to Your PayPal`,
     headline: 'Cash Out Complete!',
     preheader: `${$(amount)} has been sent to your PayPal account.`,
     bodyHtml: `
@@ -548,7 +548,7 @@ async function cashoutFailed({ influencer, amount, reason = '' }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: '⚠️ Cash Out Failed — KeepUsPostd',
+    subject: 'Cash Out Failed — KeepUsPostd',
     headline: 'Cash Out Failed',
     preheader: 'There was an issue processing your cash out.',
     bodyHtml: `
@@ -577,7 +577,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
 
   await sendEmail({
     to: influencer.email,
-    subject: `💰 You Earned ${$(amount)} — ${typeLabel}`,
+    subject: `You Earned ${$(amount)} — ${typeLabel}`,
     headline: `You Earned ${$(amount)}!`,
     preheader: `${$(amount)} ${typeLabel} from ${brand?.name || 'KeepUsPostd'}`,
     bodyHtml: `
@@ -650,7 +650,7 @@ async function reviewReminder({ brand, pendingCount }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `⏰ ${pendingCount} Submission${pendingCount > 1 ? 's' : ''} Awaiting Review`,
+    subject: `${pendingCount} Submission${pendingCount > 1 ? 's' : ''} Awaiting Review`,
     headline: '3 Days Remaining to Review',
     preheader: `You have ${pendingCount} pending content review${pendingCount > 1 ? 's' : ''}.`,
     bodyHtml: `
@@ -671,7 +671,7 @@ async function reviewReminder({ brand, pendingCount }) {
 async function emailVerified({ user, variant = 'brand' }) {
   await sendEmail({
     to: user.email,
-    subject: '✅ Email Verified — KeepUsPostd',
+    subject: 'Email Verified — KeepUsPostd',
     headline: 'Email Verified!',
     preheader: 'Your email has been confirmed.',
     bodyHtml: `
@@ -698,7 +698,7 @@ async function emailVerified({ user, variant = 'brand' }) {
 async function passwordChanged({ user, variant = 'brand' }) {
   await sendEmail({
     to: user.email,
-    subject: '🔐 Password Changed — KeepUsPostd',
+    subject: 'Password Changed — KeepUsPostd',
     headline: 'Password Updated',
     preheader: 'Your password has been changed successfully.',
     bodyHtml: `
@@ -716,7 +716,7 @@ async function emailChanged({ oldEmail, newEmail, variant = 'brand' }) {
   // Notify BOTH the old and new email addresses
   await sendEmail({
     to: oldEmail,
-    subject: '⚠️ Email Address Changed — KeepUsPostd',
+    subject: 'Email Address Changed — KeepUsPostd',
     headline: 'Your Email Was Changed',
     preheader: 'Your account email address has been updated.',
     bodyHtml: `
@@ -728,7 +728,7 @@ async function emailChanged({ oldEmail, newEmail, variant = 'brand' }) {
 
   await sendEmail({
     to: newEmail,
-    subject: '✅ Email Updated — KeepUsPostd',
+    subject: 'Email Updated — KeepUsPostd',
     headline: 'Email Address Updated',
     preheader: 'Your new email is now active on KeepUsPostd.',
     bodyHtml: `
@@ -761,7 +761,7 @@ async function accountDeletionRequested({ user, deletionDate, variant = 'brand' 
 async function accountDeletionCanceled({ user, variant = 'brand' }) {
   await sendEmail({
     to: user.email,
-    subject: '✅ Account Deletion Canceled — KeepUsPostd',
+    subject: 'Account Deletion Canceled — KeepUsPostd',
     headline: 'Deletion Canceled',
     preheader: 'Your account will not be deleted.',
     bodyHtml: `
@@ -844,7 +844,7 @@ async function brandPublished({ user, brand }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `🎉 ${brand.name} is Live on the Marketplace!`,
+    subject: `${brand.name} is Live on the Marketplace!`,
     headline: 'Your Brand is Live!',
     preheader: `${brand.name} is now visible to influencers on KeepUsPostd.`,
     bodyHtml: `
@@ -994,7 +994,7 @@ async function contentAutoApproved({ influencer, brand, submission, reward = nul
 
   await sendEmail({
     to: influencer.email,
-    subject: `✅ Content Auto-Approved — ${brand.name}`,
+    subject: `Content Auto-Approved — ${brand.name}`,
     headline: 'Content Auto-Approved!',
     preheader: `Your content for ${brand.name} was approved automatically.`,
     bodyHtml: `
@@ -1033,7 +1033,7 @@ async function campaignLive({ brand, campaign }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `🚀 Campaign "${campaign.name}" is Live!`,
+    subject: `Campaign "${campaign.name}" is Live!`,
     headline: 'Your Campaign is Live!',
     preheader: `${campaign.name} is now active and visible to influencers.`,
     bodyHtml: `
@@ -1062,7 +1062,7 @@ async function campaignInvitation({ influencer, brand, campaign }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `🎯 ${brand.name} Invited You to a Campaign!`,
+    subject: `${brand.name} Invited You to a Campaign!`,
     headline: 'You\'re Invited!',
     preheader: `${brand.name} wants you in their "${campaign.name}" campaign.`,
     bodyHtml: `
@@ -1132,7 +1132,7 @@ async function campaignApplicationAccepted({ influencer, brand, campaign }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `✅ You're In! ${brand.name} Accepted You`,
+    subject: `You're In! ${brand.name} Accepted You`,
     headline: 'Application Accepted!',
     preheader: `You've been accepted into "${campaign.name}" by ${brand.name}.`,
     bodyHtml: `
@@ -1272,7 +1272,7 @@ async function campaignMilestone100({ brand, campaign }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `🎉 Campaign Goal Reached — ${campaign.name}`,
+    subject: `Campaign Goal Reached — ${campaign.name}`,
     headline: '100% Target Reached!',
     preheader: `${campaign.name} hit its goal!`,
     bodyHtml: `
@@ -1300,7 +1300,7 @@ async function campaignExpiringSoon({ brand, campaign }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `⏰ Campaign Ending in 7 Days — ${campaign.name}`,
+    subject: `Campaign Ending in 7 Days — ${campaign.name}`,
     headline: 'Campaign Ending Soon',
     preheader: `"${campaign.name}" ends in 7 days.`,
     bodyHtml: `
@@ -1460,7 +1460,7 @@ async function influencerInvite({ influencer, brand }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `🎯 ${brand.name} Wants to Partner With You!`,
+    subject: `${brand.name} Wants to Partner With You!`,
     headline: 'Brand Invitation!',
     preheader: `${brand.name} invited you to partner on KeepUsPostd.`,
     bodyHtml: `
@@ -1558,7 +1558,7 @@ async function subscriptionPurchased({ brand, planTier, amount }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `✅ Subscription Activated — ${planTier} Plan`,
+    subject: `Subscription Activated — ${planTier} Plan`,
     headline: 'Subscription Activated!',
     preheader: `Your ${planTier} plan is now active.`,
     bodyHtml: `
@@ -1579,7 +1579,7 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `⬆️ Upgraded to ${newTier} Plan!`,
+    subject: `Upgraded to ${newTier} Plan!`,
     headline: 'Plan Upgraded!',
     preheader: `You've upgraded from ${oldTier} to ${newTier}.`,
     bodyHtml: `
@@ -1726,7 +1726,7 @@ async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: '🎉 Your 14-Day Free Trial Is Active — KeepUsPostd',
+    subject: 'Your 14-Day Free Trial Is Active — KeepUsPostd',
     headline: 'Your Free Trial Is Live!',
     preheader: `Full Pro access for 14 days. No credit card required.`,
     bodyHtml: `
@@ -1784,7 +1784,7 @@ async function referralSignup({ referrer, referredName }) {
 
   await sendEmail({
     to: referrer.email,
-    subject: `🎉 ${referredName || 'Someone'} Signed Up Using Your Referral!`,
+    subject: `${referredName || 'Someone'} Signed Up Using Your Referral!`,
     headline: 'Referral Signed Up!',
     preheader: `${referredName || 'Someone'} joined KeepUsPostd through your link.`,
     bodyHtml: `
@@ -1846,7 +1846,7 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
 
   await sendEmail({
     to: referrer.email,
-    subject: `💰 You Earned ${$(amount)} — Referral Reward!`,
+    subject: `You Earned ${$(amount)} — Referral Reward!`,
     headline: `You Earned ${$(amount)}!`,
     preheader: `Referral reward from ${referredName || 'your referral'}.`,
     bodyHtml: `
@@ -1895,7 +1895,7 @@ async function socialInfluenceVerified({ influencer, tier }) {
 
   await sendEmail({
     to: influencer.email,
-    subject: `✅ Social Influence Verified — ${tierDisplay} Tier!`,
+    subject: `Social Influence Verified — ${tierDisplay} Tier!`,
     headline: 'You\'re Verified!',
     preheader: `Your social influence has been verified at the ${tierDisplay} level.`,
     bodyHtml: `
@@ -1986,7 +1986,7 @@ async function maintenanceScheduled({ recipients, startTime, duration }) {
   for (const email of recipients) {
     await sendEmail({
       to: email,
-      subject: '🔧 Scheduled Maintenance — KeepUsPostd',
+      subject: 'Scheduled Maintenance — KeepUsPostd',
       headline: 'Scheduled Maintenance',
       preheader: `Maintenance scheduled for ${startTime}.`,
       bodyHtml: `
@@ -2083,7 +2083,7 @@ async function brandReactivated({ brand }) {
 
   await sendEmail({
     to: brandEmail,
-    subject: `✅ ${brand.name} is Back! — KeepUsPostd`,
+    subject: `${brand.name} is Back! — KeepUsPostd`,
     headline: 'Welcome Back!',
     preheader: `${brand.name} has been reactivated.`,
     bodyHtml: `
