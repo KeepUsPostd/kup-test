@@ -383,7 +383,7 @@ router.post('/award', requireAuth, async (req, res) => {
             `,
             ctaText: 'View Rewards',
             ctaUrl: 'keepuspostd://rewards',
-            variant: 'influencer',
+            variant: 'brand',
           }).catch(e => console.error('[purchase-points] influencer email error:', e.message));
         }
 

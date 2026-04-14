@@ -787,7 +787,7 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
             bodyHtml,
             ctaText: 'View Rewards',
             ctaUrl: `keepuspostd://rewards`,
-            variant: 'influencer',
+            variant: 'brand',
           });
           console.log('[distribute-level] Email result:', JSON.stringify(emailResult));
         } else {

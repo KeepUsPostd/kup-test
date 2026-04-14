@@ -156,7 +156,7 @@ async function influencerWelcome({ user }) {
     `,
     ctaText: 'Open the App',
     ctaUrl: `${APP_URL}/app/home.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -223,7 +223,7 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
     `,
     ctaText: 'View My Submissions',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   // In-app notification — skip if point-based rewards exist (awardContentPoints handles it with point info)
@@ -276,7 +276,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     `,
     ctaText: 'View Details',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   // In-app + push notification
@@ -325,7 +325,7 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
     `,
     ctaText: 'View Feedback',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   // In-app + push notification
@@ -375,7 +375,7 @@ async function contentPostd({ influencer, brand, submission, bonusAmount = null 
     `,
     ctaText: 'View My Portfolio',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -482,7 +482,7 @@ async function paypalMoneyWaiting({ influencer, brand, amount, isWeeklyReminder 
     bodyHtml,
     ctaText: 'Connect PayPal & Get Paid',
     ctaUrl: connectUrl,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   // In-app + push notification
@@ -519,7 +519,7 @@ async function paypalConnected({ influencer, maskedEmail }) {
     `,
     ctaText: 'View My Wallet',
     ctaUrl: `${APP_URL}/app/wallet.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -538,7 +538,7 @@ async function cashoutCompleted({ influencer, amount, paypalEmail }) {
     `,
     ctaText: 'View Wallet',
     ctaUrl: `${APP_URL}/app/wallet.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -558,7 +558,7 @@ async function cashoutFailed({ influencer, amount, reason = '' }) {
     `,
     ctaText: 'Check PayPal Settings',
     ctaUrl: `${APP_URL}/app/settings.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -587,7 +587,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
     `,
     ctaText: 'View My Wallet',
     ctaUrl: `${APP_URL}/app/wallet.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   // In-app + push notification
@@ -928,7 +928,7 @@ async function contentRevisionRequested({ influencer, brand, submission, feedbac
     `,
     ctaText: 'View Feedback',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1003,7 +1003,7 @@ async function contentAutoApproved({ influencer, brand, submission, reward = nul
     `,
     ctaText: 'View Details',
     ctaUrl: `${APP_URL}/app/submissions.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1072,7 +1072,7 @@ async function campaignInvitation({ influencer, brand, campaign }) {
     `,
     ctaText: 'View Invitation',
     ctaUrl: `${APP_URL}/app/campaigns.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1141,7 +1141,7 @@ async function campaignApplicationAccepted({ influencer, brand, campaign }) {
     `,
     ctaText: 'View Campaign',
     ctaUrl: `${APP_URL}/app/campaigns.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1175,7 +1175,7 @@ async function campaignApplicationDeclined({ influencer, brand, campaign }) {
     `,
     ctaText: 'Browse Campaigns',
     ctaUrl: `${APP_URL}/app/campaigns.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1202,7 +1202,7 @@ async function campaignPaused({ influencer, brand, campaign }) {
       <p><strong>${brand.name}</strong> has temporarily paused the campaign <strong>${campaign.name}</strong>.</p>
       <p>You don't need to do anything. You'll be notified when the campaign resumes. Any pending submissions are saved.</p>
     `,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1402,7 +1402,7 @@ async function newBrandPartnership({ influencer, brand }) {
     `,
     ctaText: 'View Partnership',
     ctaUrl: `${APP_URL}/app/brands.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
   console.log(`🔔 newBrandPartnership email result:`, JSON.stringify(emailResult));
 
@@ -1439,7 +1439,7 @@ async function partnershipRemoved({ influencer, brand, reason = '' }) {
     `,
     ctaText: 'Browse Brands',
     ctaUrl: `${APP_URL}/app/marketplace.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1469,7 +1469,7 @@ async function influencerInvite({ influencer, brand }) {
     `,
     ctaText: 'View Invitation',
     ctaUrl: `${APP_URL}/app/invitations.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1535,7 +1535,7 @@ async function newBrandMessage({ influencer, brand }) {
     `,
     ctaText: 'Read Message',
     ctaUrl: `${APP_URL}/app/messages.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1673,7 +1673,7 @@ async function cashoutRequested({ influencer, amount }) {
     `,
     ctaText: 'View Wallet',
     ctaUrl: `${APP_URL}/app/wallet.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1904,7 +1904,7 @@ async function socialInfluenceVerified({ influencer, tier }) {
     `,
     ctaText: 'View My Profile',
     ctaUrl: `${APP_URL}/app/profile.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1939,7 +1939,7 @@ async function socialInfluenceNotMatched({ influencer, reason = '' }) {
     `,
     ctaText: 'Update Profile',
     ctaUrl: `${APP_URL}/app/profile.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 
   if (influencer.userId) {
@@ -1973,7 +1973,7 @@ async function newBrandOnMarketplace({ influencer, brand }) {
     `,
     ctaText: 'View Brand',
     ctaUrl: `${APP_URL}/app/marketplace.html`,
-    variant: 'influencer',
+    variant: 'brand',
   });
 }
 
@@ -2179,7 +2179,7 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
         `,
         ctaText: 'View Rewards',
         ctaUrl: `${APP_URL}/app/rewards.html`,
-        variant: 'influencer',
+        variant: 'brand',
       });
     } catch (_) {}
   }
@@ -2233,7 +2233,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
           `,
           ctaText: 'View Rewards',
           ctaUrl: 'keepuspostd://rewards',
-          variant: 'influencer',
+          variant: 'brand',
         });
       }
     } catch (e) { console.error('[levelUnlocked] influencer email error:', e.message); }
