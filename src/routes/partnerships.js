@@ -975,7 +975,7 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
           purchasePts = Math.max(0, (agg[0]?.total ?? 0) - (bl.purchasePoints || 0));
         } catch (_) {}
       }
-      const existingGiftPts = partnership.giftedPoints || 0;
+      const existingGiftPts = (partnership.giftedPoints || 0) + (partnership.gratitudePoints || 0);
       const totalWithGift = contentPts + purchasePts + existingGiftPts + points;
 
       // Find next level
@@ -1016,10 +1016,14 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
       awarded += points;
     }
 
-    // Persist gifted points on partnership
-    if (stage === 'gift' && awarded > 0) {
+    // Persist points on partnership — gift vs gratitude tracked separately
+    if (awarded > 0) {
+      const isGift = stage === 'gift';
       await Partnership.findByIdAndUpdate(partnership._id, {
-        $inc: { giftedPoints: awarded, totalPointsEarned: awarded },
+        $inc: {
+          [isGift ? 'giftedPoints' : 'gratitudePoints']: awarded,
+          totalPointsEarned: awarded,
+        },
       });
     }
 

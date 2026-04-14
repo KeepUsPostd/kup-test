@@ -200,7 +200,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
         contentPts = (pts.submitted || 10) * adjSubmitted + (pts.approved || 25) * adjApproved + (pts.published || 40) * adjPostd + (pts.bonus || 0) * adjPostd;
       }
       const purchasePts = pc.purchaseEnabled ? Math.max(0, purchasePoints - (baseline.purchasePoints || 0)) : 0;
-      const giftPts = partnership?.giftedPoints || 0;
+      const giftPts = (partnership?.giftedPoints || 0) + (partnership?.gratitudePoints || 0);
       const totalPts = contentPts + purchasePts + giftPts;
 
       // Build levels progress (new 3-level system)
@@ -289,7 +289,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
           ? (pts.submitted || 0) * adjSub + (pts.approved || 0) * adjApp + (pts.published || 0) * adjPost + (pts.bonus || 0) * adjPost
           : 0;
         const purchasePts = pc.purchaseEnabled ? Math.max(0, purchasePoints - (bl.purchasePoints || 0)) : 0;
-        const giftPts = p.giftedPoints || 0;
+        const giftPts = (p.giftedPoints || 0) + (p.gratitudePoints || 0);
         const totalPts = contentPts + purchasePts + giftPts;
 
         // Build levels progress
@@ -686,6 +686,7 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
       partnership.claimedLevels = [];
       partnership.rewardPoints = 0;
       partnership.giftedPoints = 0;
+      partnership.gratitudePoints = 0;
       // Reset submission counts by storing the current counts as a baseline
       // so the dynamic calculation starts fresh
       partnership.pointsResetAt = new Date();

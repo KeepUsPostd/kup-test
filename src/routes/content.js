@@ -142,10 +142,10 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
           purchasePts = agg[0]?.total ?? 0;
         } catch (_) {}
       }
-      const partnership = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' }).select('giftedPoints pointsResetSubmissionBaseline').lean();
+      const partnership = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' }).select('giftedPoints gratitudePoints pointsResetSubmissionBaseline').lean();
       const bl2 = partnership?.pointsResetSubmissionBaseline || {};
       purchasePts = Math.max(0, purchasePts - (bl2.purchasePoints || 0));
-      const giftPts = partnership?.giftedPoints || 0;
+      const giftPts = (partnership?.giftedPoints || 0) + (partnership?.gratitudePoints || 0);
       const totalPts = contentPts + purchasePts + giftPts;
 
       // Find the next level the influencer is working toward

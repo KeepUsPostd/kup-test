@@ -33,7 +33,8 @@ const partnershipSchema = new mongoose.Schema({
 
   // Point-based reward level tracking — points reset when ALL levels claimed
   rewardPoints: { type: Number, default: 0 },  // current points (resets on full cycle claim)
-  giftedPoints: { type: Number, default: 0 },  // bonus points gifted by brand (resets on full cycle)
+  giftedPoints: { type: Number, default: 0 },  // voluntary gift points from brand (resets on full cycle)
+  gratitudePoints: { type: Number, default: 0 },  // automatic gratitude points: birthday, join, anniversary (resets on full cycle)
   claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2) — cleared on reset
   // Reset tracking — when all levels claimed, store baseline so dynamic point calc starts from zero
   pointsResetAt: { type: Date, default: null },
