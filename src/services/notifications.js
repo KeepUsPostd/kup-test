@@ -2214,6 +2214,33 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
     });
   }
 
+  // Email to influencer
+  if (influencer?.userId) {
+    try {
+      const User = require('../models/User');
+      const infUser = await User.findById(influencer.userId, 'email');
+      if (infUser?.email) {
+        await sendEmail({
+          to: infUser.email,
+          subject: `You Unlocked ${rewardValue} from ${brand?.name}!`,
+          headline: 'Reward Unlocked!',
+          preheader: `You reached ${threshold} pts and unlocked a reward`,
+          bodyHtml: `
+            <p>Congratulations! You've unlocked a reward from <strong>${brand?.name}</strong>!</p>
+            <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
+              <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${rewardValue}</p>
+              <p style="font-size:13px;color:#666;margin:8px 0 0">${threshold} points reached</p>
+            </div>
+            <p>The brand will distribute your reward shortly.</p>
+          `,
+          ctaText: 'View Rewards',
+          ctaUrl: 'keepuspostd://rewards',
+          variant: 'influencer',
+        });
+      }
+    } catch (e) { console.error('[levelUnlocked] influencer email error:', e.message); }
+  }
+
   // Notify brand owner — "Influencer unlocked a reward, distribute it"
   if (brand) {
     const BrandProfile = require('../models/BrandProfile');
@@ -2238,6 +2265,31 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
         title: 'Distribute Reward',
         body: msg,
       });
+
+      // Email to brand owner
+      try {
+        const User = require('../models/User');
+        const brandUser = await User.findById(bp.userId, 'email');
+        if (brandUser?.email) {
+          await sendEmail({
+            to: brandUser.email,
+            subject: `${influencer?.displayName || 'An influencer'} Unlocked ${rewardValue}`,
+            headline: 'Reward Ready to Distribute',
+            preheader: `${influencer?.displayName} reached ${threshold} pts`,
+            bodyHtml: `
+              <p><strong>${influencer?.displayName || 'An influencer'}</strong> has unlocked a reward on your brand!</p>
+              <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
+                <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${rewardValue}</p>
+                <p style="font-size:13px;color:#666;margin:8px 0 0">${threshold} points reached by @${influencer?.handle || 'influencer'}</p>
+              </div>
+              <p>Head to Cash & Rewards to distribute the reward.</p>
+            `,
+            ctaText: 'Distribute Reward',
+            ctaUrl: `${APP_URL}/app/cash-rewards.html?tab=rewards`,
+            variant: 'brand',
+          });
+        }
+      } catch (e) { console.error('[levelUnlocked] brand email error:', e.message); }
     }
   }
 }
