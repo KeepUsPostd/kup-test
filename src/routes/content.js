@@ -1021,6 +1021,7 @@ router.post('/:submissionId/download', requireAuth, async (req, res) => {
 router.put('/:submissionId/postd', requireAuth, async (req, res) => {
   try {
     const { platform, platformPostUrl } = req.body;
+    console.log(`[POSTD] Called for submission ${req.params.submissionId} | platform: ${platform}`);
 
     const submission = await ContentSubmission.findById(req.params.submissionId);
 
@@ -1029,6 +1030,7 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
     }
 
     if (submission.status !== 'approved') {
+      console.log(`[POSTD] REJECTED — status is "${submission.status}", not "approved"`);
       return res.status(400).json({
         error: 'Cannot mark as Postd',
         message: `Content must be approved first. Current status: "${submission.status}".`,
