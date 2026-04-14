@@ -191,7 +191,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
       let contentPts = 0;
       if (pc.contentEnabled) {
         const pts = pc.contentPoints || {};
-        contentPts = (pts.submitted || 10) * submitted + (pts.approved || 25) * approved + (pts.published || 40) * postd;
+        contentPts = (pts.submitted || 10) * submitted + (pts.approved || 25) * approved + (pts.published || 40) * postd + (pts.bonus || 0) * postd;
       }
       const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
       const giftPts = partnership?.giftedPoints || 0;
@@ -275,7 +275,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const pc = reward.pointConfig || {};
         const pts = pc.contentPoints || {};
         const contentPts = pc.contentEnabled
-          ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd
+          ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd + (pts.bonus || 0) * postd
           : 0;
         const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
         const giftPts = p.giftedPoints || 0;

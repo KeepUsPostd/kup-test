@@ -121,7 +121,8 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
       const contentPts =
         (pts.submitted || 0) * submitted +
         (pts.approved || 0) * approved +
-        (pts.published || 0) * postd;
+        (pts.published || 0) * postd +
+        (pts.bonus || 0) * postd;
 
       // Include purchase + gift points in total (same logic as my-progress API)
       let purchasePts = 0;

@@ -956,7 +956,7 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
         ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId, status: 'postd' }),
       ]);
       const pts = pc.contentPoints || {};
-      const contentPts = (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd;
+      const contentPts = (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd + (pts.bonus || 0) * postd;
 
       // Include purchase + existing gift points in total (same as my-progress API)
       let purchasePts = 0;
