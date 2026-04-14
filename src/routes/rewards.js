@@ -753,29 +753,25 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
         let bodyHtml = '';
         let subject = '';
         if (method === 'email' && code) {
-          subject = `Your Reward from ${brand?.name} — ${level.rewardValue}`;
+          subject = `Reward Ready — ${brand?.name}`;
           bodyHtml = `
-            <p><strong>${brand?.name}</strong> has sent you a reward for your partnership.</p>
-            <p><strong>Reward:</strong> ${level.rewardValue}</p>
-            <p><strong>Code:</strong> ${code}</p>
-            <p>Use this code to redeem your reward.</p>
-            ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
+            <p><strong>${brand?.name}</strong> sent you ${level.rewardValue}.</p>
+            <p>Code: ${code}</p>
+            ${notes ? `<p>Note: ${notes}</p>` : ''}
           `;
         } else if (method === 'instore') {
-          subject = `Your Reward is Ready for Pickup — ${brand?.name}`;
+          subject = `Reward Pickup — ${brand?.name}`;
           bodyHtml = `
-            <p><strong>${brand?.name}</strong> has a reward ready for you.</p>
-            <p><strong>Reward:</strong> ${level.rewardValue}</p>
-            <p>Show your Market Code QR at the store to redeem.</p>
-            ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
+            <p><strong>${brand?.name}</strong> has ${level.rewardValue} ready for pickup.</p>
+            <p>Show your Market Code QR at the store.</p>
+            ${notes ? `<p>Note: ${notes}</p>` : ''}
           `;
         } else if (method === 'mail') {
-          subject = `Your Reward Has Been Shipped — ${brand?.name}`;
+          subject = `Reward Shipped — ${brand?.name}`;
           bodyHtml = `
-            <p><strong>${brand?.name}</strong> has shipped your reward.</p>
-            <p><strong>Reward:</strong> ${level.rewardValue}</p>
-            ${trackingNumber ? `<p><strong>Tracking:</strong> ${trackingNumber}</p>` : ''}
-            ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
+            <p><strong>${brand?.name}</strong> shipped ${level.rewardValue} to you.</p>
+            ${trackingNumber ? `<p>Tracking: ${trackingNumber}</p>` : ''}
+            ${notes ? `<p>Note: ${notes}</p>` : ''}
           `;
         }
         if (subject) {
@@ -821,25 +817,7 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
           },
         });
 
-        const User = require('../models/User');
-        const brandUser = await User.findById(brandUserId, 'email');
-        if (brandUser?.email) {
-          const { sendEmail } = require('../config/email');
-          await sendEmail({
-            to: brandUser.email,
-            subject: `Reward Distributed — ${level.rewardValue} to ${inf?.displayName || 'influencer'}`,
-            headline: 'Reward Distributed',
-            preheader: `${level.rewardValue} sent to ${inf?.displayName}`,
-            bodyHtml: `
-              <p>You distributed a reward to <strong>${inf?.displayName || 'an influencer'}</strong> (@${inf?.handle || ''}).</p>
-              <p><strong>Reward:</strong> ${level.rewardValue}</p>
-              <p><strong>Method:</strong> ${method}${code ? ' — Code: ' + code : ''}${trackingNumber ? ' — Tracking: ' + trackingNumber : ''}</p>
-            `,
-            ctaText: 'View Rewards',
-            ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
-            variant: 'brand',
-          }).catch(e => console.error('[distribute-level] brand email error:', e.message));
-        }
+        // Brand doesn't need email — they just did the action themselves
       }
     } catch (brandNotifErr) {
       console.error('[distribute-level] brand notification error:', brandNotifErr.message);
