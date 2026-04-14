@@ -893,7 +893,7 @@
     }
 
     /* ============== DISTRIBUTION HISTORY ============== */
-    function loadDistributionHistory() {
+    async function loadDistributionHistory() {
       var brandId = '';
       try {
         if (typeof KUP_BRAND_CONTEXT !== 'undefined') {
@@ -901,6 +901,14 @@
           if (ab) brandId = ab.mongoId || ab._id || ab.id || '';
         }
       } catch(e) {}
+      // Fallback: fetch brandId from API if brand-context hasn't synced yet
+      if (!brandId && typeof kupApi !== 'undefined') {
+        try {
+          var brandData = await kupApi.get('/api/brands');
+          var brands = brandData && brandData.brands ? brandData.brands : [];
+          if (brands.length > 0) brandId = brands[0]._id;
+        } catch(e) {}
+      }
       if (!brandId || typeof kupApi === 'undefined') return;
 
       kupApi.get('/api/rewards/distribution-history?brandId=' + brandId).then(function(res) {
@@ -948,7 +956,9 @@
     }
 
     // Load history after brand context is ready
-    setTimeout(loadDistributionHistory, 1000);
+    // Load after brand-context syncs (retry at 2s and 5s for slow connections)
+    setTimeout(loadDistributionHistory, 2000);
+    setTimeout(loadDistributionHistory, 5000);
   </script>
   <!--
     PLATFORM CONFIG — Reward rules & tier gating defined in platform-config.js.
