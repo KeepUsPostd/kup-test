@@ -2035,6 +2035,22 @@
   <script src="/js/notifications.js"></script>
 
   <script>
+    // ---- Auto-login from Flutter app via custom token ----
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const customToken = params.get('token');
+      if (customToken && !auth.currentUser) {
+        try {
+          await auth.signInWithCustomToken(customToken);
+          // Remove token from URL for security
+          const clean = window.location.pathname + (params.get('brandId') ? '?brandId=' + params.get('brandId') : '');
+          window.history.replaceState({}, '', clean);
+        } catch (e) {
+          console.error('[auto-login] Custom token sign-in failed:', e);
+        }
+      }
+    })();
+
     // ---- Auth gate: redirect to login if not signed in ----
     auth.onAuthStateChanged(async (user) => {
       if (!user) {

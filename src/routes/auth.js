@@ -1269,4 +1269,18 @@ router.delete('/account', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/auth/web-token — Generate a Firebase custom token for web auto-login
+// Used by the Flutter app to open the brand dashboard in a browser without
+// requiring the user to log in again. The custom token is appended to the URL.
+router.post('/web-token', requireAuth, async (req, res) => {
+  try {
+    const admin = require('../config/firebase');
+    const customToken = await admin.auth().createCustomToken(req.user.firebaseUid);
+    res.json({ customToken });
+  } catch (error) {
+    console.error('[web-token]', error.message);
+    res.status(500).json({ error: 'Could not generate web token' });
+  }
+});
+
 module.exports = router;
