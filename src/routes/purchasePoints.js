@@ -428,6 +428,29 @@ router.post('/award', requireAuth, async (req, res) => {
       }
     }
 
+    // Check if any reward level was just unlocked by this purchase
+    if (accountFound && fullTotal !== undefined) {
+      try {
+        const notify2 = require('../services/notifications');
+        const lvls2 = activeReward?.pointConfig?.levels || [];
+        const previousTotal2 = fullTotal - points;
+        for (const lvl of lvls2) {
+          if (fullTotal >= lvl.threshold && previousTotal2 < lvl.threshold) {
+            console.log(`🎉 Purchase unlocked level: ${lvl.rewardValue} for ${influencer.displayName}`);
+            notify2.levelUnlocked({
+              influencer: { ...influencer.toObject(), userId: influencer.userId },
+              brand,
+              rewardValue: lvl.rewardValue,
+              rewardType: lvl.rewardType,
+              threshold: lvl.threshold,
+              totalPoints: fullTotal,
+              partnershipId: partnership?._id?.toString(),
+            }).catch(e => console.error('[purchase-points] level unlock error:', e.message));
+          }
+        }
+      } catch (e) { console.error('[purchase-points] level check error:', e.message); }
+    }
+
     if (accountFound) {
       console.log(`✅ Purchase points awarded: ${points}pts to ${influencer.displayName} (brand ${brandId}, $${spendAmount} spent, Level ${levelIndex})`);
     } else {
