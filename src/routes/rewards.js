@@ -801,6 +801,50 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
       console.error('[rewards/distribute-level] EMAIL ERROR:', emailErr.message, emailErr.stack?.substring(0, 200));
     }
 
+    // Brand notification + email — confirm distribution was sent
+    try {
+      const Notification = require('../models/Notification');
+      const brandUserId = brand?.createdBy;
+      if (brandUserId) {
+        const methodLabels = { email: 'via email', instore: 'for in-store pickup', mail: 'via mail' };
+        await Notification.create({
+          userId: brandUserId.toString(),
+          title: 'Reward Distributed',
+          message: `${level.rewardValue} sent to ${inf?.displayName || 'influencer'} ${methodLabels[method] || ''}`,
+          type: 'reward',
+          metadata: {
+            influencerName: inf?.displayName || '',
+            influencerHandle: inf?.handle || '',
+            rewardValue: level.rewardValue,
+            method,
+            isDistributionConfirmation: true,
+          },
+        });
+
+        const User = require('../models/User');
+        const brandUser = await User.findById(brandUserId, 'email');
+        if (brandUser?.email) {
+          const { sendEmail } = require('../config/email');
+          await sendEmail({
+            to: brandUser.email,
+            subject: `Reward Distributed — ${level.rewardValue} to ${inf?.displayName || 'influencer'}`,
+            headline: 'Reward Distributed',
+            preheader: `${level.rewardValue} sent to ${inf?.displayName}`,
+            bodyHtml: `
+              <p>You distributed a reward to <strong>${inf?.displayName || 'an influencer'}</strong> (@${inf?.handle || ''}).</p>
+              <p><strong>Reward:</strong> ${level.rewardValue}</p>
+              <p><strong>Method:</strong> ${method}${code ? ' — Code: ' + code : ''}${trackingNumber ? ' — Tracking: ' + trackingNumber : ''}</p>
+            `,
+            ctaText: 'View Rewards',
+            ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
+            variant: 'brand',
+          }).catch(e => console.error('[distribute-level] brand email error:', e.message));
+        }
+      }
+    } catch (brandNotifErr) {
+      console.error('[distribute-level] brand notification error:', brandNotifErr.message);
+    }
+
     console.log(`🎁 Reward distributed: "${level.rewardValue}" to ${inf?.displayName} via ${method}`);
     res.json({ message: 'Reward distributed', level: level.rewardValue, method, claimedLevels: partnership.claimedLevels });
   } catch (error) {
