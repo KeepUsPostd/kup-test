@@ -200,11 +200,22 @@ router.get('/', requireAuth, async (req, res) => {
     const trialTier      = trialActive ? trialStatus.trial.tier : null;
     const trialDaysLeft  = trialActive ? (trialStatus.trial.daysRemaining || 0) : 0;
 
-    // Attach role, initials, and plan info to every brand
-    const brandsWithRoles = brands.map(brand => {
+    // Attach role, initials, plan info, and stats to every brand
+    const { Campaign } = require('../models');
+    const { Partnership, ContentSubmission } = require('../models');
+
+    const brandsWithRoles = await Promise.all(brands.map(async (brand) => {
       const membership = memberships.find(m => m.brandId.equals(brand._id));
       const obj = brand.toObject();
       obj.initials = computeInitials(obj.name);
+
+      // Fetch stats in parallel
+      const [activeCampaigns, totalInfluencers, totalContent] = await Promise.all([
+        Campaign.countDocuments({ brandId: brand._id, status: 'active' }).catch(() => 0),
+        Partnership.countDocuments({ brandId: brand._id, status: 'active' }).catch(() => 0),
+        ContentSubmission.countDocuments({ brandId: brand._id }).catch(() => 0),
+      ]);
+
       return {
         ...obj,
         userRole:            membership ? membership.role : null,
@@ -212,8 +223,9 @@ router.get('/', requireAuth, async (req, res) => {
         trialActive:         trialActive,
         trialTier:           trialTier,
         trialDaysRemaining:  trialDaysLeft,
+        stats: { activeCampaigns, totalInfluencers, totalContent },
       };
-    });
+    }));
 
     res.json({ brands: brandsWithRoles });
   } catch (error) {
