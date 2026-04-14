@@ -21,7 +21,7 @@ const TIER_THRESHOLDS = [
   { key: 'rising',      min: 50_000,    displayName: 'Mid',         range: '50K–500K',    video: 18, image: 9  },
   { key: 'micro',       min: 10_000,    displayName: 'Micro',       range: '10K–50K',     video: 11, image: 6  },
   { key: 'nano',        min: 5_000,     displayName: 'Nano',        range: '5K–10K',      video: 8,  image: 4  },
-  { key: 'unverified',  min: 0,         displayName: 'Startup',     range: '0–5K',        video: 4,  image: 2  },
+  { key: 'startup',     min: 0,         displayName: 'Startup',     range: '0–5K',        video: 4,  image: 2  },
 ];
 
 function tierFromFollowers(count) {
