@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       .sort({ savedAt: -1 })
       .populate({
         path: 'contentId',
-        select: 'caption contentType mediaUrls brandName displayName handle status metrics',
+        select: 'caption contentType mediaUrls posterUrl brandName displayName handle status metrics',
       })
       .lean();
 
