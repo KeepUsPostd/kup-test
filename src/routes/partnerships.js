@@ -1013,6 +1013,38 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
         }
       }
 
+      // 🔄 Auto-reset when ALL levels surpassed
+      const highestThreshold = levels[levels.length - 1]?.threshold || 0;
+      if (highestThreshold > 0 && totalWithGift >= highestThreshold) {
+        console.log(`🔄 All levels surpassed for ${partnership.influencerProfileId.displayName} — auto-resetting points`);
+        const ContentSubmission = require('../models/ContentSubmission');
+        const PurchasePointsLog = require('../models/PurchasePointsLog');
+        const infId2 = partnership.influencerProfileId._id || partnership.influencerProfileId;
+        let purchaseBaseline = 0;
+        try {
+          const agg2 = await PurchasePointsLog.aggregate([
+            { $match: { brandId: partnership.brandId, influencerProfileId: infId2 } },
+            { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
+          ]);
+          purchaseBaseline = agg2[0]?.total ?? 0;
+        } catch (_) {}
+        partnership.claimedLevels = [];
+        partnership.giftedPoints = 0;
+        partnership.gratitudePoints = 0;
+        partnership.pointsResetAt = new Date();
+        partnership.pointsResetSubmissionBaseline = {
+          total: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId2 }),
+          approved: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId2, status: 'approved' }),
+          postd: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: infId2, status: 'postd' }),
+          purchasePoints: purchaseBaseline,
+        };
+        await partnership.save();
+        // Skip the normal persist below — already saved
+        awarded += points;
+        console.log(`🎁 ${stage} points awarded: ${awarded} pts for partnership ${partnership._id} (RESET)`);
+        return res.json({ message: `${awarded} points awarded — cycle complete, points reset`, awarded, reset: true });
+      }
+
       awarded += points;
     }
 

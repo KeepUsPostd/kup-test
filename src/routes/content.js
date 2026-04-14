@@ -182,7 +182,6 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
       const previousPts = totalPts - points;
       for (const lvl of levels) {
         if (totalPts >= lvl.threshold && previousPts < lvl.threshold) {
-          // Level just unlocked!
           console.log(`🎉 Level unlocked! ${lvl.rewardValue} (${lvl.threshold} pts) for ${influencer.displayName}`);
           notify.levelUnlocked({
             influencer,
@@ -193,6 +192,35 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
             totalPoints: totalPts,
             partnershipId,
           }).catch(() => {});
+        }
+      }
+
+      // 🔄 Auto-reset when ALL levels surpassed (don't wait for brand to distribute)
+      const highestThreshold = levels[levels.length - 1]?.threshold || 0;
+      if (highestThreshold > 0 && totalPts >= highestThreshold) {
+        const p = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' });
+        if (p) {
+          console.log(`🔄 All levels surpassed for ${influencer.displayName} — auto-resetting points`);
+          p.claimedLevels = [];
+          p.giftedPoints = 0;
+          p.gratitudePoints = 0;
+          let purchaseBaseline = 0;
+          try {
+            const PurchasePointsLog2 = require('../models/PurchasePointsLog');
+            const agg2 = await PurchasePointsLog2.aggregate([
+              { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId.toString()), influencerProfileId } },
+              { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
+            ]);
+            purchaseBaseline = agg2[0]?.total ?? 0;
+          } catch (_) {}
+          p.pointsResetAt = new Date();
+          p.pointsResetSubmissionBaseline = {
+            total: await ContentSubmission.countDocuments({ brandId, influencerProfileId }),
+            approved: await ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
+            postd: await ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'postd' }),
+            purchasePoints: purchaseBaseline,
+          };
+          await p.save();
         }
       }
     }

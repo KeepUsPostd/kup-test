@@ -448,6 +448,22 @@ router.post('/award', requireAuth, async (req, res) => {
             }).catch(e => console.error('[purchase-points] level unlock error:', e.message));
           }
         }
+        // 🔄 Auto-reset when ALL levels surpassed
+        const highestThreshold2 = lvls2[lvls2.length - 1]?.threshold || 0;
+        if (highestThreshold2 > 0 && fullTotal >= highestThreshold2 && partnership) {
+          console.log(`🔄 All levels surpassed for ${influencer.displayName} — auto-resetting points`);
+          partnership.claimedLevels = [];
+          partnership.giftedPoints = 0;
+          partnership.gratitudePoints = 0;
+          partnership.pointsResetAt = new Date();
+          partnership.pointsResetSubmissionBaseline = {
+            total: await ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id }),
+            approved: await ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id, status: 'approved' }),
+            postd: await ContentSubmission.countDocuments({ brandId, influencerProfileId: influencer._id, status: 'postd' }),
+            purchasePoints: (influencer.purchasePointsBalance || 0) + points,
+          };
+          await partnership.save();
+        }
       } catch (e) { console.error('[purchase-points] level check error:', e.message); }
     }
 
