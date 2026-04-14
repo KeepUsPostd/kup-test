@@ -340,6 +340,42 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/rewards/distribution-history — MUST be before /:rewardId or Express matches it as an ObjectId
+router.get('/distribution-history', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
+
+    const { Partnership } = require('../models');
+    const partnerships = await Partnership.find({
+      brandId,
+      'distributions.0': { $exists: true },
+    }, 'distributions influencerProfileId')
+      .populate('influencerProfileId', 'displayName handle avatarUrl')
+      .sort({ 'distributions.distributedAt': -1 })
+      .lean();
+
+    const history = [];
+    for (const p of partnerships) {
+      const inf = p.influencerProfileId || {};
+      for (const d of (p.distributions || [])) {
+        history.push({
+          ...d,
+          influencerName: d.influencerName || inf.displayName || '',
+          influencerHandle: d.influencerHandle || inf.handle || '',
+          influencerAvatar: inf.avatarUrl || '',
+          partnershipId: p._id,
+        });
+      }
+    }
+    history.sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
+    res.json({ distributions: history, total: history.length });
+  } catch (error) {
+    console.error('Distribution history error:', error.message);
+    res.status(500).json({ error: 'Could not fetch distribution history' });
+  }
+});
+
 // GET /api/rewards/:rewardId — Get single reward
 router.get('/:rewardId', requireAuth, async (req, res) => {
   try {
@@ -462,46 +498,6 @@ router.delete('/:rewardId', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Delete reward error:', error.message);
     res.status(500).json({ error: 'Could not delete reward' });
-  }
-});
-
-// GET /api/rewards/distribution-history?brandId=xxx — All distributions for a brand
-router.get('/distribution-history', requireAuth, async (req, res) => {
-  try {
-    const { brandId } = req.query;
-    if (!brandId) return res.status(400).json({ error: 'brandId is required' });
-
-    const { Partnership } = require('../models');
-    const partnerships = await Partnership.find({
-      brandId,
-      'distributions.0': { $exists: true },
-    }, 'distributions influencerProfileId')
-      .populate('influencerProfileId', 'displayName handle avatarUrl')
-      .sort({ 'distributions.distributedAt': -1 })
-      .lean();
-
-    // Flatten all distributions across partnerships
-    const history = [];
-    for (const p of partnerships) {
-      const inf = p.influencerProfileId || {};
-      for (const d of (p.distributions || [])) {
-        history.push({
-          ...d,
-          influencerName: d.influencerName || inf.displayName || '',
-          influencerHandle: d.influencerHandle || inf.handle || '',
-          influencerAvatar: inf.avatarUrl || '',
-          partnershipId: p._id,
-        });
-      }
-    }
-
-    // Sort by date descending
-    history.sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
-
-    res.json({ distributions: history, total: history.length });
-  } catch (error) {
-    console.error('Distribution history error:', error.message);
-    res.status(500).json({ error: 'Could not fetch distribution history' });
   }
 });
 

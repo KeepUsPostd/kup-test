@@ -991,7 +991,7 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
       });
 
       // Check if any level was just unlocked by this gift
-      const previousTotal = contentTotal;
+      const previousTotal = contentPts;
       for (const lvl of levels) {
         if (totalWithGift >= lvl.threshold && previousTotal < lvl.threshold) {
           console.log(`🎉 Gift unlocked level: ${lvl.rewardValue} for ${partnership.influencerProfileId.displayName}`);
