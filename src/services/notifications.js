@@ -2226,11 +2226,9 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
           headline: 'Reward Unlocked!',
           preheader: `You reached ${threshold} pts and unlocked a reward`,
           bodyHtml: `
-            <p>Congratulations! You've unlocked a reward from <strong>${brand?.name}</strong>!</p>
-            <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
-              <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${rewardValue}</p>
-              <p style="font-size:13px;color:#666;margin:8px 0 0">${threshold} points reached</p>
-            </div>
+            <p>Congratulations! You've unlocked a reward from <strong>${brand?.name}</strong>.</p>
+            <p><strong>Reward:</strong> ${rewardValue}</p>
+            <p><strong>Points reached:</strong> ${threshold}</p>
             <p>The brand will distribute your reward shortly.</p>
           `,
           ctaText: 'View Rewards',
@@ -2277,11 +2275,9 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
             headline: 'Reward Ready to Distribute',
             preheader: `${influencer?.displayName} reached ${threshold} pts`,
             bodyHtml: `
-              <p><strong>${influencer?.displayName || 'An influencer'}</strong> has unlocked a reward on your brand!</p>
-              <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
-                <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${rewardValue}</p>
-                <p style="font-size:13px;color:#666;margin:8px 0 0">${threshold} points reached by @${influencer?.handle || 'influencer'}</p>
-              </div>
+              <p><strong>${influencer?.displayName || 'An influencer'}</strong> has unlocked a reward on your brand.</p>
+              <p><strong>Reward:</strong> ${rewardValue}</p>
+              <p><strong>Points reached:</strong> ${threshold} by @${influencer?.handle || 'influencer'}</p>
               <p>Head to Cash & Rewards to distribute the reward.</p>
             `,
             ctaText: 'Distribute Reward',

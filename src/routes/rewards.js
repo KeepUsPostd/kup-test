@@ -754,32 +754,26 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
         if (method === 'email' && code) {
           subject = `Your Reward from ${brand?.name} — ${level.rewardValue}`;
           bodyHtml = `
-            <p>Great news! <strong>${brand?.name}</strong> has sent you a reward for your partnership.</p>
-            <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center;">
-              <p style="font-size: 18px; font-weight: bold; color: #15803d; margin: 0 0 8px 0;">${level.rewardValue}</p>
-              <p style="font-size: 24px; font-weight: bold; color: #111; letter-spacing: 2px; margin: 0; font-family: monospace;">${code}</p>
-              <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">Use this code to redeem your reward</p>
-            </div>
+            <p><strong>${brand?.name}</strong> has sent you a reward for your partnership.</p>
+            <p><strong>Reward:</strong> ${level.rewardValue}</p>
+            <p><strong>Code:</strong> ${code}</p>
+            <p>Use this code to redeem your reward.</p>
             ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
           `;
         } else if (method === 'instore') {
           subject = `Your Reward is Ready for Pickup — ${brand?.name}`;
           bodyHtml = `
-            <p>Great news! <strong>${brand?.name}</strong> has a reward ready for you.</p>
-            <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center;">
-              <p style="font-size: 18px; font-weight: bold; color: #15803d; margin: 0;">${level.rewardValue}</p>
-              <p style="font-size: 13px; color: #666; margin: 8px 0 0 0;">Show your Market Code QR at the store to redeem</p>
-            </div>
+            <p><strong>${brand?.name}</strong> has a reward ready for you.</p>
+            <p><strong>Reward:</strong> ${level.rewardValue}</p>
+            <p>Show your Market Code QR at the store to redeem.</p>
             ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
           `;
         } else if (method === 'mail') {
           subject = `Your Reward Has Been Shipped — ${brand?.name}`;
           bodyHtml = `
-            <p>Great news! <strong>${brand?.name}</strong> has shipped your reward.</p>
-            <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center;">
-              <p style="font-size: 18px; font-weight: bold; color: #15803d; margin: 0;">${level.rewardValue}</p>
-              ${trackingNumber ? `<p style="font-size: 14px; color: #333; margin: 8px 0 0 0;">Tracking: <strong>${trackingNumber}</strong></p>` : ''}
-            </div>
+            <p><strong>${brand?.name}</strong> has shipped your reward.</p>
+            <p><strong>Reward:</strong> ${level.rewardValue}</p>
+            ${trackingNumber ? `<p><strong>Tracking:</strong> ${trackingNumber}</p>` : ''}
             ${notes ? `<p><strong>Note from ${brand?.name}:</strong> ${notes}</p>` : ''}
           `;
         }

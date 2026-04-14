@@ -374,15 +374,11 @@ router.post('/award', requireAuth, async (req, res) => {
         if (infUser?.email) {
           await sendEmail({
             to: infUser.email,
-            subject: `${points} Purchase Points Earned from ${brandName}`,
-            headline: 'Purchase Points Earned',
-            preheader: `You earned ${points} points for your $${spendAmount} purchase`,
+            subject: `Purchase Points Earned — ${brandName}`,
+            headline: 'Purchase Points Earned!',
+            preheader: `You earned ${points} points for your $${spendAmount} purchase at ${brandName}.`,
             bodyHtml: `
-              <p>Your purchase at <strong>${brandName}</strong> earned you points!</p>
-              <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
-                <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">+${points} pts</p>
-                <p style="font-size:13px;color:#666;margin:8px 0 0">$${spendAmount} purchase — Level ${levelIndex}</p>
-              </div>
+              <p>You earned <strong>${points} points</strong> from your <strong>$${spendAmount}</strong> purchase at <strong>${brandName}</strong>.</p>
               <p>Keep earning points toward your next reward!</p>
             `,
             ctaText: 'View Rewards',
@@ -417,11 +413,9 @@ router.post('/award', requireAuth, async (req, res) => {
               headline: 'Purchase Points Awarded',
               preheader: `${influencer.displayName} earned points from a $${spendAmount} purchase`,
               bodyHtml: `
-                <p><strong>${influencer.displayName}</strong> (@${influencer.handle}) earned purchase points at your brand!</p>
-                <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
-                  <p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${points} pts</p>
-                  <p style="font-size:13px;color:#666;margin:8px 0 0">$${spendAmount} purchase — Level ${levelIndex}</p>
-                </div>
+                <p><strong>${influencer.displayName}</strong> (@${influencer.handle}) earned purchase points at your brand.</p>
+                <p><strong>Points earned:</strong> ${points} pts</p>
+                <p><strong>Purchase amount:</strong> $${spendAmount}</p>
               `,
               ctaText: 'View Rewards',
               ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
@@ -966,7 +960,7 @@ router.post('/staff-award', async (req, res) => {
                 subject: `${influencer.displayName} Earned ${points} Purchase Points`,
                 headline: 'Purchase Points Awarded',
                 preheader: `${influencer.displayName} earned points from a $${spend} purchase`,
-                bodyHtml: `<p><strong>${influencer.displayName}</strong> earned purchase points at your brand!</p><div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;text-align:center"><p style="font-size:24px;font-weight:bold;color:#15803d;margin:0">${points} pts</p><p style="font-size:13px;color:#666;margin:8px 0 0">$${spend} purchase</p></div>`,
+                bodyHtml: `<p><strong>${influencer.displayName}</strong> earned purchase points at your brand.</p><p><strong>Points earned:</strong> ${points} pts</p><p><strong>Purchase amount:</strong> $${spend}</p>`,
                 ctaText: 'View Rewards',
                 ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/cash-rewards.html?tab=rewards`,
                 variant: 'brand',
