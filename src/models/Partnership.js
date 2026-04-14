@@ -31,10 +31,17 @@ const partnershipSchema = new mongoose.Schema({
   totalCashEarned: { type: Number, default: 0 },
   totalPointsEarned: { type: Number, default: 0 },
 
-  // Point-based reward level tracking — points reset on claim
-  rewardPoints: { type: Number, default: 0 },  // current points (resets on claim)
-  giftedPoints: { type: Number, default: 0 },  // bonus points gifted by brand (added to content total)
-  claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2)
+  // Point-based reward level tracking — points reset when ALL levels claimed
+  rewardPoints: { type: Number, default: 0 },  // current points (resets on full cycle claim)
+  giftedPoints: { type: Number, default: 0 },  // bonus points gifted by brand (resets on full cycle)
+  claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2) — cleared on reset
+  // Reset tracking — when all levels claimed, store baseline so dynamic point calc starts from zero
+  pointsResetAt: { type: Date, default: null },
+  pointsResetSubmissionBaseline: {
+    total: { type: Number, default: 0 },
+    approved: { type: Number, default: 0 },
+    postd: { type: Number, default: 0 },
+  },
   distributions: [{                              // full distribution log for brand records
     levelIndex: { type: Number, required: true },
     rewardValue: { type: String },               // e.g. "20% OFF SHORTS"

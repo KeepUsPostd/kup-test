@@ -118,11 +118,17 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
         ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
         ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'postd' }),
       ]);
+      // Subtract reset baseline if points were reset
+      const partnership2 = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' }).select('pointsResetSubmissionBaseline').lean();
+      const bl = partnership2?.pointsResetSubmissionBaseline || {};
+      const adjSub = submitted - (bl.total || 0);
+      const adjApp = approved - (bl.approved || 0);
+      const adjPost = postd - (bl.postd || 0);
       const contentPts =
-        (pts.submitted || 0) * submitted +
-        (pts.approved || 0) * approved +
-        (pts.published || 0) * postd +
-        (pts.bonus || 0) * postd;
+        (pts.submitted || 0) * adjSub +
+        (pts.approved || 0) * adjApp +
+        (pts.published || 0) * adjPost +
+        (pts.bonus || 0) * adjPost;
 
       // Include purchase + gift points in total (same logic as my-progress API)
       let purchasePts = 0;

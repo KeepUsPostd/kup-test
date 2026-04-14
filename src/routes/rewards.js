@@ -181,17 +181,23 @@ router.get('/my-progress', requireAuth, async (req, res) => {
       console.warn('[my-progress] Purchase aggregate error:', aggErr.message);
     }
 
-    // Get partnership for claimed level tracking
+    // Get partnership for claimed level tracking + reset baseline
     const { Partnership } = require('../models');
     const partnership = await Partnership.findOne({ brandId, influencerProfileId: profile._id, status: 'active' }).lean();
     const claimedLevels = partnership?.claimedLevels || [];
+
+    // Subtract reset baseline if points were reset after a full cycle
+    const baseline = partnership?.pointsResetSubmissionBaseline || {};
+    const adjSubmitted = submitted - (baseline.total || 0);
+    const adjApproved = approved - (baseline.approved || 0);
+    const adjPostd = postd - (baseline.postd || 0);
 
     const progress = rewards.map(reward => {
       const pc = reward.pointConfig || {};
       let contentPts = 0;
       if (pc.contentEnabled) {
         const pts = pc.contentPoints || {};
-        contentPts = (pts.submitted || 10) * submitted + (pts.approved || 25) * approved + (pts.published || 40) * postd + (pts.bonus || 0) * postd;
+        contentPts = (pts.submitted || 10) * adjSubmitted + (pts.approved || 25) * adjApproved + (pts.published || 40) * adjPostd + (pts.bonus || 0) * adjPostd;
       }
       const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
       const giftPts = partnership?.giftedPoints || 0;
@@ -271,11 +277,16 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
 
       const purchasePoints = purchaseAgg[0]?.totalPoints ?? 0;
       const claimedLevels = p.claimedLevels || [];
+      // Subtract reset baseline
+      const bl = p.pointsResetSubmissionBaseline || {};
+      const adjSub = submitted - (bl.total || 0);
+      const adjApp = approved - (bl.approved || 0);
+      const adjPost = postd - (bl.postd || 0);
       const rewardProgress = rewards.map(reward => {
         const pc = reward.pointConfig || {};
         const pts = pc.contentPoints || {};
         const contentPts = pc.contentEnabled
-          ? (pts.submitted || 0) * submitted + (pts.approved || 0) * approved + (pts.published || 0) * postd + (pts.bonus || 0) * postd
+          ? (pts.submitted || 0) * adjSub + (pts.approved || 0) * adjApp + (pts.published || 0) * adjPost + (pts.bonus || 0) * adjPost
           : 0;
         const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
         const giftPts = p.giftedPoints || 0;
@@ -667,6 +678,24 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
       influencerHandle: inf?.handle || '',
       distributedAt: new Date(),
     });
+
+    // Check if ALL levels are now claimed → reset points for a new cycle
+    const allLevelsClaimed = levels.every((_, idx) => partnership.claimedLevels.includes(idx));
+    if (allLevelsClaimed) {
+      console.log(`🔄 All ${levels.length} levels claimed for ${inf?.displayName} — resetting points for new cycle`);
+      partnership.claimedLevels = [];
+      partnership.rewardPoints = 0;
+      partnership.giftedPoints = 0;
+      // Reset submission counts by storing the current counts as a baseline
+      // so the dynamic calculation starts fresh
+      partnership.pointsResetAt = new Date();
+      partnership.pointsResetSubmissionBaseline = {
+        total: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id }),
+        approved: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id, status: 'approved' }),
+        postd: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id, status: 'postd' }),
+      };
+    }
+
     await partnership.save();
 
     // Notify influencer based on method
