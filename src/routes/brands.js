@@ -125,7 +125,7 @@ router.post('/', requireAuth, async (req, res) => {
       tags: tags || [],
       initials,
       generatedColor,
-      brandColors: brandColors || undefined,
+      brandColors: brandColors || { primary: generatedColor, secondary: generatedColor },
       kioskBrandCode,
       ...(brandHandle ? { brandHandle } : {}),
     });
