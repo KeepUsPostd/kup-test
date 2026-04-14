@@ -2169,11 +2169,17 @@
     };
 
     var TIER_LABELS = {
-      unverified: 'Startup', nano: 'Nano Influencer', micro: 'Micro Influencer',
+      startup: 'Startup', nano: 'Nano Influencer', micro: 'Micro Influencer',
       mid: 'Mid-Tier Influencer', macro: 'Macro Influencer',
       rising: 'Rising', established: 'Established',
       mega: 'Mega Influencer', premium: 'Premium', celebrity: 'Celebrity'
     };
+    // Correct tier label: verified + unverified tier = Startup
+    function getTierLabel(inf) {
+      var tier = inf.influenceTier || 'unverified';
+      if (tier === 'unverified') return inf.isVerified ? 'Startup' : 'Unverified';
+      return TIER_LABELS[tier] || tier.charAt(0).toUpperCase() + tier.slice(1);
+    }
 
     var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
 
@@ -2196,7 +2202,7 @@
     function buildCashRow(tx, index) {
       var inf = tx.payeeInfluencerId || {};
       var handle = inf.handle || inf.displayName || 'Unknown';
-      var tier = TIER_LABELS[inf.influenceTier] || inf.influenceTier || 'Influencer';
+      var tier = getTierLabel(inf);
       var bg = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
       var partnerId = inf._id || tx.payeeInfluencerId || '';
       var infKey = (handle || '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '_');
@@ -2246,7 +2252,7 @@
       var bg = AVATAR_GRADIENTS[0];
       var infKey = inf.handle;
       _influencerLookup[infKey] = {
-        handle: '@' + inf.handle, name: inf.displayName, tier: TIER_LABELS[inf.influenceTier] || 'Micro Influencer',
+        handle: '@' + inf.handle, name: inf.displayName, tier: getTierLabel(inf),
         tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
         posts: String(inf.totalSubmissions), bio: inf.bio
       };
@@ -2255,7 +2261,7 @@
           '<input type="checkbox" aria-label="Select ' + inf.handle + '">' +
           '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
             '<div class="avatar">' + PERSON_SVG + '</div>' +
-            '<div><div class="name">@' + inf.handle + (inf.isVerified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
+            '<div><div class="name">@' + inf.handle + (inf.isVerified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div><div class="tier">' + (getTierLabel(inf)) + '</div></div>' +
           '</div></div></td>' +
         '<td data-label="Last Paid" class="amount-cell" style="text-align:center;">$0.00</td>' +
         '<td data-label="Total Paid" class="amount-cell green" style="text-align:center;">$0.00</td>' +
@@ -2337,7 +2343,7 @@
       var bg = AVATAR_GRADIENTS[0];
       var infKey = inf.handle;
       _influencerLookup[infKey] = {
-        handle: '@' + inf.handle, name: inf.displayName, tier: TIER_LABELS[inf.influenceTier] || 'Micro Influencer',
+        handle: '@' + inf.handle, name: inf.displayName, tier: getTierLabel(inf),
         tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
         posts: String(inf.totalSubmissions), bio: inf.bio
       };
@@ -2349,7 +2355,7 @@
           '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + inf.handle + '">' +
           '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
             '<div class="avatar">' + PERSON_SVG + '</div>' +
-            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (TIER_LABELS[inf.influenceTier] || 'Micro Influencer') + '</div></div>' +
+            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (getTierLabel(inf)) + '</div></div>' +
           '</div></div></td>' +
         '<td data-label="Reward" style="text-align:center;" class="reward-col"><a href="brand-reward-settings.html" style="color:var(--kup-blue);font-weight:600;text-decoration:none">' + rewardTitle + '</a></td>' +
         '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
@@ -2378,7 +2384,7 @@
       progressList.forEach(function(entry) {
         var inf = entry.influencer || {};
         var handle = inf.handle || inf.displayName || 'Unknown';
-        var tier = TIER_LABELS[inf.influenceTier] || inf.influenceTier || 'Influencer';
+        var tier = getTierLabel(inf);
         var infKey = (handle || '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '_');
 
         var rwAvHtml = inf.avatarUrl

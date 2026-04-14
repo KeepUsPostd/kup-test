@@ -1064,7 +1064,8 @@
       var inf = data.influencerProfileId || data;
       var name = inf.displayName || inf.influencerName || inf.name || data.influencerName || 'Influencer';
       var handle = inf.handle || inf.username || data.handle || '';
-      var tier = inf.influenceTier || inf.tier || data.tier || 'Influencer';
+      var rawTier = inf.influenceTier || inf.tier || data.tier || 'unverified';
+      var tier = rawTier === 'unverified' ? (inf.isVerified ? 'Startup' : 'Unverified') : rawTier.charAt(0).toUpperCase() + rawTier.slice(1);
       var followers = inf.followerCount || inf.followers || data.followers || 0;
       var engagement = inf.engagementRate || inf.engagement || data.engagement || 0;
       var posts = inf.totalReviews || inf.postCount || inf.posts || data.posts || 0;
@@ -1270,7 +1271,8 @@
     function showScanResultCard(inf) {
       var name = inf.influencerName || inf.name || 'Influencer';
       var handle = inf.handle || inf.username || '';
-      var tier = inf.tier || inf.influenceTier || 'Influencer';
+      var rawTier2 = inf.tier || inf.influenceTier || 'unverified';
+      var tier = rawTier2 === 'unverified' ? (inf.isVerified ? 'Startup' : 'Unverified') : rawTier2.charAt(0).toUpperCase() + rawTier2.slice(1);
 
       document.getElementById('scanInfluencer').textContent = handle ? '@' + handle.replace(/^@/, '') : '—';
       document.getElementById('scanName').textContent = name;
