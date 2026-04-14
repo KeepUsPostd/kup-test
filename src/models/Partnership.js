@@ -41,6 +41,7 @@ const partnershipSchema = new mongoose.Schema({
     total: { type: Number, default: 0 },
     approved: { type: Number, default: 0 },
     postd: { type: Number, default: 0 },
+    purchasePoints: { type: Number, default: 0 },
   },
   distributions: [{                              // full distribution log for brand records
     levelIndex: { type: Number, required: true },

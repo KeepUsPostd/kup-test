@@ -199,7 +199,7 @@ router.get('/my-progress', requireAuth, async (req, res) => {
         const pts = pc.contentPoints || {};
         contentPts = (pts.submitted || 10) * adjSubmitted + (pts.approved || 25) * adjApproved + (pts.published || 40) * adjPostd + (pts.bonus || 0) * adjPostd;
       }
-      const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
+      const purchasePts = pc.purchaseEnabled ? Math.max(0, purchasePoints - (baseline.purchasePoints || 0)) : 0;
       const giftPts = partnership?.giftedPoints || 0;
       const totalPts = contentPts + purchasePts + giftPts;
 
@@ -288,7 +288,7 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
         const contentPts = pc.contentEnabled
           ? (pts.submitted || 0) * adjSub + (pts.approved || 0) * adjApp + (pts.published || 0) * adjPost + (pts.bonus || 0) * adjPost
           : 0;
-        const purchasePts = pc.purchaseEnabled ? purchasePoints : 0;
+        const purchasePts = pc.purchaseEnabled ? Math.max(0, purchasePoints - (bl.purchasePoints || 0)) : 0;
         const giftPts = p.giftedPoints || 0;
         const totalPts = contentPts + purchasePts + giftPts;
 
@@ -689,10 +689,21 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
       // Reset submission counts by storing the current counts as a baseline
       // so the dynamic calculation starts fresh
       partnership.pointsResetAt = new Date();
+      // Capture purchase points baseline too
+      let purchaseBaseline = 0;
+      try {
+        const PurchasePointsLog = require('../models/PurchasePointsLog');
+        const agg = await PurchasePointsLog.aggregate([
+          { $match: { brandId: partnership.brandId, influencerProfileId: inf._id } },
+          { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
+        ]);
+        purchaseBaseline = agg[0]?.total ?? 0;
+      } catch (_) {}
       partnership.pointsResetSubmissionBaseline = {
         total: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id }),
         approved: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id, status: 'approved' }),
         postd: await ContentSubmission.countDocuments({ brandId: partnership.brandId, influencerProfileId: inf._id, status: 'postd' }),
+        purchasePoints: purchaseBaseline,
       };
     }
 
