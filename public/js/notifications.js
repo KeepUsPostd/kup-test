@@ -98,7 +98,7 @@
   async function loadNotifications() {
     if (typeof kupApi === 'undefined') return;
     try {
-      var data = await kupApi.get('/api/notifications?limit=20');
+      var data = await kupApi.get('/api/notifications?limit=20&audience=brand');
       if (data && data.notifications) {
         renderList(data.notifications);
       }
@@ -110,7 +110,7 @@
   async function loadUnreadCount() {
     if (typeof kupApi === 'undefined') return;
     try {
-      var data = await kupApi.get('/api/notifications/unread-count');
+      var data = await kupApi.get('/api/notifications/unread-count?audience=brand');
       if (data && typeof data.unreadCount === 'number') {
         setBadge(data.unreadCount);
       }

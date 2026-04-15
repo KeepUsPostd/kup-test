@@ -1126,8 +1126,7 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
       console.error('Notification error (non-blocking):', notifyErr.message);
     }
 
-    // 🏆 Award "published" + "bonus" content points for all active point-based rewards
-    awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'published', partnershipId: submission.partnershipId?.toString() });
+    // 🏆 Award "bonus" (sharing) content points — "published" stage is reserved for when the BRAND features content
     awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'bonus', partnershipId: submission.partnershipId?.toString() });
 
     res.json({ message: 'Content marked as Postd (published)', submission, rewardTriggered });

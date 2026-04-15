@@ -43,6 +43,13 @@ const notificationSchema = new mongoose.Schema({
     default: null,
   },
 
+  // Who should see this: 'influencer' (points, rewards), 'brand' (submissions, partnerships), 'all' (system)
+  audience: {
+    type: String,
+    enum: ['influencer', 'brand', 'all'],
+    default: 'all',
+  },
+
   // Extra data for the frontend (submission ID, amount, etc.)
   metadata: {
     type: mongoose.Schema.Types.Mixed,

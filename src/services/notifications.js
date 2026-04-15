@@ -21,7 +21,7 @@ const Reward = require('../models/Reward');
 const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 
 // ── Helper: Create in-app notification ──────────────────
-async function createInApp({ userId, title, message, type, link = null, metadata = {} }) {
+async function createInApp({ userId, title, message, type, link = null, metadata = {}, audience = 'all' }) {
   try {
     await Notification.create({
       userId,
@@ -30,6 +30,7 @@ async function createInApp({ userId, title, message, type, link = null, metadata
       type,
       link,
       metadata,
+      audience,
     });
   } catch (err) {
     console.error('Failed to create in-app notification:', err.message);
@@ -599,6 +600,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
       message: msg,
       type: 'payment',
       link: '/app/influencer-earn.html',
+      audience: 'influencer',
       metadata: {
         brandName: brand?.name || 'KeepUsPostd',
         brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
@@ -2148,6 +2150,7 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
     message: msg,
     type: 'reward',
     link: '/app/rewards.html',
+    audience: 'influencer',
     metadata: {
       brandName: brand?.name || '',
       brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
@@ -2197,6 +2200,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
       message: msg,
       type: 'reward',
       link: '/app/rewards.html',
+      audience: 'influencer',
       metadata: {
         brandName: brand?.name || '',
         brandLogoUrl: brand?.logoUrl || brand?.avatarUrl || '',
@@ -2251,6 +2255,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
         message: msg,
         type: 'reward',
         link: '/pages/inner/cash-rewards.html',
+        audience: 'brand',
         metadata: {
           influencerName: influencer?.displayName,
           influencerHandle: influencer?.handle,

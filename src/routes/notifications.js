@@ -24,12 +24,21 @@ router.get('/', async (req, res) => {
       filter.type = req.query.type;
     }
 
+    // Optional audience filter — brand portal passes ?audience=brand to hide influencer-only notifications
+    if (req.query.audience) {
+      filter.audience = { $in: [req.query.audience, 'all'] };
+    }
+
     // Optional unread-only filter
     if (req.query.unreadOnly === 'true') {
       filter.read = false;
     }
 
     const unreadFilter = { userId: req.user._id.toString(), read: false };
+    // Apply same audience filter to unread count so badge is accurate
+    if (req.query.audience) {
+      unreadFilter.audience = { $in: [req.query.audience, 'all'] };
+    }
     const [notifications, total, unreadCount] = await Promise.all([
       Notification.find(filter)
         .sort({ createdAt: -1 })
@@ -59,10 +68,11 @@ router.get('/', async (req, res) => {
 // GET /api/notifications/unread-count — Badge count for bell icon
 router.get('/unread-count', async (req, res) => {
   try {
-    const count = await Notification.countDocuments({
-      userId: req.user._id.toString(),
-      read: false,
-    });
+    const countFilter = { userId: req.user._id.toString(), read: false };
+    if (req.query.audience) {
+      countFilter.audience = { $in: [req.query.audience, 'all'] };
+    }
+    const count = await Notification.countDocuments(countFilter);
     res.json({ unreadCount: count });
   } catch (error) {
     console.error('Error counting notifications:', error.message);
