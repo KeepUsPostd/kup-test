@@ -515,8 +515,10 @@ router.get('/pay/capture', async (req, res) => {
       }
     } catch (_) {}
 
-    // Redirect to Cash Transactions page so brand sees the confirmed transaction
-    res.redirect('/pages/inner/cash-account.html?payment=success');
+    // Redirect back to content manager with success flag + amount for toast/rating
+    const contentId = transaction.contentSubmissionId || '';
+    const amount = transaction.amount || 0;
+    res.redirect(`/app/content-manager.html?payment=success&amount=${amount}&contentId=${contentId}`);
   } catch (error) {
     console.error('Capture PayPal order error:', error.message);
     res.redirect('/pages/inner/cash-account.html?payment=error&reason=capture_failed');

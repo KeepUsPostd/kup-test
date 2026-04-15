@@ -4457,6 +4457,32 @@
       });
     })();
 
+    // ========== Payment Return Handler ==========
+    // When redirected back from PayPal after successful capture
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('payment') === 'success') {
+        var amount = params.get('amount') || '';
+        // Clean the URL so refresh doesn't re-trigger
+        var cleanUrl = window.location.pathname;
+        var contentId = params.get('contentId');
+        if (contentId) cleanUrl += '?id=' + contentId;
+        window.history.replaceState({}, '', cleanUrl);
+        // Show success toast after page loads
+        setTimeout(function() {
+          kupToast('Payment of $' + amount + ' captured successfully!', 'success', 5000);
+        }, 500);
+        // Show rating modal after toast
+        setTimeout(function() {
+          // Try to get influencer handle from the loaded item
+          var currentItem = (typeof contentItems !== 'undefined' && contentItems.length > 0) ? contentItems[currentIndex] : null;
+          if (currentItem && currentItem.influencer) {
+            openRatingModal(currentItem.influencer);
+          }
+        }, 1500);
+      }
+    })();
+
     // ========== Init ==========
     // Always try to load real data first — fall back to demo only if no brand/auth
     auth.onAuthStateChanged(function(user) {
