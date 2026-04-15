@@ -1169,8 +1169,51 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
             });
           }
 
-          rewardTriggered = { type: 'bonus_cash', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id };
           console.log(`💰 Bonus Cash: $${amount} to influencer (brand charged $${brandPaysAmount}) — ${tier} tier, ${submission.contentType} → ${submission.influencerProfileId}`);
+
+          // === PAYPAL PAYMENT for Bonus Cash (same flow as CPA) ===
+          let bcPaymentStatus = 'pending';
+          try {
+            if (influencer?.paypalMerchantId) {
+              const desc = `KUP Bonus: ${influencer.displayName || 'Influencer'} — ${tier} tier ${submission.contentType}`;
+              const brandProfile = await BrandProfile.findOne({ ownedBrandIds: submission.brandId });
+              const vaultToken = brandProfile?.paypalVaultPaymentTokenId;
+
+              if (vaultToken) {
+                try {
+                  const order = await paypal.createOrderWithVault(
+                    brandPaysAmount, desc, vaultToken,
+                    influencer.paypalMerchantId,
+                    FEES.kup.flat, String(transaction._id)
+                  );
+                  transaction.paypalOrderId = order.id;
+                  transaction.paymentRouting = 'vault_ppcp';
+                  if (order.status === 'COMPLETED') {
+                    const captureId = order.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+                    transaction.status = 'paid';
+                    transaction.paypalTransactionId = captureId || order.id;
+                    transaction.paidAt = new Date();
+                    bcPaymentStatus = 'paid';
+                    console.log(`✅ Bonus Cash vault capture: ${order.id} — $${brandPaysAmount}`);
+                  }
+                  await transaction.save();
+                } catch (vaultErr) {
+                  console.error(`❌ Bonus Cash vault failed: ${vaultErr.message}`);
+                }
+              }
+
+              // Fallback: create order for manual payment from Cash & Rewards
+              if (bcPaymentStatus !== 'paid') {
+                transaction.status = 'pending';
+                await transaction.save();
+                console.log(`ℹ️ Bonus Cash pending — brand can pay from Cash & Rewards`);
+              }
+            }
+          } catch (payErr) {
+            console.error('Bonus Cash PayPal error (non-blocking):', payErr.message);
+          }
+
+          rewardTriggered = { type: 'bonus_cash', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id, paymentStatus: bcPaymentStatus };
         }
       }
     } catch (rewardErr) {

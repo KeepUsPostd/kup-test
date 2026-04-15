@@ -25,8 +25,11 @@ router.get('/', async (req, res) => {
     }
 
     // Optional audience filter — brand portal passes ?audience=brand to hide influencer-only notifications
-    if (req.query.audience) {
-      filter.audience = { $in: [req.query.audience, 'all'] };
+    // Excludes notifications explicitly tagged for the OTHER audience (but includes untagged/null ones)
+    if (req.query.audience === 'brand') {
+      filter.audience = { $ne: 'influencer' };
+    } else if (req.query.audience === 'influencer') {
+      filter.audience = { $ne: 'brand' };
     }
 
     // Optional unread-only filter
@@ -36,8 +39,10 @@ router.get('/', async (req, res) => {
 
     const unreadFilter = { userId: req.user._id.toString(), read: false };
     // Apply same audience filter to unread count so badge is accurate
-    if (req.query.audience) {
-      unreadFilter.audience = { $in: [req.query.audience, 'all'] };
+    if (req.query.audience === 'brand') {
+      unreadFilter.audience = { $ne: 'influencer' };
+    } else if (req.query.audience === 'influencer') {
+      unreadFilter.audience = { $ne: 'brand' };
     }
     const [notifications, total, unreadCount] = await Promise.all([
       Notification.find(filter)
@@ -69,8 +74,10 @@ router.get('/', async (req, res) => {
 router.get('/unread-count', async (req, res) => {
   try {
     const countFilter = { userId: req.user._id.toString(), read: false };
-    if (req.query.audience) {
-      countFilter.audience = { $in: [req.query.audience, 'all'] };
+    if (req.query.audience === 'brand') {
+      countFilter.audience = { $ne: 'influencer' };
+    } else if (req.query.audience === 'influencer') {
+      countFilter.audience = { $ne: 'brand' };
     }
     const count = await Notification.countDocuments(countFilter);
     res.json({ unreadCount: count });
