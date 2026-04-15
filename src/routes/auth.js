@@ -847,6 +847,28 @@ router.delete('/paypal-disconnect', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/auth/paypal-reset — Full reset: clears PPCP merchant + email so influencer can re-onboard
+router.delete('/paypal-reset', requireAuth, async (req, res) => {
+  try {
+    const influencer = await InfluencerProfile.findOne({ userId: req.user._id });
+    if (!influencer) return res.status(404).json({ error: 'Influencer profile not found' });
+
+    const oldMerchant = influencer.paypalMerchantId;
+    const oldEmail = influencer.paypalEmail;
+    influencer.paypalEmail = null;
+    influencer.paypalConnectedAt = null;
+    influencer.paypalMerchantId = null;
+    influencer.paypalOnboardingStatus = null;
+    await influencer.save();
+
+    console.log(`🔄 PayPal FULL RESET for ${influencer.displayName}: cleared merchantId=${oldMerchant}, email=${oldEmail}`);
+    res.json({ message: 'PayPal fully reset. You can now re-onboard with a different PayPal account.' });
+  } catch (error) {
+    console.error('PayPal reset error:', error.message);
+    res.status(500).json({ error: 'Could not reset PayPal' });
+  }
+});
+
 // GET /api/auth/paypal-status — Combined PayPal connection status
 // Returns both PPCP onboarding status AND email connection status
 router.get('/paypal-status', requireAuth, async (req, res) => {
