@@ -253,7 +253,7 @@
   </div></header>
 
   <!-- ============ BRAND REWARD 4-STEP WIZARD ============ -->
-  <div class="wizard-layout">
+  <div class="wizard-layout" id="wizardLayout" style="opacity:0;transition:opacity .25s ease">
     <div class="wizard-form">
       <h3>Create Reward <span class="back-link" onclick="window.location='brand-reward-settings.html'">&lt; Back to Rewards</span></h3>
       <div class="wizard-progress">
@@ -1857,10 +1857,13 @@
   <script src="/js/notifications.js"></script>
   <script>
     if (typeof auth !== 'undefined') {
-      auth.onAuthStateChanged(function(user) {
+      auth.onAuthStateChanged(async function(user) {
         if (user) {
-          loadExistingReward();
+          await loadExistingReward();
           hydrateBrandPreview();
+          // Reveal wizard after data is loaded (prevents Step 1 flash on edit)
+          var wiz = document.getElementById('wizardLayout');
+          if (wiz) wiz.style.opacity = '1';
         }
       });
     }
