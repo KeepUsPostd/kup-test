@@ -648,6 +648,12 @@ var KUP_PLATFORM = (function() {
         video: { influencerGets: 4,  brandPays: 5.14  },
         image: { influencerGets: 2,  brandPays: 3.08  }
       },
+      startup: {
+        displayName: 'Startup',
+        followerRange: '0–5k',
+        video: { influencerGets: 4,  brandPays: 5.14  },
+        image: { influencerGets: 2,  brandPays: 3.08  }
+      },
       nano: {
         displayName: 'Nano',
         followerRange: '5k–10k',
