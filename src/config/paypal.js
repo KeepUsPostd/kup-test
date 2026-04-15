@@ -430,7 +430,7 @@ async function createVaultSetupToken(returnUrl, cancelUrl) {
   return paypalRequest('POST', '/v3/vault/setup-tokens', {
     payment_source: {
       paypal: {
-        usage_type: 'PLATFORM',
+        usage_type: 'MERCHANT',
         experience_context: {
           return_url: returnUrl,
           cancel_url: cancelUrl,
