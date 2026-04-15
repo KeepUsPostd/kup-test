@@ -564,9 +564,22 @@ router.get('/payment-method', requireAuth, async (req, res) => {
     const brandProfile = await BrandProfile.findOne({ userId: req.user._id });
     if (!brandProfile) return res.json({ connected: false });
 
+    // Look up the vault payment token details from PayPal to get the email
+    let paypalEmail = null;
+    if (brandProfile.paypalVaultPaymentTokenId) {
+      try {
+        const tokenData = await paypal.paypalRequest('GET', `/v3/vault/payment-tokens/${brandProfile.paypalVaultPaymentTokenId}`);
+        paypalEmail = tokenData?.payment_source?.paypal?.email_address || null;
+      } catch (_) {
+        // Token lookup failed — still return connected status
+      }
+    }
+
     res.json({
       connected: !!brandProfile.paypalVaultPaymentTokenId,
       setupAt: brandProfile.paypalVaultSetupAt || null,
+      paypalEmail,
+      vaultTokenId: brandProfile.paypalVaultPaymentTokenId ? brandProfile.paypalVaultPaymentTokenId.substring(0, 8) + '...' : null,
     });
   } catch (error) {
     console.error('Payment method check error:', error.message);

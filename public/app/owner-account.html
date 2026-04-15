@@ -1768,7 +1768,8 @@
           if (statusEl) statusEl.style.display = '';
           if (infoEl) {
             var setupDate = data.setupAt ? new Date(data.setupAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-            infoEl.textContent = 'Payments will be processed automatically when you approve content.' + (setupDate ? ' Connected ' + setupDate : '');
+            var emailLine = data.paypalEmail ? data.paypalEmail + ' · ' : '';
+            infoEl.textContent = emailLine + 'Payments processed automatically when you approve content.' + (setupDate ? ' Connected ' + setupDate : '');
             infoEl.style.color = '';
           }
           if (connectBtn) connectBtn.style.display = 'none';
