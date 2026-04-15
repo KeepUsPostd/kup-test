@@ -27,6 +27,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: [
       'content',     // Content submissions, approvals, rejections
+      'approval',    // Content approved by brand
       'payment',     // Earnings, cashouts, billing
       'campaign',    // Campaign invites, milestones
       'partnership', // New partners, removals

@@ -29,7 +29,7 @@ const influencerProfileSchema = new mongoose.Schema({
   // Influence verification
   influenceTier: {
     type: String,
-    enum: ['unverified', 'nano', 'micro', 'rising', 'established', 'premium', 'celebrity'],
+    enum: ['unverified', 'startup', 'nano', 'micro', 'rising', 'established', 'premium', 'celebrity'],
     default: 'unverified',
   },
   realFollowerCount: { type: Number, default: null },
