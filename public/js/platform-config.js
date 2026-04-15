@@ -639,7 +639,7 @@ var KUP_PLATFORM = (function() {
     //   unverified → Startup | nano → Nano | micro → Micro
     //   rising → Mid | established → Macro | premium → Mega
     //   celebrity → Celebrity (requires model enum update)
-    bonusCashPercent: 0.30,
+    bonusCashPercent: 1.00, // 100% of base CPA — posting is highest-value action
 
     tierRates: {
       unverified: {

@@ -16,7 +16,7 @@ const FEES = {
   kup:    { flat: 0.50 },
 };
 
-const BONUS_CASH_PERCENT = 0.30;
+const BONUS_CASH_PERCENT = 1.00; // 100% of base CPA — posting to own audience is the most valuable action
 
 const TIER_RATES = {
   unverified:  { video: { influencerGets: 4,  brandPays: 5.14  }, image: { influencerGets: 2,  brandPays: 3.08  } },
