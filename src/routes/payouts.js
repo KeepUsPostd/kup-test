@@ -686,4 +686,65 @@ router.get('/pay/batch/capture', async (req, res) => {
   }
 });
 
+// GET /api/payouts/paypal-client-id — Returns PayPal client ID for JS SDK (no auth needed)
+router.get('/paypal-client-id', (req, res) => {
+  res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
+});
+
+// POST /api/payouts/pay/capture-popup — JSON capture for PayPal JS SDK popup flow
+// Called by frontend after brand approves in popup — returns JSON (not redirect)
+router.post('/pay/capture-popup', requireAuth, async (req, res) => {
+  try {
+    const { orderId, transactionId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: 'Missing orderId' });
+    }
+
+    // Capture the PayPal order
+    const capture = await paypal.captureOrder(orderId);
+
+    const captureId = capture.purchase_units
+      && capture.purchase_units[0]
+      && capture.purchase_units[0].payments
+      && capture.purchase_units[0].payments.captures
+      && capture.purchase_units[0].payments.captures[0]
+      && capture.purchase_units[0].payments.captures[0].id;
+
+    // Update transaction if transactionId provided
+    if (transactionId) {
+      const transaction = await Transaction.findById(transactionId);
+      if (transaction && transaction.status !== 'paid') {
+        transaction.status = 'paid';
+        transaction.paypalTransactionId = captureId || orderId;
+        transaction.paidAt = new Date();
+        await transaction.save();
+
+        // Update influencer earnings
+        await InfluencerProfile.findByIdAndUpdate(
+          transaction.payeeInfluencerId,
+          { $inc: { totalCashEarned: transaction.amount } }
+        );
+
+        // Notify brand
+        try {
+          const influencer = await InfluencerProfile.findById(transaction.payeeInfluencerId).lean();
+          const brand = await Brand.findById(transaction.payerBrandId).lean();
+          if (brand && influencer) {
+            const notify = require('../services/notifications');
+            notify.brandPaymentConfirmed({ brand, influencer, amount: transaction.amount, brandPaysAmount: transaction.brandPaysAmount }).catch(() => {});
+          }
+        } catch (_) {}
+
+        console.log(`✅ Popup capture: $${transaction.amount} — order ${orderId}, capture ${captureId}`);
+      }
+    }
+
+    res.json({ success: true, captureId: captureId || orderId });
+  } catch (error) {
+    console.error('Popup capture error:', error.message);
+    res.status(500).json({ error: 'Capture failed', message: error.message });
+  }
+});
+
 module.exports = router;

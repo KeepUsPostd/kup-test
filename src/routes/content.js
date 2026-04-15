@@ -822,8 +822,9 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
           // === PAYPAL PAYMENT (Brand-Direct) ===
           // Brand → Influencer directly via PPCP. KUP gets $0.50 platform fee.
-          // Brand sees PayPal approval in-context after content approval.
+          // Frontend uses PayPal JS SDK popup for in-page approval (no redirect).
           let approvalUrl = null;
+          let paypalOrderId = null;
           let paymentStatus = 'pending';
           let paymentError = null;
           const brandForNotify = await Brand.findById(submission.brandId, 'name').lean();
@@ -843,6 +844,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
               const approvalLink = order.links?.find(l => l.rel === 'payer-action' || l.rel === 'approve');
               approvalUrl = approvalLink ? approvalLink.href : null;
+              paypalOrderId = order.id;
               transaction.paypalOrderId = order.id;
               transaction.paymentRouting = 'brand_direct';
               await transaction.save();
@@ -867,7 +869,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             paymentError = orderErr.message;
           }
 
-          rewardTriggered = { type: 'cash_per_approval', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id, approvalUrl, paymentStatus, paymentError };
+          rewardTriggered = { type: 'cash_per_approval', amount, brandPaysAmount, tier, contentType: submission.contentType, transactionId: transaction._id, approvalUrl, paypalOrderId, paymentStatus, paymentError };
           console.log(`💰 CPA reward: $${amount} to influencer (brand charged $${brandPaysAmount}) — ${tier} tier, ${submission.contentType} → ${submission.influencerProfileId}`);
         } else {
           console.log(`⚠️ CPA reward skipped: budget cap reached ($${cpaReward.cashConfig.budgetSpent}/$${cpaReward.cashConfig.budgetCap})`);
