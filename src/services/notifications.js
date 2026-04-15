@@ -280,7 +280,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     variant: 'brand',
   });
 
-  // In-app + push notification
+  // In-app + push notification to influencer
   if (influencer.userId) {
     const msg = `${brand.name} approved your ${submission.contentType || 'content'}.${reward ? ` You earned ${$(reward.amount)}!` : ''}`;
     await createInApp({
@@ -289,6 +289,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       message: msg,
       type: 'approval',
       link: '/app/submissions.html',
+      audience: 'influencer',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
         partnershipId: submission.partnershipId?.toString() || null,
@@ -303,6 +304,52 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       body: msg,
       link: '/app/submissions.html',
     });
+  }
+
+  // Notify brand owner: content approved confirmation
+  try {
+    const BrandProfile = require('../models/BrandProfile');
+    const bp = await BrandProfile.findOne({ ownedBrandIds: brand._id });
+    if (bp?.userId) {
+      const infName = influencer.displayName || influencer.handle || 'an influencer';
+      const brandMsg = `You approved ${submission.contentType || 'content'} from ${infName}.${reward ? ` $${reward.amount} payment triggered.` : ''}`;
+      await createInApp({
+        userId: bp.userId,
+        title: 'Content Approved',
+        message: brandMsg,
+        type: 'content',
+        link: '/app/content.html',
+        audience: 'brand',
+        metadata: {
+          contentSubmissionId: submission._id?.toString(),
+          influencerName: infName,
+          contentType: submission.contentType,
+          rewardAmount: reward?.amount || null,
+        },
+      });
+
+      // Email to brand owner
+      const User = require('../models/User');
+      const brandUser = await User.findById(bp.userId, 'email').lean();
+      if (brandUser?.email) {
+        await sendEmail({
+          to: brandUser.email,
+          subject: `Content Approved — ${infName}`,
+          headline: 'Content Approved',
+          preheader: `You approved ${submission.contentType || 'content'} from ${infName}`,
+          bodyHtml: `
+            <p>You approved <strong>${submission.contentType || 'content'}</strong> from <strong>${infName}</strong>.</p>
+            ${reward ? `<p>💰 <strong>Payment triggered:</strong> $${reward.amount} to ${infName}.</p>` : ''}
+            <p>The content is now available in your Content Library.</p>
+          `,
+          ctaText: 'View Content',
+          ctaUrl: `${APP_URL}/app/content.html`,
+          variant: 'brand',
+        });
+      }
+    }
+  } catch (brandNotifyErr) {
+    console.error('[contentApproved] Brand notification error:', brandNotifyErr.message);
   }
 }
 
