@@ -477,7 +477,7 @@ router.get('/pay/capture', async (req, res) => {
       return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=transaction_not_found');
     }
 
-    if (transaction.status !== 'processing') {
+    if (transaction.status !== 'processing' && transaction.status !== 'pending') {
       return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=invalid_status');
     }
 

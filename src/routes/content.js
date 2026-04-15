@@ -916,6 +916,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
                 paypalOrderId = order.id;
                 transaction.paypalOrderId = order.id;
                 transaction.paymentRouting = 'brand_direct';
+                transaction.status = 'processing';
                 await transaction.save();
                 console.log(`💳 Brand-Direct fallback: ${order.id} — brand must approve $${brandPaysAmount} in PayPal`);
               }
