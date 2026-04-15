@@ -430,7 +430,7 @@ async function createVaultSetupToken(returnUrl, cancelUrl) {
   return paypalRequest('POST', '/v3/vault/setup-tokens', {
     payment_source: {
       paypal: {
-        usage_type: 'MERCHANT',
+        usage_type: 'PLATFORM',
         experience_context: {
           return_url: returnUrl,
           cancel_url: cancelUrl,
@@ -481,8 +481,18 @@ async function createOrderWithVault(amount, description, vaultPaymentTokenId, me
     description,
   };
 
-  // NOTE: PPCP payee + platform_fees cannot be combined with vault_id in a single order.
-  // Vault orders charge the payer directly — KUP collects the full amount and pays out via Payouts API.
+  // PPCP payee routing: money goes directly to influencer's merchant account.
+  // Platform-level vault token (usage_type: PLATFORM) supports cross-merchant payee routing.
+  if (merchantId) {
+    purchaseUnit.payee = { merchant_id: merchantId };
+    purchaseUnit.payment_instruction = {
+      disbursement_mode: 'INSTANT',
+      platform_fees: [{
+        amount: { currency_code: 'USD', value: platformFee.toFixed(2) },
+      }],
+    };
+  }
+
   if (customId) {
     purchaseUnit.custom_id = customId;
   }
@@ -497,9 +507,8 @@ async function createOrderWithVault(amount, description, vaultPaymentTokenId, me
     },
   };
 
-  // PayPal requires PayPal-Request-Id header when payment_source includes vault_id
   const requestId = `kup-vault-${customId || Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-  console.log(`💳 Vault order: amount=$${amount.toFixed(2)}, requestId=${requestId}, vaultToken=${vaultPaymentTokenId.substring(0, 8)}...`);
+  console.log(`💳 Vault+PPCP order: $${amount.toFixed(2)} → merchant ${merchantId || 'KUP'}, fee=$${platformFee.toFixed(2)}, token=${vaultPaymentTokenId.substring(0, 8)}...`);
   return paypalRequest('POST', '/v2/checkout/orders', orderPayload, {
     'PayPal-Request-Id': requestId,
   });

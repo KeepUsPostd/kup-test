@@ -1967,13 +1967,19 @@
 
             var reward = result.rewardTriggered;
 
-            // PPCP flow: orderId present → open PayPal popup for in-page approval.
-            // Brand stays on KUP. Popup captures payment, then closes.
+            // Vault auto-capture: payment already completed server-side
+            if (reward && reward.paymentStatus === 'paid' && !reward.skipped) {
+              kupToast('Content approved! $' + reward.amount + ' paid to ' + item.influencer + ' automatically', 'success', 5000);
+              setTimeout(function() { advanceQueueAfterDecision(); }, 400);
+              setTimeout(function() { openRatingModal(item.influencer); }, 900);
+              return;
+            }
+
+            // Fallback: brand-direct — open PayPal popup for manual approval
             if (reward && reward.paypalOrderId && !reward.skipped) {
               kupToast('Content approved! Complete the $' + reward.brandPaysAmount.toFixed(2) + ' payment below…', 'success', 4000);
               window._lastApprovalUrl = reward.approvalUrl || '#';
               openPayPalPopup(reward.paypalOrderId, reward.transactionId, reward.amount, reward.brandPaysAmount, item.influencer);
-              // Don't advance queue yet — wait for payment completion
               return;
             }
 
