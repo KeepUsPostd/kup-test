@@ -126,6 +126,15 @@ app.get('/', (req, res) => {
   res.redirect(301, '/pages/home.html');
 });
 
+// --- Redirect /pages/inner/ → /app/ (unified page routing) ---
+// All brand portal pages live in /app/. Legacy /pages/inner/ URLs redirect to /app/.
+// Preserves query params so deep links and PayPal callbacks still work.
+app.use('/pages/inner', (req, res) => {
+  const newUrl = '/app' + req.url;
+  console.log(`↪ Redirect: /pages/inner${req.url} → ${newUrl}`);
+  res.redirect(301, newUrl);
+});
+
 // --- Serve static files (HTML, CSS, JS, images) ---
 // Override MIME types: .MOV/.mov → video/mp4 so browsers can play them
 // (video/quicktime is not supported in most browsers)
@@ -339,7 +348,7 @@ app.use('/api/blocks', require('./routes/blocks'));
 // Public kiosk display route — serves the tablet-facing kiosk screen
 // /kiosk/:brandCode → kiosk-display.html (no auth required)
 app.get('/kiosk/:brandCode', (req, res) => {
-  res.redirect(`/pages/inner/kiosk-display.html?brandCode=${encodeURIComponent(req.params.brandCode)}`);
+  res.redirect(`/app/kiosk-display.html?brandCode=${encodeURIComponent(req.params.brandCode)}`);
 });
 
 // --- Error Handling Middleware ---

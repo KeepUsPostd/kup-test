@@ -268,8 +268,8 @@ router.post('/subscribe', requireAuth, async (req, res) => {
 
     // Create PayPal subscription → returns approval URL
     const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
-    const defaultReturn = returnUrl || `${APP_URL}/pages/inner/payment-success.html?subscription=success`;
-    const defaultCancel = cancelUrl || `${APP_URL}/pages/inner/pricing-payment.html?subscription=canceled`;
+    const defaultReturn = returnUrl || `${APP_URL}/app/payment-success.html?subscription=success`;
+    const defaultCancel = cancelUrl || `${APP_URL}/app/pricing-payment.html?subscription=canceled`;
 
     const ppSubscription = await paypal.createSubscription(
       paypalPlanId,
@@ -594,7 +594,7 @@ router.post('/save-payment', requireAuth, async (req, res) => {
   try {
     const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
     const returnUrl = `${APP_URL}/api/billing/save-payment/return`;
-    const cancelUrl = `${APP_URL}/pages/inner/owner-account.html?vault=canceled`;
+    const cancelUrl = `${APP_URL}/app/owner-account.html?vault=canceled`;
 
     const setupToken = await paypal.createVaultSetupToken(returnUrl, cancelUrl);
 

@@ -679,18 +679,18 @@ router.get('/paypal-onboard/return', async (req, res) => {
     // influencerId is always required — without it we can't find the user
     if (!influencerId) {
       console.warn('[paypal-onboard/return] Missing influencerId');
-      return res.redirect(`${baseUrl}/pages/inner/influencer-earn.html?paypal=error&reason=missing_params`);
+      return res.redirect(`${baseUrl}/app/influencer-earn.html?paypal=error&reason=missing_params`);
     }
 
     // PayPal sandbox sometimes sends permissionsGranted=false or omits it entirely.
     // Treat any explicit false/canceled as a user cancellation. Missing = proceed.
     if (permissionsGranted === 'false') {
-      return res.redirect(`${baseUrl}/pages/inner/influencer-earn.html?paypal=canceled`);
+      return res.redirect(`${baseUrl}/app/influencer-earn.html?paypal=canceled`);
     }
 
     const influencer = await InfluencerProfile.findById(influencerId);
     if (!influencer) {
-      return res.redirect(`${baseUrl}/pages/inner/influencer-earn.html?paypal=error&reason=not_found`);
+      return res.redirect(`${baseUrl}/app/influencer-earn.html?paypal=error&reason=not_found`);
     }
 
     // Store merchant ID if PayPal included it (may be absent in sandbox — webhook will fill it in later)
@@ -713,10 +713,10 @@ router.get('/paypal-onboard/return', async (req, res) => {
       maskedEmail: 'PayPal Business Account',
     }).catch(() => {});
 
-    res.redirect(`${baseUrl}/pages/inner/influencer-earn.html?paypal=connected`);
+    res.redirect(`${baseUrl}/app/influencer-earn.html?paypal=connected`);
   } catch (error) {
     console.error('PayPal onboard return error:', error.message);
-    res.redirect(`${baseUrl}/pages/inner/influencer-earn.html?paypal=error&reason=server_error`);
+    res.redirect(`${baseUrl}/app/influencer-earn.html?paypal=error&reason=server_error`);
   }
 });
 

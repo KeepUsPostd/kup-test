@@ -76,7 +76,7 @@ async function accountCreated({ user, brandName }) {
       <p>Let's get you better marketing results.</p>
     `,
     ctaText: 'Go to Dashboard',
-    ctaUrl: `${APP_URL}/pages/inner/dashboard.html`,
+    ctaUrl: `${APP_URL}/app/dashboard.html`,
     variant: 'brand',
   });
 }
@@ -133,7 +133,7 @@ async function newDeviceLogin({ user, device, ip, variant = 'brand' }) {
       <p>If this was you, you're all good. If not, please change your password immediately.</p>
     `,
     ctaText: 'Secure My Account',
-    ctaUrl: `${APP_URL}/pages/inner/settings.html`,
+    ctaUrl: `${APP_URL}/app/settings.html`,
     variant,
   });
 }
@@ -180,7 +180,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
       <p>You have <strong>7 days</strong> to review and approve or reject this submission.</p>
     `,
     ctaText: 'Review Now',
-    ctaUrl: `${APP_URL}/pages/inner/content.html`,
+    ctaUrl: `${APP_URL}/app/content.html`,
     variant: 'brand',
   });
 
@@ -192,7 +192,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
       title: 'New Content Submitted',
       message: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
       type: 'content',
-      link: '/pages/inner/content.html',
+      link: '/app/content.html',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
         brandName: brand.name,
@@ -204,7 +204,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
     push(brandOwnerId, {
       title: 'New Content Submitted',
       body: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
-      link: '/pages/inner/content.html',
+      link: '/app/content.html',
     });
   }
 }
@@ -400,7 +400,7 @@ async function subscriptionPaymentFailed({ brand, planTier }) {
       <p>Your account will remain active during the retry period, but features may be limited if payment is not resolved.</p>
     `,
     ctaText: 'Update Payment Method',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 }
@@ -421,7 +421,7 @@ async function subscriptionCanceled({ brand, planTier }) {
       <p>Want to come back? You can resubscribe anytime.</p>
     `,
     ctaText: 'View Plans',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 }
@@ -636,7 +636,7 @@ async function brandPaymentConfirmed({ brand, influencer, amount, brandPaysAmoun
       </p>
     `,
     ctaText: 'View Transactions',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 }
@@ -660,7 +660,7 @@ async function reviewReminder({ brand, pendingCount }) {
       <p>Content not reviewed within 7 days may be auto-approved per platform policy. Review now to maintain quality control over your brand content.</p>
     `,
     ctaText: 'Review Content',
-    ctaUrl: `${APP_URL}/pages/inner/content.html`,
+    ctaUrl: `${APP_URL}/app/content.html`,
     variant: 'brand',
   });
 }
@@ -681,7 +681,7 @@ async function emailVerified({ user, variant = 'brand' }) {
       <p>You're all set to start using KeepUsPostd!</p>
     `,
     ctaText: variant === 'brand' ? 'Go to Dashboard' : 'Open the App',
-    ctaUrl: variant === 'brand' ? `${APP_URL}/pages/inner/dashboard.html` : `${APP_URL}/app/home.html`,
+    ctaUrl: variant === 'brand' ? `${APP_URL}/app/dashboard.html` : `${APP_URL}/app/home.html`,
     variant,
   });
 
@@ -708,7 +708,7 @@ async function passwordChanged({ user, variant = 'brand' }) {
       <p>If you didn't make this change, please reset your password immediately and contact our support team.</p>
     `,
     ctaText: 'Secure My Account',
-    ctaUrl: `${APP_URL}/pages/inner/settings.html`,
+    ctaUrl: `${APP_URL}/app/settings.html`,
     variant,
   });
 }
@@ -754,7 +754,7 @@ async function accountDeletionRequested({ user, deletionDate, variant = 'brand' 
       <p>If you change your mind, you can cancel the deletion from your settings before that date.</p>
     `,
     ctaText: 'Cancel Deletion',
-    ctaUrl: `${APP_URL}/pages/inner/settings.html`,
+    ctaUrl: `${APP_URL}/app/settings.html`,
     variant,
   });
 }
@@ -771,7 +771,7 @@ async function accountDeletionCanceled({ user, variant = 'brand' }) {
       <p>Welcome back! All your data and partnerships are intact.</p>
     `,
     ctaText: variant === 'brand' ? 'Go to Dashboard' : 'Open the App',
-    ctaUrl: variant === 'brand' ? `${APP_URL}/pages/inner/dashboard.html` : `${APP_URL}/app/home.html`,
+    ctaUrl: variant === 'brand' ? `${APP_URL}/app/dashboard.html` : `${APP_URL}/app/home.html`,
     variant,
   });
 }
@@ -830,7 +830,7 @@ async function draftBrandReminder({ user, brandName }) {
       <p>When you're ready, hit publish and influencers can start discovering your brand.</p>
     `,
     ctaText: 'Publish Now',
-    ctaUrl: `${APP_URL}/pages/inner/brand-profile.html`,
+    ctaUrl: `${APP_URL}/app/brand-profile.html`,
     variant: 'brand',
   });
 }
@@ -859,7 +859,7 @@ async function brandPublished({ user, brand }) {
       </p>
     `,
     ctaText: 'View Your Brand',
-    ctaUrl: `${APP_URL}/pages/inner/brand-profile.html`,
+    ctaUrl: `${APP_URL}/app/brand-profile.html`,
     variant: 'brand',
   });
 
@@ -869,7 +869,7 @@ async function brandPublished({ user, brand }) {
       title: 'Brand Published!',
       message: `${brand.name} is now live on the marketplace.`,
       type: 'account',
-      link: '/pages/inner/brand-profile.html',
+      link: '/app/brand-profile.html',
     });
   }
 }
@@ -893,7 +893,7 @@ async function brandVerificationChanged({ brand, status }) {
       ? `<p><strong>${brand.name}</strong> has been verified! Verified brands get a badge on their profile and rank higher in influencer searches.</p>`
       : `<p>We reviewed <strong>${brand.name}</strong> and need additional information to complete verification. Please check your brand settings for details.</p>`,
     ctaText: 'View Brand Profile',
-    ctaUrl: `${APP_URL}/pages/inner/brand-profile.html`,
+    ctaUrl: `${APP_URL}/app/brand-profile.html`,
     variant: 'brand',
   });
 
@@ -905,7 +905,7 @@ async function brandVerificationChanged({ brand, status }) {
         ? `${brand.name} is now verified.`
         : `${brand.name} needs additional info for verification.`,
       type: 'account',
-      link: '/pages/inner/brand-profile.html',
+      link: '/app/brand-profile.html',
     });
   }
 }
@@ -965,7 +965,7 @@ async function contentResubmitted({ brand, influencer, submission }) {
       <p>Review the updated submission at your convenience.</p>
     `,
     ctaText: 'Review Now',
-    ctaUrl: `${APP_URL}/pages/inner/content.html`,
+    ctaUrl: `${APP_URL}/app/content.html`,
     variant: 'brand',
   });
 
@@ -975,12 +975,12 @@ async function contentResubmitted({ brand, influencer, submission }) {
       title: 'Revised Content Submitted',
       message: `${influencer.displayName || 'An influencer'} resubmitted revised content.`,
       type: 'content',
-      link: '/pages/inner/content.html',
+      link: '/app/content.html',
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'Revised Content',
       body: `${influencer.displayName || 'An influencer'} resubmitted revised content for review.`,
-      link: '/pages/inner/content.html',
+      link: '/app/content.html',
     });
   }
 }
@@ -1043,7 +1043,7 @@ async function campaignLive({ brand, campaign }) {
       <p>Influencers can now discover it, apply, and start creating content. You'll get notified when submissions come in.</p>
     `,
     ctaText: 'View Campaign',
-    ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+    ctaUrl: `${APP_URL}/app/campaigns.html`,
     variant: 'brand',
   });
 
@@ -1053,7 +1053,7 @@ async function campaignLive({ brand, campaign }) {
       title: 'Campaign is Live!',
       message: `${campaign.name} is now active.`,
       type: 'campaign',
-      link: '/pages/inner/campaigns.html',
+      link: '/app/campaigns.html',
     });
   }
 }
@@ -1108,7 +1108,7 @@ async function campaignApplication({ brand, influencer, campaign }) {
       <p>Review their profile and decide whether to accept or decline their application.</p>
     `,
     ctaText: 'Review Application',
-    ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+    ctaUrl: `${APP_URL}/app/campaigns.html`,
     variant: 'brand',
   });
 
@@ -1118,12 +1118,12 @@ async function campaignApplication({ brand, influencer, campaign }) {
       title: 'New Campaign Application',
       message: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
       type: 'campaign',
-      link: '/pages/inner/campaigns.html',
+      link: '/app/campaigns.html',
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'New Application',
       body: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
-      link: '/pages/inner/campaigns.html',
+      link: '/app/campaigns.html',
     });
   }
 }
@@ -1250,7 +1250,7 @@ async function campaignEnded({ brand, campaign, influencerIds = [] }) {
         <p>View your campaign results and download approved content from the campaign dashboard.</p>
       `,
       ctaText: 'View Results',
-      ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+      ctaUrl: `${APP_URL}/app/campaigns.html`,
       variant: 'brand',
     });
   }
@@ -1282,7 +1282,7 @@ async function campaignMilestone100({ brand, campaign }) {
       <p>All campaign goals have been met. You can choose to extend the campaign or let it end on schedule.</p>
     `,
     ctaText: 'View Campaign',
-    ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+    ctaUrl: `${APP_URL}/app/campaigns.html`,
     variant: 'brand',
   });
 
@@ -1290,7 +1290,7 @@ async function campaignMilestone100({ brand, campaign }) {
     push((brand.ownerId || brand.createdBy), {
       title: '🎉 Goal Reached!',
       body: `"${campaign.name}" hit 100% of its target!`,
-      link: '/pages/inner/campaigns.html',
+      link: '/app/campaigns.html',
     });
   }
 }
@@ -1310,7 +1310,7 @@ async function campaignExpiringSoon({ brand, campaign }) {
       <p>Make sure all pending content has been reviewed. You can extend the campaign from your dashboard if needed.</p>
     `,
     ctaText: 'View Campaign',
-    ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+    ctaUrl: `${APP_URL}/app/campaigns.html`,
     variant: 'brand',
   });
 }
@@ -1329,7 +1329,7 @@ async function campaignExpired({ brand, campaign, influencerIds = [] }) {
         <p>View your results and download any approved content from the campaign dashboard.</p>
       `,
       ctaText: 'View Results',
-      ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+      ctaUrl: `${APP_URL}/app/campaigns.html`,
       variant: 'brand',
     });
   }
@@ -1364,7 +1364,7 @@ async function newInfluencerPartner({ brand, influencer }) {
       <p>View their profile and start collaborating on content.</p>
     `,
     ctaText: 'View Partner',
-    ctaUrl: `${APP_URL}/pages/inner/influencers.html`,
+    ctaUrl: `${APP_URL}/app/influencers.html`,
     variant: 'brand',
   });
 
@@ -1374,13 +1374,13 @@ async function newInfluencerPartner({ brand, influencer }) {
       title: 'New Partner!',
       message: `${influencer.displayName || 'An influencer'} partnered with ${brand.name}.`,
       type: 'partnership',
-      link: '/pages/inner/influencers.html',
+      link: '/app/influencers.html',
       metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'New Partner!',
       body: `${influencer.displayName || 'An influencer'} wants to partner with ${brand.name}.`,
-      link: '/pages/inner/influencers.html',
+      link: '/app/influencers.html',
     });
   }
 }
@@ -1509,7 +1509,7 @@ async function newInfluencerMessage({ brand, influencer }) {
       <p>Open your messages to read and reply.</p>
     `,
     ctaText: 'Read Message',
-    ctaUrl: `${APP_URL}/pages/inner/messages.html`,
+    ctaUrl: `${APP_URL}/app/messages.html`,
     variant: 'brand',
   });
 
@@ -1517,7 +1517,7 @@ async function newInfluencerMessage({ brand, influencer }) {
     push((brand.ownerId || brand.createdBy), {
       title: 'New Message',
       body: `${influencer.displayName || 'An influencer'} sent you a message.`,
-      link: '/pages/inner/messages.html',
+      link: '/app/messages.html',
     });
   }
 }
@@ -1569,7 +1569,7 @@ async function subscriptionPurchased({ brand, planTier, amount }) {
       <p>You now have access to all ${planTier}-tier features. Check your dashboard to get started.</p>
     `,
     ctaText: 'Go to Dashboard',
-    ctaUrl: `${APP_URL}/pages/inner/dashboard.html`,
+    ctaUrl: `${APP_URL}/app/dashboard.html`,
     variant: 'brand',
   });
 }
@@ -1589,7 +1589,7 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
       <p>Your new features are available immediately. Check what's new in your plan.</p>
     `,
     ctaText: 'View Plan Details',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 
@@ -1599,7 +1599,7 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
       title: 'Plan Upgraded!',
       message: `Upgraded to ${newTier} plan.`,
       type: 'payment',
-      link: '/pages/inner/cash-account.html',
+      link: '/app/cash-account.html',
     });
   }
 }
@@ -1619,7 +1619,7 @@ async function subscriptionDowngraded({ brand, oldTier, newTier }) {
       <p>Some features from your previous plan may no longer be available. The change takes effect at the end of your current billing period.</p>
     `,
     ctaText: 'View Plan',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 }
@@ -1655,7 +1655,7 @@ async function paypalDisconnected({ user, variant = 'brand' }) {
       <p>You'll need to connect a PayPal account to receive payments or cash out your earnings.</p>
     `,
     ctaText: 'Reconnect PayPal',
-    ctaUrl: variant === 'brand' ? `${APP_URL}/pages/inner/cash-account.html` : `${APP_URL}/app/wallet.html`,
+    ctaUrl: variant === 'brand' ? `${APP_URL}/app/cash-account.html` : `${APP_URL}/app/wallet.html`,
     variant,
   });
 }
@@ -1705,7 +1705,7 @@ async function trialEndingSoon({ brand, trialEndDate }) {
       <p>Subscribe now to keep access to all your campaigns, influencer partnerships, and content management tools.</p>
     `,
     ctaText: 'Choose a Plan',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 
@@ -1713,7 +1713,7 @@ async function trialEndingSoon({ brand, trialEndDate }) {
     push((brand.ownerId || brand.createdBy), {
       title: '⏰ Trial Ending Soon',
       body: 'Your free trial ends in 3 days. Subscribe to keep your features.',
-      link: '/pages/inner/cash-account.html',
+      link: '/app/cash-account.html',
     });
   }
 }
@@ -1744,7 +1744,7 @@ async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
       </ul>
     `,
     ctaText: 'Go to Dashboard',
-    ctaUrl: `${APP_URL}/pages/inner/manage-brands.html`,
+    ctaUrl: `${APP_URL}/app/manage-brands.html`,
     variant: 'brand',
   });
 
@@ -1752,7 +1752,7 @@ async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
     push((brand.ownerId || brand.createdBy), {
       title: '🎉 14-Day Free Trial Started',
       body: `You have full Pro access until ${endDate}. No credit card needed.`,
-      link: '/pages/inner/manage-brands.html',
+      link: '/app/manage-brands.html',
     });
   }
 }
@@ -1772,7 +1772,7 @@ async function trialExpired({ brand }) {
       <p>Your data and partnerships are safe — subscribe to restore full access to campaigns, analytics, and premium features.</p>
     `,
     ctaText: 'Subscribe Now',
-    ctaUrl: `${APP_URL}/pages/inner/cash-account.html`,
+    ctaUrl: `${APP_URL}/app/cash-account.html`,
     variant: 'brand',
   });
 }
@@ -1795,7 +1795,7 @@ async function referralSignup({ referrer, referredName }) {
       <p>When they complete onboarding, you'll earn your referral reward.</p>
     `,
     ctaText: 'View Referrals',
-    ctaUrl: `${APP_URL}/pages/inner/referrals.html`,
+    ctaUrl: `${APP_URL}/app/referrals.html`,
     variant: 'brand',
   });
 
@@ -1806,12 +1806,12 @@ async function referralSignup({ referrer, referredName }) {
       title: 'Referral Signed Up!',
       message: `${referredName || 'Someone'} joined using your referral link.`,
       type: 'account',
-      link: '/pages/inner/referrals.html',
+      link: '/app/referrals.html',
     });
     push(userId, {
       title: '🎉 Referral Signed Up!',
       body: `${referredName || 'Someone'} joined KeepUsPostd through your link.`,
-      link: '/pages/inner/referrals.html',
+      link: '/app/referrals.html',
     });
   }
 }
@@ -1830,7 +1830,7 @@ async function referralOnboarded({ referrer, referredName }) {
       <p>Your referral reward is being processed!</p>
     `,
     ctaText: 'View Referrals',
-    ctaUrl: `${APP_URL}/pages/inner/referrals.html`,
+    ctaUrl: `${APP_URL}/app/referrals.html`,
     variant: 'brand',
   });
 
@@ -1838,7 +1838,7 @@ async function referralOnboarded({ referrer, referredName }) {
     push(referrer.firebaseUid || referrer._id?.toString(), {
       title: 'Referral Complete!',
       body: `${referredName || 'Your referral'} finished setup. Reward incoming!`,
-      link: '/pages/inner/referrals.html',
+      link: '/app/referrals.html',
     });
   }
 }
@@ -1857,7 +1857,7 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
       <p>Keep sharing your referral link to earn more rewards.</p>
     `,
     ctaText: 'View Referrals',
-    ctaUrl: `${APP_URL}/pages/inner/referrals.html`,
+    ctaUrl: `${APP_URL}/app/referrals.html`,
     variant: 'brand',
   });
 
@@ -1868,12 +1868,12 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
       title: `Referral Reward: ${$(amount)}`,
       message: `You earned ${$(amount)} for referring ${referredName || 'a new user'}.`,
       type: 'payment',
-      link: '/pages/inner/referrals.html',
+      link: '/app/referrals.html',
     });
     push(userId, {
       title: `💰 ${$(amount)} Referral Reward`,
       body: `You earned ${$(amount)} for referring ${referredName || 'a new user'}.`,
-      link: '/pages/inner/referrals.html',
+      link: '/app/referrals.html',
     });
   }
 }
@@ -2074,7 +2074,7 @@ async function brandDeactivated({ brand }) {
       <p>Your data is preserved and you can reactivate at any time from your account settings.</p>
     `,
     ctaText: 'Reactivate Brand',
-    ctaUrl: `${APP_URL}/pages/inner/settings.html`,
+    ctaUrl: `${APP_URL}/app/settings.html`,
     variant: 'brand',
   });
 }
@@ -2094,7 +2094,7 @@ async function brandReactivated({ brand }) {
       <p>All your data, campaigns, and partnerships have been restored. You're ready to go.</p>
     `,
     ctaText: 'Go to Dashboard',
-    ctaUrl: `${APP_URL}/pages/inner/dashboard.html`,
+    ctaUrl: `${APP_URL}/app/dashboard.html`,
     variant: 'brand',
   });
 }
@@ -2255,7 +2255,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
         title: 'Reward Ready to Distribute!',
         message: msg,
         type: 'reward',
-        link: '/pages/inner/cash-rewards.html',
+        link: '/app/cash-rewards.html',
         audience: 'brand',
         metadata: {
           influencerName: influencer?.displayName,

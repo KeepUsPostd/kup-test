@@ -59,10 +59,10 @@ router.post('/', requireAuth, async (req, res) => {
             <tr><td style="padding:6px 0;color:#888;">Reason</td><td style="padding:6px 0;color:#e53e3e;font-weight:700;">${reason}</td></tr>
             <tr><td style="padding:6px 0;color:#888;">Action deadline</td><td style="padding:6px 0;color:#e53e3e;">${deadlineStr} ET</td></tr>
           </table>
-          <p style="margin-top:16px;">Log in to the <a href="${process.env.APP_URL || 'https://keepuspostd.com'}/pages/inner/moderation.html" style="color:#2EA5DD;">KUP Moderation Dashboard</a> to review and take action.</p>
+          <p style="margin-top:16px;">Log in to the <a href="${process.env.APP_URL || 'https://keepuspostd.com'}/app/moderation.html" style="color:#2EA5DD;">KUP Moderation Dashboard</a> to review and take action.</p>
         `,
         ctaText: 'Open Moderation Dashboard →',
-        ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/pages/inner/moderation.html`,
+        ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/moderation.html`,
         variant: 'brand',
       });
     } catch (emailErr) {

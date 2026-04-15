@@ -536,7 +536,7 @@ router.post('/leave', requireAuth, async (req, res) => {
             <p>Any pending content submissions will remain in your queue.</p>
           `,
           ctaText: 'View Influencers',
-          ctaUrl: `${APP_URL}/pages/inner/influencers.html`,
+          ctaUrl: `${APP_URL}/app/influencers.html`,
           variant: 'brand',
         });
 
@@ -547,7 +547,7 @@ router.post('/leave', requireAuth, async (req, res) => {
             title: 'Partner Left',
             message: `${influencer.displayName || influencer.handle} ended their partnership with ${brandDoc?.name || 'your brand'}.`,
             type: 'partnership',
-            link: '/pages/inner/influencers.html',
+            link: '/app/influencers.html',
           });
         }
       }

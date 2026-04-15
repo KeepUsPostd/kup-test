@@ -281,11 +281,11 @@ async function brandUnreviewedContent() {
         <p>Content not reviewed within 7 days may be auto-approved. Review now to maintain control over your brand content.</p>
       `,
       ctaText: 'Review Content',
-      ctaUrl: `${APP_URL}/pages/inner/content.html`,
+      ctaUrl: `${APP_URL}/app/content.html`,
       variant: 'brand',
     });
     if (brand.ownerId) {
-      push(brand.ownerId, { title: '📋 Content awaiting review', body: `${item.count} submission${item.count > 1 ? 's' : ''} pending.`, link: '/pages/inner/content.html' });
+      push(brand.ownerId, { title: '📋 Content awaiting review', body: `${item.count} submission${item.count > 1 ? 's' : ''} pending.`, link: '/app/content.html' });
     }
     sent++;
   }
@@ -315,7 +315,7 @@ async function brandInactive5Days() {
         <p>Log in to check for new submissions, manage your campaigns, and keep the momentum going.</p>
       `,
       ctaText: 'Go to Dashboard',
-      ctaUrl: `${APP_URL}/pages/inner/dashboard.html`,
+      ctaUrl: `${APP_URL}/app/dashboard.html`,
       variant: 'brand',
     });
     sent++;
@@ -354,7 +354,7 @@ async function brandNoCampaign() {
         <p>Campaigns help you organize your influencer partnerships and track content creation goals. Launch your first one to get started!</p>
       `,
       ctaText: 'Create Campaign',
-      ctaUrl: `${APP_URL}/pages/inner/campaigns.html`,
+      ctaUrl: `${APP_URL}/app/campaigns.html`,
       variant: 'brand',
     });
     sent++;
@@ -403,7 +403,7 @@ async function brandMonthlyDigest() {
         <p>Check your dashboard for detailed analytics.</p>
       `,
       ctaText: 'View Dashboard',
-      ctaUrl: `${APP_URL}/pages/inner/dashboard.html`,
+      ctaUrl: `${APP_URL}/app/dashboard.html`,
       variant: 'brand',
     });
     sent++;
@@ -439,7 +439,7 @@ async function brandNoRewards() {
         <p>Brands with active rewards see <strong>2x more influencer engagement</strong>. Set up cash rewards, bonuses, or point-based incentives to attract top creators.</p>
       `,
       ctaText: 'Set Up Rewards',
-      ctaUrl: `${APP_URL}/pages/inner/brand-reward-settings.html`,
+      ctaUrl: `${APP_URL}/app/brand-reward-settings.html`,
       variant: 'brand',
     });
     sent++;

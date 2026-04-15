@@ -120,17 +120,17 @@ router.get('/callback', async (req, res) => {
 
     if (error) {
       console.error('[GBP] OAuth denied:', error);
-      return res.redirect('/pages/inner/google-business.html?error=access_denied');
+      return res.redirect('/app/google-business.html?error=access_denied');
     }
 
-    if (!code || !state) return res.redirect('/pages/inner/google-business.html?error=invalid_callback');
+    if (!code || !state) return res.redirect('/app/google-business.html?error=invalid_callback');
 
     // Decode state
     let stateData;
     try {
       stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
     } catch (e) {
-      return res.redirect('/pages/inner/google-business.html?error=invalid_state');
+      return res.redirect('/app/google-business.html?error=invalid_state');
     }
 
     const { brandId, userId } = stateData;
@@ -170,10 +170,10 @@ router.get('/callback', async (req, res) => {
     );
 
     console.log(`[GBP] Connected brand ${brandId} → Google account ${googleAccountId}`);
-    res.redirect('/pages/inner/google-business.html?connected=true');
+    res.redirect('/app/google-business.html?connected=true');
   } catch (err) {
     console.error('[GBP] callback error:', err.message);
-    res.redirect('/pages/inner/google-business.html?error=callback_failed');
+    res.redirect('/app/google-business.html?error=callback_failed');
   }
 });
 

@@ -428,7 +428,7 @@ router.post('/pay', requireAuth, async (req, res) => {
 
     // Build return/cancel URLs
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
-    const cancelUrl = `${baseUrl}/pages/inner/cash-account.html?payment=canceled`;
+    const cancelUrl = `${baseUrl}/app/cash-account.html?payment=canceled`;
     const returnUrl = `${baseUrl}/api/payouts/pay/capture?transactionId=${transactionId}`;
     const description = `KUP payment: ${transaction.type} to ${influencer.displayName}`;
 
@@ -469,16 +469,16 @@ router.get('/pay/capture', async (req, res) => {
     const { transactionId, token } = req.query;
 
     if (!transactionId || !token) {
-      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=missing_params');
+      return res.redirect('/app/cash-rewards.html?payment=error&reason=missing_params');
     }
 
     const transaction = await Transaction.findById(transactionId);
     if (!transaction) {
-      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=transaction_not_found');
+      return res.redirect('/app/cash-rewards.html?payment=error&reason=transaction_not_found');
     }
 
     if (transaction.status !== 'processing' && transaction.status !== 'pending') {
-      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=invalid_status');
+      return res.redirect('/app/cash-rewards.html?payment=error&reason=invalid_status');
     }
 
     // Capture the PayPal order (token is the order ID PayPal sends back)
@@ -521,7 +521,7 @@ router.get('/pay/capture', async (req, res) => {
     res.redirect(`/app/content-manager.html?payment=success&amount=${amount}&contentId=${contentId}`);
   } catch (error) {
     console.error('Capture PayPal order error:', error.message);
-    res.redirect('/pages/inner/cash-account.html?payment=error&reason=capture_failed');
+    res.redirect('/app/cash-account.html?payment=error&reason=capture_failed');
   }
 });
 
@@ -586,7 +586,7 @@ router.post('/pay/batch', requireAuth, async (req, res) => {
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3001';
     const txnIdsParam = transactionIds.join(',');
     const returnUrl = `${baseUrl}/api/payouts/pay/batch/capture?transactionIds=${txnIdsParam}`;
-    const cancelUrl = `${baseUrl}/pages/inner/cash-rewards.html?payment=canceled`;
+    const cancelUrl = `${baseUrl}/app/cash-rewards.html?payment=canceled`;
     const description = `KUP batch payment: ${transactions.length} transactions`;
 
     // Create a single PayPal order for the total
@@ -622,7 +622,7 @@ router.get('/pay/batch/capture', async (req, res) => {
     const { transactionIds, token } = req.query;
 
     if (!transactionIds || !token) {
-      return res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=missing_params');
+      return res.redirect('/app/cash-rewards.html?payment=error&reason=missing_params');
     }
 
     const txnIdArray = transactionIds.split(',');
@@ -681,10 +681,10 @@ router.get('/pay/batch/capture', async (req, res) => {
       }
     } catch (_) {}
 
-    res.redirect('/pages/inner/cash-rewards.html?payment=success');
+    res.redirect('/app/cash-rewards.html?payment=success');
   } catch (error) {
     console.error('Capture batch PayPal order error:', error.message);
-    res.redirect('/pages/inner/cash-rewards.html?payment=error&reason=capture_failed');
+    res.redirect('/app/cash-rewards.html?payment=error&reason=capture_failed');
   }
 });
 
