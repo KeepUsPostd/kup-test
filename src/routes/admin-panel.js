@@ -1241,4 +1241,86 @@ router.get('/admin-brands/stats', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// ADMIN: CLEANUP TEST DATA
+// ═══════════════════════════════════════════════════════════
+
+// DELETE /api/admin-panel/cleanup/content — Remove all content submissions + R2 files + transactions
+router.delete('/cleanup/content', async (req, res) => {
+  try {
+    // 1. Get all media URLs for R2 cleanup
+    const allContent = await ContentSubmission.find({}, 'mediaUrls posterUrl').lean();
+    let r2Keys = [];
+    allContent.forEach(c => {
+      if (c.mediaUrls) {
+        c.mediaUrls.forEach(url => {
+          // Extract R2 key from URL: https://pub-xxx.r2.dev/uploads/xxx → uploads/xxx
+          const match = url.match(/r2\.dev\/(.+)$/);
+          if (match) r2Keys.push(match[1]);
+        });
+      }
+      if (c.posterUrl) {
+        const match = c.posterUrl.match(/r2\.dev\/(.+)$/);
+        if (match) r2Keys.push(match[1]);
+      }
+    });
+
+    // 2. Delete R2 files
+    let r2Deleted = 0;
+    if (r2Keys.length > 0) {
+      try {
+        const { S3Client, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+        const s3 = new S3Client({
+          region: 'auto',
+          endpoint: process.env.R2_ENDPOINT,
+          credentials: {
+            accessKeyId: process.env.R2_ACCESS_KEY_ID,
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+          },
+        });
+        // Delete in batches of 1000 (S3 limit)
+        for (let i = 0; i < r2Keys.length; i += 1000) {
+          const batch = r2Keys.slice(i, i + 1000);
+          await s3.send(new DeleteObjectsCommand({
+            Bucket: process.env.R2_BUCKET,
+            Delete: { Objects: batch.map(k => ({ Key: k })) },
+          }));
+          r2Deleted += batch.length;
+        }
+      } catch (r2Err) {
+        console.error('R2 cleanup error (non-blocking):', r2Err.message);
+      }
+    }
+
+    // 3. Delete all content submissions
+    const contentResult = await ContentSubmission.deleteMany({});
+
+    // 4. Delete all transactions
+    const txnResult = await Transaction.deleteMany({});
+
+    // 5. Reset influencer stats
+    await InfluencerProfile.updateMany({}, {
+      $set: { totalCashEarned: 0, totalContentSubmitted: 0, totalContentApproved: 0 }
+    });
+
+    // 6. Delete content-related notifications
+    await Notification.deleteMany({ type: { $in: ['content', 'approval', 'payment'] } });
+
+    console.log(`🧹 Cleanup: ${contentResult.deletedCount} submissions, ${txnResult.deletedCount} transactions, ${r2Deleted} R2 files`);
+
+    res.json({
+      success: true,
+      deleted: {
+        submissions: contentResult.deletedCount,
+        transactions: txnResult.deletedCount,
+        r2Files: r2Deleted,
+      },
+      message: 'All test content, transactions, and media files removed.',
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error.message);
+    res.status(500).json({ error: 'Cleanup failed', message: error.message });
+  }
+});
+
 module.exports = router;
