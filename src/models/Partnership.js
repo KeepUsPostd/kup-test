@@ -36,6 +36,7 @@ const partnershipSchema = new mongoose.Schema({
   giftedPoints: { type: Number, default: 0 },  // voluntary gift points from brand (resets on full cycle)
   gratitudePoints: { type: Number, default: 0 },  // automatic gratitude points: birthday, join, anniversary (resets on full cycle)
   claimedLevels: [{ type: Number }],            // level indices already claimed (0, 1, 2) — cleared on reset
+  unlockedLevels: [{ type: Number }],           // level indices unlocked but NOT YET distributed — persists until brand fulfills
   // Reset tracking — when all levels claimed, store baseline so dynamic point calc starts from zero
   pointsResetAt: { type: Date, default: null },
   pointsResetSubmissionBaseline: {

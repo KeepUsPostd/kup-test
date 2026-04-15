@@ -459,7 +459,77 @@ const startServer = async () => {
       }
     }, { timezone: 'UTC' });
 
-    console.log('⏰ Cron: PayPal connect reminder scheduled weekly — Mondays at 9:00 AM UTC\n');
+    console.log('⏰ Cron: PayPal connect reminder scheduled weekly — Mondays at 9:00 AM UTC');
+
+    // ── Reward Distribution Reminders — daily at 10:00 AM UTC ──
+    // Checks for partnerships with unlockedLevels that haven't been distributed.
+    // Sends email + in-app reminder to brand owner.
+    cron.schedule('0 10 * * *', async () => {
+      try {
+        const { Partnership, Brand, InfluencerProfile, BrandProfile, User } = require('./models');
+        const Notification = require('./models/Notification');
+        const { sendEmail } = require('./config/email');
+        const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+
+        // Find partnerships with pending unlocked levels
+        const pendingPartnerships = await Partnership.find({
+          unlockedLevels: { $exists: true, $ne: [] },
+          status: 'active',
+        }).lean();
+
+        if (pendingPartnerships.length === 0) return;
+        console.log(`⏰ [CRON] Found ${pendingPartnerships.length} partnerships with pending reward distributions`);
+
+        for (const p of pendingPartnerships) {
+          try {
+            const brand = await Brand.findById(p.brandId).lean();
+            const inf = await InfluencerProfile.findById(p.influencerProfileId).lean();
+            const bp = await BrandProfile.findOne({ ownedBrandIds: p.brandId }).lean();
+            if (!brand || !inf || !bp) continue;
+
+            const levelCount = p.unlockedLevels.length;
+            const infName = inf.displayName || inf.handle || 'An influencer';
+
+            // In-app notification to brand
+            await Notification.create({
+              userId: bp.userId,
+              title: 'Reward Pending Distribution',
+              message: `${infName} has ${levelCount} unlocked reward${levelCount > 1 ? 's' : ''} waiting to be distributed.`,
+              type: 'reward',
+              link: '/app/cash-rewards.html',
+              audience: 'brand',
+              metadata: { influencerName: infName, pendingLevels: levelCount, partnershipId: p._id.toString() },
+            });
+
+            // Email to brand owner
+            const brandUser = await User.findById(bp.userId, 'email').lean();
+            if (brandUser?.email) {
+              await sendEmail({
+                to: brandUser.email,
+                subject: `Reward Pending — ${infName} is waiting`,
+                headline: 'Reward Ready to Distribute',
+                preheader: `${infName} has ${levelCount} unlocked reward${levelCount > 1 ? 's' : ''} waiting`,
+                bodyHtml: `
+                  <p><strong>${infName}</strong> has unlocked ${levelCount} reward${levelCount > 1 ? 's' : ''} that ${levelCount > 1 ? 'are' : 'is'} waiting to be distributed.</p>
+                  <p>Distribute their reward from the Cash & Rewards page to keep your influencers engaged.</p>
+                `,
+                ctaText: 'Distribute Reward',
+                ctaUrl: `${APP_URL}/app/cash-rewards.html`,
+                variant: 'brand',
+              });
+            }
+
+            console.log(`⏰ [CRON] Reminder sent to ${brand.name} for ${infName} (${levelCount} pending)`);
+          } catch (pErr) {
+            console.error(`⏰ [CRON] Reminder error for partnership ${p._id}:`, pErr.message);
+          }
+        }
+      } catch (err) {
+        console.error('⏰ [CRON] Reward distribution reminder failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+
+    console.log('⏰ Cron: Reward distribution reminder scheduled daily at 10:00 AM UTC\n');
   });
 };
 

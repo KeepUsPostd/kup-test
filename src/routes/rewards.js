@@ -680,11 +680,15 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
       distributedAt: new Date(),
     });
 
+    // Remove this level from unlockedLevels (now distributed)
+    partnership.unlockedLevels = (partnership.unlockedLevels || []).filter(l => l !== levelIndex);
+
     // Check if ALL levels are now claimed → reset points for a new cycle
     const allLevelsClaimed = levels.every((_, idx) => partnership.claimedLevels.includes(idx));
     if (allLevelsClaimed) {
       console.log(`🔄 All ${levels.length} levels claimed for ${inf?.displayName} — resetting points for new cycle`);
       partnership.claimedLevels = [];
+      partnership.unlockedLevels = [];
       partnership.rewardPoints = 0;
       partnership.giftedPoints = 0;
       partnership.gratitudePoints = 0;

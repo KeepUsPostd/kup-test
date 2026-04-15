@@ -181,9 +181,11 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
 
       // 🎉 Check if any level was JUST unlocked by this point award
       const previousPts = totalPts - points;
+      const unlockedLevels = [];
       for (const lvl of levels) {
         if (totalPts >= lvl.threshold && previousPts < lvl.threshold) {
           console.log(`🎉 Level unlocked! ${lvl.rewardValue} (${lvl.threshold} pts) for ${influencer.displayName}`);
+          unlockedLevels.push(lvl);
           notify.levelUnlocked({
             influencer,
             brand,
@@ -196,32 +198,20 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
         }
       }
 
-      // 🔄 Auto-reset when ALL levels surpassed (don't wait for brand to distribute)
-      const highestThreshold = levels[levels.length - 1]?.threshold || 0;
-      if (highestThreshold > 0 && totalPts >= highestThreshold) {
+      // Track unlocked levels on partnership — persists until brand distributes
+      // NO auto-reset here. Reset only happens in rewards.js when brand distributes ALL levels.
+      if (unlockedLevels.length > 0) {
         const p = await Partnership.findOne({ brandId, influencerProfileId, status: 'active' });
         if (p) {
-          console.log(`🔄 All levels surpassed for ${influencer.displayName} — auto-resetting points`);
-          p.claimedLevels = [];
-          p.giftedPoints = 0;
-          p.gratitudePoints = 0;
-          let purchaseBaseline = 0;
-          try {
-            const PurchasePointsLog2 = require('../models/PurchasePointsLog');
-            const agg2 = await PurchasePointsLog2.aggregate([
-              { $match: { brandId: require('mongoose').Types.ObjectId.createFromHexString(brandId.toString()), influencerProfileId } },
-              { $group: { _id: null, total: { $sum: '$pointsAwarded' } } },
-            ]);
-            purchaseBaseline = agg2[0]?.total ?? 0;
-          } catch (_) {}
-          p.pointsResetAt = new Date();
-          p.pointsResetSubmissionBaseline = {
-            total: await ContentSubmission.countDocuments({ brandId, influencerProfileId }),
-            approved: await ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'approved' }),
-            postd: await ContentSubmission.countDocuments({ brandId, influencerProfileId, status: 'postd' }),
-            purchasePoints: purchaseBaseline,
-          };
+          // Add newly unlocked level indices (avoid duplicates)
+          const existing = p.unlockedLevels || [];
+          for (const lvl of unlockedLevels) {
+            const idx = levels.indexOf(lvl);
+            if (idx >= 0 && !existing.includes(idx)) existing.push(idx);
+          }
+          p.unlockedLevels = existing;
           await p.save();
+          console.log(`🔓 Unlocked levels saved for ${influencer.displayName}: [${existing.join(', ')}]`);
         }
       }
     }
