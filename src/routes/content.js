@@ -1161,16 +1161,46 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
       console.error('Bonus Cash trigger error (non-blocking):', rewardErr.message);
     }
 
-    // 📧 Notify influencer: content posted + bonus earned
+    // 📧 Notify influencer + brand: content posted + bonus earned
     try {
       const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
       const brand = await Brand.findById(submission.brandId);
       if (influencer && brand) {
-        const inf = { ...influencer.toObject(), email: influencer.paypalEmail || '', userId: influencer.userId };
+        // Use login email for influencer notifications
+        const infUser = await User.findById(influencer.userId, 'email').lean();
+        const inf = { ...influencer.toObject(), email: infUser?.email || influencer.paypalEmail || '', userId: influencer.userId };
         notify.contentPostd({ influencer: inf, brand, submission, bonusAmount: rewardTriggered?.amount }).catch(() => {});
         if (rewardTriggered) {
           notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'bonus_cash' }).catch(() => {});
+
+          // Notify brand: bonus cash triggered
+          notify.brandPaymentConfirmed({ brand, influencer: inf, amount: rewardTriggered.amount, brandPaysAmount: rewardTriggered.brandPaysAmount }).catch(() => {});
         }
+
+        // Brand in-app notification: influencer shared content
+        try {
+          const bp = await BrandProfile.findOne({ ownedBrandIds: brand._id });
+          if (bp?.userId) {
+            const infName = influencer.displayName || influencer.handle || 'An influencer';
+            const brandMsg = `${infName} shared your content on ${submission.platform || 'social media'}.${rewardTriggered ? ` Bonus cash of $${rewardTriggered.amount} triggered.` : ''}`;
+            const { createInApp } = require('../services/notifications');
+            // Use the notification service's createInApp directly isn't exported, so use inline
+            const Notification = require('../models/Notification');
+            await Notification.create({
+              userId: bp.userId,
+              title: 'Content Shared!',
+              message: brandMsg,
+              type: 'content',
+              link: '/app/content.html',
+              audience: 'brand',
+              metadata: {
+                influencerName: infName,
+                platform: submission.platform,
+                bonusAmount: rewardTriggered?.amount || null,
+              },
+            });
+          }
+        } catch (_) {}
       }
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);
