@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { InfluencerProfile, Transaction, Withdrawal } = require('../models');
 const paypal = require('../config/paypal');
+const notify = require('../services/notifications');
 
 // ── Constants ────────────────────────────────────────────────
 const MINIMUM_CASHOUT = 5.00;              // Minimum cashout amount in USD
@@ -316,6 +317,16 @@ router.post('/cashout', requireAuth, async (req, res) => {
       await withdrawal.save();
 
       console.log(`💸 Cashout initiated: $${cashoutAmount.toFixed(2)} → ${influencer.paypalEmail} (batch: ${paypalBatchId})`);
+
+      // Notify influencer: cashout processing email + in-app
+      try {
+        const User = require('../models/User');
+        const user = await User.findById(req.user._id, 'email');
+        notify.cashoutRequested({
+          influencer: { ...influencer.toObject(), email: user?.email || '', userId: req.user._id.toString() },
+          amount: cashoutAmount,
+        }).catch(() => {});
+      } catch (_) {}
     } catch (paypalError) {
       // PayPal call failed — roll back the withdrawal
       console.error('PayPal payout failed:', paypalError.message);

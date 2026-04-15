@@ -5,8 +5,9 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { Transaction, Payout, InfluencerProfile } = require('../models');
+const { Transaction, Payout, InfluencerProfile, Brand } = require('../models');
 const paypal = require('../config/paypal');
+const notify = require('../services/notifications');
 
 // ── Fee Structure ──────────────────────────────────────────────
 // Deducted at the moment the brand pays the influencer.
@@ -505,6 +506,15 @@ router.get('/pay/capture', async (req, res) => {
 
     console.log(`✅ Payment captured: $${transaction.amount} to influencer ${transaction.payeeInfluencerId}`);
 
+    // Notify brand: payment confirmed email
+    try {
+      const influencer = await InfluencerProfile.findById(transaction.payeeInfluencerId).lean();
+      const brand = await Brand.findById(transaction.payerBrandId).lean();
+      if (brand && influencer) {
+        notify.brandPaymentConfirmed({ brand, influencer, amount: transaction.amount, brandPaysAmount: transaction.brandPaysAmount }).catch(() => {});
+      }
+    } catch (_) {}
+
     // Redirect to Cash Transactions page so brand sees the confirmed transaction
     res.redirect('/pages/inner/cash-account.html?payment=success');
   } catch (error) {
@@ -651,6 +661,23 @@ router.get('/pay/batch/capture', async (req, res) => {
     }
 
     console.log(`✅ Batch payment captured: ${txnIdArray.length} transactions paid`);
+
+    // Notify brand: batch payment confirmed email
+    try {
+      if (transactions.length > 0) {
+        const brand = await Brand.findById(transactions[0].payerBrandId).lean();
+        if (brand) {
+          const totalPaid = transactions.reduce((s, t) => s + (t.brandPaysAmount || t.amount), 0);
+          const totalInfluencerGets = transactions.reduce((s, t) => s + t.amount, 0);
+          notify.brandPaymentConfirmed({
+            brand,
+            influencer: { displayName: `${transactions.length} influencers` },
+            amount: totalInfluencerGets,
+            brandPaysAmount: totalPaid,
+          }).catch(() => {});
+        }
+      }
+    } catch (_) {}
 
     res.redirect('/pages/inner/cash-rewards.html?payment=success');
   } catch (error) {

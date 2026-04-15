@@ -1685,6 +1685,7 @@ async function cashoutRequested({ influencer, amount }) {
       message: `${$(amount)} cash out is being processed.`,
       type: 'payment',
       link: '/app/wallet.html',
+      audience: 'influencer',
     });
   }
 }
