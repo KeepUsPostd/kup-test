@@ -1975,11 +1975,12 @@
               return;
             }
 
-            // Fallback: brand-direct — open PayPal popup for manual approval
-            if (reward && reward.paypalOrderId && !reward.skipped) {
-              kupToast('Content approved! Complete the $' + reward.brandPaysAmount.toFixed(2) + ' payment below…', 'success', 4000);
-              window._lastApprovalUrl = reward.approvalUrl || '#';
-              openPayPalPopup(reward.paypalOrderId, reward.transactionId, reward.amount, reward.brandPaysAmount, item.influencer);
+            // Brand-direct: redirect to PayPal approval page
+            if (reward && reward.approvalUrl && !reward.skipped) {
+              kupToast('Content approved! Redirecting to PayPal to complete $' + reward.brandPaysAmount.toFixed(2) + ' payment…', 'success', 4000);
+              setTimeout(function() {
+                window.location.href = reward.approvalUrl;
+              }, 1200);
               return;
             }
 
@@ -4551,113 +4552,5 @@
     <a href="influencers.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Influencers</span></a>
     <a href="cash-rewards.html" class="kup-mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Cash</span></a>
   </nav>
-<!-- PayPal JS SDK Popup for in-page CPA payments -->
-<div id="paypalPopupOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:none;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)">
-    <h4 style="margin:0 0 6px;font-size:1.05rem;font-weight:700">Complete Payment</h4>
-    <p id="paypalPopupDesc" style="font-size:.85rem;color:#666;margin:0 0 18px"></p>
-    <div id="paypal-button-container" style="min-height:55px"></div>
-    <button onclick="closePayPalPopup()" style="margin-top:14px;background:none;border:none;color:#999;font-size:.8rem;cursor:pointer">Cancel</button>
-  </div>
-</div>
-
-<script>
-var _paypalSDKLoaded = false;
-var _paypalSDKLoading = false;
-
-function loadPayPalSDK(callback) {
-  if (_paypalSDKLoaded) { callback(); return; }
-  if (_paypalSDKLoading) { var check = setInterval(function() { if (_paypalSDKLoaded) { clearInterval(check); callback(); } }, 200); return; }
-  _paypalSDKLoading = true;
-
-  // Fetch client ID from server
-  fetch('/api/payouts/paypal-client-id')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var script = document.createElement('script');
-      script.src = 'https://www.paypal.com/sdk/js?client-id=' + data.clientId + '&currency=USD&intent=capture&disable-funding=credit,card';
-      script.onload = function() { _paypalSDKLoaded = true; _paypalSDKLoading = false; callback(); };
-      script.onerror = function() { _paypalSDKLoading = false; kupToast('Failed to load PayPal', 'error'); };
-      document.head.appendChild(script);
-    })
-    .catch(function() { _paypalSDKLoading = false; kupToast('Failed to load PayPal', 'error'); });
-}
-
-function openPayPalPopup(orderId, transactionId, amount, brandPaysAmount, influencerName) {
-  var overlay = document.getElementById('paypalPopupOverlay');
-  var desc = document.getElementById('paypalPopupDesc');
-  var container = document.getElementById('paypal-button-container');
-  desc.textContent = '$' + brandPaysAmount.toFixed(2) + ' to ' + (influencerName || 'influencer');
-  container.innerHTML = '<p style="color:#aaa;font-size:.8rem">Loading PayPal...</p>';
-  overlay.style.display = 'flex';
-
-  loadPayPalSDK(function() {
-    container.innerHTML = '';
-    console.log('[PayPal] SDK loaded, rendering buttons for order:', orderId);
-    try {
-    paypal.Buttons({
-      createOrder: function() {
-        // Return existing order ID created by our backend
-        console.log('[PayPal] createOrder returning:', orderId);
-        return orderId;
-      },
-      onApprove: function(data) {
-        // Brand approved in popup — capture via our API
-        container.innerHTML = '<p style="color:#16a34a;font-weight:600;font-size:.9rem">Capturing payment...</p>';
-        return getAuthToken().then(function(token) {
-          return fetch('/api/payouts/pay/capture-popup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ orderId: data.orderID, transactionId: transactionId })
-          });
-        }).then(function(r) { return r.json(); })
-          .then(function(result) {
-            closePayPalPopup();
-            if (result.success) {
-              kupToast('Payment captured! $' + amount + ' sent to ' + (influencerName || 'influencer'), 'success', 5000);
-            } else {
-              kupToast('Capture failed: ' + (result.message || 'Unknown error'), 'error');
-            }
-            setTimeout(function() { advanceQueueAfterDecision(); }, 600);
-          })
-          .catch(function(err) {
-            closePayPalPopup();
-            kupToast('Payment error: ' + err.message, 'error');
-          });
-      },
-      onCancel: function() {
-        closePayPalPopup();
-        kupToast('Payment cancelled — content is approved but payment is pending', 'warning', 5000);
-        setTimeout(function() { advanceQueueAfterDecision(); }, 600);
-      },
-      onError: function(err) {
-        closePayPalPopup();
-        kupToast('PayPal error: ' + (err.message || 'Please try again'), 'error');
-      },
-      style: {
-        layout: 'vertical',
-        color: 'gold',
-        shape: 'rect',
-        label: 'pay',
-        height: 45
-      }
-    }).render('#paypal-button-container').then(function() {
-      console.log('[PayPal] Buttons rendered successfully');
-    }).catch(function(err) {
-      console.error('[PayPal] Button render error:', err);
-      container.innerHTML = '<p style="color:#ef4444;font-size:.85rem">PayPal failed to load. <a href="' + (window._lastApprovalUrl || '#') + '" style="color:var(--kup-blue);text-decoration:underline">Click here to pay via PayPal</a></p>';
-    });
-    } catch(renderErr) {
-      console.error('[PayPal] Render exception:', renderErr);
-      container.innerHTML = '<p style="color:#ef4444;font-size:.85rem">PayPal error. <a href="' + (window._lastApprovalUrl || '#') + '" style="color:var(--kup-blue);text-decoration:underline">Click here to pay via PayPal</a></p>';
-    }
-  });
-}
-
-function closePayPalPopup() {
-  var overlay = document.getElementById('paypalPopupOverlay');
-  if (overlay) overlay.style.display = 'none';
-}
-</script>
 </body>
 </html>
