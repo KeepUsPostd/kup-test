@@ -1187,8 +1187,8 @@
         </div>
       </div>
 
-      <!-- Payment Method Card -->
-      <div class="billing-card">
+      <!-- Payment Method Card — Unified PayPal connection for subscriptions + influencer payments -->
+      <div class="billing-card" id="vaultCard">
         <div class="card-title">Payment Method</div>
         <div class="payment-method-row">
           <div class="payment-left">
@@ -1199,28 +1199,8 @@
               </svg>
             </div>
             <div class="payment-info">
-              <div class="method-name">PayPal <span id="paypalStatus" class="connected-badge" style="display:none;">Connected</span></div>
-              <div class="method-email" id="paypalEmail" style="color:#999;">Not connected</div>
-            </div>
-          </div>
-          <button class="btn-disconnect" id="paypalDisconnect" style="display:none;">Disconnect</button>
-        </div>
-      </div>
-
-      <!-- Influencer Payment Method (Vault v3) -->
-      <div class="billing-card" id="vaultCard">
-        <div class="card-title">Influencer Payments</div>
-        <div class="payment-method-row">
-          <div class="payment-left">
-            <div class="paypal-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path d="M7.144 19.532l1.049-5.751c.11-.606.691-1.002 1.304-1.002h.846c2.945 0 5.253-1.199 5.928-4.665.028-.144.05-.286.069-.426.59.31.996.782 1.166 1.42.522 1.957-.398 4.267-2.313 5.37-.795.458-1.763.72-2.85.72H10.39c-.614 0-1.135.442-1.232 1.047L8.46 19.532H7.144z" fill="#009CDE"/>
-                <path d="M6.256 20.532l1.152-6.325c.093-.513.585-.85 1.104-.85h.716c2.49 0 4.44-1.017 5.011-3.951.024-.122.043-.242.059-.36.499.263.842.663.986 1.203.442 1.658-.337 3.614-1.956 4.55-.672.388-1.492.61-2.41.61H9.196c-.52 0-.96.375-1.042.887l-.662 4.236H6.256z" fill="#012169"/>
-              </svg>
-            </div>
-            <div class="payment-info">
-              <div class="method-name">PayPal for Creators <span id="vaultStatus" class="connected-badge" style="display:none;">Connected</span></div>
-              <div id="vaultInfo" style="color:#999;font-size:0.85rem;">Authorize PayPal to seamlessly pay influencers when you approve content.</div>
+              <div class="method-name">PayPal <span id="vaultStatus" class="connected-badge" style="display:none;">Connected</span></div>
+              <div id="vaultInfo" style="color:#999;font-size:0.85rem;">Connect PayPal to automatically process influencer payments when you approve content.</div>
             </div>
           </div>
           <button class="btn-upgrade-sm" id="vaultConnectBtn" onclick="startVaultSetup()">Connect PayPal</button>
@@ -1731,18 +1711,11 @@
         }
 
         // PayPal — only show Connected if subscription has a real PayPal payer email
-        var paypalEmailEl = document.getElementById('paypalEmail');
-        var paypalStatusEl = document.getElementById('paypalStatus');
-        var paypalDisconnect = document.getElementById('paypalDisconnect');
+        // Subscription PayPal email display removed — unified under vault Payment Method
         var paypalEmail = data.subscription && data.subscription.paypalPayerEmail;
         if (paypalEmail) {
-          if (paypalEmailEl) { paypalEmailEl.textContent = paypalEmail; paypalEmailEl.style.color = ''; }
-          if (paypalStatusEl) paypalStatusEl.style.display = '';
-          if (paypalDisconnect) paypalDisconnect.style.display = '';
         } else {
-          if (paypalEmailEl) { paypalEmailEl.textContent = 'Not connected'; paypalEmailEl.style.color = '#999'; }
-          if (paypalStatusEl) paypalStatusEl.style.display = 'none';
-          if (paypalDisconnect) paypalDisconnect.style.display = 'none';
+          // No subscription PayPal connected
         }
 
         // Billing history
