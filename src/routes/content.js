@@ -829,6 +829,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
           const brandForNotify = await Brand.findById(submission.brandId, 'name').lean();
           try {
             const freshInfluencer = influencer || await InfluencerProfile.findById(submission.influencerProfileId);
+            console.log(`🔍 Influencer PayPal: merchantId=${freshInfluencer?.paypalMerchantId || 'NONE'}, email=${freshInfluencer?.paypalEmail || 'NONE'}, name=${freshInfluencer?.displayName}`);
             if (freshInfluencer?.paypalMerchantId) {
               const desc = `KUP CPA: ${freshInfluencer.displayName || 'Influencer'} — ${tier} tier ${submission.contentType}`;
               const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
