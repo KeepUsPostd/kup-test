@@ -1971,6 +1971,7 @@
             // Brand stays on KUP. Popup captures payment, then closes.
             if (reward && reward.paypalOrderId && !reward.skipped) {
               kupToast('Content approved! Complete the $' + reward.brandPaysAmount.toFixed(2) + ' payment below…', 'success', 4000);
+              window._lastApprovalUrl = reward.approvalUrl || '#';
               openPayPalPopup(reward.paypalOrderId, reward.transactionId, reward.amount, reward.brandPaysAmount, item.influencer);
               // Don't advance queue yet — wait for payment completion
               return;
@@ -4586,9 +4587,13 @@ function openPayPalPopup(orderId, transactionId, amount, brandPaysAmount, influe
 
   loadPayPalSDK(function() {
     container.innerHTML = '';
+    console.log('[PayPal] SDK loaded, rendering buttons for order:', orderId);
+    try {
     paypal.Buttons({
+      fundingSource: paypal.FUNDING.PAYPAL,
       createOrder: function() {
         // Return existing order ID created by our backend
+        console.log('[PayPal] createOrder returning:', orderId);
         return orderId;
       },
       onApprove: function(data) {
@@ -4631,7 +4636,16 @@ function openPayPalPopup(orderId, transactionId, amount, brandPaysAmount, influe
         label: 'pay',
         height: 45
       }
-    }).render('#paypal-button-container');
+    }).render('#paypal-button-container').then(function() {
+      console.log('[PayPal] Buttons rendered successfully');
+    }).catch(function(err) {
+      console.error('[PayPal] Button render error:', err);
+      container.innerHTML = '<p style="color:#ef4444;font-size:.85rem">PayPal failed to load. <a href="' + (window._lastApprovalUrl || '#') + '" style="color:var(--kup-blue);text-decoration:underline">Click here to pay via PayPal</a></p>';
+    });
+    } catch(renderErr) {
+      console.error('[PayPal] Render exception:', renderErr);
+      container.innerHTML = '<p style="color:#ef4444;font-size:.85rem">PayPal error. <a href="' + (window._lastApprovalUrl || '#') + '" style="color:var(--kup-blue);text-decoration:underline">Click here to pay via PayPal</a></p>';
+    }
   });
 }
 
