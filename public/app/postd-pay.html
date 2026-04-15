@@ -1275,11 +1275,16 @@
         closeModal('paymentConfirmModal');
 
         if (result && !result.error) {
-          kupToast('Payment of $' + amount.toFixed(2) + ' sent successfully!', 'success');
+          if (result.paymentStatus === 'paid') {
+            kupToast('Payment of $' + amount.toFixed(2) + ' sent automatically!', 'success');
+          } else if (result.approvalUrl) {
+            kupToast('Redirecting to PayPal to complete payment...', 'success', 3000);
+            setTimeout(function() { window.location.href = result.approvalUrl; }, 1000);
+          } else {
+            kupToast('Payment of $' + amount.toFixed(2) + ' queued — complete from Cash & Rewards', 'success');
+          }
           amountInput.value = '';
           memoInput.value = '';
-          // Refresh transaction history
-          // Transaction history removed — all records on Cash Transactions page
         } else {
           kupToast(result.error || 'Payment failed — please try again', 'error');
         }
