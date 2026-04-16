@@ -252,9 +252,15 @@ router.get('/discover', requireAuth, async (req, res) => {
 
     const brands = await Brand.find(filter)
       .select('name category description logoUrl heroImageUrl brandColors brandType claimStatus ownerId status')
-      .sort({ name: 1 })
-      .limit(100)
+      .sort({ createdAt: -1 })
+      .limit(500)
       .lean();
+
+    // Shuffle results so brands appear in random order on Discover
+    for (let i = brands.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [brands[i], brands[j]] = [brands[j], brands[i]];
+    }
 
     const brandsWithInitials = brands.map(b => ({
       ...b,

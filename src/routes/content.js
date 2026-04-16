@@ -451,12 +451,11 @@ router.post('/', requireAuth, async (req, res) => {
 
 // ── Public Feed Endpoints ────────────────────────────────────────────────────
 
-// GET /api/content/feed/categories — Categories that have approved content (for filter pills)
+// GET /api/content/feed/categories — Categories from all active brands (for filter pills)
 router.get('/feed/categories', async (req, res) => {
   try {
-    const brandIdsWithContent = await ContentSubmission.distinct('brandId', { status: 'approved' });
     const categories = await Brand.distinct('category', {
-      _id: { $in: brandIdsWithContent },
+      status: { $ne: 'deleted' },
       category: { $ne: null, $nin: ['', 'null', 'undefined'] },
     });
     res.json({ categories: categories.sort() });
