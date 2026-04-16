@@ -815,17 +815,42 @@ router.put('/brands/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/admin-panel/brands/:id — Delete an admin brand (only unclaimed)
+// DELETE /api/admin-panel/brands/:id — Delete a brand and all associated data
+// Admin-only: cleans up partnerships, content, campaigns, rewards, etc.
 router.delete('/brands/:id', async (req, res) => {
   try {
     const brand = await Brand.findById(req.params.id);
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
-    if (brand.brandType !== 'admin' || brand.claimStatus !== 'unclaimed') {
-      return res.status(403).json({ error: 'Can only delete unclaimed admin brands' });
-    }
+
+    // Clean up all associated data
+    const [partnerships, content, campaigns, rewards] = await Promise.all([
+      Partnership.deleteMany({ brandId: brand._id }),
+      ContentSubmission.deleteMany({ brandId: brand._id }),
+      Campaign.deleteMany({ brandId: brand._id }),
+      Reward.deleteMany({ brandId: brand._id }),
+    ]);
+
+    // Remove from BrandProfile ownedBrandIds
+    const BrandMember = require('../models/BrandMember');
+    await BrandMember.deleteMany({ brandId: brand._id });
+    await BrandProfile.updateMany(
+      { ownedBrandIds: brand._id },
+      { $pull: { ownedBrandIds: brand._id } }
+    );
 
     await brand.deleteOne();
-    res.json({ success: true, message: `Brand "${brand.name}" deleted` });
+
+    console.log(`🗑️ Admin deleted brand "${brand.name}" + ${partnerships.deletedCount} partnerships, ${content.deletedCount} content, ${campaigns.deletedCount} campaigns, ${rewards.deletedCount} rewards`);
+    res.json({
+      success: true,
+      message: `Brand "${brand.name}" and all associated data deleted`,
+      deleted: {
+        partnerships: partnerships.deletedCount,
+        content: content.deletedCount,
+        campaigns: campaigns.deletedCount,
+        rewards: rewards.deletedCount,
+      },
+    });
   } catch (error) {
     console.error('Admin brand delete error:', error);
     res.status(500).json({ error: 'Failed to delete brand' });
