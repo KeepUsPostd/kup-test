@@ -1472,9 +1472,10 @@
     /* ============ Contact Form Submit ============ */
     var submitBtn = document.getElementById('hcSubmitBtn');
     if (submitBtn) {
-      submitBtn.addEventListener('click', function() {
+      submitBtn.addEventListener('click', async function() {
         var subject = document.getElementById('hcSubject').value;
         var description = document.getElementById('hcDescription').value;
+        var priority = document.getElementById('hcPriority') ? document.getElementById('hcPriority').value : 'medium';
         if (!subject) {
           kupToast('Please select a subject for your ticket.', 'warning');
           return;
@@ -1483,11 +1484,20 @@
           kupToast('Please describe your issue before submitting.', 'warning');
           return;
         }
-        kupToast('Support ticket submitted! We\'ll get back to you within 24 hours.', 'success');
-        // Reset form
-        document.getElementById('hcSubject').selectedIndex = 0;
-        document.getElementById('hcDescription').value = '';
-        document.getElementById('hcPriority').value = 'medium';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+        try {
+          await kupApi.post('/api/admin-panel/support-ticket', { subject: subject, description: description, priority: priority });
+          kupToast('Support ticket submitted! We\'ll get back to you within 24 hours.', 'success');
+          document.getElementById('hcSubject').selectedIndex = 0;
+          document.getElementById('hcDescription').value = '';
+          if (document.getElementById('hcPriority')) document.getElementById('hcPriority').value = 'medium';
+        } catch (err) {
+          kupToast('Could not submit ticket. Please try again.', 'error');
+          console.error('Ticket submit error:', err);
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Ticket';
       });
     }
 

@@ -7,9 +7,21 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Reward, InfluencerProfile, BrandProfile, Transaction, ContentSubmission, PurchasePointsLog } = require('../models');
 const notify = require('../services/notifications');
+const { checkTrialStatus } = require('../services/trial');
 
 // Cash reward types (rule R5: these allow multi-select per brand)
 const CASH_TYPES = ['cash_per_approval', 'bonus_cash', 'postd_pay'];
+
+// Plan-gated reward types:
+// Growth+: cash_per_approval, bonus_cash
+// Pro+: postd_pay
+const GROWTH_CASH_TYPES = ['cash_per_approval', 'bonus_cash'];
+const PRO_CASH_TYPES = ['postd_pay'];
+const GROWTH_PLUS = ['growth', 'pro', 'agency', 'enterprise'];
+const PRO_PLUS = ['pro', 'agency', 'enterprise'];
+
+// Reward level limits per plan
+const LEVEL_LIMITS = { starter: 1, growth: 2, pro: 3, agency: 3, enterprise: 3 };
 
 // Non-cash types (rule R6: exclusive per reward — different fulfillment)
 const NON_CASH_TYPES = ['points_store_credit', 'free_product', 'discount'];
@@ -32,6 +44,40 @@ router.post('/', requireAuth, async (req, res) => {
     }
     if (title.length > 21) {
       return res.status(400).json({ error: 'Title must be 21 characters or less' });
+    }
+
+    // ── Plan tier enforcement for cash reward types ──
+    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandId });
+    const { effectiveTier } = checkTrialStatus(brandProfile);
+
+    if (GROWTH_CASH_TYPES.includes(type) && !GROWTH_PLUS.includes(effectiveTier)) {
+      return res.status(403).json({
+        error: 'plan_required',
+        message: 'Cash per Approval and Bonus Cash require the Growth plan or higher.',
+        requiredPlan: 'growth',
+        currentPlan: effectiveTier,
+      });
+    }
+    if (PRO_CASH_TYPES.includes(type) && !PRO_PLUS.includes(effectiveTier)) {
+      return res.status(403).json({
+        error: 'plan_required',
+        message: 'Postd Pay requires the Pro plan or higher.',
+        requiredPlan: 'pro',
+        currentPlan: effectiveTier,
+      });
+    }
+
+    // ── Reward level limits per plan ──
+    if (earningMethod === 'point_based' && pointConfig?.levels?.length) {
+      const maxLevels = LEVEL_LIMITS[effectiveTier] || 1;
+      if (pointConfig.levels.length > maxLevels) {
+        return res.status(403).json({
+          error: 'plan_required',
+          message: `Your ${effectiveTier} plan allows ${maxLevels} reward level${maxLevels > 1 ? 's' : ''}. Upgrade to add more.`,
+          maxLevels,
+          currentPlan: effectiveTier,
+        });
+      }
     }
 
     // Rule R1: Non-cash rewards MUST have an earning method

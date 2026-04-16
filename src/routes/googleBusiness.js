@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const { GoogleBusinessConfig, Brand } = require('../models');
+const { GoogleBusinessConfig, Brand, BrandProfile } = require('../models');
+const { checkTrialStatus } = require('../services/trial');
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -91,6 +92,18 @@ router.get('/auth-url', requireAuth, async (req, res) => {
   try {
     const brandId = req.query.brandId;
     if (!brandId) return res.status(400).json({ error: 'brandId required' });
+
+    // ── Plan enforcement: Google Business requires Growth+ ──
+    const bp = await BrandProfile.findOne({ ownedBrandIds: brandId });
+    const { effectiveTier } = checkTrialStatus(bp);
+    if (!['growth', 'pro', 'agency', 'enterprise'].includes(effectiveTier)) {
+      return res.status(403).json({
+        error: 'plan_required',
+        message: 'Google Business integration requires the Growth plan or higher.',
+        requiredPlan: 'growth',
+        currentPlan: effectiveTier,
+      });
+    }
 
     // Encode brandId + userId in state for callback verification
     const state = Buffer.from(JSON.stringify({ brandId, userId: req.user._id.toString() })).toString('base64url');

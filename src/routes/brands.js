@@ -516,6 +516,22 @@ router.post('/:brandId/members/invite', requireAuth, requireBrandRole('admin'), 
     const brand = await Brand.findById(req.params.brandId).lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
+    // ── Plan enforcement: team member seat limits ──
+    const { checkTrialStatus } = require('../services/trial');
+    const bp = await BrandProfile.findOne({ ownedBrandIds: brand._id });
+    const { effectiveTier } = checkTrialStatus(bp);
+    const seatLimit = (PLAN_LIMITS[effectiveTier] || PLAN_LIMITS.starter).adminSeats;
+    const activeMembers = await BrandMember.countDocuments({ brandId: brand._id, status: 'active' });
+    if (activeMembers >= seatLimit) {
+      return res.status(403).json({
+        error: 'plan_required',
+        message: `Your ${effectiveTier} plan allows ${seatLimit} team member${seatLimit > 1 ? 's' : ''}. Upgrade to add more.`,
+        currentMembers: activeMembers,
+        seatLimit,
+        currentPlan: effectiveTier,
+      });
+    }
+
     const { sendEmail } = require('../config/email');
 
     // Check if user already exists and is already an active member

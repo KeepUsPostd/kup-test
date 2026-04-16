@@ -7,8 +7,9 @@ const router = express.Router();
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const { requireAuth } = require('../middleware/auth');
-const { Brand, GuestReviewer, KioskReward, ContentSubmission } = require('../models');
+const { Brand, GuestReviewer, KioskReward, ContentSubmission, BrandProfile } = require('../models');
 const { sendEmail } = require('../config/email');
+const { checkTrialStatus } = require('../services/trial');
 const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
 
 // Plan-based kiosk location limits
@@ -327,6 +328,21 @@ router.put('/config/:brandId', requireAuth, async (req, res) => {
     const brand = await Brand.findById(brandId);
     if (!brand) {
       return res.status(404).json({ error: 'Brand not found' });
+    }
+
+    // ── Plan enforcement: Kiosk requires Growth+ ──
+    if (kioskEnabled) {
+      const bp = await BrandProfile.findOne({ ownedBrandIds: brandId });
+      const { effectiveTier } = checkTrialStatus(bp);
+      const limit = KIOSK_LIMITS[effectiveTier] || 0;
+      if (limit === 0) {
+        return res.status(403).json({
+          error: 'plan_required',
+          message: 'Kiosk mode requires the Growth plan or higher.',
+          requiredPlan: 'growth',
+          currentPlan: effectiveTier,
+        });
+      }
     }
 
     // Build update object (only update fields that were sent)

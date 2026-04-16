@@ -1323,4 +1323,88 @@ router.delete('/cleanup/content', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// SUPPORT TICKETS
+// ═══════════════════════════════════════════════════════════
+
+const SupportTicket = require('../models/SupportTicket');
+
+// POST /api/admin-panel/support-ticket — Submit a support ticket (authenticated)
+router.post('/support-ticket', requireAuth, async (req, res) => {
+  try {
+    const { subject, description, priority } = req.body;
+    if (!subject || !description?.trim()) {
+      return res.status(400).json({ error: 'Subject and description are required' });
+    }
+
+    const ticket = await SupportTicket.create({
+      userId: req.user._id,
+      email: req.user.email,
+      displayName: req.user.displayName || req.user.email,
+      subject,
+      description: description.trim(),
+      priority: priority || 'medium',
+    });
+
+    // Email notification to admin
+    notify.sendEmail({
+      to: process.env.ADMIN_EMAIL || 'santana@keepuspostd.com',
+      subject: `Support Ticket: ${subject}`,
+      headline: 'New Support Ticket',
+      preheader: `From ${req.user.email}`,
+      bodyHtml: `
+        <p><strong>From:</strong> ${req.user.displayName || req.user.email} (${req.user.email})</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Priority:</strong> ${priority || 'medium'}</p>
+        <p><strong>Description:</strong></p>
+        <p>${description.trim().replace(/\n/g, '<br>')}</p>
+      `,
+      ctaText: 'View in Admin Panel',
+      ctaUrl: `${process.env.APP_URL || 'https://keepuspostd.com'}/app/admin-panel.html#tickets`,
+      variant: 'brand',
+    }).catch(e => console.error('Support ticket email error:', e.message));
+
+    res.json({ success: true, ticketId: ticket._id, message: 'Ticket submitted' });
+  } catch (error) {
+    console.error('Support ticket error:', error.message);
+    res.status(500).json({ error: 'Could not submit ticket' });
+  }
+});
+
+// GET /api/admin-panel/support-tickets — List all tickets (admin only)
+router.get('/support-tickets', async (req, res) => {
+  try {
+    const { status, page = 1, limit = 25 } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    const skip = (parseInt(page) - 1) * Math.min(parseInt(limit), 100);
+    const [tickets, total] = await Promise.all([
+      SupportTicket.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Math.min(parseInt(limit), 100)).lean(),
+      SupportTicket.countDocuments(filter),
+    ]);
+    res.json({ tickets, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch tickets' });
+  }
+});
+
+// PUT /api/admin-panel/support-tickets/:id — Update ticket status (admin only)
+router.put('/support-tickets/:id', async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    const update = {};
+    if (status) update.status = status;
+    if (notes) update.notes = notes;
+    if (status === 'resolved') {
+      update.resolvedAt = new Date();
+      update.resolvedBy = req.user?.email || 'admin';
+    }
+    const ticket = await SupportTicket.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json({ ticket });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update ticket' });
+  }
+});
+
 module.exports = router;
