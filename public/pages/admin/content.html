@@ -164,9 +164,14 @@
           const thumb = thumbUrl
             ? `<img src="${thumbUrl}" alt="content" onerror="this.parentElement.innerHTML='&#9654;'">`
             : (c.contentType === 'video' ? '&#9654;' : '&#128247;');
+          const mediaUrl = c.mediaUrls && c.mediaUrls[0] ? c.mediaUrls[0] : '';
+          const isVideo = c.contentType === 'video';
           return `
             <div class="content-card">
-              <div class="content-thumb">${typeof thumb === 'string' && thumb.startsWith('<') ? thumb : thumb}</div>
+              <div class="content-thumb" style="cursor:pointer;position:relative" onclick="previewMedia('${mediaUrl}',${isVideo},'${(c.caption||'').replace(/'/g,"\\'")}')">
+                ${typeof thumb === 'string' && thumb.startsWith('<') ? thumb : thumb}
+                ${isVideo && thumbUrl ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:28px;height:28px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:12px;margin-left:2px">&#9654;</span></div></div>' : ''}
+              </div>
               <div class="content-info">
                 <h4>${c.contentType} submission — ${c.brandId?.name || 'Unknown Brand'}</h4>
                 <div style="font-size:13px;color:#666;margin-top:2px">${c.caption ? c.caption.substring(0, 100) : 'No caption'}</div>
@@ -198,6 +203,31 @@
       } catch (e) {
         console.error('Load content error:', e);
       }
+    }
+
+    function previewMedia(url, isVideo, caption) {
+      if (!url) { alert('No media URL available'); return; }
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer';
+      overlay.onclick = function(e) { if (e.target === overlay || e.target.tagName === 'BUTTON') { overlay.remove(); } };
+
+      var inner = document.createElement('div');
+      inner.style.cssText = 'max-width:500px;width:100%;text-align:center;position:relative';
+
+      if (isVideo) {
+        inner.innerHTML = '<video src="' + url + '" controls autoplay playsinline style="width:100%;max-height:75vh;border-radius:12px;background:#000"></video>';
+      } else {
+        inner.innerHTML = '<img src="' + url + '" style="width:100%;max-height:75vh;border-radius:12px;object-fit:contain">';
+      }
+
+      if (caption) {
+        inner.innerHTML += '<p style="color:#fff;font-size:13px;margin-top:12px;opacity:0.8">' + caption + '</p>';
+      }
+
+      inner.innerHTML += '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:-12px;right:-12px;width:32px;height:32px;border-radius:50%;background:#fff;border:none;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3)">&times;</button>';
+
+      overlay.appendChild(inner);
+      document.body.appendChild(overlay);
     }
 
     async function moderate(id, action) {
