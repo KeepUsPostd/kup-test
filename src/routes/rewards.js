@@ -459,6 +459,12 @@ router.put('/:rewardId', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Reward not found' });
     }
 
+    // Verify ownership
+    const bp = await BrandProfile.findOne({ ownedBrandIds: reward.brandId, userId: req.user._id });
+    if (!bp) {
+      return res.status(403).json({ error: 'You do not have permission to edit this reward' });
+    }
+
     if (reward.status === 'ended') {
       return res.status(400).json({
         error: 'Cannot edit ended reward',
@@ -502,6 +508,12 @@ router.put('/:rewardId/status', requireAuth, async (req, res) => {
 
     if (!reward) {
       return res.status(404).json({ error: 'Reward not found' });
+    }
+
+    // Verify ownership
+    const bp = await BrandProfile.findOne({ ownedBrandIds: reward.brandId, userId: req.user._id });
+    if (!bp) {
+      return res.status(403).json({ error: 'You do not have permission to modify this reward' });
     }
 
     const validStatuses = ['active', 'draft', 'paused', 'ended'];

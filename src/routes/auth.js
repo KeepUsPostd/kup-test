@@ -1255,12 +1255,22 @@ router.delete('/account', requireAuth, async (req, res) => {
     const Partnership = require('../models/Partnership');
     const SavedContent = require('../models/SavedContent');
 
+    const Notification = require('../models/Notification');
+    const Transaction = require('../models/Transaction');
+    const BrandMember = require('../models/BrandMember');
+
+    // Get influencer profile IDs before deletion (for cascading cleanup)
+    const influencerProfileIds = await InfluencerProfile.find({ userId }).distinct('_id');
+
     await Promise.allSettled([
-      InfluencerProfile.deleteOne({ userId }),
-      BrandProfile.deleteMany({ ownerId: userId }),
-      ContentSubmission.deleteMany({ influencerProfileId: { $in: await InfluencerProfile.find({ userId }).distinct('_id') } }),
-      Partnership.deleteMany({ influencerProfileId: { $in: await InfluencerProfile.find({ userId }).distinct('_id') } }),
+      InfluencerProfile.deleteMany({ userId }),
+      BrandProfile.deleteMany({ userId }),
+      ContentSubmission.deleteMany({ influencerProfileId: { $in: influencerProfileIds } }),
+      Partnership.deleteMany({ influencerProfileId: { $in: influencerProfileIds } }),
       SavedContent.deleteMany({ userId }),
+      Notification.deleteMany({ userId }),
+      Transaction.updateMany({ payeeInfluencerId: { $in: influencerProfileIds } }, { $set: { payeeDeleted: true } }),
+      BrandMember.deleteMany({ userId }),
     ]);
 
     // Send confirmation email before deleting user record

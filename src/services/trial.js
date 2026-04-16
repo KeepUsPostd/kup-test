@@ -110,6 +110,31 @@ async function processExpiredTrials() {
     await profile.save();
     downgraded++;
 
+    // Enforce Starter limits on downgrade
+    try {
+      const Campaign = require('../models/Campaign');
+      const Brand = require('../models/Brand');
+      const brandIds = profile.ownedBrandIds || [];
+
+      for (const brandId of brandIds) {
+        // Pause excess active campaigns (Starter allows 1)
+        const activeCampaigns = await Campaign.find({ brandId, status: 'active' }).sort({ createdAt: 1 });
+        if (activeCampaigns.length > 1) {
+          // Keep the oldest, pause the rest
+          for (let i = 1; i < activeCampaigns.length; i++) {
+            activeCampaigns[i].status = 'paused';
+            await activeCampaigns[i].save();
+          }
+          console.log(`  ⏸️ Paused ${activeCampaigns.length - 1} excess campaigns for brand ${brandId}`);
+        }
+
+        // Disable kiosk mode (Starter allows 0 locations)
+        await Brand.updateOne({ _id: brandId, kioskEnabled: true }, { kioskEnabled: false });
+      }
+    } catch (enforceErr) {
+      console.error(`  ⚠️ Downgrade enforcement error: ${enforceErr.message}`);
+    }
+
     // Send trial expired notification
     try {
       const Brand = require('../models/Brand');

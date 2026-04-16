@@ -170,6 +170,12 @@ router.put('/:campaignId', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Campaign not found' });
     }
 
+    // Verify ownership — user must own the brand this campaign belongs to
+    const ownerProfile = await BrandProfile.findOne({ ownedBrandIds: campaign.brandId, userId: req.user._id });
+    if (!ownerProfile) {
+      return res.status(403).json({ error: 'You do not have permission to edit this campaign' });
+    }
+
     // Can't edit ended campaigns
     if (campaign.status === 'ended') {
       return res.status(400).json({
@@ -214,6 +220,12 @@ router.put('/:campaignId/status', requireAuth, async (req, res) => {
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Verify ownership
+    const ownerProfile = await BrandProfile.findOne({ ownedBrandIds: campaign.brandId, userId: req.user._id });
+    if (!ownerProfile) {
+      return res.status(403).json({ error: 'You do not have permission to modify this campaign' });
     }
 
     // Validate the transition
