@@ -1480,7 +1480,7 @@ router.post('/brands/bulk-create', async (req, res) => {
         // Generate unique kiosk code
         const kioskBrandCode = 'KUP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-        const brand = await Brand.create({
+        const brandData = {
           name: item.name.trim(),
           category: item.category || 'Other',
           description: item.description || null,
@@ -1490,7 +1490,17 @@ router.post('/brands/bulk-create', async (req, res) => {
           createdBy: 'platform',
           status: 'active',
           kioskBrandCode,
-        });
+        };
+        // Optional fields
+        if (item.brandColors) brandData.brandColors = item.brandColors;
+        if (item.city) brandData.city = item.city;
+        if (item.state) brandData.state = item.state;
+        if (item.websiteUrl) brandData.websiteUrl = item.websiteUrl;
+        if (item.logoUrl) brandData.logoUrl = item.logoUrl;
+        if (item.heroImageUrl) brandData.heroImageUrl = item.heroImageUrl;
+        if (item.legacyBrandId) brandData.legacyBrandId = item.legacyBrandId;
+
+        const brand = await Brand.create(brandData);
 
         // Apply platform reward if requested
         if (applyRewards) {
