@@ -1117,6 +1117,18 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
 
     console.log(`📢 Content marked as Postd: ${submission._id} on ${platform || 'unknown'}`);
 
+    // Remove the approval notification — it served its purpose (prompted influencer to share).
+    // The payment notification (cashRewardEarned) replaces it with more relevant info.
+    try {
+      const Notification = require('../models/Notification');
+      await Notification.deleteOne({
+        type: 'approval',
+        'metadata.contentSubmissionId': submission._id.toString(),
+      });
+    } catch (cleanupErr) {
+      console.error('[postd] Approval notification cleanup error (non-blocking):', cleanupErr.message);
+    }
+
     // === AUTO-TRIGGER BONUS CASH REWARD ===
     let rewardTriggered = null;
     try {
