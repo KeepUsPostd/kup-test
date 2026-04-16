@@ -256,7 +256,10 @@
             <td>${b.totalContentPieces || 0}</td>
             <td>${b.totalInfluencersEngaged || 0}</td>
             <td style="font-size:12px;color:#999">${new Date(b.createdAt).toLocaleDateString()}</td>
-            <td><button class="btn btn-secondary btn-sm" onclick="viewBrand('${b._id}')">View</button></td>
+            <td style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm" onclick="viewBrand('${b._id}')">View</button>
+              <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="deleteBrand('${b._id}','${b.name.replace(/'/g, "\\'")}')">Delete</button>
+            </td>
           </tr>
         `).join('');
 
@@ -467,6 +470,25 @@
         loadBrands();
         loadAdminStats();
       } catch (e) { alert('Failed to reject: ' + e.message); }
+    }
+
+    async function deleteBrand(id, name) {
+      if (!confirm('Delete "' + name + '" and all associated content, partnerships, campaigns, and rewards? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/admin-panel/brands/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken },
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Deleted "' + name + '" — ' + (data.deleted.content || 0) + ' content, ' + (data.deleted.partnerships || 0) + ' partnerships removed');
+          loadBrands(currentPage);
+        } else {
+          alert('Error: ' + (data.error || 'Could not delete'));
+        }
+      } catch (e) {
+        alert('Delete failed: ' + e.message);
+      }
     }
 
     async function viewBrand(id) {
