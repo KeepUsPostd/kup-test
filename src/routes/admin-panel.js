@@ -1434,6 +1434,65 @@ router.put('/support-tickets/:id', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// PLATFORM REWARDS — Auto-distributed wallet credits for admin brands
+// ═══════════════════════════════════════════════════════════
+
+// POST /api/admin-panel/platform-rewards/apply — Create platform reward on admin brands
+// Applies a standard 3-level wallet credit reward to all unclaimed admin brands (or specific brandId)
+router.post('/platform-rewards/apply', async (req, res) => {
+  try {
+    const { brandId } = req.body; // optional — if omitted, applies to ALL admin brands
+
+    const filter = { brandType: 'admin', claimStatus: 'unclaimed' };
+    if (brandId) filter._id = brandId;
+
+    const adminBrands = await Brand.find(filter, '_id name').lean();
+    if (adminBrands.length === 0) {
+      return res.json({ message: 'No admin brands found', created: 0 });
+    }
+
+    let created = 0;
+    let skipped = 0;
+
+    for (const brand of adminBrands) {
+      // Skip if brand already has an active point-based reward
+      const existing = await Reward.findOne({ brandId: brand._id, earningMethod: 'point_based', status: 'active' });
+      if (existing) { skipped++; continue; }
+
+      await Reward.create({
+        brandId: brand._id,
+        type: 'points_store_credit',
+        earningMethod: 'point_based',
+        title: 'KUP Rewards',
+        description: 'Earn points by submitting content. Unlock wallet credits automatically!',
+        status: 'active',
+        pointConfig: {
+          contentEnabled: true,
+          contentPoints: { submitted: 10, approved: 25, published: 40, bonus: 15 },
+          purchaseEnabled: false,
+          gratitudeEnabled: true,
+          gratitudePoints: { join: 50, birthday: 25, anniversary: 100 },
+          unlockThreshold: 1750,
+          levels: [
+            { threshold: 500, rewardType: 'wallet_credit', rewardValue: '5', description: '$5 wallet credit' },
+            { threshold: 1000, rewardType: 'wallet_credit', rewardValue: '7', description: '$7 wallet credit' },
+            { threshold: 1750, rewardType: 'wallet_credit', rewardValue: '8', description: '$8 wallet credit' },
+          ],
+        },
+        createdBy: 'platform',
+      });
+      created++;
+      console.log(`✅ Platform reward created for "${brand.name}"`);
+    }
+
+    res.json({ message: `Platform rewards applied`, created, skipped, total: adminBrands.length });
+  } catch (error) {
+    console.error('Platform rewards error:', error.message);
+    res.status(500).json({ error: 'Could not apply platform rewards' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // PROMO CODES
 // ═══════════════════════════════════════════════════════════
 

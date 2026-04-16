@@ -195,6 +195,41 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
             totalPoints: totalPts,
             partnershipId,
           }).catch(() => {});
+
+          // 💰 Auto-distribute wallet_credit rewards — no brand action needed
+          if (lvl.rewardType === 'wallet_credit' && lvl.rewardValue) {
+            try {
+              const creditAmount = parseFloat(lvl.rewardValue.replace(/[^0-9.]/g, ''));
+              if (creditAmount > 0) {
+                await Transaction.create({
+                  payerType: 'platform',
+                  payeeInfluencerId: influencerProfileId,
+                  type: 'platform_bonus',
+                  amount: creditAmount,
+                  currency: 'USD',
+                  status: 'paid',
+                  paidAt: new Date(),
+                  payoutMethod: 'wallet_credit',
+                  contentSubmissionId: null,
+                  rewardId: reward._id,
+                });
+                // Update influencer balance
+                await InfluencerProfile.findByIdAndUpdate(influencerProfileId, {
+                  $inc: { totalCashEarned: creditAmount },
+                });
+                console.log(`💰 Auto wallet credit: $${creditAmount} → ${influencer.displayName} (level ${lvl.threshold} pts)`);
+                notify.cashRewardEarned({
+                  influencer,
+                  brand,
+                  amount: creditAmount,
+                  type: 'platform_bonus',
+                  partnershipId,
+                }).catch(() => {});
+              }
+            } catch (creditErr) {
+              console.error(`❌ Wallet credit auto-distribute failed: ${creditErr.message}`);
+            }
+          }
         }
       }
 

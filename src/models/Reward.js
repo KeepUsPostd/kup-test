@@ -68,7 +68,7 @@ const rewardSchema = new mongoose.Schema({
     // Points reset to 0 when influencer claims a level reward
     levels: [{
       threshold: { type: Number, required: true },    // points needed to unlock
-      rewardType: { type: String, enum: ['discount', 'free'], required: true },
+      rewardType: { type: String, enum: ['discount', 'free', 'wallet_credit'], required: true },
       rewardValue: { type: String, default: null },    // e.g. '10%', '25%', 'Free Sneakers'
       description: { type: String, maxlength: 100, default: null },
       imageUrl: { type: String, default: null },       // banner image for carousel display
