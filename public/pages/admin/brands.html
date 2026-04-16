@@ -538,6 +538,33 @@
                 <input type="hidden" id="eb_banner" value="${b.heroImageUrl || ''}">
               </label>
             </div>
+            <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <span style="font-weight:700;font-size:13px">Reward Level Banners</span>
+                <label style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="eb_applyAll"> Apply to ALL admin brands</label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                <div style="text-align:center">
+                  <div style="font-size:11px;font-weight:600;color:#22C55E;margin-bottom:4px">Level 1 — \$5</div>
+                  <div id="eb_lvl1_preview" style="width:100%;height:60px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;overflow:hidden">${'No image'}</div>
+                  <input type="file" accept="image/*" style="font-size:10px;margin-top:4px;width:100%" onchange="uploadRewardBanner('${b._id}',0,this)">
+                  <input type="hidden" id="eb_lvl1_url" value="">
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;font-weight:600;color:#E8985D;margin-bottom:4px">Level 2 — \$7</div>
+                  <div id="eb_lvl2_preview" style="width:100%;height:60px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;overflow:hidden">${'No image'}</div>
+                  <input type="file" accept="image/*" style="font-size:10px;margin-top:4px;width:100%" onchange="uploadRewardBanner('${b._id}',1,this)">
+                  <input type="hidden" id="eb_lvl2_url" value="">
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;font-weight:600;color:#2EA5DD;margin-bottom:4px">Level 3 — \$8</div>
+                  <div id="eb_lvl3_preview" style="width:100%;height:60px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;overflow:hidden">${'No image'}</div>
+                  <input type="file" accept="image/*" style="font-size:10px;margin-top:4px;width:100%" onchange="uploadRewardBanner('${b._id}',2,this)">
+                  <input type="hidden" id="eb_lvl3_url" value="">
+                </div>
+              </div>
+              <p style="font-size:10px;color:#999;margin-top:6px">Recommended: 800x400px. These show in the app reward carousel.</p>
+            </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
               <button type="button" onclick="document.getElementById('brandModal').style.display='none'" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:13px;cursor:pointer">Cancel</button>
               <button type="button" onclick="saveBrandEdit('${b._id}')" style="padding:10px 24px;border:none;border-radius:8px;background:#2EA5DD;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Save Changes</button>
@@ -552,6 +579,45 @@
       } catch (e) {
         document.getElementById('modalContent').innerHTML = '<p style="color:red">Failed to load brand</p>';
       }
+    }
+
+    async function uploadRewardBanner(brandId, levelIndex, input) {
+      if (!input.files || !input.files[0]) return;
+      var file = input.files[0];
+      if (file.size > 5 * 1024 * 1024) { alert('File too large — max 5MB'); input.value = ''; return; }
+
+      var preview = document.getElementById('eb_lvl' + (levelIndex + 1) + '_preview');
+      if (preview) preview.style.opacity = '0.4';
+
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('brandId', brandId);
+      formData.append('assetType', 'reward_lvl' + levelIndex);
+
+      try {
+        var res = await fetch('/api/upload/brand-asset', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken },
+          body: formData,
+        });
+        var data = await res.json();
+        if (data.url) {
+          document.getElementById('eb_lvl' + (levelIndex + 1) + '_url').value = data.url;
+          if (preview) {
+            var img = document.createElement('img');
+            img.src = data.url;
+            img.style.cssText = 'width:100%;height:60px;object-fit:cover;border-radius:8px';
+            preview.innerHTML = '';
+            preview.appendChild(img);
+            preview.style.opacity = '1';
+          }
+        } else {
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Upload error: ' + e.message);
+      }
+      if (preview) preview.style.opacity = '1';
     }
 
     async function uploadBrandAsset(brandId, assetType, input) {
@@ -620,10 +686,30 @@
           body: JSON.stringify(body),
         });
         var data = await res.json();
+
+        // Save reward level banners if any were uploaded
+        var lvlUrls = [
+          document.getElementById('eb_lvl1_url').value.trim(),
+          document.getElementById('eb_lvl2_url').value.trim(),
+          document.getElementById('eb_lvl3_url').value.trim(),
+        ];
+        var hasLvlImages = lvlUrls.some(function(u) { return u; });
+        var applyAll = document.getElementById('eb_applyAll').checked;
+
+        if (hasLvlImages) {
+          var lvlRes = await fetch('/api/admin-panel/reward-banners', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+            body: JSON.stringify({ brandId: id, levelImages: lvlUrls, applyToAll: applyAll }),
+          });
+          var lvlData = await lvlRes.json();
+          if (lvlData.error) console.error('Reward banner error:', lvlData.error);
+        }
+
         if (data.success) {
           document.getElementById('brandModal').style.display = 'none';
           loadBrands(currentPage);
-          alert('Brand updated!');
+          alert(hasLvlImages && applyAll ? 'Brand updated + reward banners applied to all admin brands!' : 'Brand updated!');
         } else {
           alert('Error: ' + (data.error || 'Could not update'));
           btn.disabled = false; btn.textContent = 'Save Changes';

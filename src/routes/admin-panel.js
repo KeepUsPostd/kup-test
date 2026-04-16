@@ -1616,6 +1616,55 @@ router.post('/platform-rewards/apply', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// REWARD BANNERS — Update level images per brand or all admin brands
+// ═══════════════════════════════════════════════════════════
+
+// PUT /api/admin-panel/reward-banners — Update reward level images
+router.put('/reward-banners', async (req, res) => {
+  try {
+    const { brandId, levelImages, applyToAll } = req.body;
+
+    if (!levelImages || !Array.isArray(levelImages)) {
+      return res.status(400).json({ error: 'levelImages array required' });
+    }
+
+    const filter = applyToAll
+      ? { status: 'active', earningMethod: 'point_based' }
+      : { brandId, status: 'active', earningMethod: 'point_based' };
+
+    const rewards = await Reward.find(filter);
+    let updated = 0;
+
+    for (const reward of rewards) {
+      let changed = false;
+      if (reward.pointConfig && reward.pointConfig.levels) {
+        for (let i = 0; i < levelImages.length && i < reward.pointConfig.levels.length; i++) {
+          if (levelImages[i]) {
+            reward.pointConfig.levels[i].imageUrl = levelImages[i];
+            changed = true;
+          }
+        }
+      }
+      if (levelImages[0]) {
+        reward.bannerImageUrl = levelImages[0];
+        changed = true;
+      }
+      if (changed) {
+        reward.markModified('pointConfig');
+        await reward.save();
+        updated++;
+      }
+    }
+
+    console.log(`🖼️ Reward banners updated: ${updated} rewards${applyToAll ? ' (all admin brands)' : ''}`);
+    res.json({ success: true, updated });
+  } catch (error) {
+    console.error('Reward banners error:', error.message);
+    res.status(500).json({ error: 'Could not update reward banners' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // PROMO CODES
 // ═══════════════════════════════════════════════════════════
 
