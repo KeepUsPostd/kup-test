@@ -1328,6 +1328,7 @@ router.delete('/cleanup/content', async (req, res) => {
 // ═══════════════════════════════════════════════════════════
 
 const SupportTicket = require('../models/SupportTicket');
+const PromoCode = require('../models/PromoCode');
 
 // POST /api/admin-panel/support-ticket — Submit a support ticket (authenticated)
 router.post('/support-ticket', requireAuth, async (req, res) => {
@@ -1404,6 +1405,60 @@ router.put('/support-tickets/:id', async (req, res) => {
     res.json({ ticket });
   } catch (error) {
     res.status(500).json({ error: 'Could not update ticket' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PROMO CODES
+// ═══════════════════════════════════════════════════════════
+
+// POST /api/admin-panel/promo-codes — Create a promo code
+router.post('/promo-codes', async (req, res) => {
+  try {
+    const { code, type, percentOff, appliesTo, durationMonths, maxUses, expiresAt, notes } = req.body;
+    if (!code || !type) return res.status(400).json({ error: 'code and type are required' });
+
+    const promo = await PromoCode.create({
+      code: code.toUpperCase().replace(/\s/g, ''),
+      type,
+      percentOff: type === 'percent_off' ? (percentOff || 50) : 100,
+      appliesTo: appliesTo || 'all',
+      durationMonths: type === 'free' ? null : (durationMonths || null),
+      maxUses: maxUses || null,
+      expiresAt: expiresAt || null,
+      notes,
+      createdBy: req.user?.email || 'admin',
+    });
+
+    res.status(201).json({ promo });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: 'Promo code already exists' });
+    res.status(500).json({ error: 'Could not create promo code' });
+  }
+});
+
+// GET /api/admin-panel/promo-codes — List all promo codes
+router.get('/promo-codes', async (req, res) => {
+  try {
+    const promos = await PromoCode.find().sort({ createdAt: -1 }).lean();
+    res.json({ promos });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch promo codes' });
+  }
+});
+
+// PUT /api/admin-panel/promo-codes/:id — Update promo code (activate/deactivate)
+router.put('/promo-codes/:id', async (req, res) => {
+  try {
+    const update = {};
+    if (req.body.isActive !== undefined) update.isActive = req.body.isActive;
+    if (req.body.maxUses !== undefined) update.maxUses = req.body.maxUses;
+    if (req.body.notes !== undefined) update.notes = req.body.notes;
+    const promo = await PromoCode.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!promo) return res.status(404).json({ error: 'Promo code not found' });
+    res.json({ promo });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update promo code' });
   }
 });
 

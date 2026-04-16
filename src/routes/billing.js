@@ -177,7 +177,7 @@ router.get('/subscription', requireAuth, async (req, res) => {
 // After approval, PayPal redirects to returnUrl, and we activate.
 router.post('/subscribe', requireAuth, async (req, res) => {
   try {
-    const { planTier, billingCycle, returnUrl, cancelUrl } = req.body;
+    const { planTier, billingCycle, returnUrl, cancelUrl, promoCode } = req.body;
 
     if (!planTier) {
       return res.status(400).json({ error: 'planTier is required' });
@@ -227,6 +227,57 @@ router.post('/subscribe', requireAuth, async (req, res) => {
       }
       existingSub.status = 'canceled';
       await existingSub.save();
+    }
+
+    // ── Promo code validation ──
+    let appliedPromo = null;
+    if (promoCode) {
+      const PromoCode = require('../models/PromoCode');
+      const promo = await PromoCode.findOne({ code: promoCode.toUpperCase().replace(/\s/g, ''), isActive: true });
+      if (!promo) {
+        return res.status(400).json({ error: 'Invalid or expired promo code' });
+      }
+      if (promo.expiresAt && new Date() > promo.expiresAt) {
+        return res.status(400).json({ error: 'This promo code has expired' });
+      }
+      if (promo.maxUses && promo.usedCount >= promo.maxUses) {
+        return res.status(400).json({ error: 'This promo code has reached its usage limit' });
+      }
+      if (promo.usedBy.includes(req.user._id)) {
+        return res.status(400).json({ error: 'You have already used this promo code' });
+      }
+      if (promo.appliesTo !== 'all' && promo.appliesTo !== planTier) {
+        return res.status(400).json({ error: `This promo code only applies to the ${promo.appliesTo} plan` });
+      }
+
+      // Free promo = skip PayPal entirely, activate immediately
+      if (promo.type === 'free') {
+        const now = new Date();
+        const subscription = await Subscription.create({
+          brandProfileId: brandProfile._id,
+          planTier,
+          billingCycle: cycle,
+          status: 'active',
+          currentPeriodStart: now,
+          currentPeriodEnd: null, // no expiry — free forever
+          promoCode: promo.code,
+        });
+        brandProfile.planTier = planTier;
+        brandProfile.billingCycle = cycle;
+        brandProfile.planStartedAt = now;
+        brandProfile.planExpiresAt = null;
+        if (brandProfile.trialActive) brandProfile.trialActive = false;
+        await brandProfile.save();
+
+        promo.usedCount += 1;
+        promo.usedBy.push(req.user._id);
+        await promo.save();
+
+        console.log(`🎁 FREE promo "${promo.code}" applied — ${planTier} plan activated for ${req.user.email}`);
+        return res.json({ subscription, message: `${planTier} plan activated for free!`, promoApplied: promo.code });
+      }
+
+      appliedPromo = promo;
     }
 
     // Look up the PayPal plan ID for this tier + cycle
@@ -782,6 +833,32 @@ router.get('/brand-paypal-status', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Brand PayPal status error:', error.message);
     res.status(500).json({ error: 'Could not check status' });
+  }
+});
+
+// POST /api/billing/validate-promo — Check if a promo code is valid
+router.post('/validate-promo', requireAuth, async (req, res) => {
+  try {
+    const { code, planTier } = req.body;
+    if (!code) return res.status(400).json({ valid: false, error: 'Code is required' });
+
+    const PromoCode = require('../models/PromoCode');
+    const promo = await PromoCode.findOne({ code: code.toUpperCase().replace(/\s/g, ''), isActive: true });
+
+    if (!promo) return res.json({ valid: false, error: 'Invalid promo code' });
+    if (promo.expiresAt && new Date() > promo.expiresAt) return res.json({ valid: false, error: 'Expired' });
+    if (promo.maxUses && promo.usedCount >= promo.maxUses) return res.json({ valid: false, error: 'Usage limit reached' });
+    if (promo.usedBy.includes(req.user._id)) return res.json({ valid: false, error: 'Already used' });
+    if (planTier && promo.appliesTo !== 'all' && promo.appliesTo !== planTier) {
+      return res.json({ valid: false, error: `Only applies to ${promo.appliesTo} plan` });
+    }
+
+    const label = promo.type === 'free' ? 'FREE' : `${promo.percentOff}% off`;
+    const duration = promo.type === 'free' ? 'forever' : (promo.durationMonths ? `for ${promo.durationMonths} months` : 'forever');
+
+    res.json({ valid: true, discount: label, duration, type: promo.type });
+  } catch (error) {
+    res.status(500).json({ valid: false, error: 'Could not validate code' });
   }
 });
 
