@@ -523,10 +523,21 @@
               <label style="font-weight:600">Secondary Color<br><div style="display:flex;gap:8px;margin-top:4px;align-items:center"><input type="color" id="eb_colorSecondary" value="${colors.secondary || '#707BBB'}" style="width:48px;height:36px;border:1px solid #ddd;border-radius:6px;cursor:pointer"><input id="eb_colorSecondaryHex" value="${colors.secondary || '#707BBB'}" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:monospace"></div></label>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <label style="font-weight:600">Logo URL<br><input id="eb_logo" value="${b.logoUrl || ''}" placeholder="https://..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
-              <label style="font-weight:600">Banner URL<br><input id="eb_banner" value="${b.heroImageUrl || ''}" placeholder="https://..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+              <label style="font-weight:600">Logo <span style="font-weight:400;color:#999;font-size:11px">(400x400px recommended)</span><br>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                  ${b.logoUrl ? '<img id="eb_logo_preview" src="' + b.logoUrl + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '<div id="eb_logo_preview" style="width:44px;height:44px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999">No logo</div>'}
+                  <input type="file" id="eb_logo_file" accept="image/*" style="font-size:12px;flex:1" onchange="uploadBrandAsset('${b._id}','logo',this)">
+                </div>
+                <input type="hidden" id="eb_logo" value="${b.logoUrl || ''}">
+              </label>
+              <label style="font-weight:600">Banner <span style="font-weight:400;color:#999;font-size:11px">(1200x400px recommended)</span><br>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                  ${b.heroImageUrl ? '<img id="eb_banner_preview" src="' + b.heroImageUrl + '" style="height:44px;max-width:120px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '<div id="eb_banner_preview" style="width:80px;height:44px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999">No banner</div>'}
+                  <input type="file" id="eb_banner_file" accept="image/*" style="font-size:12px;flex:1" onchange="uploadBrandAsset('${b._id}','banner',this)">
+                </div>
+                <input type="hidden" id="eb_banner" value="${b.heroImageUrl || ''}">
+              </label>
             </div>
-            ${b.logoUrl || b.heroImageUrl ? '<div style="display:flex;gap:12px;margin-top:4px">' + (b.logoUrl ? '<img src="' + b.logoUrl + '" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '') + (b.heroImageUrl ? '<img src="' + b.heroImageUrl + '" style="height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '') + '</div>' : ''}
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
               <button type="button" onclick="document.getElementById('brandModal').style.display='none'" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:13px;cursor:pointer">Cancel</button>
               <button type="button" onclick="saveBrandEdit('${b._id}')" style="padding:10px 24px;border:none;border-radius:8px;background:#2EA5DD;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Save Changes</button>
@@ -541,6 +552,49 @@
       } catch (e) {
         document.getElementById('modalContent').innerHTML = '<p style="color:red">Failed to load brand</p>';
       }
+    }
+
+    async function uploadBrandAsset(brandId, assetType, input) {
+      if (!input.files || !input.files[0]) return;
+      var file = input.files[0];
+      if (file.size > 5 * 1024 * 1024) { alert('File too large — max 5MB'); input.value = ''; return; }
+
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('brandId', brandId);
+      formData.append('assetType', assetType);
+
+      var preview = document.getElementById('eb_' + assetType + '_preview');
+      if (preview) { preview.style.opacity = '0.4'; }
+
+      try {
+        var res = await fetch('/api/upload/brand-asset', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken },
+          body: formData,
+        });
+        var data = await res.json();
+        if (data.url) {
+          document.getElementById('eb_' + assetType).value = data.url;
+          if (preview) {
+            if (preview.tagName === 'IMG') {
+              preview.src = data.url;
+            } else {
+              var img = document.createElement('img');
+              img.id = 'eb_' + assetType + '_preview';
+              img.src = data.url;
+              img.style.cssText = assetType === 'logo' ? 'width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #eee' : 'height:44px;max-width:120px;border-radius:8px;object-fit:cover;border:1px solid #eee';
+              preview.replaceWith(img);
+            }
+            preview.style.opacity = '1';
+          }
+        } else {
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Upload error: ' + e.message);
+      }
+      if (preview) preview.style.opacity = '1';
     }
 
     async function saveBrandEdit(id) {

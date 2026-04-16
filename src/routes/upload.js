@@ -844,4 +844,30 @@ router.use((err, req, res, next) => {
   next();
 });
 
+// POST /api/upload/brand-asset — Upload logo or banner image for a brand
+// Used by admin brand edit form. Stores to R2 under brands/{brandId}/{type}_{timestamp}.{ext}
+router.post('/brand-asset', requireAuth, multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }).single('file'), async (req, res) => {
+  try {
+    const { brandId, assetType } = req.body; // assetType: 'logo' or 'banner'
+    if (!brandId || !assetType) return res.status(400).json({ error: 'brandId and assetType required' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!['logo', 'banner'].includes(assetType)) return res.status(400).json({ error: 'assetType must be logo or banner' });
+
+    const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+    const filename = `brands/${brandId}/${assetType}_${Date.now()}${ext}`;
+
+    if (!R2_CONFIGURED) {
+      return res.status(500).json({ error: 'File storage not configured' });
+    }
+
+    const url = await uploadToR2(req.file.buffer, filename, req.file.mimetype);
+    console.log(`📷 Brand asset uploaded: ${assetType} for ${brandId} → ${url}`);
+
+    res.json({ url, assetType, filename });
+  } catch (error) {
+    console.error('Brand asset upload error:', error.message);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
 module.exports = router;
