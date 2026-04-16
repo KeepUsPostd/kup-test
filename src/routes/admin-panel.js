@@ -1502,6 +1502,18 @@ router.post('/brands/bulk-create', async (req, res) => {
 
         const brand = await Brand.create(brandData);
 
+        // Auto-geocode city if provided (non-blocking)
+        if (item.city) {
+          const geocodeCity = async (brandId, city) => {
+            try {
+              const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`, { headers: { 'User-Agent': 'KeepUsPostd-Geocoder/1.0' } });
+              const d = await r.json();
+              if (d?.[0]) await Brand.updateOne({ _id: brandId }, { coordinates: { type: 'Point', coordinates: [parseFloat(d[0].lon), parseFloat(d[0].lat)] } });
+            } catch(_){}
+          };
+          geocodeCity(brand._id, item.city).catch(() => {});
+        }
+
         // Apply platform reward if requested
         if (applyRewards) {
           await Reward.create({

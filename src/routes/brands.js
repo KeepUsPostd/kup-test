@@ -9,6 +9,28 @@ const crypto = require('crypto');
 const { startTrial, checkTrialStatus } = require('../services/trial');
 const notify = require('../services/notifications');
 
+// Auto-geocode a brand's city to GeoJSON coordinates (non-blocking)
+async function geocodeBrand(brandId, city) {
+  if (!city) return;
+  try {
+    const query = encodeURIComponent(city);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+      headers: { 'User-Agent': 'KeepUsPostd-Geocoder/1.0' },
+    });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      await Brand.updateOne({ _id: brandId }, {
+        coordinates: { type: 'Point', coordinates: [lon, lat] },
+      });
+      console.log(`📍 Geocoded brand ${brandId}: ${city} → [${lon}, ${lat}]`);
+    }
+  } catch (e) {
+    console.error(`📍 Geocode failed for ${city}:`, e.message);
+  }
+}
+
 // Generate consistent brand initials: single word → first letter, multi-word → first letter of each (max 3)
 function computeInitials(name) {
   if (!name) return 'K';
@@ -129,6 +151,11 @@ router.post('/', requireAuth, async (req, res) => {
       kioskBrandCode,
       ...(brandHandle ? { brandHandle } : {}),
     });
+
+    // Auto-geocode city (non-blocking — doesn't delay response)
+    if (req.body.city) {
+      geocodeBrand(brand._id, req.body.city).catch(() => {});
+    }
 
     // Create brand member with owner role (rule G2: one owner)
     await BrandMember.create({
