@@ -42,6 +42,15 @@ app.set('trust proxy', 1);
 
 // --- Global Middleware (runs on every request) ---
 
+// www → non-www redirect (QR codes on printed materials use www.keepuspostd.com)
+app.use((req, res, next) => {
+  const host = req.hostname || req.headers.host;
+  if (host && host.startsWith('www.')) {
+    return res.redirect(301, `https://${host.replace('www.', '')}${req.originalUrl}`);
+  }
+  next();
+});
+
 // Security headers (CSP configured for KUP frontend)
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -344,6 +353,33 @@ app.use('/api/google-business', require('./routes/googleBusiness'));
 // Content moderation routes (Apple Guideline 1.2 — flag + block)
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/blocks', require('./routes/blocks'));
+
+// Legacy QR code redirect — printed materials from the old platform
+// Old URL: /download-app?brand-id=0067 → New URL: /brand/KUP-XXXXXX
+// Looks up Brand.legacyBrandId and redirects to the new brand profile page
+app.get('/download-app', async (req, res) => {
+  const legacyId = req.query['brand-id'];
+  if (!legacyId) {
+    return res.redirect('/');
+  }
+  try {
+    const Brand = require('./models/Brand');
+    const brand = await Brand.findOne({ legacyBrandId: legacyId }, 'kioskBrandCode brandHandle').lean();
+    if (brand) {
+      // Redirect to the new brand profile page
+      const target = brand.brandHandle
+        ? `/@${brand.brandHandle}`
+        : `/brand/${brand.kioskBrandCode}`;
+      return res.redirect(301, target);
+    }
+    // Brand not yet migrated — show the app download page as fallback
+    console.log(`[Legacy QR] No brand found for legacy ID "${legacyId}" — showing download page`);
+    return res.redirect('/pages/download-app.html');
+  } catch (err) {
+    console.error('[Legacy QR] Lookup error:', err.message);
+    return res.redirect('/');
+  }
+});
 
 // Public kiosk display route — serves the tablet-facing kiosk screen
 // /kiosk/:brandCode → kiosk-display.html (no auth required)
