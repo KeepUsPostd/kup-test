@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { Partnership, InfluencerProfile, ContentSubmission, BrandProfile, Brand } = require('../models');
+const Reward = require('../models/Reward');
 const { checkTrialStatus } = require('../services/trial');
 const notify = require('../services/notifications');
 
@@ -341,6 +342,24 @@ router.get('/my-brands', requireAuth, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(200);
 
+    // Fetch active cash rewards for all partnered brands in one query
+    const brandIds = partnerships
+      .filter(p => p.brandId)
+      .map(p => p.brandId._id);
+    const activeCashRewards = await Reward.find({
+      brandId: { $in: brandIds },
+      status: 'active',
+      type: { $in: ['cash_per_approval', 'bonus_cash', 'postd_pay'] },
+    }).select('brandId type').lean();
+
+    // Group reward types by brand
+    const cashByBrand = {};
+    for (const r of activeCashRewards) {
+      const key = r.brandId.toString();
+      if (!cashByBrand[key]) cashByBrand[key] = [];
+      if (!cashByBrand[key].includes(r.type)) cashByBrand[key].push(r.type);
+    }
+
     // Flatten to Brand objects directly — app's Brand.fromJson expects brand fields at root level
     const brands = partnerships
       .filter(p => p.brandId) // skip any orphaned partnerships
@@ -350,6 +369,7 @@ router.get('/my-brands', requireAuth, async (req, res) => {
           ...b,
           partnershipId: p._id,
           partnershipStatus: p.status,
+          activeCashRewards: cashByBrand[b._id.toString()] || [],
         };
       });
 
