@@ -111,7 +111,7 @@ const brandSchema = new mongoose.Schema({
   kioskBrandingLogo: { type: String, default: null }, // URL to logo for kiosk display
   kioskActiveLocations: { type: Number, default: 0 }, // how many kiosks currently active
   kioskBrandCode: { type: String, default: null, unique: true, sparse: true }, // short code for kiosk URL
-  legacyBrandId: { type: String, default: null, unique: true, sparse: true }, // old platform QR code ID (e.g. "0067")
+  legacyBrandId: { type: String, unique: true, sparse: true }, // old platform QR code ID (e.g. "0067") — NO default, must be undefined for sparse index
   brandHandle: { type: String, unique: true, sparse: true, lowercase: true }, // @handle for public profile URL — NO default (sparse requires missing, not null)
 
   // System
