@@ -160,8 +160,9 @@
         }
 
         list.innerHTML = data.content.map(c => {
-          const thumb = c.mediaUrls && c.mediaUrls[0]
-            ? `<img src="${c.mediaUrls[0]}" alt="content">`
+          const thumbUrl = c.posterUrl || (c.contentType === 'photo' && c.mediaUrls && c.mediaUrls[0] ? c.mediaUrls[0] : null);
+          const thumb = thumbUrl
+            ? `<img src="${thumbUrl}" alt="content" onerror="this.parentElement.innerHTML='&#9654;'">`
             : (c.contentType === 'video' ? '&#9654;' : '&#128247;');
           return `
             <div class="content-card">
