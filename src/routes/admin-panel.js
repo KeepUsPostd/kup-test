@@ -790,7 +790,8 @@ router.put('/brands/:id', async (req, res) => {
     const allowed = [
       'name', 'category', 'subcategory', 'description', 'location',
       'city', 'state', 'zip', 'websiteUrl', 'email', 'phone', 'address',
-      'tags', 'categoryIcon', 'status', 'socialLinks',
+      'tags', 'categoryIcon', 'status', 'socialLinks', 'brandColors',
+      'logoUrl', 'heroImageUrl', 'legacyBrandId',
       'kioskEnabled', 'kioskOfferTitle', 'kioskRewardType', 'kioskRewardValue',
     ];
 

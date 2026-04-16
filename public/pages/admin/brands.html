@@ -258,6 +258,7 @@
             <td style="font-size:12px;color:#999">${new Date(b.createdAt).toLocaleDateString()}</td>
             <td style="display:flex;gap:6px">
               <button class="btn btn-secondary btn-sm" onclick="viewBrand('${b._id}')">View</button>
+              <button class="btn btn-sm" style="background:#2EA5DD;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="editBrand('${b._id}')">Edit</button>
               <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="deleteBrand('${b._id}','${b.name.replace(/'/g, "\\'")}')">Delete</button>
             </td>
           </tr>
@@ -488,6 +489,94 @@
         }
       } catch (e) {
         alert('Delete failed: ' + e.message);
+      }
+    }
+
+    async function editBrand(id) {
+      const modal = document.getElementById('brandModal');
+      modal.style.display = 'flex';
+      document.getElementById('modalTitle').textContent = 'Edit Brand';
+      document.getElementById('modalContent').innerHTML = '<p style="color:#999">Loading...</p>';
+
+      try {
+        const data = await apiFetch('/brands/' + id);
+        const b = data.brand;
+        const colors = b.brandColors || {};
+        document.getElementById('modalTitle').textContent = 'Edit: ' + b.name;
+        document.getElementById('modalContent').innerHTML = `
+          <form id="editBrandForm" style="display:grid;gap:14px;font-size:13px;max-height:65vh;overflow-y:auto;padding-right:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="font-weight:600">Name<br><input id="eb_name" value="${(b.name || '').replace(/"/g, '&quot;')}" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+              <label style="font-weight:600">Category<br>
+                <select id="eb_category" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px">
+                  ${['Arts & Creative','Automotive','Cannabis & CBD','Education','Entertainment','Fashion & Beauty','Finance','Food & Beverage','Gaming & Esports','Health & Fitness','Home & Garden','Hospitality & Restaurant','Legal & Professional Services','Media & Publishing','Music & Audio','Nonprofit & Cause','Parenting & Family','Pet & Animal','Real Estate','Retail & E-commerce','Sports & Outdoors','Sustainability & Eco','Technology & SaaS','Travel & Lifestyle','Other'].map(c => '<option' + (c === b.category ? ' selected' : '') + '>' + c + '</option>').join('')}
+                </select>
+              </label>
+            </div>
+            <label style="font-weight:600">Description<br><textarea id="eb_desc" rows="2" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px;resize:vertical">${b.description || ''}</textarea></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="font-weight:600">City<br><input id="eb_city" value="${b.city || ''}" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+              <label style="font-weight:600">Website<br><input id="eb_website" value="${b.websiteUrl || ''}" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="font-weight:600">Primary Color<br><div style="display:flex;gap:8px;margin-top:4px;align-items:center"><input type="color" id="eb_colorPrimary" value="${colors.primary || '#2EA5DD'}" style="width:48px;height:36px;border:1px solid #ddd;border-radius:6px;cursor:pointer"><input id="eb_colorPrimaryHex" value="${colors.primary || '#2EA5DD'}" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:monospace"></div></label>
+              <label style="font-weight:600">Secondary Color<br><div style="display:flex;gap:8px;margin-top:4px;align-items:center"><input type="color" id="eb_colorSecondary" value="${colors.secondary || '#707BBB'}" style="width:48px;height:36px;border:1px solid #ddd;border-radius:6px;cursor:pointer"><input id="eb_colorSecondaryHex" value="${colors.secondary || '#707BBB'}" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:monospace"></div></label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="font-weight:600">Logo URL<br><input id="eb_logo" value="${b.logoUrl || ''}" placeholder="https://..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+              <label style="font-weight:600">Banner URL<br><input id="eb_banner" value="${b.heroImageUrl || ''}" placeholder="https://..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-top:4px"></label>
+            </div>
+            ${b.logoUrl || b.heroImageUrl ? '<div style="display:flex;gap:12px;margin-top:4px">' + (b.logoUrl ? '<img src="' + b.logoUrl + '" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '') + (b.heroImageUrl ? '<img src="' + b.heroImageUrl + '" style="height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee">' : '') + '</div>' : ''}
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+              <button type="button" onclick="document.getElementById('brandModal').style.display='none'" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:13px;cursor:pointer">Cancel</button>
+              <button type="button" onclick="saveBrandEdit('${b._id}')" style="padding:10px 24px;border:none;border-radius:8px;background:#2EA5DD;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Save Changes</button>
+            </div>
+          </form>
+        `;
+        // Sync color pickers with hex inputs
+        document.getElementById('eb_colorPrimary').addEventListener('input', function(){ document.getElementById('eb_colorPrimaryHex').value = this.value; });
+        document.getElementById('eb_colorPrimaryHex').addEventListener('input', function(){ try { document.getElementById('eb_colorPrimary').value = this.value; } catch(_){} });
+        document.getElementById('eb_colorSecondary').addEventListener('input', function(){ document.getElementById('eb_colorSecondaryHex').value = this.value; });
+        document.getElementById('eb_colorSecondaryHex').addEventListener('input', function(){ try { document.getElementById('eb_colorSecondary').value = this.value; } catch(_){} });
+      } catch (e) {
+        document.getElementById('modalContent').innerHTML = '<p style="color:red">Failed to load brand</p>';
+      }
+    }
+
+    async function saveBrandEdit(id) {
+      var btn = document.querySelector('#editBrandForm button[onclick*="saveBrandEdit"]');
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        var body = {
+          name: document.getElementById('eb_name').value.trim(),
+          category: document.getElementById('eb_category').value,
+          description: document.getElementById('eb_desc').value.trim() || null,
+          city: document.getElementById('eb_city').value.trim() || null,
+          websiteUrl: document.getElementById('eb_website').value.trim() || null,
+          logoUrl: document.getElementById('eb_logo').value.trim() || null,
+          heroImageUrl: document.getElementById('eb_banner').value.trim() || null,
+          brandColors: {
+            primary: document.getElementById('eb_colorPrimaryHex').value.trim(),
+            secondary: document.getElementById('eb_colorSecondaryHex').value.trim(),
+          },
+        };
+        var res = await fetch('/api/admin-panel/brands/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+          body: JSON.stringify(body),
+        });
+        var data = await res.json();
+        if (data.success) {
+          document.getElementById('brandModal').style.display = 'none';
+          loadBrands(currentPage);
+          alert('Brand updated!');
+        } else {
+          alert('Error: ' + (data.error || 'Could not update'));
+          btn.disabled = false; btn.textContent = 'Save Changes';
+        }
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+        btn.disabled = false; btn.textContent = 'Save Changes';
       }
     }
 
