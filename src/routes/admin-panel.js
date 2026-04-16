@@ -1434,6 +1434,106 @@ router.put('/support-tickets/:id', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// BULK BRAND CREATION — CSV upload for admin brands
+// ═══════════════════════════════════════════════════════════
+
+// POST /api/admin-panel/brands/bulk-create — Create multiple admin brands from CSV data
+// Body: { brands: [{ name, category }] } OR raw CSV text in { csv: "name,category\n..." }
+// Auto-generates kioskBrandCode, sets brandType=admin, claimStatus=unclaimed
+// Optionally applies platform rewards if applyRewards=true
+router.post('/brands/bulk-create', async (req, res) => {
+  try {
+    let brandList = req.body.brands;
+
+    // Parse CSV text if provided instead of JSON array
+    if (!brandList && req.body.csv) {
+      const lines = req.body.csv.trim().split('\n');
+      const header = lines[0].toLowerCase();
+      const hasHeader = header.includes('name') && header.includes('category');
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+
+      brandList = dataLines
+        .map(line => {
+          const parts = line.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+          return { name: parts[0], category: parts[1] || 'Other' };
+        })
+        .filter(b => b.name && b.name.length > 0);
+    }
+
+    if (!brandList || brandList.length === 0) {
+      return res.status(400).json({ error: 'No brands provided. Send { brands: [{name, category}] } or { csv: "name,category\\n..." }' });
+    }
+
+    const applyRewards = req.body.applyRewards !== false; // default true
+    const results = { created: 0, skipped: 0, errors: [], brands: [] };
+
+    for (const item of brandList) {
+      try {
+        // Skip if brand with same name already exists
+        const existing = await Brand.findOne({ name: { $regex: `^${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } });
+        if (existing) {
+          results.skipped++;
+          results.errors.push({ name: item.name, reason: 'Already exists' });
+          continue;
+        }
+
+        // Generate unique kiosk code
+        const kioskBrandCode = 'KUP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const brand = await Brand.create({
+          name: item.name.trim(),
+          category: item.category || 'Other',
+          description: item.description || null,
+          brandType: 'admin',
+          claimStatus: 'unclaimed',
+          profileSource: 'manual',
+          createdBy: 'platform',
+          status: 'active',
+          kioskBrandCode,
+        });
+
+        // Apply platform reward if requested
+        if (applyRewards) {
+          await Reward.create({
+            brandId: brand._id,
+            type: 'points_store_credit',
+            earningMethod: 'point_based',
+            title: 'KUP Rewards',
+            description: 'Earn points by submitting content. Unlock wallet credits automatically!',
+            status: 'active',
+            pointConfig: {
+              contentEnabled: true,
+              contentPoints: { submitted: 10, approved: 25, published: 40, bonus: 15 },
+              purchaseEnabled: false,
+              gratitudeEnabled: true,
+              gratitudePoints: { join: 50, birthday: 25, anniversary: 100 },
+              unlockThreshold: 1750,
+              levels: [
+                { threshold: 500, rewardType: 'wallet_credit', rewardValue: '5', description: '$5 wallet credit' },
+                { threshold: 1000, rewardType: 'wallet_credit', rewardValue: '7', description: '$7 wallet credit' },
+                { threshold: 1750, rewardType: 'wallet_credit', rewardValue: '8', description: '$8 wallet credit' },
+              ],
+            },
+            createdBy: 'platform',
+          });
+        }
+
+        results.created++;
+        results.brands.push({ name: brand.name, id: brand._id, code: kioskBrandCode });
+      } catch (itemErr) {
+        results.errors.push({ name: item.name, reason: itemErr.message });
+      }
+    }
+
+    console.log(`📦 Bulk create: ${results.created} created, ${results.skipped} skipped, ${results.errors.length} errors`);
+    res.json(results);
+  } catch (error) {
+    console.error('Bulk brand create error:', error.message);
+    res.status(500).json({ error: 'Bulk creation failed' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // PLATFORM REWARDS — Auto-distributed wallet credits for admin brands
 // ═══════════════════════════════════════════════════════════
 
