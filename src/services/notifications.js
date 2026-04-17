@@ -23,16 +23,17 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 // ── Helper: Create in-app notification ──────────────────
 async function createInApp({ userId, title, message, type, link = null, metadata = {}, audience = 'all' }) {
   try {
-    // Auto-enrich: if brandName exists but brandLogoUrl is missing, look it up
-    if (metadata.brandName && !metadata.brandLogoUrl) {
+    // Auto-enrich: look up brand logo + colors for any notification with a brandName
+    if (metadata.brandName && (!metadata.brandLogoUrl || !metadata.brandColor)) {
       try {
         const Brand = require('../models/Brand');
         const brand = await Brand.findOne(
           { name: { $regex: `^${metadata.brandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
-          'logoUrl avatarUrl'
+          'logoUrl avatarUrl brandColors'
         ).lean();
         if (brand) {
-          metadata.brandLogoUrl = brand.logoUrl || brand.avatarUrl || '';
+          if (!metadata.brandLogoUrl) metadata.brandLogoUrl = brand.logoUrl || brand.avatarUrl || '';
+          if (!metadata.brandColor) metadata.brandColor = brand.brandColors?.primary || '';
         }
       } catch (_) {}
     }
