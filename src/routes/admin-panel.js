@@ -11,6 +11,7 @@ const {
   GuestReviewer, Notification, Reward, Withdrawal, ClaimRequest,
 } = require('../models');
 const notify = require('../services/notifications');
+const { sendEmail } = require('../config/email');
 const { sendPushToUser } = require('../config/push');
 
 // ── Tier Thresholds (copied from auth.js) ─────────────────
@@ -945,9 +946,9 @@ router.put('/claims/:id/approve', async (req, res) => {
 
     // Send approval email to claimer with next steps
     try {
-      await notify.sendEmail({
+      await sendEmail({
         to: claim.claimerEmail,
-        subject: `Your "${brand.name}" brand claim on KeepUsPostd has been approved`,
+        subject: `Your ${brand.name} brand claim on KeepUsPostd has been approved`,
         headline: `You're in, ${claim.claimerName.split(' ')[0]}`,
         variant: 'brand',
         bodyHtml: `
@@ -1375,7 +1376,7 @@ router.post('/support-ticket', requireAuth, async (req, res) => {
     });
 
     // Email notification to admin
-    notify.sendEmail({
+    sendEmail({
       to: process.env.ADMIN_EMAIL || 'santana@keepuspostd.com',
       subject: `Support Ticket: ${subject}`,
       headline: 'New Support Ticket',
