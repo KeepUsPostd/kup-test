@@ -672,7 +672,8 @@ router.post('/:id/claim', async (req, res) => {
     }
 
     // Auto-validate email domain
-    const brandDomain = brand.websiteUrl ? new URL(brand.websiteUrl).hostname.replace('www.', '') : null;
+    let brandDomain = null;
+    try { if (brand.websiteUrl) brandDomain = new URL(brand.websiteUrl).hostname.replace('www.', ''); } catch (_) {}
     const emailDomain = claimerEmail.split('@')[1];
     const emailDomainMatch = brandDomain ? emailDomain === brandDomain : false;
 
