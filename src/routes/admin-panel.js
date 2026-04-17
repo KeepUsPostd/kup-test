@@ -955,14 +955,14 @@ router.put('/claims/:id/approve', async (req, res) => {
           <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
           <p>Here's what to do next:</p>
           <ol>
-            <li><strong>Download the app</strong> or visit <a href="https://keepuspostd.com">keepuspostd.com</a></li>
-            <li><strong>Sign up</strong> using this email address: <strong>${claim.claimerEmail}</strong></li>
+            <li>Visit <a href="https://keepuspostd.com/app/creator-signup.html">keepuspostd.com</a> and <strong>create your account</strong></li>
+            <li>Use this email address to sign up: <strong>${claim.claimerEmail}</strong></li>
             <li>Your brand dashboard will be ready — you'll start your <strong>14-day free Pro trial</strong> automatically</li>
           </ol>
           <p>Your QR code and brand profile are already live and ready for customers.</p>
         `,
         ctaText: 'Set Up Your Account',
-        ctaUrl: 'https://keepuspostd.com/pages/download-app.html',
+        ctaUrl: 'https://keepuspostd.com/app/creator-signup.html',
       });
     } catch (emailErr) {
       console.error('Claim approval email failed:', emailErr.message);
