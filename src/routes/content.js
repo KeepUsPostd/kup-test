@@ -1163,8 +1163,12 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
       console.error('[postd] Approval notification cleanup error (non-blocking):', cleanupErr.message);
     }
 
-    // === AUTO-TRIGGER BONUS CASH REWARD ===
+    // === BONUS CASH REWARD — TEMPORARILY DISABLED ===
+    // PayPal PLATFORM vault access pending. Bonus cash transactions create
+    // but can't be auto-captured. Re-enable when PayPal confirms PLATFORM.
+    // To re-enable: remove the if(false) wrapper below.
     let rewardTriggered = null;
+    if (false) { // DISABLED — re-enable when PayPal PLATFORM is live
     try {
       const bonusReward = await Reward.findOne({
         brandId: submission.brandId,
@@ -1265,6 +1269,7 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
     } catch (rewardErr) {
       console.error('Bonus Cash trigger error (non-blocking):', rewardErr.message);
     }
+    } // END DISABLED bonus cash block
 
     // 📧 Notify influencer + brand: content posted + bonus earned
     try {

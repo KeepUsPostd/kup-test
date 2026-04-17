@@ -30,6 +30,8 @@ const notificationSchema = new mongoose.Schema({
       'approval',    // Content approved by brand
       'payment',     // Earnings, cashouts, billing
       'campaign',    // Campaign invites, milestones
+      'briefing',    // Campaign briefs sent to partnered influencers
+      'bonus',       // Bonus alerts, time-limited offers
       'partnership', // New partners, removals
       'reward',      // Points, rewards unlocked
       'account',     // Profile, security, settings
