@@ -23,6 +23,20 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 // ── Helper: Create in-app notification ──────────────────
 async function createInApp({ userId, title, message, type, link = null, metadata = {}, audience = 'all' }) {
   try {
+    // Auto-enrich: if brandName exists but brandLogoUrl is missing, look it up
+    if (metadata.brandName && !metadata.brandLogoUrl) {
+      try {
+        const Brand = require('../models/Brand');
+        const brand = await Brand.findOne(
+          { name: { $regex: `^${metadata.brandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
+          'logoUrl avatarUrl'
+        ).lean();
+        if (brand) {
+          metadata.brandLogoUrl = brand.logoUrl || brand.avatarUrl || '';
+        }
+      } catch (_) {}
+    }
+
     await Notification.create({
       userId,
       title,
