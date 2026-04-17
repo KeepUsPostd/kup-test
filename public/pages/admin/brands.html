@@ -429,6 +429,7 @@
               <div><strong>Email:</strong> ${c.claimerEmail} ${c.emailDomainMatch ? '<span style="color:#27ae60">✓ domain match</span>' : '<span style="color:#e74c3c">✗ domain mismatch</span>'}</div>
               ${c.claimerPhone ? '<div><strong>Phone:</strong> ' + c.claimerPhone + '</div>' : ''}
               ${c.authorizationStatement ? '<div style="margin-top:4px;font-style:italic;color:#888;">"' + c.authorizationStatement + '"</div>' : ''}
+              ${c.documentUrl ? '<div style="margin-top:8px;"><strong>Proof:</strong> <a href="' + c.documentUrl + '" target="_blank" style="color:#2EA5DD">View Document</a><br><img src="' + c.documentUrl + '" style="max-width:200px;max-height:120px;border-radius:8px;margin-top:4px;border:1px solid #eee" onerror="this.style.display=\'none\'"></div>' : ''}
               <div style="font-size:11px;color:#999;margin-top:4px;">Submitted: ${new Date(c.createdAt).toLocaleString()}</div>
             </div>
             ${c.status === 'pending' ? `

@@ -947,8 +947,9 @@ router.put('/claims/:id/approve', async (req, res) => {
     try {
       await notify.sendEmail({
         to: claim.claimerEmail,
-        subject: `Your "${brand.name}" brand claim on KeepUsPostd has been approved! 🎉`,
-        headline: `You're in, ${claim.claimerName.split(' ')[0]}!`,
+        subject: `Your "${brand.name}" brand claim on KeepUsPostd has been approved`,
+        headline: `You're in, ${claim.claimerName.split(' ')[0]}`,
+        variant: 'brand',
         bodyHtml: `
           <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
           <p>Here's what to do next:</p>

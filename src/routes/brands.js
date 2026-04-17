@@ -657,7 +657,7 @@ router.post('/:id/claim', async (req, res) => {
       return res.status(400).json({ error: 'This brand is not available for claiming' });
     }
 
-    const { claimerName, claimerTitle, claimerEmail, claimerPhone, authorizationStatement } = req.body;
+    const { claimerName, claimerTitle, claimerEmail, claimerPhone, authorizationStatement, proofFile } = req.body;
     if (!claimerName || !claimerEmail) {
       return res.status(400).json({ error: 'Name and email are required' });
     }
@@ -669,6 +669,26 @@ router.post('/:id/claim', async (req, res) => {
     });
     if (existingClaim) {
       return res.status(409).json({ error: 'A claim request is already pending for this brand' });
+    }
+
+    // Upload proof document to R2 if provided (base64)
+    let documentUrl = null;
+    if (proofFile && proofFile.base64) {
+      try {
+        const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+        const R2_CONFIGURED = !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_ENDPOINT);
+        if (R2_CONFIGURED) {
+          const r2 = new S3Client({ region: 'auto', endpoint: process.env.R2_ENDPOINT, credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY } });
+          const buffer = Buffer.from(proofFile.base64, 'base64');
+          const ext = (proofFile.name || 'doc.jpg').split('.').pop() || 'jpg';
+          const filename = `claims/${brand._id}_${Date.now()}.${ext}`;
+          await r2.send(new PutObjectCommand({ Bucket: process.env.R2_BUCKET || 'keepuspostd-uploads', Key: filename, Body: buffer, ContentType: proofFile.type || 'image/jpeg' }));
+          documentUrl = `${process.env.R2_PUBLIC_URL || ''}/${filename}`;
+          console.log(`📎 Claim proof uploaded: ${documentUrl}`);
+        }
+      } catch (uploadErr) {
+        console.error('Claim proof upload error (non-blocking):', uploadErr.message);
+      }
     }
 
     // Auto-validate email domain
@@ -684,6 +704,7 @@ router.post('/:id/claim', async (req, res) => {
       claimerEmail,
       claimerPhone: claimerPhone || null,
       authorizationStatement: authorizationStatement || null,
+      documentUrl,
       emailDomainMatch,
       duplicateClaim: false,
     });
