@@ -4,7 +4,7 @@
 // Ref: PLATFORM_ARCHITECTURE.md → Content Lifecycle
 const express = require('express');
 const router = express.Router();
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
 const paypal = require('../config/paypal');
@@ -468,7 +468,7 @@ router.get('/feed/categories', async (req, res) => {
 // GET /api/content/feed — Platform-wide approved content for the video discovery feed
 // No auth required — Apple reviewers with any account (or none) see real content
 // Optional filters: ?category=Food+%26+Beverage  ?brandIds=id1,id2,id3
-router.get('/feed', async (req, res) => {
+router.get('/feed', optionalAuth, async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
