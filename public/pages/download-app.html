@@ -1880,9 +1880,17 @@
       const IOS_STORE = 'https://apps.apple.com/us/app/keepuspostd/id1515156338';
       const ANDROID_STORE = 'https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp';
 
+      // Silently copy brand ID to clipboard so app can pick it up after install
+      function copyBrandToClipboard() {
+        if (brandId) {
+          try { navigator.clipboard.writeText('kup-brand:' + brandId); } catch (_) {}
+        }
+      }
+
       // Replace all store buttons with smart deep link handler
       document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
+          copyBrandToClipboard();
           if (isIOS) {
             e.preventDefault();
             // Try to open app — if not installed, fall through to App Store after 1.5s
@@ -1899,6 +1907,7 @@
 
       document.querySelectorAll('a[href*="play.google.com"]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
+          copyBrandToClipboard();
           if (isAndroid) {
             e.preventDefault();
             var fallback = setTimeout(function() {
