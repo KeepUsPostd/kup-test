@@ -1064,11 +1064,9 @@ router.post('/bonus', async (req, res) => {
     const influencer = await User.findById(influencerUserId);
     if (!influencer) return res.status(404).json({ error: 'Influencer not found' });
 
-    // Get influencer's PayPal email
+    // Create a platform bonus transaction (manual payout — admin pays via PayPal separately)
     const profile = await InfluencerProfile.findOne({ userId: influencerUserId }).lean();
-    const paypalEmail = profile?.paypalEmail;
 
-    // Create a platform bonus transaction
     const transaction = await Transaction.create({
       userId: influencerUserId,
       brandId: brandId || null,
@@ -1078,35 +1076,9 @@ router.post('/bonus', async (req, res) => {
       kupFee: 0,
       paypalFee: 0,
       description: `KUP Bonus: ${reason}`,
-      status: paypalEmail ? 'processing' : 'pending',
+      status: 'pending',
       fundedBy: 'platform',
     });
-
-    // Send actual PayPal payout if influencer has PayPal connected
-    let payoutStatus = 'no_paypal';
-    if (paypalEmail) {
-      try {
-        const paypal = require('../config/paypal');
-        const batchId = `KUP_BONUS_${transaction._id}`;
-        const result = await paypal.createPayout([{
-          email: paypalEmail,
-          amount: amount,
-          note: `KUP Bonus: ${reason}`,
-        }], batchId);
-        transaction.payoutBatchId = result.batch_header?.payout_batch_id || batchId;
-        transaction.payoutSentAt = new Date();
-        transaction.payoutMethod = 'auto_bonus';
-        transaction.status = 'completed';
-        await transaction.save();
-        payoutStatus = 'sent';
-        console.log(`💸 Bonus payout sent: $${amount} to ${paypalEmail} (batch: ${transaction.payoutBatchId})`);
-      } catch (payErr) {
-        console.error('Bonus PayPal payout failed:', payErr.message);
-        transaction.status = 'pending';
-        await transaction.save();
-        payoutStatus = 'payout_failed';
-      }
-    }
 
     // Notify influencer (email + in-app + push)
     try {
@@ -1124,17 +1096,10 @@ router.post('/bonus', async (req, res) => {
       console.error('Bonus notification failed (non-blocking):', notifyErr.message);
     }
 
-    const statusMsg = payoutStatus === 'sent'
-      ? `$${amount} sent to ${paypalEmail} via PayPal`
-      : payoutStatus === 'payout_failed'
-      ? `$${amount} recorded but PayPal payout failed — retry manually`
-      : `$${amount} recorded — influencer has no PayPal connected (pending)`;
-
     res.json({
       success: true,
-      message: statusMsg,
+      message: `Bonus of $${amount} recorded for ${influencer.displayName || influencer.email}. Pay manually via PayPal.`,
       transaction,
-      payoutStatus,
     });
   } catch (error) {
     console.error('Bonus payment error:', error);
@@ -1753,6 +1718,163 @@ router.put('/promo-codes/:id', async (req, res) => {
     res.json({ promo });
   } catch (error) {
     res.status(500).json({ error: 'Could not update promo code' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// PROMOTIONS — Admin sends promo offers to individual influencers
+// ══════════════════════════════════════════════════════════════════════
+
+const Promotion = require('../models/Promotion');
+
+// POST /api/admin-panel/promotions — Create and send a promo offer
+router.post('/promotions', async (req, res) => {
+  try {
+    const { influencerUserId, influencerHandle, brandId, brandName, amount, description } = req.body;
+
+    if (!influencerUserId || !brandId || !amount || !description) {
+      return res.status(400).json({ error: 'influencerUserId, brandId, amount, and description are required' });
+    }
+
+    const influencer = await User.findById(influencerUserId);
+    if (!influencer) return res.status(404).json({ error: 'Influencer not found' });
+
+    const brand = await Brand.findById(brandId);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const promo = await Promotion.create({
+      influencerUserId,
+      influencerHandle: influencerHandle || 'influencer',
+      brandId,
+      brandName: brandName || brand.name,
+      amount,
+      description,
+    });
+
+    // Send push + in-app notification as a briefing
+    try {
+      const { createInApp } = require('../services/notifications');
+      await createInApp({
+        userId: influencerUserId,
+        title: `Paid Promo from KeepUsPostd`,
+        message: `Submit content for ${brand.name} and earn $${amount}. ${description}`,
+        type: 'briefing',
+        link: `/brands/${brandId}`,
+        metadata: {
+          brandName: brand.name,
+          brandLogoUrl: brand.logoUrl || '',
+          brandColor: brand.brandColors?.primary || '',
+          promoId: promo._id.toString(),
+          amount,
+        },
+        audience: 'influencer',
+      });
+      await sendPushToUser(influencerUserId, {
+        title: `Paid Promo: $${amount} for ${brand.name}`,
+        body: description,
+        data: { type: 'briefing', brandId: brandId.toString(), promoId: promo._id.toString() },
+      });
+    } catch (notifyErr) {
+      console.error('Promo notification failed:', notifyErr.message);
+    }
+
+    console.log(`📣 Promo sent: $${amount} to @${influencerHandle} for ${brand.name}`);
+    res.status(201).json({ success: true, promo });
+  } catch (error) {
+    console.error('Create promotion error:', error);
+    res.status(500).json({ error: 'Failed to create promotion' });
+  }
+});
+
+// GET /api/admin-panel/promotions — List all promotions with status
+router.get('/promotions', async (req, res) => {
+  try {
+    const promos = await Promotion.find().sort({ createdAt: -1 }).lean();
+
+    // Check if influencer submitted content for each promo
+    for (const promo of promos) {
+      if (promo.status === 'sent') {
+        const submission = await ContentSubmission.findOne({
+          brandId: promo.brandId,
+          influencerProfileId: { $exists: true },
+          status: { $in: ['submitted', 'approved', 'postd'] },
+          createdAt: { $gte: promo.createdAt },
+        }).populate('influencerProfileId', 'userId').lean();
+
+        if (submission && String(submission.influencerProfileId?.userId) === String(promo.influencerUserId)) {
+          promo.status = 'content_submitted';
+          promo.contentSubmissionId = submission._id;
+          await Promotion.findByIdAndUpdate(promo._id, {
+            status: 'content_submitted',
+            contentSubmissionId: submission._id,
+          });
+        }
+      }
+    }
+
+    res.json({ promotions: promos });
+  } catch (error) {
+    console.error('List promotions error:', error);
+    res.status(500).json({ error: 'Failed to list promotions' });
+  }
+});
+
+// PUT /api/admin-panel/promotions/:id/mark-paid — Mark a promo as paid
+router.put('/promotions/:id/mark-paid', async (req, res) => {
+  try {
+    const { paypalTransactionId } = req.body;
+    const promo = await Promotion.findByIdAndUpdate(req.params.id, {
+      status: 'paid',
+      paidAt: new Date(),
+      paypalTransactionId: paypalTransactionId || null,
+    }, { new: true });
+
+    if (!promo) return res.status(404).json({ error: 'Promotion not found' });
+
+    // Notify influencer that payment has been sent
+    try {
+      const { createInApp } = require('../services/notifications');
+      await createInApp({
+        userId: promo.influencerUserId,
+        title: `Payment Sent — $${promo.amount}`,
+        message: `KeepUsPostd has sent $${promo.amount} to your PayPal for your ${promo.brandName} promotion.`,
+        type: 'payment',
+        metadata: {
+          brandName: promo.brandName,
+          amount: promo.amount,
+        },
+        audience: 'influencer',
+      });
+      await sendPushToUser(promo.influencerUserId, {
+        title: `$${promo.amount} Sent to Your PayPal`,
+        body: `Payment for your ${promo.brandName} promotion has been sent.`,
+        data: { type: 'payment' },
+      });
+
+      // Also send email
+      try {
+        const influencer = await User.findById(promo.influencerUserId);
+        if (influencer) {
+          await sendEmail({
+            to: influencer.email,
+            subject: `Payment Sent — $${promo.amount} for ${promo.brandName}`,
+            headline: `$${promo.amount} is on its way`,
+            variant: 'brand',
+            bodyHtml: `
+              <p>KeepUsPostd has sent <strong>$${promo.amount}</strong> to your PayPal for your <strong>${promo.brandName}</strong> promotion.</p>
+              <p>Check your PayPal account — the payment should arrive within minutes.</p>
+            `,
+          });
+        }
+      } catch (_) {}
+    } catch (notifyErr) {
+      console.error('Payment notification failed:', notifyErr.message);
+    }
+
+    res.json({ success: true, promo });
+  } catch (error) {
+    console.error('Mark paid error:', error);
+    res.status(500).json({ error: 'Failed to mark as paid' });
   }
 });
 

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promotions — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .promo-form { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+    .promo-form h3 { margin: 0 0 16px; font-size: 16px; font-weight: 700; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .form-row input, .form-row select, .form-row textarea { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 14px; }
+    .form-row textarea { min-height: 60px; resize: vertical; }
+    .btn-send { background: #2EA5DD; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .btn-send:hover { background: #2590c4; }
+    .btn-send:disabled { background: #ccc; cursor: not-allowed; }
+    .lookup-result { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; display: none; }
+    .promo-table { width: 100%; border-collapse: collapse; }
+    .promo-table th { text-align: left; padding: 10px 14px; background: #f9fafb; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .promo-table td { padding: 10px 14px; border-top: 1px solid #f3f4f6; font-size: 14px; }
+    .status-pill { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; display: inline-block; }
+    .status-sent { background: #FEF3C7; color: #92400E; }
+    .status-content_submitted { background: #DBEAFE; color: #1E40AF; }
+    .status-paid { background: #D1FAE5; color: #065F46; }
+    .btn-mark-paid { background: #059669; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-mark-paid:hover { background: #047857; }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span><span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <a href="/pages/admin/verifications.html"><span class="nav-icon">&#10003;</span> Verifications</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <a href="/pages/admin/promotions.html" class="active"><span class="nav-icon">&#128227;</span> Promotions</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Promotions</h2>
+      <div class="header-actions"><div class="header-user"><div class="user-avatar">SA</div></div></div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Create Promotion Form -->
+      <div class="promo-form">
+        <h3>Send a Paid Promotion</h3>
+        <div class="form-row">
+          <input type="text" id="influencerSearch" placeholder="Search influencer by @handle or email..." oninput="clearLookup()">
+          <button class="btn-send" onclick="lookupInfluencer()" style="flex:none">Find</button>
+        </div>
+        <div class="lookup-result" id="lookupResult"></div>
+        <div class="form-row">
+          <select id="brandSelect"><option value="">Select a brand...</option></select>
+          <input type="number" id="promoAmount" placeholder="Payment amount ($)" min="1" max="10000" step="0.01">
+        </div>
+        <div class="form-row">
+          <textarea id="promoDescription" placeholder="Describe what content to create (e.g., 'Create a 30-second video review of the new summer menu')"></textarea>
+        </div>
+        <button class="btn-send" id="sendBtn" onclick="sendPromotion()" disabled>Send Promotion Offer</button>
+      </div>
+
+      <!-- Promotions List -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;font-size:16px;font-weight:700">Active Promotions</h3>
+          <button class="btn-send" onclick="loadPromotions()" style="padding:6px 14px;font-size:12px">Refresh</button>
+        </div>
+        <table class="promo-table">
+          <thead>
+            <tr><th>Influencer</th><th>Brand</th><th>Amount</th><th>Description</th><th>Status</th><th>Sent</th><th>Action</th></tr>
+          </thead>
+          <tbody id="promoBody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyBEF32FJaR4S7YH6cl6pVQmh7n7ArPHjhY",
+      authDomain: "kup-test.firebaseapp.com",
+      projectId: "kup-test",
+    });
+
+    let authToken = null;
+    let foundInfluencer = null;
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/app/login.html'; return; }
+      authToken = await user.getIdToken();
+      loadBrands();
+      loadPromotions();
+    });
+
+    async function apiFetch(path, opts = {}) {
+      const res = await fetch('/api/admin-panel' + path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken, ...(opts.headers || {}) },
+      });
+      return res.json();
+    }
+
+    async function loadBrands() {
+      try {
+        const res = await fetch('/api/brands/discover', { headers: { Authorization: 'Bearer ' + authToken } });
+        const data = await res.json();
+        const select = document.getElementById('brandSelect');
+        (data.brands || []).sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b._id;
+          opt.textContent = b.name;
+          opt.dataset.name = b.name;
+          select.appendChild(opt);
+        });
+      } catch (_) {}
+    }
+
+    function clearLookup() {
+      foundInfluencer = null;
+      document.getElementById('lookupResult').style.display = 'none';
+      document.getElementById('sendBtn').disabled = true;
+    }
+
+    async function lookupInfluencer() {
+      const q = document.getElementById('influencerSearch').value.trim();
+      if (!q) return;
+      try {
+        const data = await apiFetch('/influencer-lookup?q=' + encodeURIComponent(q));
+        if (data.error) { alert(data.error); return; }
+        foundInfluencer = data;
+        const el = document.getElementById('lookupResult');
+        el.innerHTML = '<strong>Found:</strong> @' + data.handle + ' (' + data.displayName + ') — ' + (data.influenceTier || 'Starter');
+        el.style.display = 'block';
+        document.getElementById('sendBtn').disabled = false;
+      } catch (err) {
+        alert('Influencer not found');
+      }
+    }
+
+    async function sendPromotion() {
+      if (!foundInfluencer) return;
+      const brandSelect = document.getElementById('brandSelect');
+      const brandId = brandSelect.value;
+      const brandName = brandSelect.options[brandSelect.selectedIndex].dataset.name;
+      const amount = parseFloat(document.getElementById('promoAmount').value);
+      const description = document.getElementById('promoDescription').value.trim();
+
+      if (!brandId || !amount || !description) { alert('Fill in all fields'); return; }
+
+      document.getElementById('sendBtn').disabled = true;
+      document.getElementById('sendBtn').textContent = 'Sending...';
+
+      try {
+        const data = await apiFetch('/promotions', {
+          method: 'POST',
+          body: JSON.stringify({
+            influencerUserId: foundInfluencer.userId,
+            influencerHandle: foundInfluencer.handle,
+            brandId,
+            brandName,
+            amount,
+            description,
+          }),
+        });
+
+        if (data.success) {
+          alert('Promotion sent to @' + foundInfluencer.handle);
+          document.getElementById('influencerSearch').value = '';
+          document.getElementById('promoAmount').value = '';
+          document.getElementById('promoDescription').value = '';
+          clearLookup();
+          loadPromotions();
+        } else {
+          alert(data.error || 'Failed to send');
+        }
+      } catch (err) {
+        alert('Error sending promotion');
+      }
+      document.getElementById('sendBtn').textContent = 'Send Promotion Offer';
+    }
+
+    async function loadPromotions() {
+      try {
+        const data = await apiFetch('/promotions');
+        const promos = data.promotions || [];
+        const tbody = document.getElementById('promoBody');
+
+        if (!promos.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">No promotions yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = promos.map(p => {
+          const statusLabels = { sent: 'Sent', content_submitted: 'Content Submitted', paid: 'Paid', expired: 'Expired', declined: 'Declined' };
+          const date = new Date(p.createdAt).toLocaleDateString();
+          const actionBtn = (p.status === 'content_submitted')
+            ? '<button class="btn-mark-paid" onclick="markPaid(\'' + p._id + '\')">Mark as Paid</button>'
+            : p.status === 'sent' ? '<span style="color:#9ca3af;font-size:12px">Awaiting content</span>'
+            : p.status === 'paid' ? '<span style="color:#059669;font-size:12px">Completed</span>' : '';
+
+          return '<tr>' +
+            '<td><strong>@' + (p.influencerHandle || '') + '</strong></td>' +
+            '<td>' + (p.brandName || '') + '</td>' +
+            '<td><strong>$' + (p.amount || 0).toFixed(2) + '</strong></td>' +
+            '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.description || '') + '</td>' +
+            '<td><span class="status-pill status-' + p.status + '">' + (statusLabels[p.status] || p.status) + '</span></td>' +
+            '<td>' + date + '</td>' +
+            '<td>' + actionBtn + '</td>' +
+            '</tr>';
+        }).join('');
+      } catch (_) {
+        document.getElementById('promoBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:red">Failed to load</td></tr>';
+      }
+    }
+
+    async function markPaid(promoId) {
+      const txId = prompt('Enter PayPal transaction ID (optional):');
+      try {
+        const data = await apiFetch('/promotions/' + promoId + '/mark-paid', {
+          method: 'PUT',
+          body: JSON.stringify({ paypalTransactionId: txId || null }),
+        });
+        if (data.success) {
+          alert('Marked as paid — influencer has been notified');
+          loadPromotions();
+        } else {
+          alert(data.error || 'Failed');
+        }
+      } catch (_) {
+        alert('Error marking as paid');
+      }
+    }
+  </script>
+</body>
+</html>

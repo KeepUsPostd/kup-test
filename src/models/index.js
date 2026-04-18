@@ -28,4 +28,5 @@ module.exports = {
   UserBlock: require('./UserBlock'),
   BrandMusic: require('./BrandMusic'),
   BrandCatalog: require('./BrandCatalog'),
+  Promotion: require('./Promotion'),
 };
