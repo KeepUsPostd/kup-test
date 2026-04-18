@@ -301,6 +301,45 @@ router.get('/discover', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/brands/category-stats — public category counts (brand + campaign counts per category)
+router.get('/category-stats', async (req, res) => {
+  try {
+    const Campaign = require('../models').Campaign;
+    const categories = ['Food & Beverage', 'Fashion & Beauty', 'Technology', 'Health & Fitness', 'Entertainment', 'Home & Lifestyle'];
+    const categoryMap = {
+      'Food & Beverage': '🍔',
+      'Fashion & Beauty': '👟',
+      'Technology': '📱',
+      'Health & Fitness': '💪',
+      'Entertainment': '🎬',
+      'Home & Lifestyle': '🏠',
+    };
+    const stats = await Promise.all(categories.map(async (cat) => {
+      const brandCount = await Brand.countDocuments({ category: { $regex: new RegExp(cat.split(' ')[0], 'i') }, status: 'active' });
+      const campaignCount = await Campaign.countDocuments({ category: { $regex: new RegExp(cat.split(' ')[0], 'i') }, status: 'active' });
+      return { category: cat, emoji: categoryMap[cat] || '🏢', brandCount, campaignCount };
+    }));
+    res.json(stats.filter(s => s.brandCount > 0 || s.campaignCount > 0));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch category stats' });
+  }
+});
+
+// GET /api/brands/trending-searches — popular search terms based on actual brand data
+router.get('/trending-searches', async (req, res) => {
+  try {
+    // Get top brands by totalReviews + totalContentPieces as a proxy for popularity
+    const topBrands = await Brand.find({ status: 'active' })
+      .sort({ totalReviews: -1, totalContentPieces: -1 })
+      .limit(5)
+      .select('name category');
+    const trending = topBrands.map(b => b.name);
+    res.json(trending);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch trending' });
+  }
+});
+
 // GET /api/brands/public/:identifier — lookup by @handle OR kioskBrandCode (no auth — QR landing page)
 // MUST be before /:brandId to prevent "public" being treated as a brandId
 router.get('/public/:identifier', async (req, res) => {
