@@ -484,7 +484,11 @@ router.get('/feed', optionalAuth, async (req, res) => {
         const UserBlock = require('../models/UserBlock');
         const blocks = await UserBlock.find({ blockerId: req.user._id }).select('blockedUserId').lean();
         if (blocks.length > 0) {
-          contentFilter.userId = { $nin: blocks.map(b => b.blockedUserId) };
+          // Resolve blocked userIds to their influencerProfileIds (ContentSubmission uses influencerProfileId)
+          const blockedProfiles = await InfluencerProfile.find({ userId: { $in: blocks.map(b => b.blockedUserId) } }).select('_id').lean();
+          if (blockedProfiles.length > 0) {
+            contentFilter.influencerProfileId = { $nin: blockedProfiles.map(p => p._id) };
+          }
         }
       } catch (_) {}
     }
