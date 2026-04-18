@@ -266,7 +266,7 @@ router.get('/', requireAuth, async (req, res) => {
 // MUST be before /:brandId to prevent "discover" being treated as a brandId
 router.get('/discover', requireAuth, async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const { category, search, lat, lon, radiusMi } = req.query;
     const filter = { status: { $ne: 'deleted' } };
 
     if (category && category !== 'all') filter.category = { $regex: category, $options: 'i' };
@@ -275,6 +275,30 @@ router.get('/discover', requireAuth, async (req, res) => {
         { name: { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } },
       ];
+    }
+
+    // Geo filter — find brands with locations near the user
+    if (lat && lon) {
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lon);
+      const radius = Math.min(parseFloat(radiusMi) || 25, 100);
+      const radiusMeters = radius * 1609.34;
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        const nearbyBrands = await Brand.find({
+          coordinates: {
+            $near: {
+              $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+              $maxDistance: radiusMeters,
+            },
+          },
+        }).select('_id').lean().catch(() => []);
+        if (nearbyBrands.length > 0) {
+          filter._id = { $in: nearbyBrands.map(b => b._id) };
+        } else {
+          // No brands nearby — return empty
+          return res.json({ brands: [] });
+        }
+      }
     }
 
     const brands = await Brand.find(filter)
