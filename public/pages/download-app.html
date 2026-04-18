@@ -1874,7 +1874,9 @@
     (function() {
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
-      const APP_SCHEME = 'keepuspostd://open';
+      const urlParams = new URLSearchParams(window.location.search);
+      const brandId = urlParams.get('brand-id') || urlParams.get('brandId');
+      const APP_SCHEME = brandId ? 'keepuspostd://open/brands/' + brandId : 'keepuspostd://open';
       const IOS_STORE = 'https://apps.apple.com/us/app/keepuspostd/id1515156338';
       const ANDROID_STORE = 'https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp';
 
