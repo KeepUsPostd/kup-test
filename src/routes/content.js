@@ -478,6 +478,17 @@ router.get('/feed', async (req, res) => {
     // Build filter
     const contentFilter = { status: 'approved' };
 
+    // Exclude blocked users' content
+    if (req.user) {
+      try {
+        const UserBlock = require('../models/UserBlock');
+        const blocks = await UserBlock.find({ blockerId: req.user._id }).select('blockedUserId').lean();
+        if (blocks.length > 0) {
+          contentFilter.userId = { $nin: blocks.map(b => b.blockedUserId) };
+        }
+      } catch (_) {}
+    }
+
     // Geo filter — find brands near the user's coordinates
     if (lat && lon) {
       const latitude = parseFloat(lat);
