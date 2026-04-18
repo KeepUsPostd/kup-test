@@ -1064,6 +1064,10 @@ router.post('/bonus', async (req, res) => {
     const influencer = await User.findById(influencerUserId);
     if (!influencer) return res.status(404).json({ error: 'Influencer not found' });
 
+    // Get influencer's PayPal email
+    const profile = await InfluencerProfile.findOne({ userId: influencerUserId }).lean();
+    const paypalEmail = profile?.paypalEmail;
+
     // Create a platform bonus transaction
     const transaction = await Transaction.create({
       userId: influencerUserId,
@@ -1074,13 +1078,38 @@ router.post('/bonus', async (req, res) => {
       kupFee: 0,
       paypalFee: 0,
       description: `KUP Bonus: ${reason}`,
-      status: 'pending',
+      status: paypalEmail ? 'processing' : 'pending',
       fundedBy: 'platform',
     });
 
+    // Send actual PayPal payout if influencer has PayPal connected
+    let payoutStatus = 'no_paypal';
+    if (paypalEmail) {
+      try {
+        const paypal = require('../config/paypal');
+        const batchId = `KUP_BONUS_${transaction._id}`;
+        const result = await paypal.createPayout([{
+          email: paypalEmail,
+          amount: amount,
+          note: `KUP Bonus: ${reason}`,
+        }], batchId);
+        transaction.payoutBatchId = result.batch_header?.payout_batch_id || batchId;
+        transaction.payoutSentAt = new Date();
+        transaction.payoutMethod = 'auto_bonus';
+        transaction.status = 'completed';
+        await transaction.save();
+        payoutStatus = 'sent';
+        console.log(`💸 Bonus payout sent: $${amount} to ${paypalEmail} (batch: ${transaction.payoutBatchId})`);
+      } catch (payErr) {
+        console.error('Bonus PayPal payout failed:', payErr.message);
+        transaction.status = 'pending';
+        await transaction.save();
+        payoutStatus = 'payout_failed';
+      }
+    }
+
     // Notify influencer (email + in-app + push)
     try {
-      const profile = await InfluencerProfile.findOne({ userId: influencerUserId }).lean();
       await notify.cashRewardEarned({
         influencer: {
           email: influencer.email,
@@ -1095,10 +1124,17 @@ router.post('/bonus', async (req, res) => {
       console.error('Bonus notification failed (non-blocking):', notifyErr.message);
     }
 
+    const statusMsg = payoutStatus === 'sent'
+      ? `$${amount} sent to ${paypalEmail} via PayPal`
+      : payoutStatus === 'payout_failed'
+      ? `$${amount} recorded but PayPal payout failed — retry manually`
+      : `$${amount} recorded — influencer has no PayPal connected (pending)`;
+
     res.json({
       success: true,
-      message: `Bonus of $${amount} queued for ${influencer.displayName || influencer.email}`,
+      message: statusMsg,
       transaction,
+      payoutStatus,
     });
   } catch (error) {
     console.error('Bonus payment error:', error);
