@@ -97,6 +97,7 @@ const contentSubmissionSchema = new mongoose.Schema({
     shares: { type: Number, default: 0 },
     views: { type: Number, default: 0 },
   },
+  likedBy: [{ type: String }], // userIds who liked this content
 }, {
   timestamps: true,
 });

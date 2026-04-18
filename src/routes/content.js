@@ -553,6 +553,7 @@ router.get('/feed', async (req, res) => {
       likes:         s.metrics?.likes || 0,
       comments:      s.metrics?.comments || 0,
       shares:        s.metrics?.shares || 0,
+      likedBy:       s.likedBy || [],
     }));
 
     res.json({ feed, page, hasMore: submissions.length === limit });
@@ -619,6 +620,7 @@ router.get('/mine', requireAuth, async (req, res) => {
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
       shares:      s.metrics?.shares || 0,
+      likedBy:     s.likedBy || [],
       // Reward earned for this submission (if any)
       reward:      txMap[s._id.toString()] || null,
     }));
@@ -1347,6 +1349,35 @@ router.put('/:submissionId/overlays', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Save overlays error:', error.message);
     res.status(500).json({ error: 'Could not save overlays' });
+  }
+});
+
+// POST /api/content/:submissionId/like — Toggle like on a content submission
+router.post('/:submissionId/like', requireAuth, async (req, res) => {
+  try {
+    const submission = await ContentSubmission.findById(req.params.submissionId);
+    if (!submission) return res.status(404).json({ error: 'Content not found' });
+
+    // Use a simple array on the submission to track who liked
+    if (!submission.likedBy) submission.likedBy = [];
+
+    const userId = req.user._id.toString();
+    const alreadyLiked = submission.likedBy.includes(userId);
+
+    if (alreadyLiked) {
+      submission.likedBy = submission.likedBy.filter(id => id !== userId);
+      if (submission.metrics) submission.metrics.likes = Math.max(0, (submission.metrics.likes || 0) - 1);
+    } else {
+      submission.likedBy.push(userId);
+      if (!submission.metrics) submission.metrics = {};
+      submission.metrics.likes = (submission.metrics.likes || 0) + 1;
+    }
+
+    await submission.save();
+    res.json({ liked: !alreadyLiked, likeCount: submission.metrics?.likes || 0 });
+  } catch (error) {
+    console.error('Like toggle error:', error);
+    res.status(500).json({ error: 'Failed to toggle like' });
   }
 });
 
