@@ -190,9 +190,20 @@ router.post('/', requireAuth, async (req, res) => {
       }).catch(err => console.error('[brands] notify.trialStarted error:', err.message));
     }
 
+    // Include trial state so the frontend can seed localStorage correctly
+    const trialStatus = checkTrialStatus(brandProfile);
+    const trialActive = !!(trialStatus && trialStatus.trial && trialStatus.trial.active);
+    const brandResponse = {
+      ...brand.toObject(),
+      planTier: trialStatus.effectiveTier,
+      trialActive,
+      trialTier: trialActive ? trialStatus.trial.tier : null,
+      trialDaysRemaining: trialActive ? (trialStatus.trial.daysRemaining || 0) : 0,
+    };
+
     res.status(201).json({
       message: 'Brand created successfully',
-      brand,
+      brand: brandResponse,
     });
   } catch (error) {
     console.error('Create brand error:', error.message, error.stack);

@@ -1402,7 +1402,9 @@
               name: result.brand.name,
               abbreviation: brandName.split(/\s+/).map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3),
               color: '#2EA5DD',
-              plan: 'starter',
+              plan: result.brand.planTier || 'starter',
+              trialActive: !!result.brand.trialActive,
+              trialDaysRemaining: result.brand.trialDaysRemaining || 0,
               isAnchor: true,
               state: 'active',
               mongoId: result.brand._id
@@ -1457,7 +1459,7 @@
     window.location.href = '/app/manage-brands.html';
   });
   document.getElementById('successDashboardBtn').addEventListener('click', function() {
-    window.location.href = '/app/brand-home.html';
+    window.location.href = '/app/activity.html';
   });
   </script>
     <!-- brand-context.js excluded — first-time user has no brands yet -->
