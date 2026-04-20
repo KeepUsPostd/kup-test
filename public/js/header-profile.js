@@ -67,12 +67,22 @@
     return '';
   }
 
+  function readActiveBrand() {
+    try {
+      var raw = localStorage.getItem('kup_active_brand');
+      if (raw && raw !== 'undefined' && raw !== 'null') return JSON.parse(raw) || null;
+    } catch(e) {}
+    return null;
+  }
+
   function hydrate(user) {
     if (!user) return;
     var display = displayNameFromAny(user);
     var email = user.email || '';
     var nameShort = shortName(display);
     var inits = initials(display, email);
+    var activeBrand = readActiveBrand();
+    var brandName = (activeBrand && activeBrand.name) || '';
 
     // Populate known id-based slots
     ['headerName'].forEach(function(id) {
@@ -89,6 +99,17 @@
     var avatars = document.querySelectorAll('.profile-avatar');
     for (var i = 0; i < avatars.length; i++) {
       if (!avatars[i].textContent.trim()) avatars[i].textContent = inits;
+    }
+
+    // Class-based fallback for pages that don't use id-based slots.
+    // Pattern: <div class="profile-info"><div class="name"></div><div class="brand"></div></div>
+    var nameNodes = document.querySelectorAll('.profile-info > .name');
+    for (var j = 0; j < nameNodes.length; j++) {
+      if (!nameNodes[j].textContent.trim()) nameNodes[j].textContent = nameShort;
+    }
+    var brandNodes = document.querySelectorAll('.profile-info > .brand');
+    for (var k = 0; k < brandNodes.length; k++) {
+      if (!brandNodes[k].textContent.trim() && brandName) brandNodes[k].textContent = brandName;
     }
   }
 
