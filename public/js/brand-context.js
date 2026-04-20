@@ -171,7 +171,7 @@ var KUP_BRAND_CONTEXT = (function() {
 
   function injectStyles() {
     var isDark = !!document.querySelector('.cm-header');
-    var activeBrand = getActiveBrand();
+    var activeBrand = getActiveBrand() || {};
     var brandColor = activeBrand.color || '#2EA5DD';
 
     var css = '' +
@@ -238,15 +238,15 @@ var KUP_BRAND_CONTEXT = (function() {
     // Don't double-inject
     if (document.querySelector('.kup-bcb')) return;
 
-    var activeBrand = getActiveBrand();
+    var activeBrand = getActiveBrand() || {};
     var allBrands = getAllBrands();
 
     var barHTML = '' +
       '<div class="kup-bcb">' +
         '<div class="kup-bcb-inner">' +
           '<div class="kup-bcb-left">' +
-            '<span class="kup-bcb-dot" style="background:' + activeBrand.color + ';"></span>' +
-            '<span class="kup-bcb-label">Operating as: <strong>' + activeBrand.name + '</strong></span>' +
+            '<span class="kup-bcb-dot" style="background:' + (activeBrand.color || '#2EA5DD') + ';"></span>' +
+            '<span class="kup-bcb-label">Operating as: <strong>' + (activeBrand.name || '\u2014') + '</strong></span>' +
             '<span class="kup-bcb-plan">' + (activeBrand.trialActive ? (activeBrand.plan || 'pro') + ' (Trial)' : (activeBrand.plan || 'Starter')) + '</span>' +
           '</div>' +
           '<div class="kup-bcb-right">' +
@@ -317,7 +317,7 @@ var KUP_BRAND_CONTEXT = (function() {
     // Don't double-inject
     if (dropdown.querySelector('.kup-bs-section')) return;
 
-    var activeBrand = getActiveBrand();
+    var activeBrand = getActiveBrand() || {};
     var allBrands = getAllBrands();
 
     var switcherHTML = '<div class="kup-bs-section">' +
@@ -357,7 +357,7 @@ var KUP_BRAND_CONTEXT = (function() {
   // ================================================================
 
   function updateHeaderBrandName() {
-    var activeBrand = getActiveBrand();
+    var activeBrand = getActiveBrand() || {};
     var abbr = activeBrand.abbreviation || 'KP';
     var color = activeBrand.color || '#2EA5DD';
     var logoUrl = activeBrand.logoUrl || null;
@@ -480,7 +480,7 @@ var KUP_BRAND_CONTEXT = (function() {
   }
 
   function syncBrandElements() {
-    var ab = getActiveBrand();
+    var ab = getActiveBrand() || {};
     var abbr = ab.abbreviation || 'KP';
     var name = ab.name || 'KeepUsPostd';
     var color = ab.color || '#2EA5DD';
