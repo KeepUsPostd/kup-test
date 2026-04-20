@@ -37,9 +37,39 @@
     return '';
   }
 
+  function readStoredUser() {
+    try {
+      var raw = localStorage.getItem('kupUser');
+      if (raw && raw !== 'undefined' && raw !== 'null') return JSON.parse(raw) || {};
+    } catch(e) {}
+    return {};
+  }
+
+  function displayNameFromAny(firebaseUser) {
+    // Priority: Firebase displayName → backend first+last → email prefix
+    if (firebaseUser && firebaseUser.displayName) return firebaseUser.displayName;
+    var stored = readStoredUser();
+    if (stored.firstName || stored.lastName) {
+      return ((stored.firstName || '') + ' ' + (stored.lastName || '')).trim();
+    }
+    if (stored.legalFirstName || stored.legalLastName) {
+      return ((stored.legalFirstName || '') + ' ' + (stored.legalLastName || '')).trim();
+    }
+    var email = (firebaseUser && firebaseUser.email) || stored.email || '';
+    if (email) {
+      var prefix = email.split('@')[0];
+      // Prettify: "santana.t" → "Santana T", "santana_t" → "Santana T"
+      return prefix
+        .split(/[._-]+/)
+        .map(function(p) { return p.charAt(0).toUpperCase() + p.slice(1); })
+        .join(' ');
+    }
+    return '';
+  }
+
   function hydrate(user) {
     if (!user) return;
-    var display = user.displayName || '';
+    var display = displayNameFromAny(user);
     var email = user.email || '';
     var nameShort = shortName(display);
     var inits = initials(display, email);
