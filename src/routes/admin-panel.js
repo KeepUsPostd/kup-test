@@ -13,6 +13,7 @@ const {
 const notify = require('../services/notifications');
 const { sendEmail } = require('../config/email');
 const { sendPushToUser } = require('../config/push');
+const { startTrial } = require('../services/trial');
 
 // ── Tier Thresholds (copied from auth.js) ─────────────────
 const TIER_THRESHOLDS = [
@@ -324,6 +325,50 @@ router.put('/users/:id/status', async (req, res) => {
     res.json({ message: `User ${status === 'suspended' ? 'suspended' : 'reactivated'}`, user: { id: user._id, status: user.status } });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update user status' });
+  }
+});
+
+// POST /api/admin-panel/users/:id/reset-trial — Reset a user's 14-day Pro trial
+// Use case: fix accounts that never received a trial due to legacy registration bugs,
+// or grant a fresh trial to a user whose previous trial expired.
+// Refuses if the user has an active paid subscription (would unnecessarily override it).
+router.post('/users/:id/reset-trial', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.hasBrandProfile) {
+      return res.status(400).json({ error: 'User has no brand profile to reset' });
+    }
+
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (!brandProfile) {
+      return res.status(404).json({ error: 'BrandProfile not found' });
+    }
+
+    if (brandProfile.paypalSubscriptionId) {
+      return res.status(400).json({
+        error: 'User has an active paid subscription',
+        message: 'Cancel their subscription first, or leave the trial flags as-is.',
+      });
+    }
+
+    await startTrial(brandProfile);
+    console.log(`🔄 Admin ${req.user.email} reset trial for user ${user.email}`);
+
+    res.json({
+      message: 'Trial reset — user now has 14 days of Pro access',
+      brandProfile: {
+        id: brandProfile._id,
+        trialActive: brandProfile.trialActive,
+        trialTier: brandProfile.trialTier,
+        trialStartedAt: brandProfile.trialStartedAt,
+        trialEndsAt: brandProfile.trialEndsAt,
+        planTier: brandProfile.planTier,
+      },
+    });
+  } catch (error) {
+    console.error('Reset trial error:', error.message);
+    res.status(500).json({ error: 'Failed to reset trial' });
   }
 });
 

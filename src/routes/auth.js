@@ -167,6 +167,36 @@ router.post('/register', async (req, res) => {
           if (existingUser) {
             existingUser.firebaseUid = _uid;
             await existingUser.save();
+
+            // If they requested a brand profile and already have one (from prior signup):
+            // restart the trial IF it expired and they never subscribed.
+            // This covers fresh-signup attempts where the email was seen before.
+            if (_ptype === 'brand' && existingUser.hasBrandProfile) {
+              const existingBrandProfile = await BrandProfile.findOne({ userId: existingUser._id });
+              if (
+                existingBrandProfile &&
+                existingBrandProfile.trialExpired &&
+                !existingBrandProfile.paypalSubscriptionId
+              ) {
+                await startTrial(existingBrandProfile);
+                console.log(`🔄 Restarted trial for re-registering user ${existingUser.email}`);
+              }
+            }
+
+            // If they requested a brand profile but don't have one yet, create it + start trial
+            if (_ptype === 'brand' && !existingUser.hasBrandProfile) {
+              const referralCode = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+              const newBrandProfile = await BrandProfile.create({
+                userId: existingUser._id,
+                referralCode,
+              });
+              await startTrial(newBrandProfile);
+              existingUser.hasBrandProfile = true;
+              existingUser.activeProfile = 'brand';
+              await existingUser.save();
+              console.log(`✅ Added brand profile + trial to linked user ${existingUser.email}`);
+            }
+
             const profile = existingUser.hasInfluencerProfile
               ? await InfluencerProfile.findOne({ userId: existingUser._id })
               : null;
