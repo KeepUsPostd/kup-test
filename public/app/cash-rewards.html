@@ -2237,41 +2237,6 @@
       '</tr>';
     }
 
-    // Demo influencer for testing when no partnerships exist yet
-    var DEMO_INFLUENCER = {
-      _id: 'demo_santana',
-      handle: 'santanathrasybule',
-      displayName: 'Santana T.',
-      influenceTier: 'micro',
-      followerCount: 1200,
-      engagementRate: 4.5,
-      totalSubmissions: 3,
-      totalCashEarned: 0,
-      bio: 'Platform test influencer — founder account used for development testing.'
-    };
-
-    function _buildDemoCashRow() {
-      var inf = DEMO_INFLUENCER;
-      var bg = AVATAR_GRADIENTS[0];
-      var infKey = inf.handle;
-      _influencerLookup[infKey] = {
-        handle: '@' + inf.handle, name: inf.displayName, tier: getTierLabel(inf),
-        tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
-        posts: String(inf.totalSubmissions), bio: inf.bio
-      };
-      return '<tr data-partner-id="' + inf._id + '">' +
-        '<td data-label="Influencer"><div class="check-influencer">' +
-          '<input type="checkbox" aria-label="Select ' + inf.handle + '">' +
-          '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
-            '<div class="avatar">' + PERSON_SVG + '</div>' +
-            '<div><div class="name">@' + inf.handle + (inf.isVerified ? ' <svg width="14" height="14" viewBox="0 0 24 24" fill="#2EA5DD" style="vertical-align:middle;margin-left:2px"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 12c0 4.97 3.042 9.215 7.363 10.987.395.162.823.162 1.218 0C15.896 21.215 19 16.97 19 12c0-1.065-.14-2.097-.4-3.08l1.018-.936z"/></svg>' : '') + '</div><div class="tier">' + (getTierLabel(inf)) + '</div></div>' +
-          '</div></div></td>' +
-        '<td data-label="Last Paid" class="amount-cell" style="text-align:center;">$0.00</td>' +
-        '<td data-label="Total Paid" class="amount-cell green" style="text-align:center;">$0.00</td>' +
-        '<td data-label="Transactions" class="transaction-count">0</td>' +
-      '</tr>';
-    }
-
     function renderCashTable(transactions) {
       var tbody = document.getElementById('cashTbody');
       if (!tbody) return;
@@ -2339,33 +2304,6 @@
     }
 
     // ---- REWARDS TAB: Reward table (influencer × reward progress) ----
-    // This is a placeholder until per-influencer reward progress API exists
-    // For now, show partnerships with their points progress toward each reward
-    function _buildDemoRewardRow(rewards) {
-      var inf = DEMO_INFLUENCER;
-      var bg = AVATAR_GRADIENTS[0];
-      var infKey = inf.handle;
-      _influencerLookup[infKey] = {
-        handle: '@' + inf.handle, name: inf.displayName, tier: getTierLabel(inf),
-        tierClass: inf.influenceTier, followers: _fmtNum(inf.followerCount), engagement: inf.engagementRate + '%',
-        posts: String(inf.totalSubmissions), bio: inf.bio
-      };
-      var rewardTitle = (rewards && rewards.length > 0) ? (rewards[0].title || 'Untitled') : 'No rewards created';
-      var progressHtml = '<div class="progress-mini"><div class="progress-mini-bar"><div class="progress-mini-fill" style="width:0%"></div></div><span class="progress-mini-text">0/100</span></div>';
-      var statusHtml = '<span class="reward-status-badge in-progress">In Progress</span>';
-      return '<tr data-influencer-row="' + inf.handle + '" data-partner-id="' + inf._id + '">' +
-        '<td data-label="Influencer"><div class="check-influencer">' +
-          '<input type="checkbox" class="reward-checkbox" onchange="updateDistributeBtn()" aria-label="Select ' + inf.handle + '">' +
-          '<div class="influencer-cell" data-influencer="' + infKey + '" style="cursor:pointer">' +
-            '<div class="avatar">' + PERSON_SVG + '</div>' +
-            '<div><div class="name">@' + inf.handle + '</div><div class="tier">' + (getTierLabel(inf)) + '</div></div>' +
-          '</div></div></td>' +
-        '<td data-label="Reward" style="text-align:center;" class="reward-col"><a href="brand-reward-settings.html" style="color:var(--kup-blue);font-weight:600;text-decoration:none">' + rewardTitle + '</a></td>' +
-        '<td data-label="Progress" style="text-align:center;" class="progress-col">' + progressHtml + '</td>' +
-        '<td data-label="Status" style="text-align:center;">' + statusHtml + '</td>' +
-      '</tr>';
-    }
-
     function renderRewardTable(rewards, partnerships, brandProgress) {
       var tbody = document.getElementById('rewardTableBody');
       if (!tbody) return;
