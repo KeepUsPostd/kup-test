@@ -949,7 +949,7 @@
         <div class="cm-influencer">
           <div class="avatar" id="cmAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
           <div class="info">
-            <div class="name" id="cmInfluencer">@jessicadavis</div>
+            <div class="name" id="cmInfluencer"></div>
             <div class="tier" id="cmTier">Micro Influencer</div>
           </div>
         </div>
@@ -1033,8 +1033,8 @@
       <div class="feedback-header">
         <div class="feedback-avatar" id="cmFeedbackAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
-          <div class="feedback-user-name" id="cmFeedbackName">Jessica Davis</div>
-          <div class="feedback-user-handle" id="cmFeedbackHandle">@jessicadavis</div>
+          <div class="feedback-user-name" id="cmFeedbackName"></div>
+          <div class="feedback-user-handle" id="cmFeedbackHandle"></div>
         </div>
       </div>
       <!-- Content reference card -->
@@ -1108,8 +1108,8 @@
           <div class="rating-influencer-info">
             <div class="rating-inf-avatar" id="ratingAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
             <div>
-              <div class="rating-inf-name" id="ratingName">Jessica Davis</div>
-              <div class="rating-inf-handle" id="ratingHandle">@jessicadavis</div>
+              <div class="rating-inf-name" id="ratingName"></div>
+              <div class="rating-inf-handle" id="ratingHandle"></div>
             </div>
           </div>
           <div class="rating-criteria-list">
@@ -1462,16 +1462,13 @@
       }
     }
 
-    // ========== Demo Data Fallback ==========
+    // ========== Empty State Fallback ==========
+    // Called when no brand is selected, API call fails, or brand has no content.
+    // Previously loaded 5 fake influencers (Jessica Davis & co.) — now shows
+    // the empty state so real users don't see placeholder data.
     function loadDemoData() {
-      contentItems = [
-        { id: 0, type: 'Video', icon: '\u25B6', influencer: '@jessicadavis', name: 'Jessica Davis', initials: 'JD', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 hours ago', duration: null, fileSize: '12.4 MB', status: 'pending', daysRemaining: 8, avatarStyle: '', mediaUrls: ['/uploads/1774574824452-vf305u.mov'], caption: 'Summer vibes with the new collection! 🌴☀️' },
-        { id: 1, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@marcusking', name: 'Marcus King', initials: 'MK', tier: 'Macro Influencer', campaign: 'General', date: '5 hours ago', duration: null, fileSize: '3.2 MB', status: 'approved', daysRemaining: null, avatarStyle: 'background:linear-gradient(135deg,#ED8444,#e06030)', mediaUrls: ['/uploads/1774566644170-0sarfo.jpeg'], caption: 'Loving the brand energy 🔥' },
-        { id: 2, type: 'Video', icon: '\u25B6', influencer: '@amylee_creates', name: 'Amy Lee', initials: 'AL', tier: 'Nano Influencer', campaign: 'Brand Launch', date: '1 day ago', duration: null, fileSize: '1.5 MB', status: 'pending', daysRemaining: 5, avatarStyle: '', mediaUrls: ['/uploads/1774566239610-vt0195.MOV'], caption: 'Quick unboxing for the launch!' },
-        { id: 3, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@tyreese_r', name: 'Tyreese R.', initials: 'TR', tier: 'Micro Influencer', campaign: 'Summer Promo', date: '2 days ago', duration: null, fileSize: '5.1 MB', status: 'pending', daysRemaining: 3, avatarStyle: '', mediaUrls: ['/uploads/1774566886289-7pzqsn.jpeg'], caption: 'Product shot in natural light' },
-        { id: 4, type: 'Image', icon: '\uD83D\uDDBC', influencer: '@nina_k', name: 'Nina Kim', initials: 'NK', tier: 'Micro Influencer', campaign: 'General', date: '3 days ago', duration: null, fileSize: '200 KB', status: 'pending', daysRemaining: 1, avatarStyle: 'background:linear-gradient(135deg,#707BBB,#5a6aaa)', mediaUrls: ['/uploads/1774566118590-6b741n.jpeg'], caption: '' }
-      ];
-      currentIndex = parseInt(paramId) || 0;
+      contentItems = [];
+      currentIndex = 0;
       loadContent(currentIndex);
     }
 

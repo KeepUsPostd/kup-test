@@ -1519,8 +1519,8 @@
       <button class="kup-modal-close" id="ipModalClose" aria-label="Close">&times;</button>
       <div class="ip-header">
         <div class="ip-avatar" id="ipAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
-        <h3 class="ip-handle" id="ipModalHandle">@jessicadavis</h3>
-        <p class="ip-name" id="ipName">Jessica Davis</p>
+        <h3 class="ip-handle" id="ipModalHandle"></h3>
+        <p class="ip-name" id="ipName"></p>
         <span class="ip-tier tier-badge micro" id="ipTier">Micro Influencer</span>
       </div>
       <div class="ip-stats">
@@ -1557,8 +1557,8 @@
       <div class="notice-header">
         <div class="notice-avatar" id="cNoticeAvatar"><svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
         <div>
-          <div class="notice-user-name" id="cNoticeModalName">Jessica Davis</div>
-          <div class="notice-user-handle" id="cNoticeHandle">@jessicadavis</div>
+          <div class="notice-user-name" id="cNoticeModalName"></div>
+          <div class="notice-user-handle" id="cNoticeHandle"></div>
         </div>
       </div>
       <!-- AI Assist -->
@@ -1762,13 +1762,9 @@
     var PERSON_SVG = '<svg viewBox="0 0 24 24" fill="#9CA3AF" width="55%" height="55%"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
 
     /* ============== INFLUENCER PROFILE MODAL ============== */
-    var influencerData = {
-      jessicadavis:   { initials: 'JD', handle: '@jessicadavis',   name: 'Jessica Davis',      tier: 'Micro Influencer', tierClass: 'micro', followers: '12.4K', engagement: '3.2%', posts: '34', bio: 'Fashion and lifestyle content creator based in Austin, TX. Passionate about sustainable brands and authentic storytelling through video and photography.' },
-      marcusking:     { initials: 'MK', handle: '@marcusking',     name: 'Marcus King',        tier: 'Macro Influencer', tierClass: 'macro', followers: '245K',  engagement: '2.8%', posts: '28', bio: 'Tech and gaming content creator with a passion for honest product reviews. Partner with brands that value authenticity.' },
-      amylee_creates: { initials: 'AL', handle: '@amylee_creates', name: 'Amy Lee',            tier: 'Nano Influencer',  tierClass: 'nano',  followers: '8.2K',  engagement: '5.1%', posts: '22', bio: 'DIY and craft enthusiast sharing creative tutorials and handmade projects. Love working with small, unique brands.' },
-      tyreese_r:      { initials: 'TR', handle: '@tyreese_r',      name: 'Tyreese Robinson',   tier: 'Micro Influencer', tierClass: 'micro', followers: '15.8K', engagement: '4.0%', posts: '19', bio: 'Fitness and wellness content creator. Focused on affordable, accessible health tips for everyday people.' },
-      nina_k:         { initials: 'NK', handle: '@nina_k',         name: 'Nina Kim',           tier: 'Micro Influencer', tierClass: 'micro', followers: '22.1K', engagement: '3.6%', posts: '18', bio: 'Beauty and skincare reviewer sharing honest product breakdowns. Korean beauty specialist and clean beauty advocate.' }
-    };
+    // Lookup table for static [data-influencer] hooks. Populated dynamically
+    // when real influencer data loads — empty until then, no placeholders.
+    var influencerData = {};
 
     document.querySelectorAll('[data-influencer]').forEach(function(el) {
       el.addEventListener('click', function(e) {

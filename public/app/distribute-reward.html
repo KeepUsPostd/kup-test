@@ -407,7 +407,7 @@
               <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
             </div>
             <h3>Gift Points</h3>
-            <p>Gift points from your account balance to Jessica Davis</p>
+            <p>Gift points from your account balance to the selected influencer</p>
           </div>
           <div class="points-form">
             <input type="number" class="points-input" id="giftAmount" placeholder="Enter point amount" min="0">
@@ -1268,15 +1268,16 @@
     }
 
     function showDemoScanResult() {
-      _scannedInfluencer = {
-        influencerName: 'Jessica Davis',
-        handle: 'jessicadavis',
-        tier: 'Micro Influencer',
-        followers: 12400,
-        engagement: 3.2,
-        posts: 47
-      };
-      showScanResultCard(_scannedInfluencer);
+      // No real partnerships yet — show a helpful empty state instead
+      // of fake data. A real scanned QR would provide the influencer.
+      var card = document.getElementById('scanResultCard');
+      if (card) {
+        card.innerHTML = '<div style="padding:24px;text-align:center;color:#6b7280;">' +
+          '<p style="font-weight:600;margin-bottom:4px;">No linked influencer yet</p>' +
+          '<p style="font-size:0.85rem;">Scan an influencer\u2019s QR code once you have active partnerships.</p>' +
+          '</div>';
+        card.style.display = 'block';
+      }
     }
 
     function showScanResultCard(inf) {
