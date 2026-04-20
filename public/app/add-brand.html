@@ -985,6 +985,20 @@
     document.getElementById('logoPreviewCircle').textContent = data.initials;
     document.getElementById('contactName').value = data.contact;
 
+    // If the scraper returned a real theme-color, pre-fill the color pickers
+    // so the user sees their real brand color instead of the default #2EA5DD.
+    var scraped = window.__kupScrapedExtras || {};
+    if (scraped.themeColor) {
+      var setColor = function(id, hexId) {
+        var picker = document.getElementById(id);
+        var hex = document.getElementById(hexId);
+        if (picker) picker.value = scraped.themeColor;
+        if (hex) hex.value = scraped.themeColor.toUpperCase();
+      };
+      setColor('obColorPrimary', 'obColorPrimaryHex');
+      setColor('obColorSecondary', 'obColorSecondaryHex');
+    }
+
     // Update char count
     document.getElementById('descCount').textContent = data.description.length + ' / 250';
 
@@ -1007,8 +1021,11 @@
     btn.querySelector('.btn-find-spinner').style.display = spinning ? 'inline-flex' : 'none';
   }
 
+  // Scraped extras preserved across wizard → publish
+  window.__kupScrapedExtras = { websiteUrl: '', logoUrl: '', imageUrl: '', themeColor: '' };
+
   /* ── Mode 1: Website URL ─────────────────────── */
-  document.getElementById('findBrandBtn').addEventListener('click', function() {
+  document.getElementById('findBrandBtn').addEventListener('click', async function() {
     var url = document.getElementById('brandUrl').value.trim();
     if (!url) {
       document.getElementById('brandUrl').focus();
@@ -1018,26 +1035,46 @@
     var btn = this;
     spinButton(btn, true);
 
-    setTimeout(function() {
-      var data = getDemoDataForUrl(url);
-      populateFromAI(data, 'Brand information found!');
-      spinButton(btn, false);
-    }, 1500);
-  });
-
-  function getDemoDataForUrl(url) {
-    // Extract only what we can honestly derive from the URL itself.
-    // Full website scraping (colors, logo, copy) is not implemented yet.
     var domain = url.replace(/https?:\/\//, '').replace(/www\./, '').split('/')[0].split('.')[0];
-    var cap = domain.charAt(0).toUpperCase() + domain.slice(1);
-    var initials = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
-    return {
-      name: cap, initials: initials,
-      industry: '', description: '', location: '',
-      instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '', contact: '',
-      bannerText: "We pre-filled your brand name from the domain. Please fill in the remaining details."
-    };
-  }
+    var capName = domain.charAt(0).toUpperCase() + domain.slice(1);
+    var capInits = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
+
+    try {
+      var result = await kupApi.post('/api/brands/scrape', { url: url });
+      var s = (result && result.data) || {};
+      window.__kupScrapedExtras = {
+        websiteUrl: url,
+        logoUrl: s.logoUrl || '',
+        imageUrl: s.imageUrl || '',
+        themeColor: s.themeColor || '',
+      };
+      var name = s.name || capName;
+      populateFromAI({
+        name: name,
+        initials: (name.match(/\b[A-Z]/g) || [name.charAt(0)]).join('').toUpperCase().substring(0, 3) || capInits,
+        industry: '',
+        description: s.description || '',
+        location: '',
+        instagram: (s.socials && s.socials.instagram) || '',
+        twitter:   (s.socials && s.socials.twitter) || '',
+        tiktok:    (s.socials && s.socials.tiktok) || '',
+        facebook:  (s.socials && s.socials.facebook) || '',
+        linkedin:  (s.socials && s.socials.linkedin) || '',
+        contact: '',
+        bannerText: "Pulled real info from your website. Please review and fill in anything missing.",
+      }, 'Brand information found!');
+    } catch (err) {
+      populateFromAI({
+        name: capName, initials: capInits,
+        industry: '', description: '', location: '',
+        instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '', contact: '',
+        bannerText: "We couldn't reach that site. Pre-filled your brand name from the domain \u2014 please fill in the rest.",
+      }, 'Site unreachable — filled what we could');
+      window.__kupScrapedExtras = { websiteUrl: url, logoUrl: '', imageUrl: '', themeColor: '' };
+    } finally {
+      spinButton(btn, false);
+    }
+  });
 
   /* ── Mode 2: Social Page ─────────────────────── */
   document.getElementById('findSocialBtn').addEventListener('click', function() {
@@ -1347,7 +1384,7 @@
       description: (document.getElementById('brandDescription').value || '').trim(),
       location: (document.getElementById('brandLocation').value || '').trim(),
       contactName: (document.getElementById('contactName').value || '').trim(),
-      website: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
+      websiteUrl: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
       socials: {
         instagram: (document.getElementById('socialIg').value || '').trim(),
         twitter: (document.getElementById('socialX').value || '').trim(),

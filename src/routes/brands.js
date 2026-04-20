@@ -8,6 +8,19 @@ const { Brand, BrandProfile, BrandMember, BrandInvite, User } = require('../mode
 const crypto = require('crypto');
 const { startTrial, checkTrialStatus } = require('../services/trial');
 const notify = require('../services/notifications');
+const { scrapeBrandFromUrl } = require('../services/brandScrape');
+const rateLimit = require('express-rate-limit');
+
+// Per-user rate limit for the scrape endpoint — prevents using the API as a
+// generic SSRF probe. 10 scrapes per 5 minutes is plenty for legit onboarding.
+const scrapeLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => (req.user && req.user._id && req.user._id.toString()) || req.ip,
+  message: { error: 'Too many scrape requests', message: 'Please wait a few minutes before trying again.' },
+});
 
 // Auto-geocode a brand's city to GeoJSON coordinates (non-blocking)
 async function geocodeBrand(brandId, city) {
@@ -269,6 +282,31 @@ router.get('/', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('List brands error:', error.message);
     res.status(500).json({ error: 'Could not fetch brands' });
+  }
+});
+
+// POST /api/brands/scrape — Real website scraper for the onboarding wizard
+// Fetches the given URL (with SSRF guards + timeout) and extracts brand info
+// from OpenGraph tags, <title>, meta description, favicon, and theme-color.
+// Replaces the previous hardcoded "Find My Brand" demo data.
+//
+// MUST be before /:brandId to prevent "scrape" being treated as a brandId
+router.post('/scrape', requireAuth, scrapeLimiter, async (req, res) => {
+  try {
+    const { url } = req.body || {};
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'url is required' });
+    }
+    const data = await scrapeBrandFromUrl(url);
+    return res.json({ success: true, data });
+  } catch (err) {
+    const status = err.status || 502;
+    // 4xx = the caller's fault (bad/private URL); 5xx = upstream issues
+    console.warn('[scrape] ' + (err.message || err) + ' for url=' + (req.body && req.body.url));
+    return res.status(status).json({
+      error: 'Scrape failed',
+      message: status === 400 ? err.message : 'Could not fetch that website. It may be unreachable or blocking automated requests.',
+    });
   }
 });
 

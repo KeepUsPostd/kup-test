@@ -922,7 +922,10 @@
   }
 
   /* ── Mode 1: Website URL ─────────────────────── */
-  document.getElementById('findBrandBtn').addEventListener('click', function() {
+  // Scraped extras preserved across wizard → publish (not covered by populateFromAI form fields)
+  window.__kupScrapedExtras = { websiteUrl: '', logoUrl: '', imageUrl: '', themeColor: '' };
+
+  document.getElementById('findBrandBtn').addEventListener('click', async function() {
     var url = document.getElementById('brandUrl').value.trim();
     if (!url) {
       document.getElementById('brandUrl').focus();
@@ -932,26 +935,51 @@
     var btn = this;
     spinButton(btn, true);
 
-    setTimeout(function() {
-      var data = getDemoDataForUrl(url);
-      populateFromAI(data, 'Brand information found!');
-      spinButton(btn, false);
-    }, 1500);
-  });
-
-  function getDemoDataForUrl(url) {
-    // Extract only what we can honestly derive from the URL itself.
-    // Full website scraping (colors, logo, copy) is not implemented yet.
+    // Derive a sane fallback (just the capitalized domain) so even if the
+    // upstream scrape fails we at least pre-fill the brand name.
     var domain = url.replace(/https?:\/\//, '').replace(/www\./, '').split('/')[0].split('.')[0];
-    var cap = domain.charAt(0).toUpperCase() + domain.slice(1);
-    var initials = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
-    return {
-      name: cap, initials: initials,
-      industry: '', description: '', location: '',
-      instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '', contact: '',
-      bannerText: "We pre-filled your brand name from the domain. Please fill in the remaining details."
-    };
-  }
+    var capName = domain.charAt(0).toUpperCase() + domain.slice(1);
+    var capInits = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
+
+    try {
+      var result = await kupApi.post('/api/brands/scrape', { url: url });
+      var s = (result && result.data) || {};
+      // Save scraped extras (used when publishing the brand)
+      window.__kupScrapedExtras = {
+        websiteUrl: url,
+        logoUrl: s.logoUrl || '',
+        imageUrl: s.imageUrl || '',
+        themeColor: s.themeColor || '',
+      };
+      var name = s.name || capName;
+      var data = {
+        name: name,
+        initials: (name.match(/\b[A-Z]/g) || [name.charAt(0)]).join('').toUpperCase().substring(0, 3) || capInits,
+        industry: '',
+        description: s.description || '',
+        location: '',
+        instagram: (s.socials && s.socials.instagram) || '',
+        twitter:   (s.socials && s.socials.twitter) || '',
+        tiktok:    (s.socials && s.socials.tiktok) || '',
+        facebook:  (s.socials && s.socials.facebook) || '',
+        linkedin:  (s.socials && s.socials.linkedin) || '',
+        contact: '',
+        bannerText: "Pulled real info from your website. Please review and fill in anything missing.",
+      };
+      populateFromAI(data, 'Brand information found!');
+    } catch (err) {
+      // Fall back gracefully — use the domain-name guess
+      populateFromAI({
+        name: capName, initials: capInits,
+        industry: '', description: '', location: '',
+        instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '', contact: '',
+        bannerText: "We couldn't reach that site. Pre-filled your brand name from the domain \u2014 please fill in the rest.",
+      }, 'Site unreachable — filled what we could');
+      window.__kupScrapedExtras = { websiteUrl: url, logoUrl: '', imageUrl: '', themeColor: '' };
+    } finally {
+      spinButton(btn, false);
+    }
+  });
 
   /* ── Mode 2: Social Page ─────────────────────── */
   document.getElementById('findSocialBtn').addEventListener('click', function() {
@@ -1369,12 +1397,22 @@
           return;
         }
 
-        // Call the API to create the brand in MongoDB
-        var result = await kupApi.post('/api/brands', {
+        // Build the payload. If the scraper gave us a themeColor + website,
+        // pass them through so the brand gets its real color instead of
+        // the hash-generated fallback.
+        var extras = window.__kupScrapedExtras || {};
+        var createBody = {
           name: brandName,
           category: brandIndustry || null,
           description: brandDescription || null,
-        });
+        };
+        if (extras.websiteUrl) createBody.websiteUrl = extras.websiteUrl;
+        if (extras.themeColor) {
+          createBody.brandColors = { primary: extras.themeColor, secondary: extras.themeColor };
+        }
+
+        // Call the API to create the brand in MongoDB
+        var result = await kupApi.post('/api/brands', createBody);
 
         if (result && result.error) {
           throw new Error(result.message || result.error);
