@@ -1717,7 +1717,7 @@
         if (previewLogo) previewLogo.innerHTML = '<img src="' + b.logoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
       }
 
-      // Banner preview
+      // Banner preview — update both the phone preview and the upload-box preview
       if (b.heroImageUrl) {
         var previewBanner = document.getElementById('previewBanner');
         if (previewBanner) {
@@ -1725,6 +1725,12 @@
           previewBanner.style.backgroundSize = 'cover';
           previewBanner.style.backgroundPosition = 'center';
         }
+        // Show the existing banner inside the upload box so the user sees
+        // what's already set and knows they can click to replace it.
+        var bannerImg = document.getElementById('bannerPreviewImg');
+        if (bannerImg) { bannerImg.src = b.heroImageUrl; bannerImg.style.display = 'block'; }
+        var bannerPlaceholder = document.getElementById('bannerUploadPlaceholder');
+        if (bannerPlaceholder) bannerPlaceholder.style.display = 'none';
       }
 
       // Skip to step 1 (the form) instead of step 0 (scrape/manual choice)
