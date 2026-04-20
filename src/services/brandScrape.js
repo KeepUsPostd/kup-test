@@ -148,12 +148,22 @@ function normalizeThemeColor(c) {
   if (!c || typeof c !== 'string') return '';
   const s = c.trim().toLowerCase();
   // Accept #rgb or #rrggbb; reject named colors / rgb()/hsl() for now
-  if (/^#([0-9a-f]{3}){1,2}$/.test(s)) {
-    // Expand #rgb to #rrggbb
-    if (s.length === 4) return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
-    return s;
-  }
-  return '';
+  if (!/^#([0-9a-f]{3}){1,2}$/.test(s)) return '';
+  // Expand #rgb to #rrggbb
+  const hex = s.length === 4
+    ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3]
+    : s;
+  // Reject near-white / near-black / neutral-grey values. Those are almost
+  // always page backgrounds or browser-chrome hints, not brand colors.
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max; // 0 = fully desaturated
+  if (max > 235) return '';        // too close to white (covers #f5f5f5, #fff, etc.)
+  if (max < 30) return '';         // too close to black
+  if (saturation < 0.1) return ''; // neutral grey regardless of brightness
+  return hex;
 }
 
 function extractSocialHandle(href, pattern) {
