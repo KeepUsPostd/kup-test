@@ -548,6 +548,16 @@
           </div>
 
           <div class="form-group">
+            <label>Full Address <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional \u2014 helps local-business discovery)</span></label>
+            <input type="text" id="brandAddress" placeholder="Street address" style="margin-bottom:8px">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px">
+              <input type="text" id="brandCity"  placeholder="City">
+              <input type="text" id="brandState" placeholder="State" maxlength="4">
+              <input type="text" id="brandZip"   placeholder="ZIP" maxlength="10">
+            </div>
+          </div>
+
+          <div class="form-group">
             <label>Social Links</label>
             <div class="social-input"><span class="social-icon">ig</span><input type="text" id="socialIg" placeholder="Instagram handle"></div>
             <div class="social-input"><span class="social-icon">X</span><input type="text" id="socialX" placeholder="X handle"></div>
@@ -1487,6 +1497,10 @@
       category: document.getElementById('brandIndustry').value || '',       // ← was 'industry' (dropped silently)
       description: (document.getElementById('brandDescription').value || '').trim(),
       location: (document.getElementById('brandLocation').value || '').trim(),
+      address:  (document.getElementById('brandAddress') ? document.getElementById('brandAddress').value : '').trim() || undefined,
+      city:     (document.getElementById('brandCity')    ? document.getElementById('brandCity').value    : '').trim() || undefined,
+      state:    (document.getElementById('brandState')   ? document.getElementById('brandState').value   : '').trim().toUpperCase() || undefined,
+      zip:      (document.getElementById('brandZip')     ? document.getElementById('brandZip').value     : '').trim() || undefined,
       contactName: (document.getElementById('contactName').value || '').trim(),
       websiteUrl: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
       socialLinks: {                                                        // ← was 'socials' (dropped silently)
@@ -1680,6 +1694,10 @@
       if (b.category) document.getElementById('brandIndustry').value = b.category;
       if (b.description) document.getElementById('brandDescription').value = b.description;
       if (b.location) document.getElementById('brandLocation').value = b.location;
+      if (b.address) document.getElementById('brandAddress').value = b.address;
+      if (b.city)    document.getElementById('brandCity').value    = b.city;
+      if (b.state)   document.getElementById('brandState').value   = b.state;
+      if (b.zip)     document.getElementById('brandZip').value     = b.zip;
       var urlField = document.getElementById('brandUrl');
       // Use the correct field name per the Brand model (was 'website', which is always undefined)
       if (urlField && b.websiteUrl) urlField.value = b.websiteUrl;
