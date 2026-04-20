@@ -1026,22 +1026,16 @@
   });
 
   function getDemoDataForUrl(url) {
+    // Extract only what we can honestly derive from the URL itself.
+    // Full website scraping (colors, logo, copy) is not implemented yet.
     var domain = url.replace(/https?:\/\//, '').replace(/www\./, '').split('/')[0].split('.')[0];
     var cap = domain.charAt(0).toUpperCase() + domain.slice(1);
     var initials = domain.length >= 2 ? domain.substring(0, 2).toUpperCase() : domain.toUpperCase();
-
-    var industries = { 'nike':'Fashion & Beauty', 'starbucks':'Food & Beverage', 'apple':'Technology & SaaS', 'netflix':'Entertainment', 'airbnb':'Travel & Lifestyle', 'peloton':'Health & Fitness' };
-    var locations = { 'nike':'Portland, OR', 'starbucks':'Seattle, WA', 'apple':'Cupertino, CA', 'netflix':'Los Gatos, CA', 'airbnb':'San Francisco, CA' };
-    var industry = industries[domain.toLowerCase()] || 'Technology & SaaS';
-    var location = locations[domain.toLowerCase()] || 'Austin, TX';
-
     return {
-      name: cap, initials: initials, industry: industry,
-      description: cap + ' is a forward-thinking brand dedicated to delivering exceptional experiences. We partner with authentic creators to share our story and connect with new audiences through genuine content.',
-      location: location,
-      instagram: '@' + domain.toLowerCase(), twitter: '@' + domain.toLowerCase(), tiktok: '@' + domain.toLowerCase(),
-      facebook: '', linkedin: '', contact: '',
-      bannerText: "Here's what we found from your website &mdash; edit anything that's not right."
+      name: cap, initials: initials,
+      industry: '', description: '', location: '',
+      instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '', contact: '',
+      bannerText: "We pre-filled your brand name from the domain. Please fill in the remaining details."
     };
   }
 
@@ -1079,12 +1073,12 @@
     var cap = handle.charAt(0).toUpperCase() + handle.slice(1);
     var initials = handle.length >= 2 ? handle.substring(0, 2).toUpperCase() : handle.toUpperCase();
 
+    // Only fill what we can derive from the URL itself: brand-name guess + the matching social handle.
     var result = {
-      name: cap, initials: initials, industry: 'Retail & E-commerce',
-      description: cap + ' creates authentic content and connects with their community through ' + platform + '. Partnering with influencers to share real experiences.',
-      location: 'United States', contact: '',
+      name: cap, initials: initials,
+      industry: '', description: '', location: '', contact: '',
       instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '',
-      bannerText: "Pulled from your " + platform + " profile &mdash; edit anything that's not right."
+      bannerText: "We pre-filled your brand name and " + platform + " handle. Please fill in the remaining details."
     };
 
     // Pre-fill the matching social field
@@ -1149,9 +1143,10 @@
     return {
       name: brandName, initials: initials, industry: industry,
       description: prompt.length <= 250 ? prompt : prompt.substring(0, 247) + '...',
-      location: location, contact: '',
+      location: location === 'United States' ? '' : location,
+      contact: '',
       instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '',
-      bannerText: "Built from your description &mdash; edit anything that's not right."
+      bannerText: "We pre-filled details from your description. Please review and edit."
     };
   }
 
