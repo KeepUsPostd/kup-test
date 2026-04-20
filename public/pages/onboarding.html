@@ -1342,6 +1342,7 @@
       var brandIndustry = document.getElementById('brandIndustry') ? document.getElementById('brandIndustry').value : '';
       var brandDescription = (document.getElementById('brandDescription') ? document.getElementById('brandDescription').value : '').trim();
       var brandLocation = (document.getElementById('brandLocation') ? document.getElementById('brandLocation').value : '').trim();
+      var contactName = (document.getElementById('contactName') ? document.getElementById('contactName').value : '').trim();
 
       if (!brandName) {
         if (typeof kupToast === 'function') kupToast('Please enter a brand name', 'error');
@@ -1380,6 +1381,27 @@
         }
 
         console.log('✅ Brand created in MongoDB:', result.brand ? result.brand._id : 'success');
+
+        // Save the contact name entered in the wizard to the User record so
+        // it shows up in the header + Owner Account page.
+        if (contactName) {
+          try {
+            var parts = contactName.split(/\s+/);
+            var first = parts[0] || '';
+            var last = parts.slice(1).join(' ') || '';
+            await kupApi.put('/api/auth/profile', { firstName: first, lastName: last });
+            // Update local cache so header-profile.js picks it up immediately
+            try {
+              var cached = JSON.parse(localStorage.getItem('kupUser') || '{}');
+              cached.firstName = first;
+              cached.lastName = last;
+              localStorage.setItem('kupUser', JSON.stringify(cached));
+            } catch(e) {}
+            console.log('✅ Saved contact name: ' + contactName);
+          } catch(nameErr) {
+            console.warn('Could not save contact name:', nameErr);
+          }
+        }
 
         // Mark onboarding complete in the database
         try {
