@@ -484,8 +484,25 @@
           <div class="form-group">
             <label>Brand Logo</label>
             <div class="logo-preview-row">
-              <div class="logo-preview-circle" id="logoPreviewCircle">KP</div>
-              <span class="logo-change-link">Auto-pulled from website. <a href="#">Click to change</a></span>
+              <div class="logo-preview-circle" id="logoPreviewCircle" style="cursor:pointer" onclick="document.getElementById('logoFileInput').click()" title="Click to upload a new logo">KP</div>
+              <span class="logo-change-link">
+                <a href="#" id="logoChangeLink" onclick="event.preventDefault(); document.getElementById('logoFileInput').click();">Click to upload a logo</a>
+                <span style="display:block;font-size:.7rem;color:#bbb;margin-top:2px">PNG / JPG / WebP · max 2 MB</span>
+              </span>
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Brand Banner <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional)</span></label>
+            <p style="font-size:.78rem;color:#888;margin:-2px 0 10px;line-height:1.4">Shown at the top of your brand page. Recommended 1200&times;630.</p>
+            <div id="bannerUploadBox" onclick="document.getElementById('bannerFileInput').click()" style="position:relative;border:2px dashed #ddd;border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+              <img id="bannerPreviewImg" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
+              <div id="bannerUploadPlaceholder" style="position:relative;z-index:1">
+                <div style="font-size:.85rem;color:#666;font-weight:600;margin-bottom:4px">Click to upload banner</div>
+                <div style="font-size:.7rem;color:#bbb">PNG / JPG / WebP &middot; max 5 MB</div>
+              </div>
+              <input type="file" id="bannerFileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
             </div>
           </div>
 
@@ -1024,6 +1041,82 @@
   // Scraped extras preserved across wizard → publish
   window.__kupScrapedExtras = { websiteUrl: '', logoUrl: '', imageUrl: '', themeColor: '' };
 
+  /* ============== LOGO + BANNER UPLOAD ============== */
+  // Tracks user-uploaded asset URLs so the publish handler can save them.
+  // These get POSTed through the plain /api/upload endpoint (same pattern
+  // the old brand-profile wizard used before the April 6 regression).
+  window.__kupUploadedLogoUrl = null;
+  window.__kupUploadedBannerUrl = null;
+
+  async function kupUploadImage(file, maxMB) {
+    if (!file) return null;
+    if (!file.type || !file.type.startsWith('image/')) {
+      if (typeof kupToast === 'function') kupToast('Please select an image file', 'error');
+      return null;
+    }
+    if (file.size > (maxMB || 5) * 1024 * 1024) {
+      if (typeof kupToast === 'function') kupToast('File too large — max ' + (maxMB || 5) + ' MB', 'error');
+      return null;
+    }
+    try {
+      var result = await kupApi.upload('/api/upload', [file], 'media');
+      if (result && result.urls && result.urls.length > 0) {
+        return result.urls[0];
+      }
+      if (typeof kupToast === 'function') kupToast('Upload failed', 'error');
+      return null;
+    } catch (err) {
+      if (typeof kupToast === 'function') kupToast('Upload error: ' + (err.message || err), 'error');
+      return null;
+    }
+  }
+
+  // Logo upload — click circle or link triggers the file input
+  (function wireLogoUpload() {
+    var input = document.getElementById('logoFileInput');
+    if (!input) return;
+    input.addEventListener('change', async function(e) {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var url = await kupUploadImage(file, 2);
+      if (!url) { this.value = ''; return; }
+      window.__kupUploadedLogoUrl = url;
+      // Live preview: swap circle contents for the uploaded image
+      var circle = document.getElementById('logoPreviewCircle');
+      if (circle) circle.innerHTML = '<img src="' + url + '" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      var previewLogo = document.getElementById('previewLogo');
+      if (previewLogo) previewLogo.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+      if (typeof kupToast === 'function') kupToast('Logo uploaded', 'success');
+      this.value = ''; // allow re-selecting the same file
+    });
+  })();
+
+  // Banner upload — click the upload box
+  (function wireBannerUpload() {
+    var input = document.getElementById('bannerFileInput');
+    if (!input) return;
+    input.addEventListener('change', async function(e) {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var url = await kupUploadImage(file, 5);
+      if (!url) { this.value = ''; return; }
+      window.__kupUploadedBannerUrl = url;
+      // Live preview inside the upload box + in the phone preview
+      var img = document.getElementById('bannerPreviewImg');
+      if (img) { img.src = url; img.style.display = 'block'; }
+      var placeholder = document.getElementById('bannerUploadPlaceholder');
+      if (placeholder) placeholder.style.display = 'none';
+      var previewBanner = document.getElementById('previewBanner');
+      if (previewBanner) {
+        previewBanner.style.backgroundImage = 'url(' + url + ')';
+        previewBanner.style.backgroundSize = 'cover';
+        previewBanner.style.backgroundPosition = 'center';
+      }
+      if (typeof kupToast === 'function') kupToast('Banner uploaded', 'success');
+      this.value = '';
+    });
+  })();
+
   /* ── Mode 1: Website URL ─────────────────────── */
   document.getElementById('findBrandBtn').addEventListener('click', async function() {
     var url = document.getElementById('brandUrl').value.trim();
@@ -1372,51 +1465,86 @@
   }
 
   /* ── Collect brand form data ───────────────── */
+  // Produces a payload that matches the Brand model's field names so the
+  // backend doesn't silently drop fields. Field-name typos (industry vs
+  // category, socials vs socialLinks) were a long-standing regression.
   function collectBrandPayload(status) {
     var selectedOffers = [];
     document.querySelectorAll('.offer-card.selected').forEach(function(c) {
       selectedOffers.push(c.getAttribute('data-offer'));
     });
+    var primary   = document.getElementById('obColorPrimary')   ? document.getElementById('obColorPrimary').value.toUpperCase() : null;
+    var secondary = document.getElementById('obColorSecondary') ? document.getElementById('obColorSecondary').value.toUpperCase() : null;
     return {
       name: (document.getElementById('brandName').value || '').trim(),
       brandHandle: (document.getElementById('brandHandle').value || '').trim().toLowerCase() || null,
-      industry: document.getElementById('brandIndustry').value || '',
+      category: document.getElementById('brandIndustry').value || '',       // ← was 'industry' (dropped silently)
       description: (document.getElementById('brandDescription').value || '').trim(),
       location: (document.getElementById('brandLocation').value || '').trim(),
       contactName: (document.getElementById('contactName').value || '').trim(),
       websiteUrl: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
-      socials: {
+      socialLinks: {                                                        // ← was 'socials' (dropped silently)
         instagram: (document.getElementById('socialIg').value || '').trim(),
-        twitter: (document.getElementById('socialX').value || '').trim(),
-        tiktok: (document.getElementById('socialTt').value || '').trim(),
-        facebook: (document.getElementById('socialFb').value || '').trim(),
-        linkedin: (document.getElementById('socialLi').value || '').trim()
+        twitter:   (document.getElementById('socialX').value || '').trim(),
+        tiktok:    (document.getElementById('socialTt').value || '').trim(),
+        facebook:  (document.getElementById('socialFb').value || '').trim(),
+        linkedin:  (document.getElementById('socialLi').value || '').trim()
       },
       offers: selectedOffers,
       offerDescription: (document.getElementById('offerDescription') ? document.getElementById('offerDescription').value.trim() : ''),
-      offerValue: (document.getElementById('offerValue') ? document.getElementById('offerValue').value.trim() : ''),
-      brandColors: {
-        primary: (document.getElementById('obColorPrimary') ? document.getElementById('obColorPrimary').value.toUpperCase() : null),
-        secondary: (document.getElementById('obColorSecondary') ? document.getElementById('obColorSecondary').value.toUpperCase() : null)
-      },
+      offerValue:       (document.getElementById('offerValue')       ? document.getElementById('offerValue').value.trim()       : ''),
+      brandColors: { primary: primary, secondary: secondary },
+      // Newly uploaded asset URLs (null if user didn't upload during this session)
+      logoUrl:      window.__kupUploadedLogoUrl   || undefined,
+      heroImageUrl: window.__kupUploadedBannerUrl || undefined,
       status: status
     };
+  }
+
+  // Whitelist of fields the PUT /api/brands/:brandId endpoint accepts.
+  // Used to strip any create-only fields (offers, contactName) before updating.
+  function filterForBrandUpdate(payload) {
+    var allowed = ['name', 'category', 'subcategory', 'description',
+      'websiteUrl', 'tags', 'logoUrl', 'heroImageUrl', 'location',
+      'email', 'phone', 'address', 'city', 'state', 'zip', 'coordinates',
+      'socialLinks', 'brandColors'];
+    var out = {};
+    allowed.forEach(function(f) {
+      if (payload[f] !== undefined && payload[f] !== null && payload[f] !== '') out[f] = payload[f];
+    });
+    return out;
   }
 
   /* ── Publish / Save Draft ───────────────────── */
   document.getElementById('publishBtn').addEventListener('click', async function() {
     var btn = this;
+    var isEdit = !!_editBrandId;
     btn.disabled = true;
-    btn.textContent = 'Publishing...';
+    btn.textContent = isEdit ? 'Saving...' : 'Publishing...';
 
     try {
       var payload = collectBrandPayload('published');
-      var result = await kupApi.post('/api/brands', payload);
+      var result;
+      if (isEdit) {
+        // Edit mode: PUT only the brand-model fields; skip create-only (offers, contactName, status)
+        result = await kupApi.put('/api/brands/' + _editBrandId, filterForBrandUpdate(payload));
+      } else {
+        result = await kupApi.post('/api/brands', payload);
+      }
 
       if (result && result.error) {
-        kupToast(result.error || 'Failed to publish brand.', 'error');
+        kupToast(result.error || (isEdit ? 'Failed to save brand.' : 'Failed to publish brand.'), 'error');
         btn.disabled = false;
-        btn.textContent = 'Publish to Marketplace';
+        btn.textContent = isEdit ? 'Save Changes' : 'Publish to Marketplace';
+        return;
+      }
+
+      // In edit mode, just toast + redirect back to brand-home — no success overlay needed
+      if (isEdit) {
+        kupToast('Brand updated', 'success');
+        // Clear localStorage brand cache so brand-home re-syncs fresh data
+        try { localStorage.removeItem('kup_active_brand'); localStorage.removeItem('kup_brands_list'); } catch(e) {}
+        setTimeout(function() { window.location.href = '/app/brand-home.html'; }, 600);
         return;
       }
 
