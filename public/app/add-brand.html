@@ -1284,16 +1284,22 @@
   document.getElementById('manualSetupLink').addEventListener('click', function(e) {
     e.preventDefault();
     document.getElementById('aiResultsSection').style.display = 'block';
-    document.getElementById('brandName').value = '';
-    document.getElementById('brandDescription').value = '';
-    document.getElementById('brandIndustry').selectedIndex = 0;
-    document.getElementById('brandLocation').value = '';
-    document.getElementById('contactName').value = '';
-    document.getElementById('brandName').focus();
 
-    // Change banner text
+    // In edit mode, DON'T clear — the form is pre-filled with the user's
+    // existing brand data and clearing would wipe it. Just reveal the fields.
+    var isEditMode = new URLSearchParams(window.location.search).get('edit') === 'true';
+    if (!isEditMode) {
+      document.getElementById('brandName').value = '';
+      document.getElementById('brandDescription').value = '';
+      document.getElementById('brandIndustry').selectedIndex = 0;
+      document.getElementById('brandLocation').value = '';
+      document.getElementById('contactName').value = '';
+      document.getElementById('brandName').focus();
+    }
+
+    // Change banner text (only for first-time setup)
     var banner = document.querySelector('.ai-results-banner');
-    if (banner) {
+    if (banner && !isEditMode) {
       banner.innerHTML = '<span class="ai-icon">&#9998;</span> Fill in your brand details below.';
       banner.style.background = 'rgba(112,123,187,.06)';
       banner.style.borderColor = 'rgba(112,123,187,.15)';
