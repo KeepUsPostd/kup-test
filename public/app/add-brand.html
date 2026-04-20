@@ -1546,18 +1546,24 @@
       if (b.category) document.getElementById('brandIndustry').value = b.category;
       if (b.description) document.getElementById('brandDescription').value = b.description;
       if (b.location) document.getElementById('brandLocation').value = b.location;
-      if (b.contactName) document.getElementById('contactName').value = b.contactName;
       var urlField = document.getElementById('brandUrl');
-      if (urlField && b.website) urlField.value = b.website;
+      // Use the correct field name per the Brand model (was 'website', which is always undefined)
+      if (urlField && b.websiteUrl) urlField.value = b.websiteUrl;
 
-      // Social links
-      if (b.socials) {
-        if (b.socials.instagram) document.getElementById('socialIg').value = b.socials.instagram;
-        if (b.socials.twitter) document.getElementById('socialX').value = b.socials.twitter;
-        if (b.socials.tiktok) document.getElementById('socialTt').value = b.socials.tiktok;
-        if (b.socials.facebook) document.getElementById('socialFb').value = b.socials.facebook;
-        if (b.socials.linkedin) document.getElementById('socialLi').value = b.socials.linkedin;
-      }
+      // Contact name isn't stored on Brand — derive from the logged-in user
+      try {
+        var stored = JSON.parse(localStorage.getItem('kupUser') || '{}');
+        var fullName = ((stored.firstName || '') + ' ' + (stored.lastName || '')).trim();
+        if (fullName) document.getElementById('contactName').value = fullName;
+      } catch(e) {}
+
+      // Social links — Brand model field is 'socialLinks', not 'socials'
+      var socials = b.socialLinks || {};
+      if (socials.instagram) document.getElementById('socialIg').value = socials.instagram;
+      if (socials.twitter) document.getElementById('socialX').value = socials.twitter;
+      if (socials.tiktok) document.getElementById('socialTt').value = socials.tiktok;
+      if (socials.facebook) document.getElementById('socialFb').value = socials.facebook;
+      if (socials.linkedin) document.getElementById('socialLi').value = socials.linkedin;
 
       // Colors
       if (b.brandColors) {
@@ -1703,12 +1709,24 @@
   if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged(function(user) {
       if (!user) return; // skip null (session still loading)
-      // Initialize edit mode if URL has ?edit=true
       var params = new URLSearchParams(window.location.search);
-      if (params.get('edit') === 'true') {
-        // Wait briefly for brand context to load, then init edit mode
-        setTimeout(function() { initEditMode(); }, 600);
-      }
+      if (params.get('edit') !== 'true') return;
+
+      // Wait for brand-context to expose a real active brand (with mongoId)
+      // before running edit-mode. The old setTimeout(600) often fired before
+      // the API sync finished, which left _editBrandId null and silently
+      // skipped the entire pre-fill. Poll every 200ms up to 6s.
+      var attempts = 0;
+      (function waitForBrand() {
+        var active = null;
+        try { active = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null; } catch(e) {}
+        if (active && (active.mongoId || active.id)) {
+          initEditMode();
+          return;
+        }
+        if (++attempts < 30) setTimeout(waitForBrand, 200);
+        else initEditMode(); // last-resort — let it fail gracefully via its own guards
+      })();
     });
   }
   </script>
