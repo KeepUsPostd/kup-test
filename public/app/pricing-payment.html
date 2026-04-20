@@ -464,10 +464,14 @@ async function handlePayment() {
     });
 
     var billingCycle = cB === 'annual' ? 'annual' : 'monthly';
+    var promoCodeInput = document.getElementById('dcIn');
+    var promoCode = promoCodeInput ? promoCodeInput.value.trim() : '';
+    var body = { planTier: selectedPlanKey, billingCycle: billingCycle };
+    if (promoCode) body.promoCode = promoCode;
     var resp = await fetch('/api/billing/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ planTier: selectedPlanKey, billingCycle: billingCycle })
+      body: JSON.stringify(body)
     });
 
     var data = await resp.json();
@@ -495,15 +499,17 @@ function applyDiscount() {
   var c = document.getElementById("dcIn").value.trim();
   var mg = document.getElementById("dcMsg");
   mg.style.display = "block";
-  if (c.length > 0) {
-    dA = 10; mg.textContent = "Success! Discount code has been applied.";
-    mg.style.color = "#198754"; document.getElementById("oDis").textContent = "-$" + dA;
-    kupToast('Discount code applied!', 'success');
-  } else {
-    dA = 0; mg.textContent = "Please enter a discount code.";
+  if (!c) {
+    dA = 0; mg.textContent = "Please enter a promo code.";
     mg.style.color = "#dc3545"; document.getElementById("oDis").textContent = "$0";
-    kupToast('Please enter a discount code', 'warning');
+    kupToast('Please enter a promo code', 'warning');
+    uT();
+    return;
   }
+  // The code is validated server-side at checkout. Show acknowledgment only.
+  mg.textContent = "Code will be validated at checkout.";
+  mg.style.color = "#198754";
+  kupToast('Promo code queued — will apply at checkout', 'info');
   uT();
 }
 
