@@ -22,10 +22,15 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3001';
 // Limits how many requests a single IP can make in a time window.
 // Different limits for different route types.
 
-// General API — 100 requests per 15 minutes per IP
+// General API — 500 requests per 15 minutes per IP
+// Real browsing fires 5–10 API calls per page load (brand sync, subscription
+// check, billing status, user profile, etc.), so 100/15min was far too
+// tight and caused false-empty states when a legit user hit the cap mid-
+// session. 500 still blocks abuse (~1 req/1.8s sustained) but accommodates
+// normal interactive use without friction.
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProduction ? 100 : 1000, // relaxed in dev
+  max: isProduction ? 500 : 5000, // relaxed in dev
   message: {
     error: 'Too many requests',
     message: 'Please try again in a few minutes.',
