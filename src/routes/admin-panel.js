@@ -372,6 +372,70 @@ router.post('/users/:id/reset-trial', async (req, res) => {
   }
 });
 
+// POST /api/admin-panel/users/:id/grant-plan — Grant a user a plan tier
+// without going through PayPal/promo. Used for founder accounts, partnerships,
+// support comps, etc. Deactivates any trial and creates a free subscription
+// record so downstream code treats them as a paying subscriber.
+// Body: { planTier: 'starter' | 'growth' | 'pro' | 'agency' | 'enterprise',
+//         billingCycle?: 'monthly' | 'annual' }
+router.post('/users/:id/grant-plan', async (req, res) => {
+  try {
+    const { planTier, billingCycle = 'monthly' } = req.body;
+    const validTiers = ['starter', 'growth', 'pro', 'agency', 'enterprise'];
+    if (!validTiers.includes(planTier)) {
+      return res.status(400).json({ error: `planTier must be one of: ${validTiers.join(', ')}` });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.hasBrandProfile) {
+      return res.status(400).json({ error: 'User has no brand profile' });
+    }
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (!brandProfile) {
+      return res.status(404).json({ error: 'BrandProfile not found' });
+    }
+
+    const cycle = billingCycle === 'annual' ? 'annual' : 'monthly';
+    const now = new Date();
+
+    // Cancel any existing active subscription record so there's only one
+    await Subscription.updateMany(
+      { brandProfileId: brandProfile._id, status: { $in: ['active', 'trialing'] } },
+      { $set: { status: 'canceled', canceledAt: now } },
+    );
+
+    // Create a free subscription record — no expiry, no PayPal
+    const subscription = await Subscription.create({
+      brandProfileId: brandProfile._id,
+      planTier,
+      billingCycle: cycle,
+      status: 'active',
+      currentPeriodStart: now,
+      currentPeriodEnd: null,
+      promoCode: 'ADMIN_GRANT',
+    });
+
+    brandProfile.planTier = planTier;
+    brandProfile.billingCycle = cycle;
+    brandProfile.planStartedAt = now;
+    brandProfile.planExpiresAt = null;
+    brandProfile.trialActive = false;
+    brandProfile.trialExpired = false;
+    await brandProfile.save();
+
+    console.log(`🎖️ Admin ${req.user.email} granted ${planTier} plan to ${user.email}`);
+    res.json({
+      message: `Granted ${planTier} plan to ${user.email}`,
+      subscription: { id: subscription._id, planTier, status: 'active' },
+      brandProfile: { planTier: brandProfile.planTier, trialActive: brandProfile.trialActive },
+    });
+  } catch (error) {
+    console.error('Grant plan error:', error.message);
+    res.status(500).json({ error: 'Failed to grant plan', message: error.message });
+  }
+});
+
 // GET /api/admin-panel/brands — List all brands with filters
 router.get('/brands', async (req, res) => {
   try {
