@@ -191,7 +191,11 @@ router.post('/subscribe', requireAuth, async (req, res) => {
       });
     }
 
-    if (planTier === 'enterprise') {
+    // Enterprise requires either (a) a free-type promo that covers it
+    // (e.g. the founder code) or (b) contacting sales for custom pricing.
+    // PayPal checkout isn't supported for enterprise; promo path handles it below.
+    const enterpriseAllowedViaPromo = planTier === 'enterprise' && !!promoCode;
+    if (planTier === 'enterprise' && !enterpriseAllowedViaPromo) {
       return res.status(400).json({
         error: 'Contact sales',
         message: 'Enterprise plans require custom pricing. Contact sales@keepuspostd.com.',
@@ -199,7 +203,8 @@ router.post('/subscribe', requireAuth, async (req, res) => {
     }
 
     const cycle = billingCycle === 'annual' ? 'annual' : 'monthly';
-    const price = PLAN_PRICING[planTier][cycle];
+    // Enterprise has no public PayPal plan — price lookup only matters for paid tiers
+    const price = planTier === 'enterprise' ? 0 : PLAN_PRICING[planTier][cycle];
 
     // Find brand profile
     let brandProfile = await BrandProfile.findOne({ userId: req.user._id });
@@ -278,6 +283,15 @@ router.post('/subscribe', requireAuth, async (req, res) => {
       }
 
       appliedPromo = promo;
+    }
+
+    // If we got past the enterprise-promo gate but the promo wasn't free-type,
+    // block here — there's no PayPal plan ID for enterprise.
+    if (planTier === 'enterprise') {
+      return res.status(400).json({
+        error: 'Contact sales',
+        message: 'Enterprise plans require custom pricing. Contact sales@keepuspostd.com.',
+      });
     }
 
     // Look up the PayPal plan ID for this tier + cycle
