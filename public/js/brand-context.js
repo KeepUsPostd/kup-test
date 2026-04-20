@@ -51,6 +51,12 @@ var KUP_BRAND_CONTEXT = (function() {
   function getActiveBrand() {
     try {
       var stored = localStorage.getItem(STORAGE_KEY);
+      // Purge stale bad values (literal "undefined"/"null" strings written
+      // by older code paths before setActiveBrand was guarded).
+      if (stored === 'undefined' || stored === 'null') {
+        localStorage.removeItem(STORAGE_KEY);
+        stored = null;
+      }
       if (stored) {
         var active = JSON.parse(stored);
         // Purge legacy prototype brands
@@ -91,11 +97,18 @@ var KUP_BRAND_CONTEXT = (function() {
     } catch(e) {}
     var brands = getAllBrands();
     var anchor = brands[0];
+    // Don't write undefined/null to storage — return null so callers handle
+    // the "no brands yet" case explicitly (e.g. brand-home redirects to
+    // manage-brands instead of chasing a phantom active brand).
+    if (!anchor) return null;
     setActiveBrand(anchor);
     return anchor;
   }
 
   function setActiveBrand(brand) {
+    // Guard: never persist null/undefined — JSON.stringify(undefined) writes the
+    // literal string "undefined" which then crashes JSON.parse on every read.
+    if (!brand) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(brand));
   }
 
