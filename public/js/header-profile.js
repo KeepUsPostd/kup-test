@@ -113,8 +113,27 @@
     }
   }
 
-  auth.onAuthStateChanged(function(user) {
+  // If kupUser is missing or has no stored firstName/lastName, re-hydrate it
+  // from /api/auth/me then re-render. Prevents the top-right from showing
+  // the email-prefix fallback after a cache clear.
+  async function ensureStoredUser(user) {
+    try {
+      var stored = readStoredUser();
+      if (stored && (stored.firstName || stored.lastName)) return stored;
+      if (typeof kupApi === 'undefined') return stored;
+      var me = await kupApi.get('/api/auth/me');
+      if (me && me.user) {
+        localStorage.setItem('kupUser', JSON.stringify(me.user));
+        return me.user;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  auth.onAuthStateChanged(async function(user) {
     if (!user) return;
-    hydrate(user);
+    hydrate(user);                 // First pass — use whatever we have synchronously
+    var fresh = await ensureStoredUser(user);
+    if (fresh) hydrate(user);      // Re-hydrate once the backend user is cached
   });
 })();

@@ -666,19 +666,29 @@ var KUP_BRAND_CONTEXT = (function() {
         if (changed) {
           localStorage.setItem(BRANDS_KEY, JSON.stringify(stored));
 
-          // Update the active brand — match by id, mongoId, or name (most robust)
+          // Update the active brand — match by id, mongoId, or name (most robust).
+          // Handle the null case: on fresh signup or after a cache clear, there
+          // IS no previous active brand — default to the first entry so the
+          // UI has something to render.
           var active = getActiveBrand();
           var updatedActive = null;
-          for (var i = 0; i < stored.length; i++) {
-            var s = stored[i];
-            if (
-              s.id === active.id ||
-              (active.mongoId && s.mongoId && s.mongoId === active.mongoId) ||
-              (s.name && active.name && s.name.toLowerCase() === active.name.toLowerCase())
-            ) {
-              updatedActive = s;
-              break;
+          if (!active) {
+            updatedActive = stored[0] || null;
+          } else {
+            for (var i = 0; i < stored.length; i++) {
+              var s = stored[i];
+              if (
+                s.id === active.id ||
+                (active.mongoId && s.mongoId && s.mongoId === active.mongoId) ||
+                (s.name && active.name && s.name.toLowerCase() === active.name.toLowerCase())
+              ) {
+                updatedActive = s;
+                break;
+              }
             }
+            // Match failed AND we had an active that no longer exists in the
+            // brands list — fall back to first entry instead of leaving null.
+            if (!updatedActive) updatedActive = stored[0] || null;
           }
           if (updatedActive) setActiveBrand(updatedActive);
 
