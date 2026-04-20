@@ -1067,9 +1067,9 @@
         <!-- Profile Menu -->
         <div class="profile-menu">
           <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
-            <div class="profile-avatar" id="headerAvatar">ST</div>
+            <div class="profile-avatar" id="headerAvatar"></div>
             <div class="profile-info">
-              <div class="name" id="headerName">Santana T.</div>
+              <div class="name" id="headerName"></div>
               <div class="brand" id="headerBrand"></div>
             </div>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -1127,8 +1127,8 @@
         <!-- Left Column: Profile Card -->
         <div class="col-lg-4 col-md-5 mb-4 mb-lg-0">
           <div class="owner-profile-card">
-            <div class="avatar-lg" id="profileAvatar">ST</div>
-            <div class="owner-name" id="profileFullName">Santana Thrasybule</div>
+            <div class="avatar-lg" id="profileAvatar"></div>
+            <div class="owner-name" id="profileFullName"></div>
             <div class="owner-role" id="profileRole">Account Owner</div>
             <div>
               <button class="btn-upload">
@@ -1148,19 +1148,19 @@
               <div class="form-row-2col">
                 <div class="form-group">
                   <label for="firstName">First Name</label>
-                  <input type="text" id="firstName" value="Santana" placeholder="First Name">
+                  <input type="text" id="firstName" value="" placeholder="First Name">
                 </div>
                 <div class="form-group">
                   <label for="lastName">Last Name</label>
-                  <input type="text" id="lastName" value="Thrasybule" placeholder="Last Name">
+                  <input type="text" id="lastName" value="" placeholder="Last Name">
                 </div>
                 <div class="form-group">
                   <label for="email">Email / Username</label>
-                  <input type="email" id="email" value="santana@keepuspostd.com" placeholder="Email">
+                  <input type="email" id="email" value="" placeholder="Email">
                 </div>
                 <div class="form-group">
                   <label for="password">Password</label>
-                  <input type="password" id="password" value="password1234" placeholder="Password">
+                  <input type="password" id="password" value="" placeholder="Password">
                 </div>
               </div>
               <button type="button" class="btn-save">Save Changes</button>
@@ -1974,7 +1974,7 @@
           if (profileAvatar) profileAvatar.textContent = initials;
           if (profileFullName) profileFullName.textContent = displayName;
         }
-        // Otherwise keep HTML defaults (ST / Santana T.)
+        // Otherwise leave blank until user data loads
 
         // Form fields — pre-fill from Firebase
         var nameParts = displayName ? displayName.split(/\s+/) : [];
