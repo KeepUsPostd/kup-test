@@ -2359,6 +2359,9 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
 }
 
 module.exports = {
+  // ── Internal helper (exported for admin-panel promo flow) ──
+  createInApp,
+
   // ── Phase 1: Account (Critical) ──
   accountCreated,
   emailVerification,
