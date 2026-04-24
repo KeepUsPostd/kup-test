@@ -355,10 +355,9 @@
         <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Set up your reward</h6>
         <p style="font-size:.82rem;color:#888;margin-bottom:20px" id="step2Subtitle">Fill in the details for your reward.</p>
 
-        <!-- Points / Store Credit -->
+        <!-- Loyalty Points -->
         <div class="step2-fields" id="fields-points">
-          <div class="form-group"><label>Reward Title</label><input type="text" id="ptTitle" placeholder="e.g., 500 Loyalty Points" maxlength="21"><p class="helper">What influencers see when they earn this reward (21 char max)</p></div>
-          <div class="form-group"><label>Redemption Description</label><textarea id="ptDesc" placeholder="Describe how influencers can redeem points (e.g., 'Redeem in our online store — 100 points = $1')" maxlength="85"></textarea><p class="helper">85 character max</p></div>
+          <div class="form-group"><label>Program Name</label><input type="text" id="ptTitle" placeholder="e.g., Gold Star Rewards" maxlength="21"><p class="helper">What influencers see on your reward card (21 char max)</p></div>
         </div>
 
         <!-- Free Product or Service -->
@@ -405,8 +404,8 @@
           <div class="payment-note" id="bcPaymentNote"><i class="ph ph-credit-card"></i> Checking payment setup...</div>
         </div>
 
-        <!-- Reward Banner Image (optional — shows on reward card) -->
-        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eee">
+        <!-- Reward Banner Image (optional — shows on reward card; hidden for points type since levels have per-level banners) -->
+        <div id="programBannerWrap" style="margin-top:24px;padding-top:20px;border-top:1px solid #eee">
           <h6 style="font-size:.92rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Reward Banner <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional)</span></h6>
           <p style="font-size:.82rem;color:#888;margin-bottom:12px">Upload a banner image for this reward card. If none is uploaded, your brand's gradient colors will be used.</p>
           <div class="upload-box" id="rewardBannerUploadBox" onclick="document.getElementById('rewardBannerFileInput').click()" style="padding:20px;text-align:center;border:2px dashed #ddd;border-radius:10px;cursor:pointer;transition:border-color .2s;background:#fafbfc">
@@ -547,14 +546,14 @@
               <input type="hidden" id="unlockThreshold" value="500">
             </div>
 
-            <!-- Advanced Point Settings (collapsible) -->
+            <!-- Point Settings (collapsible) -->
             <div style="margin-top:12px;border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden;">
               <button type="button" onclick="toggleAdvSettings()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fafbfc;border:none;cursor:pointer;font-family:var(--kup-font);">
-                <span style="font-size:.88rem;font-weight:700;color:#1a1a1a;display:flex;align-items:center;gap:8px;"><i class="ph ph-sliders-horizontal"></i> Advanced Point Settings</span>
+                <span style="font-size:.88rem;font-weight:700;color:#1a1a1a;display:flex;align-items:center;gap:8px;"><i class="ph ph-sliders-horizontal"></i> Point Settings</span>
                 <span id="advSettingsChevron" style="font-size:.75rem;color:#999;">&#9660;</span>
               </button>
               <div id="advSettingsBody" style="display:none;padding:0 12px 8px;">
-                <p style="font-size:.75rem;color:#aaa;margin:8px 0 12px;">Optional: customize how points are earned across different activity types. Defaults work well for most brands.</p>
+                <p style="font-size:.75rem;color:#aaa;margin:8px 0 12px;">Define how influencers accumulate points — set values for content activity, purchases, and gratitude events.</p>
 
                 <!-- A. Content Points -->
                 <div class="point-category enabled" id="catContent">
@@ -1034,7 +1033,7 @@
       showReview();
     }
 
-    // Toggle Advanced Point Settings accordion
+    // Toggle Point Settings accordion
     function toggleAdvSettings() {
       var body = document.getElementById('advSettingsBody');
       var chevron = document.getElementById('advSettingsChevron');
@@ -1162,6 +1161,12 @@
       // Show earning section only for non-cash types (cash has no earning method to configure)
       var earningSection = document.getElementById('earningSection');
       if (earningSection) earningSection.style.display = isCashType(type) ? 'none' : 'block';
+
+      // Hide the program-level banner for Loyalty Points — each level has its own banner,
+      // which is a better UX than asking for banners twice. Cash + free-product + discount
+      // keep the program banner since they don't have per-level banners.
+      var programBannerWrap = document.getElementById('programBannerWrap');
+      if (programBannerWrap) programBannerWrap.style.display = (type === 'points') ? 'none' : '';
     }
 
     /* ============ EARNING METHOD SELECTION ============ */
