@@ -228,7 +228,7 @@
               : '<br><span style="font-size:11px;color:#9ca3af">No PayPal connected</span>';
           const paypalForBtn = p.paypalEmail || p.accountEmail || '';
           const actionBtn = (p.status === 'content_submitted')
-            ? '<button class="btn-mark-paid" onclick="markPaid(\'' + p._id + '\',\'' + paypalForBtn + '\',$' + (p.amount||0).toFixed(2) + ')">Mark as Paid</button>'
+            ? '<button class="btn-mark-paid" onclick="markPaid(\'' + p._id + '\',\'' + paypalForBtn + '\',' + (p.amount||0).toFixed(2) + ')">Mark as Paid</button>'
             : p.status === 'sent' ? '<span style="color:#9ca3af;font-size:12px">Awaiting content</span>'
             : p.status === 'paid' ? '<span style="color:#059669;font-size:12px">✓ Paid</span>' : '';
 
@@ -250,7 +250,7 @@
     async function markPaid(promoId, paypalEmail, amount) {
       const confirmed = confirm(
         '💸 SEND PAYMENT FIRST\n\n' +
-        'Send ' + amount + ' via PayPal to:\n' +
+        'Send $' + amount + ' via PayPal to:\n' +
         (paypalEmail || '(no PayPal on file — check with influencer)') +
         '\n\nOnce sent, click OK to notify the influencer.\nCancel if you haven\'t sent it yet.'
       );
