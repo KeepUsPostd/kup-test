@@ -848,10 +848,10 @@ router.use((err, req, res, next) => {
 // Used by admin brand edit form. Stores to R2 under brands/{brandId}/{type}_{timestamp}.{ext}
 router.post('/brand-asset', requireAuth, multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }).single('file'), async (req, res) => {
   try {
-    const { brandId, assetType } = req.body; // assetType: 'logo' or 'banner'
+    const { brandId, assetType } = req.body; // assetType: 'logo', 'banner', or 'reward_lvl0/1/2'
     if (!brandId || !assetType) return res.status(400).json({ error: 'brandId and assetType required' });
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    if (!['logo', 'banner'].includes(assetType)) return res.status(400).json({ error: 'assetType must be logo or banner' });
+    if (!['logo', 'banner', 'reward_lvl0', 'reward_lvl1', 'reward_lvl2'].includes(assetType)) return res.status(400).json({ error: 'assetType must be logo, banner, or reward_lvl0/1/2' });
 
     const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
     const filename = `brands/${brandId}/${assetType}_${Date.now()}${ext}`;
