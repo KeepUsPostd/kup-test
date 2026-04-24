@@ -1065,6 +1065,46 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
     // 🏆 Award "approved" content points — includes rating option
     awardContentPoints({ brandId: submission.brandId, influencerProfileId: submission.influencerProfileId, stage: 'approved', partnershipId: submission.partnershipId?.toString() });
 
+    // 📣 If this approval is for a promo content piece — notify Santana to send the bonus
+    try {
+      const Promotion = require('../models/Promotion');
+      const activePromo = await Promotion.findOne({
+        influencerUserId: submission.influencerUserId,
+        brandId: submission.brandId,
+        status: 'content_submitted',
+      });
+      if (activePromo) {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        const { sendEmail } = require('../services/email');
+        const promoBrand = await Brand.findById(submission.brandId).lean();
+        const promoInfluencer = await InfluencerProfile.findById(submission.influencerProfileId).lean();
+        const promoUser = await User.findById(submission.influencerUserId, 'email').lean();
+        const paypalEmail = promoInfluencer?.paypalEmail || promoUser?.email || 'No PayPal email on file';
+        const handle = promoInfluencer?.handle || 'unknown';
+        for (const adminEmail of adminEmails) {
+          await sendEmail({
+            to: adminEmail,
+            subject: `Promo content approved — send $${activePromo.amount} bonus to @${handle}`,
+            headline: 'Send the KUP bonus',
+            variant: 'brand',
+            bodyHtml: `
+              <p>✅ <strong>@${handle}</strong>'s content for <strong>${promoBrand?.name || submission.brandId}</strong> was <strong style="color:#22c55e;">approved</strong>.</p>
+              <p>Send the <strong>$${activePromo.amount} KUP bonus</strong> via PayPal to:</p>
+              <p style="font-size:18px;font-weight:bold;color:#2EA5DD;">${paypalEmail}</p>
+              <p>Then mark it paid in the promotions panel.</p>
+              <a href="https://keepuspostd.com/pages/admin/promotions.html"
+                 style="display:inline-block;margin-top:16px;padding:12px 24px;background:#22c55e;color:#fff;text-decoration:none;border-radius:6px;">
+                Mark as Paid →
+              </a>
+            `,
+          }).catch(() => {});
+        }
+        console.log(`📣 Admin notified: promo content APPROVED for @${handle} — send $${activePromo.amount}`);
+      }
+    } catch (promoApproveNotifyErr) {
+      console.error('Promo approve notification error (non-blocking):', promoApproveNotifyErr.message);
+    }
+
     res.json({ message: 'Content approved', submission, rewardTriggered, rewardGateNote });
   } catch (error) {
     console.error('Approve content error:', error.message);
@@ -1104,6 +1144,43 @@ router.put('/:submissionId/reject', requireAuth, async (req, res) => {
     await submission.save();
 
     console.log(`❌ Content rejected: ${submission._id} — "${reason}"`);
+
+    // 📣 If this rejection is for a promo content piece — notify Santana to hold the bonus
+    try {
+      const Promotion = require('../models/Promotion');
+      const activePromo = await Promotion.findOne({
+        influencerUserId: submission.influencerUserId,
+        brandId: submission.brandId,
+        status: 'content_submitted',
+      });
+      if (activePromo) {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        const { sendEmail } = require('../services/email');
+        const promoBrand = await Brand.findById(submission.brandId).lean();
+        const promoInfluencer = await InfluencerProfile.findById(submission.influencerProfileId).lean();
+        const handle = promoInfluencer?.handle || 'unknown';
+        for (const adminEmail of adminEmails) {
+          await sendEmail({
+            to: adminEmail,
+            subject: `Promo content rejected — hold $${activePromo.amount} bonus for @${handle}`,
+            headline: 'Hold the KUP bonus',
+            variant: 'brand',
+            bodyHtml: `
+              <p>❌ <strong>@${handle}</strong>'s content for <strong>${promoBrand?.name || submission.brandId}</strong> was <strong style="color:#ef4444;">rejected</strong>.</p>
+              <p><strong>Rejection reason:</strong> ${reason}</p>
+              <p>Do <strong>not</strong> send the $${activePromo.amount} bonus yet. The influencer has been notified and may resubmit.</p>
+              <a href="https://keepuspostd.com/pages/admin/promotions.html"
+                 style="display:inline-block;margin-top:16px;padding:12px 24px;background:#6b7280;color:#fff;text-decoration:none;border-radius:6px;">
+                View Promotions Panel →
+              </a>
+            `,
+          }).catch(() => {});
+        }
+        console.log(`📣 Admin notified: promo content REJECTED for @${handle} — hold $${activePromo.amount}`);
+      }
+    } catch (promoRejectNotifyErr) {
+      console.error('Promo reject notification error (non-blocking):', promoRejectNotifyErr.message);
+    }
 
     // 📧 Notify influencer: content rejected
     try {
