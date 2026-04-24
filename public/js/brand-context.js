@@ -663,6 +663,19 @@ var KUP_BRAND_CONTEXT = (function() {
           }
         });
 
+        // Prune brands that are no longer returned by the API (removed memberships,
+        // deleted brands, etc.). Only removes entries that have a mongoId AND are not
+        // in the current API response — entries without mongoId are left alone.
+        var apiBrandIds = data.brands.map(function(b) { return b._id; });
+        var prunedStored = stored.filter(function(b) {
+          if (!b.mongoId) return true; // Not yet synced — keep
+          return apiBrandIds.indexOf(b.mongoId) !== -1;
+        });
+        if (prunedStored.length !== stored.length) {
+          stored = prunedStored;
+          changed = true;
+        }
+
         if (changed) {
           localStorage.setItem(BRANDS_KEY, JSON.stringify(stored));
 
