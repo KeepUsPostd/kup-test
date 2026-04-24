@@ -1374,8 +1374,8 @@
         var data = await kupApi.get('/api/billing/payment-method');
         _vaultConnected = data && data.connected;
       } catch(e) { _vaultConnected = false; }
-      var connectedHtml = '<i class="ph ph-check-circle" style="color:#16a34a"></i> <strong style="color:#16a34a">PayPal connected</strong> — payments will process automatically when you approve content.';
-      var notConnectedHtml = '<i class="ph ph-warning-circle" style="color:#ED8444"></i> <strong>PayPal not connected</strong> — you\'ll confirm each payment on PayPal\'s site. <a href="#" onclick="startRewardVaultSetup();return false" style="color:var(--kup-blue);font-weight:700">Connect now for one-click payments &rarr;</a>';
+      var connectedHtml = '<i class="ph ph-check-circle" style="color:#16a34a"></i> <strong style="color:#16a34a">PayPal connected</strong> — your account is set up to pay influencers on approval.';
+      var notConnectedHtml = '<i class="ph ph-warning-circle" style="color:#ED8444"></i> <strong>PayPal not connected</strong> — <a href="cash-account.html" style="color:var(--kup-blue);font-weight:700">Connect PayPal in Cash &amp; Rewards &rarr;</a>';
       var noteHtml = _vaultConnected ? connectedHtml : notConnectedHtml;
       var cpaNote = document.getElementById('cpaPaymentNote');
       var bcNote = document.getElementById('bcPaymentNote');

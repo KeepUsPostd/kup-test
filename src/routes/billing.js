@@ -640,11 +640,12 @@ router.get('/payment-method', requireAuth, async (req, res) => {
       }
     }
 
+    // Connected = any form of PayPal linked (vault token OR PPCP merchant account)
+    const connected = !!(brandProfile.paypalVaultPaymentTokenId || brandProfile.brandPaypalMerchantId);
     res.json({
-      connected: !!brandProfile.paypalVaultPaymentTokenId,
+      connected,
       setupAt: brandProfile.paypalVaultSetupAt || null,
       paypalEmail,
-      vaultTokenId: brandProfile.paypalVaultPaymentTokenId ? brandProfile.paypalVaultPaymentTokenId.substring(0, 8) + '...' : null,
     });
   } catch (error) {
     console.error('Payment method check error:', error.message);
