@@ -1861,28 +1861,38 @@ router.post('/promotions', async (req, res) => {
     });
 
     // Send push + in-app notification as a briefing
+    // KUP is always the issuer of promos (like Uber surge pay on top of the ride fare)
+    // — always show KUP branding, never the target brand's logo/color
+    const KUP_LOGO_URL = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
+    const KUP_BRAND_COLOR = '#2EA5DD';
+
     try {
       const { createInApp } = require('../services/notifications');
       await createInApp({
         userId: influencerUserId,
-        title: `Paid Promo from KeepUsPostd`,
-        message: `Submit content for ${brand.name} and earn $${amount}. ${description}`,
+        title: `KeepUsPostd Bonus Opportunity`,
+        message: `Earn $${amount} — ${description} (Review: ${brand.name})`,
         type: 'briefing',
         link: `/brands/${brandId}`,
         metadata: {
-          brandName: brand.name,
-          brandLogoUrl: brand.logoUrl || '',
-          brandColor: brand.brandColors?.primary || '',
+          brandName: 'KeepUsPostd',
+          brandLogoUrl: KUP_LOGO_URL,
+          brandColor: KUP_BRAND_COLOR,
+          targetBrandName: brand.name,
+          targetBrandId: brandId.toString(),
           promoId: promo._id.toString(),
           amount,
         },
         audience: 'influencer',
       });
-      await sendPushToUser(influencerUserId, {
-        title: `Paid Promo: $${amount} for ${brand.name}`,
-        body: description,
+      const pushResult = await sendPushToUser(influencerUserId, {
+        title: `KeepUsPostd: Earn $${amount}`,
+        body: `${description} (Review: ${brand.name})`,
         data: { type: 'briefing', brandId: brandId.toString(), promoId: promo._id.toString() },
       });
+      if (!pushResult.success) {
+        console.warn(`⚠️ Promo push not delivered to @${influencerHandle}: ${pushResult.reason} (tokens: ${pushResult.total ?? 0})`);
+      }
     } catch (notifyErr) {
       console.error('Promo notification failed:', notifyErr.message);
     }
