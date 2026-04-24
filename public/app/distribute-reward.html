@@ -609,7 +609,12 @@
           var borderColor = isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#e5e7eb');
           var bgColor = isClaimed ? '#f0fdf4' : (isUnlocked ? '#fffbeb' : '#f9fafb');
 
-          html += '<div style="border:2px solid ' + borderColor + ';border-radius:12px;padding:16px;margin-bottom:12px;background:' + bgColor + ';">';
+          html += '<div style="border:2px solid ' + borderColor + ';border-radius:12px;overflow:hidden;margin-bottom:12px;background:' + bgColor + ';">';
+          // Level banner image (if uploaded)
+          if (lvl.imageUrl) {
+            html += '<img src="' + lvl.imageUrl + '" alt="Level ' + (idx + 1) + ' banner" style="width:100%;height:80px;object-fit:cover;display:block;">';
+          }
+          html += '<div style="padding:16px;">';
           html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
           html += '<div style="display:flex;align-items:center;gap:8px;">';
           html += '<span style="width:28px;height:28px;border-radius:50%;background:' + (isClaimed ? '#16a34a' : (isUnlocked ? '#FFB800' : '#ccc')) + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;">' + (isClaimed ? '✓' : (idx + 1)) + '</span>';
@@ -652,7 +657,8 @@
           } else {
             html += '<div style="color:#999;font-size:0.82rem;">🔒 Not yet unlocked (' + (lvl.threshold - totalPts) + ' pts to go)</div>';
           }
-          html += '</div>';
+          html += '</div>'; // close inner padding div
+          html += '</div>'; // close card div
         });
 
         // Per-Approval Rewards section

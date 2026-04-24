@@ -1469,8 +1469,7 @@
         rows.push({l:'Earning Method', v: earningMethod === 'point-based' ? 'Point-Based' : 'Per Approval'});
 
         if (selectedType === 'points') {
-          rows.push({l:'Title', v:document.getElementById('ptTitle').value || '\u2014'});
-          rows.push({l:'Redemption', v:document.getElementById('ptDesc').value || '\u2014'});
+          rows.push({l:'Program Name', v:document.getElementById('ptTitle').value || '\u2014'});
         } else if (selectedType === 'free-product') {
           rows.push({l:'Title', v:document.getElementById('fpTitle').value || '\u2014'});
           rows.push({l:'Description', v:document.getElementById('fpDesc').value || '\u2014'});
@@ -1507,7 +1506,11 @@
           if (levels.length > 0) {
             levels.forEach(function(lvl, idx) {
               var typeIcon = lvl.rewardType === 'free' ? '🎁' : '🏷️';
-              rows.push({l: 'Level ' + (idx + 1), v: typeIcon + ' ' + lvl.rewardValue + ' — ' + lvl.threshold + ' pts'});
+              var bannerUrl = levelBannerUrls[idx + 1];
+              var thumbHtml = bannerUrl
+                ? '<img src="' + bannerUrl + '" style="width:48px;height:32px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px;" alt="">'
+                : '';
+              rows.push({l: 'Level ' + (idx + 1), v: thumbHtml + typeIcon + ' ' + lvl.rewardValue + ' \u2014 ' + lvl.threshold + ' pts'});
             });
           } else {
             rows.push({l:'Unlock Threshold', v:config.threshold + ' pts'});

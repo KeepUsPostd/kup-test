@@ -256,7 +256,8 @@ router.get('/my-progress', requireAuth, async (req, res) => {
             threshold: lvl.threshold,
             rewardType: lvl.rewardType,
             rewardValue: lvl.rewardValue,
-            description: lvl.description,
+            description: lvl.description || null,
+            imageUrl: lvl.imageUrl || null,
             unlocked: totalPts >= lvl.threshold,
             claimed: claimedLevels.includes(idx),
           }))
@@ -346,6 +347,8 @@ router.get('/brand-progress', requireAuth, async (req, res) => {
               threshold: lvl.threshold,
               rewardType: lvl.rewardType,
               rewardValue: lvl.rewardValue,
+              description: lvl.description || null,
+              imageUrl: lvl.imageUrl || null,
               unlocked: totalPts >= lvl.threshold,
               claimed: claimedLevels.includes(idx),
             }))
