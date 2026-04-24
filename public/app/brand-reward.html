@@ -282,8 +282,8 @@
             <div class="offer-card" data-type="points" onclick="selectRewardType(this)">
               <div class="offer-card-icon"><i class="ph ph-star"></i></div>
               <div class="offer-card-body">
-                <h4 class="offer-card-title">Points / Store Credit</h4>
-                <p class="offer-card-desc">Award redeemable points per approved submission</p>
+                <h4 class="offer-card-title">Loyalty Points</h4>
+                <p class="offer-card-desc">Earn points toward unlocking tiered milestone rewards</p>
                 <span class="offer-card-badge included">Included in Starter</span>
               </div>
               <div class="offer-card-check"></div>
@@ -418,85 +418,179 @@
           </div>
         </div>
 
-        <div class="wizard-actions">
-          <button class="btn-wizard secondary" onclick="goToStep(1)"><i class="ph ph-arrow-left"></i> Back</button>
-          <button class="btn-wizard primary" onclick="goToStep(3)">Continue</button>
-        </div>
-      </div>
+        <!-- ========= EARNING SECTION (non-cash reward types only) ========= -->
+        <div id="earningSection" style="display:none;margin-top:24px;padding-top:20px;border-top:1px solid #eee">
+          <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">How do influencers earn this reward?</h6>
+          <p style="font-size:.82rem;color:#888;margin-bottom:16px">Choose how influencers unlock your non-cash reward.</p>
 
-      <!-- STEP 3: Earning Mechanism (Non-Cash only, Cash skips) -->
-      <div id="step3" class="form-section">
-        <p class="step-label" id="step3Label">Step 3 of 4 &mdash; Points</p>
-        <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">How do influencers earn this reward?</h6>
-        <p style="font-size:.82rem;color:#888;margin-bottom:20px">Choose how influencers unlock your non-cash reward.</p>
-
-        <!-- Earning Method Selector -->
-        <div class="earning-method-cards">
-          <div class="earning-method-card" data-method="point-based" onclick="selectEarningMethod(this)">
-            <div class="earning-method-card-icon"><i class="ph ph-trophy"></i></div>
-            <div class="earning-method-card-body">
-              <h4 class="earning-method-card-title">Point-Based</h4>
-              <p class="earning-method-card-desc">Influencers accumulate points to unlock this reward</p>
-              <p class="earning-method-card-hint">Best for repeat traffic, loyalty programs</p>
-            </div>
-            <div class="earning-method-card-check"></div>
-          </div>
-          <div class="earning-method-card" data-method="per-approval" onclick="selectEarningMethod(this)">
-            <div class="earning-method-card-icon"><i class="ph ph-lightning"></i></div>
-            <div class="earning-method-card-body">
-              <h4 class="earning-method-card-title">Per Approval</h4>
-              <p class="earning-method-card-desc">Reward triggers instantly when you approve content</p>
-              <p class="earning-method-card-hint">Best for events, conferences, one-off offers</p>
-            </div>
-            <div class="earning-method-card-check"></div>
-          </div>
-        </div>
-
-        <!-- Per Approval Confirmation (shown when Per Approval selected) -->
-        <div class="per-approval-confirm" id="perApprovalConfirm" style="display:none">
-          <i class="ph ph-lightning"></i> <strong>Per Approval</strong> &mdash; This reward will be automatically triggered each time you approve an influencer's content submission. No points or thresholds needed.
-        </div>
-
-        <!-- Point Configuration (shown when Point-Based selected) -->
-        <div class="point-config" id="pointConfig">
-
-          <!-- A. Content Points -->
-          <div class="point-category enabled" id="catContent">
-            <div class="point-category-header" onclick="toggleCategory('content')">
-              <h6><span class="cat-emoji"><i class="ph ph-microphone"></i></span> Content Points <span class="cat-subtitle">Reviews &amp; submissions</span></h6>
-              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" checked onchange="toggleCategory('content')"><span class="kup-toggle-slider"></span></label>
-            </div>
-            <div class="point-category-body">
-              <div class="point-input-row"><label>Submitted to brand</label><div class="pts-input-wrap"><input type="number" id="ptContentSubmit" value="10" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="point-input-row"><label>Approved by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentApprove" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="point-input-row"><label>Published by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentPublish" value="40" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="point-input-row"><label>Bonus (posted to own community)</label><div class="pts-input-wrap"><input type="number" id="ptContentBonus" value="15" min="0"><span class="pts-suffix">pts</span></div></div>
-            </div>
-          </div>
-
-          <!-- B. Purchase Points — inline spend levels setup, no page navigation needed -->
-          <div class="point-category" id="catPurchase" style="border:1.5px dashed #e0e0e0;background:#fafafa;">
-            <div class="point-category-header" style="cursor:default;">
-              <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">In-store &amp; online spend rewards</span></h6>
-              <span id="purchasePtsStatusBadge" style="font-size:0.7rem;font-weight:600;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;">Loading…</span>
-            </div>
-            <div class="point-category-body" style="display:block !important;">
-              <!-- Collapsed state: summary + open button -->
-              <div id="purchasePtsCollapsed">
-                <p style="font-size:0.8rem;color:#666;line-height:1.5;margin:0 0 12px;">Reward customers for every purchase — same spend levels apply to both in-store QR scans and your online store automatically.</p>
-                <button onclick="togglePurchaseLevelsPanel(true)" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;font-size:0.8rem;font-weight:700;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;">
-                  <i class="ph ph-chart-bar"></i> Set Spend Levels
-                </button>
+          <!-- Earning Method Selector -->
+          <div class="earning-method-cards">
+            <div class="earning-method-card" data-method="point-based" onclick="selectEarningMethod(this)">
+              <div class="earning-method-card-icon"><i class="ph ph-trophy"></i></div>
+              <div class="earning-method-card-body">
+                <h4 class="earning-method-card-title">Point-Based</h4>
+                <p class="earning-method-card-desc">Influencers accumulate points to unlock this reward</p>
+                <p class="earning-method-card-hint">Best for repeat traffic, loyalty programs</p>
               </div>
-              <!-- Expanded inline panel -->
-              <div id="purchasePtsPanel" style="display:none;margin-top:4px;">
-                <div style="background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.18);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
-                  <div style="font-size:0.74rem;font-weight:700;color:var(--kup-blue);margin-bottom:3px;">One set of levels — two delivery methods</div>
-                  <div style="font-size:0.73rem;color:#666;line-height:1.5;">These levels apply to both <strong>in-store QR scans</strong> and your <strong>online store</strong>. Toggle each channel on separately in the Purchase Points page.</div>
+              <div class="earning-method-card-check"></div>
+            </div>
+            <div class="earning-method-card" data-method="per-approval" onclick="selectEarningMethod(this)">
+              <div class="earning-method-card-icon"><i class="ph ph-lightning"></i></div>
+              <div class="earning-method-card-body">
+                <h4 class="earning-method-card-title">Per Approval</h4>
+                <p class="earning-method-card-desc">Reward triggers instantly when you approve content</p>
+                <p class="earning-method-card-hint">Best for events, conferences, one-off offers</p>
+              </div>
+              <div class="earning-method-card-check"></div>
+            </div>
+          </div>
+
+          <!-- Per Approval Confirmation (shown when Per Approval selected) -->
+          <div class="per-approval-confirm" id="perApprovalConfirm" style="display:none">
+            <i class="ph ph-lightning"></i> <strong>Per Approval</strong> &mdash; This reward will be automatically triggered each time you approve an influencer's content submission. No points or thresholds needed.
+          </div>
+
+          <!-- Point Configuration (shown when Point-Based selected) -->
+          <div class="point-config" id="pointConfig">
+
+            <!-- Reward Levels (shown first and prominently) -->
+            <div class="unlock-threshold">
+              <h6><i class="ph ph-trophy"></i> Reward Levels</h6>
+              <p style="font-size:.78rem;color:#888;margin:0 0 12px;">Set 1&ndash;3 reward milestones. Influencers earn points and unlock each level progressively. Points reset when a level is claimed.</p>
+
+              <!-- Level 1 (always visible) -->
+              <div class="level-row" id="level1Row" style="margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">1</span>
+                  <span style="font-weight:700;font-size:.85rem;">Level 1</span>
                 </div>
-                <!-- Level 1 -->
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-                  <span style="font-size:0.78rem;font-weight:700;color:var(--kup-blue);min-width:52px;">Level 1</span>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <select id="level1Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                    <option value="discount">Discount</option>
+                    <option value="free">Free Product/Service</option>
+                  </select>
+                  <input type="text" id="level1Value" placeholder="e.g. 20% OFF SHORTS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                  <input type="number" id="level1Threshold" value="500" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                  <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+                </div>
+                <input type="text" id="level1Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+                <div class="level-banner-upload" onclick="document.getElementById('level1BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
+                  <img id="level1BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 1 banner">
+                  <p id="level1BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
+                  <input type="file" id="level1BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+                </div>
+              </div>
+
+              <!-- Level 2 (toggle) -->
+              <div id="level2Container">
+                <div id="level2Toggle" style="margin-bottom:10px;">
+                  <button type="button" onclick="toggleLevel(2)" id="level2Btn" style="background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 2</button>
+                </div>
+                <div class="level-row" id="level2Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">2</span>
+                      <span style="font-weight:700;font-size:.85rem;">Level 2</span>
+                    </div>
+                    <button type="button" onclick="removeLevel(2)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select id="level2Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                      <option value="discount">Discount</option>
+                      <option value="free">Free Product/Service</option>
+                    </select>
+                    <input type="text" id="level2Value" placeholder="e.g. 50% OFF SNEAKERS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                    <input type="number" id="level2Threshold" value="700" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                    <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+                  </div>
+                  <input type="text" id="level2Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+                  <div class="level-banner-upload" onclick="document.getElementById('level2BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
+                    <img id="level2BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 2 banner">
+                    <p id="level2BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
+                    <input type="file" id="level2BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Level 3 (toggle) -->
+              <div id="level3Container">
+                <div id="level3Toggle" style="margin-bottom:10px;">
+                  <button type="button" onclick="toggleLevel(3)" id="level3Btn" style="display:none;background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 3</button>
+                </div>
+                <div class="level-row" id="level3Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">3</span>
+                      <span style="font-weight:700;font-size:.85rem;">Level 3</span>
+                    </div>
+                    <button type="button" onclick="removeLevel(3)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select id="level3Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                      <option value="discount">Discount</option>
+                      <option value="free" selected>Free Product/Service</option>
+                    </select>
+                    <input type="text" id="level3Value" placeholder="e.g. FREE JACKET" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
+                    <input type="number" id="level3Threshold" value="1000" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
+                    <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
+                  </div>
+                  <input type="text" id="level3Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
+                  <div class="level-banner-upload" onclick="document.getElementById('level3BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
+                    <img id="level3BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 3 banner">
+                    <p id="level3BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
+                    <input type="file" id="level3BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hidden legacy field for backward compat -->
+              <input type="hidden" id="unlockThreshold" value="500">
+            </div>
+
+            <!-- Advanced Point Settings (collapsible) -->
+            <div style="margin-top:12px;border:1px solid #eee;border-radius:var(--radius-md);overflow:hidden;">
+              <button type="button" onclick="toggleAdvSettings()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fafbfc;border:none;cursor:pointer;font-family:var(--kup-font);">
+                <span style="font-size:.88rem;font-weight:700;color:#1a1a1a;display:flex;align-items:center;gap:8px;"><i class="ph ph-sliders-horizontal"></i> Advanced Point Settings</span>
+                <span id="advSettingsChevron" style="font-size:.75rem;color:#999;">&#9660;</span>
+              </button>
+              <div id="advSettingsBody" style="display:none;padding:0 12px 8px;">
+                <p style="font-size:.75rem;color:#aaa;margin:8px 0 12px;">Optional: customize how points are earned across different activity types. Defaults work well for most brands.</p>
+
+                <!-- A. Content Points -->
+                <div class="point-category enabled" id="catContent">
+                  <div class="point-category-header" onclick="toggleCategory('content')">
+                    <h6><span class="cat-emoji"><i class="ph ph-microphone"></i></span> Content Points <span class="cat-subtitle">Reviews &amp; submissions</span></h6>
+                    <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" checked onchange="toggleCategory('content')"><span class="kup-toggle-slider"></span></label>
+                  </div>
+                  <div class="point-category-body">
+                    <div class="point-input-row"><label>Submitted to brand</label><div class="pts-input-wrap"><input type="number" id="ptContentSubmit" value="10" min="0"><span class="pts-suffix">pts</span></div></div>
+                    <div class="point-input-row"><label>Approved by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentApprove" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
+                    <div class="point-input-row"><label>Published by brand</label><div class="pts-input-wrap"><input type="number" id="ptContentPublish" value="40" min="0"><span class="pts-suffix">pts</span></div></div>
+                    <div class="point-input-row"><label>Bonus (posted to own community)</label><div class="pts-input-wrap"><input type="number" id="ptContentBonus" value="15" min="0"><span class="pts-suffix">pts</span></div></div>
+                  </div>
+                </div>
+
+                <!-- B. Purchase Points -->
+                <div class="point-category" id="catPurchase" style="border:1.5px dashed #e0e0e0;background:#fafafa;">
+                  <div class="point-category-header" style="cursor:default;">
+                    <h6><span class="cat-emoji"><i class="ph ph-shopping-cart"></i></span> Purchase Points <span class="cat-subtitle">In-store &amp; online spend rewards</span></h6>
+                    <span id="purchasePtsStatusBadge" style="font-size:0.7rem;font-weight:600;color:#888;background:#f0f0f0;padding:3px 10px;border-radius:20px;">Loading…</span>
+                  </div>
+                  <div class="point-category-body" style="display:block !important;">
+                    <div id="purchasePtsCollapsed">
+                      <p style="font-size:0.8rem;color:#666;line-height:1.5;margin:0 0 12px;">Reward customers for every purchase — same spend levels apply to both in-store QR scans and your online store automatically.</p>
+                      <button onclick="togglePurchaseLevelsPanel(true)" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2EA5DD,#707BBB);color:#fff;font-size:0.8rem;font-weight:700;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;">
+                        <i class="ph ph-chart-bar"></i> Set Spend Levels
+                      </button>
+                    </div>
+                    <div id="purchasePtsPanel" style="display:none;margin-top:4px;">
+                      <div style="background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.18);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+                        <div style="font-size:0.74rem;font-weight:700;color:var(--kup-blue);margin-bottom:3px;">One set of levels — two delivery methods</div>
+                        <div style="font-size:0.73rem;color:#666;line-height:1.5;">These levels apply to both <strong>in-store QR scans</strong> and your <strong>online store</strong>. Toggle each channel on separately in the Purchase Points page.</div>
+                      </div>
+                      <!-- Level 1 -->
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                        <span style="font-size:0.78rem;font-weight:700;color:var(--kup-blue);min-width:52px;">Level 1</span>
                   <span style="font-size:0.73rem;color:#888;">Spend $</span>
                   <input type="number" id="wzSharedL1Spend" min="0" step="1" placeholder="25" style="width:58px;padding:5px 7px;border:1.5px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:inherit;">
                   <span style="font-size:0.73rem;color:#bbb;">→</span>
@@ -538,123 +632,39 @@
             </div>
           </div>
 
-          <!-- C. Gratitude Points -->
-          <div class="point-category" id="catGratitude">
-            <div class="point-category-header" onclick="toggleCategory('gratitude')">
-              <h6><span class="cat-emoji"><i class="ph ph-confetti"></i></span> Gratitude Points <span class="cat-subtitle">Milestones &amp; celebrations</span></h6>
-              <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleCategory('gratitude')"><span class="kup-toggle-slider"></span></label>
-            </div>
-            <div class="point-category-body">
-              <div class="point-input-row"><label>Joins as influencer</label><div class="pts-input-wrap"><input type="number" id="ptGratJoin" value="50" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="point-input-row"><label>Birthday</label><div class="pts-input-wrap"><input type="number" id="ptGratBday" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
-              <div class="point-input-row"><label>Partnership anniversary</label><div class="pts-input-wrap"><input type="number" id="ptGratAnniv" value="100" min="0"><span class="pts-suffix">pts</span></div></div>
-            </div>
-          </div>
-
-          <!-- D. Reward Levels (1-3 milestones) -->
-          <div class="unlock-threshold">
-            <h6><i class="ph ph-trophy"></i> Reward Levels</h6>
-            <p style="font-size:.78rem;color:#888;margin:0 0 12px;">Set 1-3 reward milestones. Influencers earn points and unlock each level progressively. Points reset when a level is claimed.</p>
-
-            <!-- Level 1 (always visible) -->
-            <div class="level-row" id="level1Row" style="margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">1</span>
-                <span style="font-weight:700;font-size:.85rem;">Level 1</span>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <select id="level1Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                  <option value="discount">Discount</option>
-                  <option value="free">Free Product/Service</option>
-                </select>
-                <input type="text" id="level1Value" placeholder="e.g. 20% OFF SHORTS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                <input type="number" id="level1Threshold" value="500" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
-                <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
-              </div>
-              <input type="text" id="level1Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
-              <div class="level-banner-upload" onclick="document.getElementById('level1BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
-                <img id="level1BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 1 banner">
-                <p id="level1BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
-                <input type="file" id="level1BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
-              </div>
-            </div>
-
-            <!-- Level 2 (toggle) -->
-            <div id="level2Container">
-              <div id="level2Toggle" style="margin-bottom:10px;">
-                <button type="button" onclick="toggleLevel(2)" id="level2Btn" style="background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 2</button>
-              </div>
-              <div class="level-row" id="level2Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">2</span>
-                    <span style="font-weight:700;font-size:.85rem;">Level 2</span>
+                <!-- C. Gratitude Points -->
+                <div class="point-category" id="catGratitude">
+                  <div class="point-category-header" onclick="toggleCategory('gratitude')">
+                    <h6><span class="cat-emoji"><i class="ph ph-confetti"></i></span> Gratitude Points <span class="cat-subtitle">Milestones &amp; celebrations</span></h6>
+                    <label class="kup-toggle" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleCategory('gratitude')"><span class="kup-toggle-slider"></span></label>
                   </div>
-                  <button type="button" onclick="removeLevel(2)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
-                </div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                  <select id="level2Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                    <option value="discount">Discount</option>
-                    <option value="free">Free Product/Service</option>
-                  </select>
-                  <input type="text" id="level2Value" placeholder="e.g. 50% OFF SNEAKERS" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                  <input type="number" id="level2Threshold" value="700" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
-                  <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
-                </div>
-                <input type="text" id="level2Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
-                <div class="level-banner-upload" onclick="document.getElementById('level2BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
-                  <img id="level2BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 2 banner">
-                  <p id="level2BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
-                  <input type="file" id="level2BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
-                </div>
-              </div>
-            </div>
-
-            <!-- Level 3 (toggle) -->
-            <div id="level3Container">
-              <div id="level3Toggle" style="margin-bottom:10px;">
-                <button type="button" onclick="toggleLevel(3)" id="level3Btn" style="display:none;background:none;border:1px dashed #ccc;border-radius:8px;padding:10px;width:100%;font-family:var(--kup-font);font-size:.82rem;color:var(--kup-blue);font-weight:600;cursor:pointer;">+ Add Level 3</button>
-              </div>
-              <div class="level-row" id="level3Row" style="display:none;margin-bottom:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="width:24px;height:24px;border-radius:50%;background:var(--kup-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">3</span>
-                    <span style="font-weight:700;font-size:.85rem;">Level 3</span>
+                  <div class="point-category-body">
+                    <div class="point-input-row"><label>Joins as influencer</label><div class="pts-input-wrap"><input type="number" id="ptGratJoin" value="50" min="0"><span class="pts-suffix">pts</span></div></div>
+                    <div class="point-input-row"><label>Birthday</label><div class="pts-input-wrap"><input type="number" id="ptGratBday" value="25" min="0"><span class="pts-suffix">pts</span></div></div>
+                    <div class="point-input-row"><label>Partnership anniversary</label><div class="pts-input-wrap"><input type="number" id="ptGratAnniv" value="100" min="0"><span class="pts-suffix">pts</span></div></div>
                   </div>
-                  <button type="button" onclick="removeLevel(3)" style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;">Remove</button>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                  <select id="level3Type" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                    <option value="discount">Discount</option>
-                    <option value="free" selected>Free Product/Service</option>
-                  </select>
-                  <input type="text" id="level3Value" placeholder="e.g. FREE JACKET" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;">
-                  <input type="number" id="level3Threshold" value="1000" min="1" style="width:80px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.85rem;font-weight:700;text-align:center;">
-                  <span style="font-size:.82rem;font-weight:600;color:#888;">pts</span>
-                </div>
-                <input type="text" id="level3Desc" placeholder="Short description (optional)" style="width:100%;margin-top:6px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-family:var(--kup-font);font-size:.82rem;color:#666;">
-                <div class="level-banner-upload" onclick="document.getElementById('level3BannerInput').click()" style="margin-top:8px;padding:10px;text-align:center;border:1px dashed #ddd;border-radius:6px;cursor:pointer;background:#fafbfc">
-                  <img id="level3BannerPreview" style="display:none;width:100%;max-height:80px;border-radius:6px;object-fit:cover;margin-bottom:4px" alt="Level 3 banner">
-                  <p id="level3BannerText" style="font-size:.72rem;color:#aaa;margin:0">📷 Level banner image (optional)</p>
-                  <input type="file" id="level3BannerInput" accept="image/png,image/jpeg,image/webp" style="display:none">
-                </div>
-              </div>
-            </div>
 
-            <!-- Hidden legacy field for backward compat -->
-            <input type="hidden" id="unlockThreshold" value="500">
-          </div>
-        </div>
+              </div><!-- /advSettingsBody -->
+            </div><!-- /Advanced Settings accordion -->
+
+          </div><!-- /pointConfig -->
+        </div><!-- /earningSection -->
 
         <div class="wizard-actions">
-          <button class="btn-wizard secondary" onclick="goToStep(2)"><i class="ph ph-arrow-left"></i> Back</button>
-          <button class="btn-wizard primary" onclick="proceedToReview()">Continue</button>
+          <button class="btn-wizard secondary" onclick="goToStep(1)"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard primary" onclick="proceedFromStep2()">Continue</button>
         </div>
+      </div><!-- /step2 -->
+
+      <!-- STEP 3: content merged into step 2 — kept as empty placeholder for JS refs -->
+      <div id="step3" class="form-section">
+        <p class="step-label" id="step3Label">Step 2 of 3 &mdash; Reward Setup</p>
       </div>
 
       <!-- STEP 4: Review -->
       <div id="step4" class="form-section">
-        <p class="step-label" id="step4Label">Step 4 of 4 &mdash; Review</p>
+        <p class="step-label" id="step4Label">Step 3 of 3 &mdash; Review</p>
         <h6 style="font-size:1rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Review your reward</h6>
         <p style="font-size:.82rem;color:#888;margin-bottom:20px">Confirm everything looks good before saving.</p>
 
@@ -891,11 +901,7 @@
 
     /* ============ HELPER: Get total steps for current flow ============ */
     function getTotalSteps() {
-      // Non-Cash + Point-Based = 4 steps (Type → Details → Points → Review)
-      // Non-Cash + Per Approval = 3 steps (Type → Details → Review) — skip step 3
-      // Cash = 3 steps (Type → Details → Review) — skip step 3
-      if (!isCashType(selectedType) && earningMethod === 'point-based') return 4;
-      if (!isCashType(selectedType) && !earningMethod) return 4; // default before choosing
+      // Always 3 steps: Type → Reward Setup (details + earning) → Review
       return 3;
     }
 
@@ -906,26 +912,13 @@
 
     /* ============ UPDATE STEP LABELS ============ */
     function updateStepLabels() {
-      var total = getTotalSteps();
+      // Always 3 steps: 1=Type, 2=Reward Setup, 3=Review
       var el1 = document.getElementById('step1Label');
       var el2 = document.getElementById('step2Label');
-      var el3 = document.getElementById('step3Label');
       var el4 = document.getElementById('step4Label');
-      if (el1) el1.textContent = 'Step 1 of ' + total + ' \u2014 Reward Type';
-      if (el2) el2.textContent = 'Step 2 of ' + total + ' \u2014 Reward Details';
-      if (total === 4) {
-        // Non-Cash Point-Based: Type → Details → Points → Review
-        if (el3) el3.textContent = 'Step 3 of 4 \u2014 Points';
-        if (el4) el4.textContent = 'Step 4 of 4 \u2014 Review';
-      } else if (isCashType(selectedType)) {
-        // Cash: Type → Details → Review (step3 div hidden, step4 = Step 3)
-        if (el4) el4.textContent = 'Step 3 of 3 \u2014 Review';
-      } else {
-        // Non-Cash Per Approval: Type → Details → Earning Method → Review
-        // Still 3 dots but earning method + review share step 3
-        if (el3) el3.textContent = 'Step 3 of 3 \u2014 Earning Method';
-        if (el4) el4.textContent = 'Step 3 of 3 \u2014 Review';
-      }
+      if (el1) el1.textContent = 'Step 1 of 3 \u2014 Reward Type';
+      if (el2) el2.textContent = 'Step 2 of 3 \u2014 Reward Setup';
+      if (el4) el4.textContent = 'Step 3 of 3 \u2014 Review';
     }
 
     /* ============ UPDATE PROGRESS DOTS ============ */
@@ -1029,10 +1022,26 @@
       if (tipsEl) tipsEl.classList.add('active');
     }
 
-    // Called from Step 3 Continue button
+    // Called from Step 3 Continue button (legacy — kept for safety)
     function proceedToReview() {
       if (!validateStep(3)) return;
       showReview();
+    }
+
+    // Called from Step 2 Continue button (new consolidated flow)
+    function proceedFromStep2() {
+      if (!validateStep(2)) return;
+      showReview();
+    }
+
+    // Toggle Advanced Point Settings accordion
+    function toggleAdvSettings() {
+      var body = document.getElementById('advSettingsBody');
+      var chevron = document.getElementById('advSettingsChevron');
+      if (!body) return;
+      var isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
     }
 
     // Show the review step (#step4 div) with correct progress
@@ -1057,7 +1066,6 @@
       if (step === 2) {
         if (selectedType === 'points') {
           if (!document.getElementById('ptTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
-
         } else if (selectedType === 'free-product') {
           if (!document.getElementById('fpTitle').value.trim()) { kupToast('Please enter a reward title', 'warning'); return false; }
         } else if (selectedType === 'discount') {
@@ -1067,18 +1075,23 @@
         } else if (selectedType === 'bonus-cash') {
           // Amount is tier-based — no validation needed
         }
+        // Non-cash types: earning method + point config are now in step 2
+        if (!isCashType(selectedType)) {
+          if (!earningMethod) { kupToast('Please choose an earning method', 'warning'); return false; }
+          if (earningMethod === 'point-based') {
+            // Require at least one reward level with a threshold and value
+            var levels = _collectLevels();
+            if (levels.length === 0) { kupToast('Add at least one reward level with a threshold and value', 'warning'); return false; }
+            // Sync hidden unlockThreshold from highest level for backend compat
+            var highThreshold = _getHighestLevelThreshold();
+            var threshEl = document.getElementById('unlockThreshold');
+            if (threshEl) threshEl.value = highThreshold;
+          }
+        }
         return true;
       }
-      if (step === 3 && !isCashType(selectedType)) {
-        // Validate earning method is selected
-        if (!earningMethod) { kupToast('Please choose an earning method', 'warning'); return false; }
-        // If point-based, validate at least one category enabled + threshold
-        if (earningMethod === 'point-based') {
-          var anyEnabled = document.querySelector('.point-category.enabled');
-          if (!anyEnabled) { kupToast('Enable at least one point category', 'warning'); return false; }
-          var threshold = parseInt(document.getElementById('unlockThreshold').value) || 0;
-          if (threshold <= 0) { kupToast('Set a point threshold greater than 0', 'warning'); return false; }
-        }
+      if (step === 3) {
+        // Step 3 is now an empty placeholder — earning validation moved to step 2
         return true;
       }
       return true;
@@ -1145,6 +1158,10 @@
         if (targetId) document.getElementById(targetId).classList.add('active');
         document.getElementById('step2Subtitle').textContent = subtitles[type] || 'Fill in the details for your reward.';
       }
+
+      // Show earning section only for non-cash types (cash has no earning method to configure)
+      var earningSection = document.getElementById('earningSection');
+      if (earningSection) earningSection.style.display = isCashType(type) ? 'none' : 'block';
     }
 
     /* ============ EARNING METHOD SELECTION ============ */
@@ -1164,7 +1181,7 @@
         perApprovalEl.style.display = 'block';
       }
       updateStepLabels();
-      updateProgressDots(3);
+      updateProgressDots(2); // Still on step 2 — earning section is part of step 2 now
       updatePreview();
     }
 
@@ -1377,7 +1394,7 @@
 
     /* ============ POPULATE REVIEW ============ */
     function populateReview() {
-      var typeNames = { 'points':'Points / Store Credit', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
+      var typeNames = { 'points':'Loyalty Points', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
       var cash = isCashType(selectedType);
       var badgesEl = document.getElementById('reviewBadges');
 
@@ -1499,13 +1516,8 @@
 
     /* ============ BACK FROM REVIEW ============ */
     function goBackFromReview() {
-      if (isCashType(selectedType)) {
-        // Cash: Review is step 3 → go back to step 2
-        goToStep(2);
-      } else {
-        // Non-Cash: go back to step 3 (earning method / point config)
-        goToStep(3);
-      }
+      // All flows: review goes back to step 2 (earning method + config now live there)
+      goToStep(2);
     }
 
     /* ============ BUILD REWARD PAYLOAD ============ */
