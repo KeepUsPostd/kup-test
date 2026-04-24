@@ -875,7 +875,7 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
       if (cpaReward) {
         // Resolve rate from influencer tier + content type (video vs photo)
         const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
-        const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
+        const tier = influencer ? (influencer.influenceTier || 'unverified') : 'unverified';
         const rate = resolveRate(tier, submission.contentType);
         const amount = rate.influencerGets;
         const brandPaysAmount = rate.brandPays;
@@ -1304,7 +1304,7 @@ router.put('/:submissionId/postd', requireAuth, async (req, res) => {
 
       if (bonusReward) {
         const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
-        const tier = influencer ? (influencer.influenceTier || 'nano') : 'nano';
+        const tier = influencer ? (influencer.influenceTier || 'unverified') : 'unverified';
         const baseRate = resolveRate(tier, submission.contentType);
         const amount = calcBonusCash(baseRate.influencerGets);  // 30% of base CPA
         const brandPaysAmount = Math.round(((amount + FEES.kup.flat + FEES.paypal.flat) / (1 - FEES.paypal.percent)) * 100) / 100;
