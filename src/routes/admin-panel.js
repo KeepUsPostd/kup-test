@@ -1146,11 +1146,16 @@ router.get('/influencer-lookup', async (req, res) => {
 
     if (!profile) return res.status(404).json({ error: 'No influencer found' });
 
+    // Also fetch account email from User model
+    const user = await User.findById(profile.userId, { email: 1 }).lean();
+
     res.json({
       userId: profile.userId,
       handle: profile.handle,
       displayName: profile.displayName,
       influenceTier: profile.influenceTier,
+      paypalEmail: profile.paypalEmail || null,
+      accountEmail: user?.email || null,
     });
   } catch (error) {
     console.error('Influencer lookup error:', error);
@@ -1909,6 +1914,14 @@ router.post('/promotions', async (req, res) => {
 router.get('/promotions', async (req, res) => {
   try {
     const promos = await Promotion.find().sort({ createdAt: -1 }).lean();
+
+    // Attach PayPal email + account email for each influencer
+    for (const promo of promos) {
+      const profile = await InfluencerProfile.findOne({ userId: promo.influencerUserId }, { paypalEmail: 1 }).lean();
+      const user = await User.findById(promo.influencerUserId, { email: 1 }).lean();
+      promo.paypalEmail = profile?.paypalEmail || null;
+      promo.accountEmail = user?.email || null;
+    }
 
     // Check if influencer submitted content for each promo
     for (const promo of promos) {

@@ -439,6 +439,38 @@ router.post('/', requireAuth, async (req, res) => {
     awardContentPoints({ brandId, influencerProfileId: submission.influencerProfileId, stage: 'submitted', partnershipId: submission.partnershipId?.toString() })
       .catch(() => {});
 
+    // 📣 If this submission is for an active admin promo — email Santana immediately
+    try {
+      const Promotion = require('../models/Promotion');
+      const activePendingPromo = await Promotion.findOne({
+        influencerUserId: req.user._id,
+        brandId,
+        status: 'sent',
+      });
+      if (activePendingPromo) {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        const { sendEmail } = require('../services/email');
+        const brand = await Brand.findById(brandId).lean();
+        for (const adminEmail of adminEmails) {
+          await sendEmail({
+            to: adminEmail,
+            subject: `Promo content submitted — @${influencerProfile.handle} for ${brand?.name || brandId}`,
+            headline: 'Content ready to review',
+            variant: 'brand',
+            bodyHtml: `
+              <p><strong>@${influencerProfile.handle}</strong> has submitted content for the <strong>${brand?.name || brandId}</strong> promo ($${activePendingPromo.amount}).</p>
+              <p><strong>Briefing:</strong> ${activePendingPromo.description}</p>
+              <p>Log in to the admin panel to review and mark as paid once you've sent the PayPal payment.</p>
+              <p><a href="https://keepuspostd.com/pages/admin/promotions.html">Open Promotions Panel →</a></p>
+            `,
+          }).catch(() => {});
+        }
+        console.log(`📣 Admin notified: promo content submitted by @${influencerProfile.handle} for ${brand?.name}`);
+      }
+    } catch (promoNotifyErr) {
+      console.error('Promo admin notification error (non-blocking):', promoNotifyErr.message);
+    }
+
     res.status(201).json({
       message: 'Content submitted for review',
       submission,

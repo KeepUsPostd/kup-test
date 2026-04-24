@@ -154,7 +154,10 @@
         if (data.error) { alert(data.error); return; }
         foundInfluencer = data;
         const el = document.getElementById('lookupResult');
-        el.innerHTML = '<strong>Found:</strong> @' + data.handle + ' (' + data.displayName + ') — ' + (data.influenceTier || 'Starter');
+        const paypalLine = data.paypalEmail
+          ? '<br>💸 <strong>PayPal:</strong> ' + data.paypalEmail
+          : '<br>⚠️ <strong>PayPal not connected yet</strong> — confirm their PayPal email before paying (account email: ' + (data.accountEmail || 'unknown') + ')';
+        el.innerHTML = '<strong>Found:</strong> @' + data.handle + ' (' + data.displayName + ') — ' + (data.influenceTier || 'Starter') + paypalLine;
         el.style.display = 'block';
         document.getElementById('sendBtn').disabled = false;
       } catch (err) {
@@ -218,13 +221,19 @@
         tbody.innerHTML = promos.map(p => {
           const statusLabels = { sent: 'Sent', content_submitted: 'Content Submitted', paid: 'Paid', expired: 'Expired', declined: 'Declined' };
           const date = new Date(p.createdAt).toLocaleDateString();
+          const paypalDisplay = p.paypalEmail
+            ? '<br><span style="font-size:11px;color:#059669">💸 ' + p.paypalEmail + '</span>'
+            : p.accountEmail
+              ? '<br><span style="font-size:11px;color:#f59e0b">⚠️ No PayPal — use: ' + p.accountEmail + '</span>'
+              : '<br><span style="font-size:11px;color:#9ca3af">No PayPal connected</span>';
+          const paypalForBtn = p.paypalEmail || p.accountEmail || '';
           const actionBtn = (p.status === 'content_submitted')
-            ? '<button class="btn-mark-paid" onclick="markPaid(\'' + p._id + '\')">Mark as Paid</button>'
+            ? '<button class="btn-mark-paid" onclick="markPaid(\'' + p._id + '\',\'' + paypalForBtn + '\',$' + (p.amount||0).toFixed(2) + ')">Mark as Paid</button>'
             : p.status === 'sent' ? '<span style="color:#9ca3af;font-size:12px">Awaiting content</span>'
-            : p.status === 'paid' ? '<span style="color:#059669;font-size:12px">Completed</span>' : '';
+            : p.status === 'paid' ? '<span style="color:#059669;font-size:12px">✓ Paid</span>' : '';
 
           return '<tr>' +
-            '<td><strong>@' + (p.influencerHandle || '') + '</strong></td>' +
+            '<td><strong>@' + (p.influencerHandle || '') + '</strong>' + paypalDisplay + '</td>' +
             '<td>' + (p.brandName || '') + '</td>' +
             '<td><strong>$' + (p.amount || 0).toFixed(2) + '</strong></td>' +
             '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.description || '') + '</td>' +
@@ -238,15 +247,22 @@
       }
     }
 
-    async function markPaid(promoId) {
-      const txId = prompt('Enter PayPal transaction ID (optional):');
+    async function markPaid(promoId, paypalEmail, amount) {
+      const confirmed = confirm(
+        '💸 SEND PAYMENT FIRST\n\n' +
+        'Send ' + amount + ' via PayPal to:\n' +
+        (paypalEmail || '(no PayPal on file — check with influencer)') +
+        '\n\nOnce sent, click OK to notify the influencer.\nCancel if you haven\'t sent it yet.'
+      );
+      if (!confirmed) return;
+      const txId = prompt('Paste the PayPal transaction ID (optional but recommended):');
       try {
         const data = await apiFetch('/promotions/' + promoId + '/mark-paid', {
           method: 'PUT',
           body: JSON.stringify({ paypalTransactionId: txId || null }),
         });
         if (data.success) {
-          alert('Marked as paid — influencer has been notified');
+          alert('✓ Marked as paid — influencer has been notified by push + email');
           loadPromotions();
         } else {
           alert(data.error || 'Failed');
