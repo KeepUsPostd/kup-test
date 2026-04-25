@@ -1364,7 +1364,8 @@
             }
           }
           var card = document.getElementById('phoneRewardCard');
-          if (card && !uploadedRewardBannerUrl) card.style.background = gradient;
+          var activeLevelBanner = selectedType === 'points' ? levelBannerUrls[1] : null;
+          if (card && !uploadedRewardBannerUrl && !activeLevelBanner) card.style.background = gradient;
         }).catch(function() {});
       } catch(e) {}
     }
