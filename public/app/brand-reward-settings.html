@@ -1412,16 +1412,18 @@
           if (r.cashConfig && r.cashConfig.budgetCap) details += '<span class="rs-tag">Cap: $' + r.cashConfig.budgetCap + '</span>';
         }
 
-        // Banner background: reward banner → brand gradient
-        var bgStyle = r.bannerImageUrl
-          ? 'background:url(' + r.bannerImageUrl + ') center/cover no-repeat'
+        // Banner background: program banner → level 1 banner → brand gradient
+        var levelOneBanner = r.pointConfig && r.pointConfig.levels && r.pointConfig.levels[0] ? r.pointConfig.levels[0].imageUrl : null;
+        var cardBannerUrl = r.bannerImageUrl || levelOneBanner || null;
+        var bgStyle = cardBannerUrl
+          ? 'background:url(' + cardBannerUrl + ') center/cover no-repeat'
           : 'background:' + gradient;
 
         // Card wrapper
         html += '<div class="reward-settings-card' + (isDraft ? ' draft-card' : '') + '" data-reward-id="' + r._id + '">';
 
         // ── Gradient Banner ──
-        var hasBanner = !!r.bannerImageUrl;
+        var hasBanner = !!cardBannerUrl;
         html += '  <div class="rsc-banner" style="' + bgStyle + '">';
         if (!hasBanner) {
           html += '    <div class="rsc-banner-overlay"></div>';

@@ -1291,8 +1291,10 @@
       var cardOverlay = document.getElementById('phoneCardOverlay');
       var cardContent = document.getElementById('phoneCardContent');
       if (cardEl) {
-        if (uploadedRewardBannerUrl) {
-          cardEl.style.background = 'url(' + uploadedRewardBannerUrl + ') center/cover no-repeat';
+        // For points type: program banner was removed, so fall back to level 1 banner for preview
+        var previewBannerUrl = uploadedRewardBannerUrl || (selectedType === 'points' ? levelBannerUrls[1] : null);
+        if (previewBannerUrl) {
+          cardEl.style.background = 'url(' + previewBannerUrl + ') center/cover no-repeat';
           // Hide overlay + text — the banner IS the visual
           if (cardOverlay) cardOverlay.style.display = 'none';
           if (cardContent) cardContent.style.display = 'none';
