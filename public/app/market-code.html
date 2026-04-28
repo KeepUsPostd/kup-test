@@ -303,7 +303,7 @@
           </div>
         </div>
 
-        <p class="scan-text">Scan to discover KeepUsPostd</p>
+        <p class="scan-text" id="scanText">Scan to discover your brand</p>
         <span class="brand-url" style="cursor:pointer;" onclick="copyBrandUrl()" id="brandUrlDisplay">keepuspostd.com/brand/keepuspostd</span>
 <div style="font-size:0.72rem;color:#888;margin-top:8px;line-height:1.4;" id="brandUrlHint">
   <i class="ph ph-link" style="font-size:12px;vertical-align:middle;"></i>
@@ -376,7 +376,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#16a34a;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <div>
               <p class="upsell-text" style="color:#444;"><strong>Deep Link Active</strong> — When someone scans this code and downloads the app, they'll land directly on your brand profile with your active campaigns. No searching required.</p>
-              <span style="font-size:.78rem;color:#888;">URL: keepuspostd.com/brand/keepuspostd</span>
+              <span class="deep-link-url" style="font-size:.78rem;color:#888;">URL: keepuspostd.com/brand/…</span>
             </div>
           </div>
         </div>
@@ -415,7 +415,9 @@
       try {
         var activeBrand = null;
         try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
-        var brandId = (activeBrand && activeBrand.id) || null;
+        // Prefer localStorage active brand, fall back to URL ?brandId= param
+        var urlParams = new URLSearchParams(window.location.search);
+        var brandId = (activeBrand && activeBrand.id) || urlParams.get('brandId') || null;
         if (brandId && typeof kupApi !== 'undefined') {
           // Fetch brand + billing in parallel
           var results = await Promise.allSettled([
@@ -429,13 +431,19 @@
             var brand = brandResult.value.brand || brandResult.value;
             // Prefer @handle URL if set, otherwise fall back to kiosk code
             var handle = brand.brandHandle;
-            var kioskCode = brand.kioskBrandCode || brand._id;
+            // Use kioskBrandCode → _id → brandId (from URL/localStorage) as fallback chain
+            // This prevents 'brand/undefined' if the API response shape is unexpected
+            var kioskCode = brand.kioskBrandCode || brand._id || brandId;
             var shortPath = handle ? '@' + handle : 'brand/' + kioskCode;
             _qrBrandUrl = 'https://keepuspostd.com/' + shortPath;
             var displayEl = document.getElementById('brandUrlDisplay');
             if (displayEl) displayEl.textContent = 'keepuspostd.com/' + shortPath;
-            var deepLinkSpan = document.querySelector('.scan-upsell span[style*="color:#888"]');
-            if (deepLinkSpan) deepLinkSpan.textContent = 'URL: keepuspostd.com/' + shortPath;
+            var scanTextEl = document.getElementById('scanText');
+            if (scanTextEl && brand.businessName) scanTextEl.textContent = 'Scan to discover ' + brand.businessName;
+            // Update all places that show the brand URL
+            document.querySelectorAll('.deep-link-url').forEach(function(el) {
+              el.textContent = 'URL: keepuspostd.com/' + shortPath;
+            });
           }
 
           // Plan badge
