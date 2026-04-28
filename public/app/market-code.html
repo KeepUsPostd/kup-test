@@ -415,9 +415,10 @@
       try {
         var activeBrand = null;
         try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
-        // Prefer localStorage active brand, fall back to URL ?brandId= param
+        // Use mongoId (full 24-char ObjectId) — activeBrand.id is only a 6-char abbreviation
+        // that fails Brand.findById(). Fall back to URL ?brandId= param as last resort.
         var urlParams = new URLSearchParams(window.location.search);
-        var brandId = (activeBrand && activeBrand.id) || urlParams.get('brandId') || null;
+        var brandId = (activeBrand && (activeBrand.mongoId || activeBrand.id)) || urlParams.get('brandId') || null;
         if (brandId && typeof kupApi !== 'undefined') {
           // Fetch brand + billing in parallel
           var results = await Promise.allSettled([
@@ -425,9 +426,10 @@
             kupApi.get('/api/billing/subscription'),
           ]);
 
-          // Brand data
+          // Brand data — kupApi.get() resolves even on 4xx/5xx (returns { error: '...' })
+          // so we must explicitly check for an error field before treating it as brand data
           var brandResult = results[0];
-          if (brandResult.status === 'fulfilled' && brandResult.value) {
+          if (brandResult.status === 'fulfilled' && brandResult.value && !brandResult.value.error) {
             var brand = brandResult.value.brand || brandResult.value;
             // Prefer @handle URL if set, otherwise fall back to kiosk code
             var handle = brand.brandHandle;
