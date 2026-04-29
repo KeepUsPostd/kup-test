@@ -335,6 +335,16 @@ app.use('/api/blocks', require('./routes/blocks'));
 app.get('/download-app', async (req, res) => {
   const legacyId = req.query['brand-id'];
   if (!legacyId) {
+    const ua = req.headers['user-agent'] || '';
+    const isIOS = /iphone|ipad|ipod/i.test(ua);
+    const isAndroid = /android/i.test(ua);
+    if (isIOS) {
+      return res.redirect(302, 'https://apps.apple.com/us/app/keepuspostd/id1515156338');
+    }
+    if (isAndroid) {
+      return res.redirect(302, 'https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp');
+    }
+    // Desktop or unknown — show the download page
     return res.redirect(301, '/pages/download-app.html');
   }
   try {
