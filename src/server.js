@@ -335,7 +335,7 @@ app.use('/api/blocks', require('./routes/blocks'));
 app.get('/download-app', async (req, res) => {
   const legacyId = req.query['brand-id'];
   if (!legacyId) {
-    return res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'download-app.html'));
+    return res.redirect(301, '/pages/download-app.html');
   }
   try {
     const Brand = require('./models/Brand');
