@@ -76,7 +76,7 @@ const transactionSchema = new mongoose.Schema({
   // Payment routing — how money flows
   paymentRouting: {
     type: String,
-    enum: ['vault_kup', 'brand_direct'],  // vault_kup=KUP collects→pays out, brand_direct=brand→influencer via PPCP
+    enum: ['vault_kup', 'vault_ppcp', 'brand_direct'],  // vault_ppcp=brand vault → influencer PPCP (KUP collects platform fee), brand_direct=brand redirected to PayPal
     default: 'vault_kup',
   },
 
