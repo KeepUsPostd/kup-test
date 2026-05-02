@@ -921,9 +921,19 @@ async function brandPublished({ user, brand }) {
       </p>
     `,
     ctaText: 'View Your Brand',
-    ctaUrl: `${APP_URL}/app/brand-profile.html`,
+    ctaUrl: brand.kioskBrandCode
+      ? `${APP_URL}/app/brand-profile.html/${brand.kioskBrandCode}`
+      : brand.brandHandle
+        ? `${APP_URL}/app/brand-profile.html/@${brand.brandHandle}`
+        : `${APP_URL}/app/dashboard.html`,
     variant: 'brand',
   });
+
+  const brandProfilePath = brand.kioskBrandCode
+    ? `/app/brand-profile.html/${brand.kioskBrandCode}`
+    : brand.brandHandle
+      ? `/app/brand-profile.html/@${brand.brandHandle}`
+      : '/app/dashboard.html';
 
   if ((brand.ownerId || brand.createdBy)) {
     await createInApp({
@@ -931,7 +941,7 @@ async function brandPublished({ user, brand }) {
       title: 'Brand Published!',
       message: `${brand.name} is now live on the marketplace.`,
       type: 'account',
-      link: '/app/brand-profile.html',
+      link: brandProfilePath,
     });
   }
 }

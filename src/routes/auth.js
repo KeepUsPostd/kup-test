@@ -512,7 +512,7 @@ router.post('/complete-onboarding', requireAuth, async (req, res) => {
         const brand = await Brand.findById(brandProfile.primaryBrandId);
         if (brand) brandName = brand.name;
       }
-      notify.brandPublished({ user: req.user, brand: { name: brandName || 'your brand' } })
+      notify.brandPublished({ user: req.user, brand: brand || { name: brandName || 'your brand' } })
         .catch(e => console.error('[complete-onboarding] brandPublished error:', e.message));
     } catch (notifyErr) {
       console.error('[complete-onboarding] notify error:', notifyErr.message);
