@@ -922,17 +922,17 @@ async function brandPublished({ user, brand }) {
     `,
     ctaText: 'View Your Brand',
     ctaUrl: brand.kioskBrandCode
-      ? `${APP_URL}/app/brand-profile.html/${brand.kioskBrandCode}`
+      ? `${APP_URL}/brand/${brand.kioskBrandCode}`
       : brand.brandHandle
-        ? `${APP_URL}/app/brand-profile.html/@${brand.brandHandle}`
+        ? `${APP_URL}/@${brand.brandHandle}`
         : `${APP_URL}/app/dashboard.html`,
     variant: 'brand',
   });
 
   const brandProfilePath = brand.kioskBrandCode
-    ? `/app/brand-profile.html/${brand.kioskBrandCode}`
+    ? `/brand/${brand.kioskBrandCode}`
     : brand.brandHandle
-      ? `/app/brand-profile.html/@${brand.brandHandle}`
+      ? `/@${brand.brandHandle}`
       : '/app/dashboard.html';
 
   if ((brand.ownerId || brand.createdBy)) {
