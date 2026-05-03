@@ -19,7 +19,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 // we send the signature back to PayPal and ask "did you actually send this?"
 // If PayPal says yes → we process it. If no → we reject it.
 // This prevents anyone from faking PayPal events to mess with your data.
-router.post('/paypal', express.json({ verify: (req, res, buf) => { req.rawBody = buf.toString(); } }), async (req, res) => {
+router.post('/paypal', async (req, res) => {
   try {
     const event = req.body;
     const eventType = event.event_type;

@@ -120,7 +120,7 @@ app.use(helmet({
 }));
 
 app.use(cors(getCorsOptions()));                   // CORS — open in dev, locked in production
-app.use(express.json(jsonLimit));                   // Parse JSON (10mb limit)
+app.use(express.json({ ...jsonLimit, verify: (req, _res, buf) => { req.rawBody = buf.toString(); } })); // Parse JSON — rawBody captured for PayPal webhook signature verification
 app.use(express.urlencoded(urlencodedLimit));       // Parse form data (10mb limit)
 app.use(mongoSanitizeMiddleware);                   // Custom Express 5-compatible mongo sanitize
 app.use(hppMiddleware);                              // Custom Express 5-compatible HPP protection
