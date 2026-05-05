@@ -19,6 +19,20 @@ const PLAN_PRICING = {
   enterprise: { monthly: null, annual: null }, // custom pricing
 };
 
+// Referral rewards — credit applied to the referrer's accountCredit (USD dollars)
+// 30-day qualification hold: reward is disbursed only after the referred brand
+// has maintained a paid plan for 30 days. Checked lazily at disbursal time.
+const REFERRAL_REWARD = { growth: 50, pro: 75, agency: 100, enterprise: 100 };
+
+// Referral discount for referred brands: 10% off first 3 months.
+// PayPal plan prices are fixed so we apply the equivalent as account credit on activation.
+// credit = monthlyPrice × 10% × 3 months (rounded to nearest dollar)
+function referralCreditForBrand(planTier) {
+  const monthly = PLAN_PRICING[planTier] && PLAN_PRICING[planTier].monthly;
+  if (!monthly) return 0;
+  return Math.round(monthly * 0.10 * 3);
+}
+
 // Plan feature matrix
 const PLAN_FEATURES = {
   starter: {
@@ -320,13 +334,44 @@ router.post('/subscribe', requireAuth, async (req, res) => {
       brandProfile.billingCycle = cycle;
       brandProfile.planStartedAt = now;
       brandProfile.planExpiresAt = periodEnd;
+      if (brandProfile.trialActive) brandProfile.trialActive = false;
+
+      // ── Gap 2: Apply referral discount credit for referred brands ──
+      // 10% off first 3 months → applied as account credit on first paid activation.
+      let referralDiscountCredit = 0;
+      if (brandProfile.referredBy && !brandProfile.referralDiscountApplied) {
+        referralDiscountCredit = referralCreditForBrand(planTier);
+        if (referralDiscountCredit > 0) {
+          brandProfile.accountCredit = (brandProfile.accountCredit || 0) + referralDiscountCredit;
+          brandProfile.referralDiscountApplied = true;
+          console.log(`🎁 Referral discount: $${referralDiscountCredit} credit applied to referred brand ${brandProfile._id}`);
+        }
+      }
+
+      // Record first paid plan activation date (used for the 30-day referrer reward hold)
+      if (!brandProfile.paidPlanActivatedAt) {
+        brandProfile.paidPlanActivatedAt = now;
+      }
+
       await brandProfile.save();
 
+      // ── Gap 1: Disburse referral reward to referrer if 30-day hold has passed ──
+      // For local-mode activations, attempt disbursal immediately; the hold check
+      // happens inside disburseReferralRewardIfEligible.
+      disburseReferralRewardIfEligible(brandProfile).catch(err =>
+        console.error('[billing/subscribe local] referral reward disbursal error:', err.message)
+      );
+
+      const responseMessage = referralDiscountCredit > 0
+        ? `Subscribed to ${planTier} plan (${cycle}) — $${referralDiscountCredit} referral discount applied as account credit`
+        : `Subscribed to ${planTier} plan (${cycle}) — local mode (PayPal plans not configured yet)`;
+
       return res.status(201).json({
-        message: `Subscribed to ${planTier} plan (${cycle}) — local mode (PayPal plans not configured yet)`,
+        message: responseMessage,
         subscription,
         features: PLAN_FEATURES[planTier],
         pricing: PLAN_PRICING[planTier],
+        referralDiscountCredit: referralDiscountCredit || undefined,
         note: 'Run POST /api/billing/setup-plans to create PayPal plans, then subscriptions will use PayPal checkout.',
       });
     }
@@ -417,7 +462,29 @@ router.post('/activate', requireAuth, async (req, res) => {
         if (brandProfile.trialActive) {
           brandProfile.trialActive = false; // Paid plan supersedes trial
         }
+
+        // ── Gap 2: Apply referral discount credit for referred brands ──
+        // 10% off first 3 months → applied as account credit on first paid activation.
+        if (brandProfile.referredBy && !brandProfile.referralDiscountApplied) {
+          const discountCredit = referralCreditForBrand(subscription.planTier);
+          if (discountCredit > 0) {
+            brandProfile.accountCredit = (brandProfile.accountCredit || 0) + discountCredit;
+            brandProfile.referralDiscountApplied = true;
+            console.log(`🎁 Referral discount: $${discountCredit} credit applied to referred brand ${brandProfile._id}`);
+          }
+        }
+
+        // Record first paid plan activation date (used for the 30-day referrer reward hold)
+        if (!brandProfile.paidPlanActivatedAt) {
+          brandProfile.paidPlanActivatedAt = new Date();
+        }
+
         await brandProfile.save();
+
+        // ── Gap 1: Disburse referral reward to referrer if 30-day hold has passed ──
+        disburseReferralRewardIfEligible(brandProfile).catch(err =>
+          console.error('[billing/activate] referral reward disbursal error:', err.message)
+        );
       }
 
       console.log(`✅ Subscription activated: ${paypalSubscriptionId} → ${subscription.planTier}`);
@@ -876,5 +943,56 @@ router.post('/validate-promo', requireAuth, async (req, res) => {
     res.status(500).json({ valid: false, error: 'Could not validate code' });
   }
 });
+
+// ═══════════════════════════════════════════════════════════
+// REFERRAL REWARD DISBURSAL (Gap 1)
+// ═══════════════════════════════════════════════════════════
+// Called non-blocking after a referred brand activates or renews a paid plan.
+// Rules:
+//   • The referred brand must have paidPlanActivatedAt set (set on first paid activation)
+//   • 30 days must have passed since paidPlanActivatedAt
+//   • The reward must not already have been disbursed (referralRewardDisbursed flag)
+//   • Reward tiers: growth=$50, pro=$75, agency/enterprise=$100
+//
+// Because we have no background scheduler, disbursal is triggered lazily:
+//   - On activate (PayPal confirmed) → try immediately (brand may already be 30+ days old)
+//   - On subscribe (local mode) → same
+//   - On GET /api/referrals/brand → also calls this to catch any missed disbursals
+async function disburseReferralRewardIfEligible(referredBrandProfile) {
+  if (!referredBrandProfile.referredBy) return;
+  if (referredBrandProfile.referralRewardDisbursed) return;
+  if (!referredBrandProfile.paidPlanActivatedAt) return;
+
+  const PAID_PLANS = ['growth', 'pro', 'agency', 'enterprise'];
+  const tier = (referredBrandProfile.planTier || '').toLowerCase();
+  if (!PAID_PLANS.includes(tier)) return;
+
+  // 30-day qualification hold
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  const activatedAt = new Date(referredBrandProfile.paidPlanActivatedAt).getTime();
+  if (Date.now() - activatedAt < thirtyDaysMs) {
+    // Not yet qualified — no action; will retry next time activate/referrals route is hit
+    return;
+  }
+
+  // Find the referrer
+  const referrerProfile = await BrandProfile.findById(referredBrandProfile.referredBy);
+  if (!referrerProfile) return;
+
+  const rewardAmount = REFERRAL_REWARD[tier] || 0;
+  if (rewardAmount === 0) return;
+
+  // Credit the referrer and mark the reward as disbursed (atomic-ish with two saves)
+  referrerProfile.accountCredit = (referrerProfile.accountCredit || 0) + rewardAmount;
+  await referrerProfile.save();
+
+  referredBrandProfile.referralRewardDisbursed = true;
+  await referredBrandProfile.save();
+
+  console.log(
+    `💰 Referral reward disbursed: $${rewardAmount} credited to brand profile ${referrerProfile._id}` +
+    ` (referred brand: ${referredBrandProfile._id}, plan: ${tier})`
+  );
+}
 
 module.exports = router;

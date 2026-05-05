@@ -7,52 +7,135 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const { User, InfluencerProfile, BrandProfile } = require('../models');
 
+// Referral rewards by plan tier — must match REFERRAL_REWARD in billing.js
+const REFERRAL_REWARD = { growth: 50, pro: 75, agency: 100, enterprise: 100 };
+const PAID_PLANS = ['growth', 'pro', 'agency', 'enterprise'];
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Lazy disbursal helper — mirrors the one in billing.js.
+// Called when the referral stats page is loaded so any earned-but-not-yet-disbursed
+// rewards get paid out without needing a background job.
+async function disburseReferralRewardIfEligible(referredBrandProfile) {
+  if (!referredBrandProfile.referredBy) return false;
+  if (referredBrandProfile.referralRewardDisbursed) return false;
+  if (!referredBrandProfile.paidPlanActivatedAt) return false;
+
+  const tier = (referredBrandProfile.planTier || '').toLowerCase();
+  if (!PAID_PLANS.includes(tier)) return false;
+
+  if (Date.now() - new Date(referredBrandProfile.paidPlanActivatedAt).getTime() < THIRTY_DAYS_MS) {
+    return false; // Hold period not yet elapsed
+  }
+
+  const referrerProfile = await BrandProfile.findById(referredBrandProfile.referredBy);
+  if (!referrerProfile) return false;
+
+  const rewardAmount = REFERRAL_REWARD[tier] || 0;
+  if (rewardAmount === 0) return false;
+
+  referrerProfile.accountCredit = (referrerProfile.accountCredit || 0) + rewardAmount;
+  await referrerProfile.save();
+
+  referredBrandProfile.referralRewardDisbursed = true;
+  await referredBrandProfile.save();
+
+  console.log(
+    `💰 [referrals/brand] Referral reward disbursed: $${rewardAmount} → referrer ${referrerProfile._id}` +
+    ` (referred brand ${referredBrandProfile._id}, plan: ${tier})`
+  );
+  return true;
+}
+
 // GET /api/referrals/brand — Referral stats for the logged-in brand owner
-// Returns: referralCode, stats (signedUp, qualified, totalEarned), recentActivity
+// Returns: referralCode, stats (signedUp, qualified, totalEarned, accountCredit), recentActivity
 router.get('/brand', requireAuth, async (req, res) => {
   try {
     const user = req.user;
-    const myBrand = await BrandProfile.findOne({ userId: user._id }).lean();
+    // Fetch as a mutable document (not lean) so we can save disbursal updates
+    const myBrand = await BrandProfile.findOne({ userId: user._id });
 
     if (!myBrand) {
       return res.status(404).json({ error: 'Brand profile not found' });
     }
 
-    // Find all brands referred by this brand
+    // Find all brands referred by this brand (mutable, not lean — disbursal may save)
     const referredBrands = await BrandProfile.find({ referredBy: myBrand._id })
-      .populate('userId', 'email createdAt')
-      .lean();
+      .populate('userId', 'email createdAt');
 
     const signedUp = referredBrands.length;
 
-    // Qualified = referred brands on a paid plan
-    const PAID_PLANS = ['growth', 'pro', 'agency', 'enterprise'];
-    const qualifiedBrands = referredBrands.filter(b => PAID_PLANS.includes((b.planTier || '').toLowerCase()));
+    // Lazy disbursal: fire for each referred brand that may now be past the 30-day hold.
+    // Non-blocking per brand; errors logged but do not fail the response.
+    let newlyDisbursed = 0;
+    for (const referredBrand of referredBrands) {
+      try {
+        const disbursed = await disburseReferralRewardIfEligible(referredBrand);
+        if (disbursed) newlyDisbursed++;
+      } catch (disbErr) {
+        console.error(`[referrals/brand] disbursal error for brand ${referredBrand._id}:`, disbErr.message);
+      }
+    }
+
+    // Re-fetch myBrand if any rewards were just disbursed (accountCredit was updated)
+    const freshBrand = newlyDisbursed > 0
+      ? await BrandProfile.findById(myBrand._id).lean()
+      : myBrand.toObject ? myBrand.toObject() : myBrand;
+
+    // Qualified = referred brands currently on a paid plan
+    const qualifiedBrands = referredBrands.filter(b =>
+      PAID_PLANS.includes((b.planTier || '').toLowerCase())
+    );
     const qualified = qualifiedBrands.length;
 
-    // Referral rewards by plan tier (matches the UI reward table)
-    const REFERRAL_REWARD = { growth: 50, pro: 75, agency: 100, enterprise: 100 };
-    const totalEarned = qualifiedBrands.reduce((sum, b) => {
-      return sum + (REFERRAL_REWARD[(b.planTier || '').toLowerCase()] || 25);
+    // pendingReward = brands that have activated a paid plan but haven't passed the 30-day hold yet
+    const pendingRewardBrands = qualifiedBrands.filter(b =>
+      !b.referralRewardDisbursed &&
+      b.paidPlanActivatedAt &&
+      Date.now() - new Date(b.paidPlanActivatedAt).getTime() < THIRTY_DAYS_MS
+    );
+
+    // totalEarned = actual account credit accumulated from referral rewards
+    const totalEarned = freshBrand.accountCredit || 0;
+
+    // pendingEarnings = rewards that will be paid once the 30-day hold clears
+    const pendingEarnings = pendingRewardBrands.reduce((sum, b) => {
+      return sum + (REFERRAL_REWARD[(b.planTier || '').toLowerCase()] || 0);
     }, 0);
 
     // Recent activity (last 10 referrals)
-    const recentActivity = referredBrands.slice(0, 10).map(b => ({
-      joinedAt: b.createdAt,
-      email: b.userId ? b.userId.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
-      plan: b.planTier || 'starter',
-      status: PAID_PLANS.includes((b.planTier || '').toLowerCase()) ? 'qualified' : 'signed_up',
-    }));
+    const recentActivity = referredBrands.slice(0, 10).map(b => {
+      const tier = (b.planTier || '').toLowerCase();
+      const isPaid = PAID_PLANS.includes(tier);
+      const isDisbursed = !!b.referralRewardDisbursed;
+      const isPending = isPaid && !isDisbursed && b.paidPlanActivatedAt &&
+        Date.now() - new Date(b.paidPlanActivatedAt).getTime() < THIRTY_DAYS_MS;
+
+      let status = 'signed_up';
+      if (isDisbursed) status = 'rewarded';
+      else if (isPending) status = 'qualifying'; // paid but in 30-day hold
+      else if (isPaid) status = 'qualified';
+
+      return {
+        joinedAt: b.createdAt,
+        email: b.userId ? b.userId.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+        plan: b.planTier || 'starter',
+        status,
+        rewardAmount: isPaid ? (REFERRAL_REWARD[tier] || 0) : 0,
+        disbursed: isDisbursed,
+      };
+    });
 
     res.json({
-      referralCode: myBrand.referralCode,
-      referralLink: `https://keepuspostd.com/signup?ref=${myBrand.referralCode || ''}`,
+      referralCode: freshBrand.referralCode,
+      referralLink: `https://keepuspostd.com/signup?ref=${freshBrand.referralCode || ''}`,
       stats: {
         linksShared: signedUp, // proxy — we don't track clicks, only actual signups
         signedUp,
         qualified,
-        totalEarned,
+        totalEarned,       // actual account credit balance ($USD) — paid out rewards
+        pendingEarnings,   // earnings in the 30-day qualification hold
       },
+      accountCredit: totalEarned,
       recentActivity,
     });
   } catch (error) {

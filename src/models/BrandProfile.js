@@ -63,6 +63,20 @@ const brandProfileSchema = new mongoose.Schema({
     ref: 'BrandProfile',
     default: null,
   },
+
+  // Account credit — balance in USD cents accumulated from referral rewards and other credits.
+  // 100 = $1.00. Applied as a discount on future billing (manual process for now).
+  accountCredit: { type: Number, default: 0, min: 0 },
+
+  // Tracks whether the referral reward has already been paid out to the referrer
+  // so we never double-credit on plan changes or re-activations.
+  referralRewardDisbursed: { type: Boolean, default: false },
+
+  // Date the brand first activated a qualifying paid plan (used for 30-day hold).
+  paidPlanActivatedAt: { type: Date, default: null },
+
+  // Whether this brand received the referred-brand 10% discount on first subscription.
+  referralDiscountApplied: { type: Boolean, default: false },
 }, {
   timestamps: true,
 });
