@@ -616,6 +616,44 @@ router.put('/content/:id/moderate', async (req, res) => {
       }
     }
 
+    if (action === 'reject') {
+      // Fire rejection notification to the creator — email + in-app + push
+      try {
+        const [profile, brand] = await Promise.all([
+          InfluencerProfile.findById(submission.influencerProfileId).lean(),
+          Brand.findById(submission.brandId).lean(),
+        ]);
+
+        if (profile && brand) {
+          // Fetch account email so the rejection email goes to the right address
+          const creatorUser = await User.findById(profile.userId, { email: 1 }).lean();
+          await notify.contentRejected({
+            influencer: {
+              email: creatorUser?.email || null,
+              userId: profile.userId.toString(),
+              displayName: profile.displayName || 'Creator',
+            },
+            brand: {
+              name: brand.name,
+              logoUrl: brand.logoUrl || brand.avatarUrl || '',
+            },
+            submission: {
+              _id: submission._id,
+              contentType: submission.contentType || 'video',
+              partnershipId: submission.partnershipId || null,
+              posterUrl: submission.posterUrl || null,
+              mediaUrls: submission.mediaUrls || [],
+            },
+            reason: reason || '',
+          });
+          console.log(`📬 Rejection notification sent to userId ${profile.userId} for ${brand.name}`);
+        }
+      } catch (notifyErr) {
+        console.error('Rejection notification error (non-blocking):', notifyErr.message);
+        // Non-fatal — submission is still rejected
+      }
+    }
+
     res.json({ message: `Content ${action}ed`, submission: { id: submission._id, status: submission.status } });
   } catch (error) {
     res.status(500).json({ error: 'Failed to moderate content' });
