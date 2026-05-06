@@ -190,6 +190,9 @@ app.get('/terms-of-service', (req, res) => {
 app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
+app.get('/download-app.html', (req, res) => {
+  res.redirect(301, '/pages/download-app.html');
+});
 app.get('/delete-account', (req, res) => {
   res.redirect(301, '/pages/delete-account.html');
 });
