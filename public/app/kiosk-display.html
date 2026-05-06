@@ -1782,13 +1782,8 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/brand-context.js"></script>
   <script>
-    // Auth gate
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.href = '/pages/login.html';
-        return;
-      }
-    });
+    // Kiosk display is a public-facing page — no auth required.
+    // Customers are NOT logged in. Never redirect to login from here.
   </script>
 
 </body>

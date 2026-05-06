@@ -7,7 +7,11 @@ const promotionSchema = new mongoose.Schema({
   brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
   brandName: { type: String, required: true },
   amount: { type: Number, required: true }, // payment amount in USD
-  description: { type: String, required: true }, // what content to create
+  description: { type: String, default: null }, // optional additional notes
+  videoDuration: { type: String, default: null }, // e.g. "15–30 seconds"
+  dos: { type: String, default: null }, // what to include in the content
+  donts: { type: String, default: null }, // what to avoid
+  paypalReminder: { type: Boolean, default: true }, // remind creator to connect PayPal
   status: {
     type: String,
     enum: ['sent', 'content_submitted', 'paid', 'expired', 'declined'],

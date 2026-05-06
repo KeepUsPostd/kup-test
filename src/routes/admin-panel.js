@@ -551,6 +551,71 @@ router.put('/content/:id/moderate', async (req, res) => {
     await submission.save();
     console.log(`🛡️ Admin ${action}ed content ${submission._id}: ${reason || ''}`);
 
+    if (action === 'approve') {
+      // Fire approval + rating_request notifications to the creator
+      try {
+        const { createInApp } = require('../services/notifications');
+
+        // Look up the influencer profile and brand
+        const [profile, brand] = await Promise.all([
+          InfluencerProfile.findById(submission.influencerProfileId).lean(),
+          Brand.findById(submission.brandId).lean(),
+        ]);
+
+        if (profile && brand) {
+          const userId = profile.userId.toString();
+          const brandName = brand.name;
+          const KUP_LOGO = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
+          const KUP_COLOR = '#2EA5DD';
+
+          // 1. Approval notification
+          await createInApp({
+            userId,
+            title: `${brandName} approved your content`,
+            message: `Your ${submission.contentType || 'video'} for ${brandName} was approved. Keep it up!`,
+            type: 'approval',
+            link: `/brands/${submission.brandId}`,
+            metadata: {
+              brandName,
+              brandLogoUrl: brand.logoUrl || KUP_LOGO,
+              brandColor: brand.generatedColor || KUP_COLOR,
+              partnershipId: submission.partnershipId?.toString() || null,
+            },
+            audience: 'influencer',
+          });
+
+          await sendPushToUser(userId, {
+            title: `${brandName} approved your content 🎉`,
+            body: `Your review was approved. Check your Activity tab.`,
+            data: { type: 'approval', brandId: submission.brandId.toString() },
+          });
+
+          // 2. Rating request — only send if there's a partnershipId to link back to
+          if (submission.partnershipId) {
+            await createInApp({
+              userId,
+              title: `Rate your experience with ${brandName}`,
+              message: `How was your partnership with ${brandName}? Rate your experience — it helps improve the platform.`,
+              type: 'rating_request',
+              link: `/brands/${submission.brandId}`,
+              metadata: {
+                brandName,
+                brandLogoUrl: brand.logoUrl || KUP_LOGO,
+                brandColor: brand.generatedColor || KUP_COLOR,
+                partnershipId: submission.partnershipId.toString(),
+              },
+              audience: 'influencer',
+            });
+          }
+
+          console.log(`📬 Approval + rating notifications sent to userId ${userId} for ${brandName}`);
+        }
+      } catch (notifyErr) {
+        console.error('Approval notification error (non-blocking):', notifyErr.message);
+        // Non-fatal — submission is still approved
+      }
+    }
+
     res.json({ message: `Content ${action}ed`, submission: { id: submission._id, status: submission.status } });
   } catch (error) {
     res.status(500).json({ error: 'Failed to moderate content' });
@@ -1856,10 +1921,10 @@ const Promotion = require('../models/Promotion');
 // POST /api/admin-panel/promotions — Create and send a promo offer
 router.post('/promotions', async (req, res) => {
   try {
-    const { influencerUserId, influencerHandle, brandId, brandName, amount, description } = req.body;
+    const { influencerUserId, influencerHandle, brandId, brandName, amount, description, videoDuration, dos, donts, paypalReminder } = req.body;
 
-    if (!influencerUserId || !brandId || !amount || !description) {
-      return res.status(400).json({ error: 'influencerUserId, brandId, amount, and description are required' });
+    if (!influencerUserId || !brandId || !amount || !dos) {
+      return res.status(400).json({ error: 'influencerUserId, brandId, amount, and dos are required' });
     }
 
     const influencer = await User.findById(influencerUserId);
@@ -1874,7 +1939,11 @@ router.post('/promotions', async (req, res) => {
       brandId,
       brandName: brandName || brand.name,
       amount,
-      description,
+      videoDuration: videoDuration || null,
+      dos: dos || null,
+      donts: donts || null,
+      paypalReminder: paypalReminder !== false,
+      description: description || null,
     });
 
     // Send push + in-app notification as a briefing
@@ -1883,12 +1952,25 @@ router.post('/promotions', async (req, res) => {
     const KUP_LOGO_URL = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
     const KUP_BRAND_COLOR = '#2EA5DD';
 
+    // Short push body — just the hook (push notifications truncate at ~110 chars)
+    const pushBody = `New ${brand.name} brief inside — earn $${amount} on approval. Tap to view.`;
+
+    // Full in-app message — structured brief with all sections
+    const sections = [];
+    sections.push(`💰 Earn $${amount} for ${brand.name}`);
+    if (videoDuration) sections.push(`⏱ Duration: ${videoDuration}`);
+    if (dos) sections.push(`✅ Do: ${dos}`);
+    if (donts) sections.push(`🚫 Don't: ${donts}`);
+    if (description) sections.push(description);
+    if (paypalReminder !== false) sections.push(`Before submitting, connect your PayPal in Profile → Payouts so we can pay you on approval.`);
+    const inAppMessage = sections.join('\n\n');
+
     try {
       const { createInApp } = require('../services/notifications');
       await createInApp({
         userId: influencerUserId,
         title: `KeepUsPostd Bonus Opportunity`,
-        message: `Earn $${amount} — ${description} (Review: ${brand.name})`,
+        message: inAppMessage,
         type: 'briefing',
         link: `/brands/${brandId}`,
         metadata: {
@@ -1904,7 +1986,7 @@ router.post('/promotions', async (req, res) => {
       });
       const pushResult = await sendPushToUser(influencerUserId, {
         title: `KeepUsPostd: Earn $${amount}`,
-        body: `${description} (Review: ${brand.name})`,
+        body: pushBody,
         data: { type: 'briefing', brandId: brandId.toString(), promoId: promo._id.toString() },
       });
       if (!pushResult.success) {

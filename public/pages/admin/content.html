@@ -36,6 +36,85 @@
     .content-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
     .content-meta { font-size: 12px; color: #999; display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
     .content-actions { display: flex; gap: 6px; flex-direction: column; }
+
+    /* ── Rating Modal ── */
+    #ratingModal {
+      display: none;
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,0.55);
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    #ratingModal.open { display: flex; }
+    .rating-modal-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      font-family: 'Montserrat', sans-serif;
+    }
+    .rating-modal-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .rating-modal-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #2EA5DD; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; flex-shrink: 0;
+    }
+    .rating-modal-title { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .rating-modal-sub  { font-size: 12px; color: #888; margin-top: 2px; }
+    .rating-dimension  { margin-bottom: 16px; }
+    .rating-dimension-label {
+      font-size: 12px; font-weight: 600; color: #374151;
+      margin-bottom: 6px; display: flex; justify-content: space-between;
+    }
+    .rating-dimension-label span { color: #2EA5DD; font-size: 11px; }
+    .stars { display: flex; gap: 4px; }
+    .stars .star {
+      font-size: 26px; cursor: pointer; color: #d1d5db;
+      transition: color 0.1s; line-height: 1; user-select: none;
+    }
+    .stars .star.filled  { color: #f59e0b; }
+    .stars .star:hover,
+    .stars .star.hover   { color: #fbbf24; }
+    .rating-feedback {
+      margin-top: 4px;
+    }
+    .rating-feedback textarea {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      padding: 10px 12px; font-size: 13px;
+      font-family: 'Montserrat', sans-serif;
+      resize: vertical; min-height: 64px;
+      color: #374151;
+    }
+    .rating-feedback textarea:focus { outline: none; border-color: #2EA5DD; }
+    .rating-modal-actions {
+      display: flex; gap: 10px; margin-top: 20px;
+    }
+    .btn-rate-submit {
+      flex: 1; background: #2EA5DD; color: #fff;
+      border: none; border-radius: 9999px;
+      padding: 12px; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-rate-submit:hover:not(:disabled) { background: #2590c4; }
+    .btn-rate-submit:disabled { background: #d1d5db; cursor: not-allowed; }
+    .btn-rate-skip {
+      background: #f3f4f6; color: #6b7280;
+      border: none; border-radius: 9999px;
+      padding: 12px 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-rate-skip:hover { background: #e5e7eb; }
+    .rating-success {
+      text-align: center; padding: 12px 0;
+    }
+    .rating-success .success-icon { font-size: 40px; margin-bottom: 10px; }
+    .rating-success p { font-size: 14px; font-weight: 600; color: #059669; }
   </style>
 </head>
 <body>
@@ -57,7 +136,6 @@
       <div class="nav-section-label">Financial</div>
       <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
       <a href="/pages/admin/promotions.html"><span class="nav-icon">&#128227;</span> Promotions</a>
-
       <div class="nav-section-label">Engagement</div>
       <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
       <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
@@ -109,12 +187,97 @@
     </div>
   </div>
 
+  <!-- ── Creator Rating Modal ── -->
+  <div id="ratingModal">
+    <div class="rating-modal-box">
+      <!-- Default state: rating form -->
+      <div id="ratingFormState">
+        <div class="rating-modal-header">
+          <div class="rating-modal-avatar" id="ratingAvatar">?</div>
+          <div>
+            <div class="rating-modal-title" id="ratingTitle">Rate this creator</div>
+            <div class="rating-modal-sub" id="ratingSubtitle">Content approved — how did they do?</div>
+          </div>
+        </div>
+
+        <div class="rating-dimension">
+          <div class="rating-dimension-label">Content Quality <span id="label-content-quality"></span></div>
+          <div class="stars" data-dim="content-quality">
+            <span class="star" data-val="1">&#9733;</span>
+            <span class="star" data-val="2">&#9733;</span>
+            <span class="star" data-val="3">&#9733;</span>
+            <span class="star" data-val="4">&#9733;</span>
+            <span class="star" data-val="5">&#9733;</span>
+          </div>
+        </div>
+
+        <div class="rating-dimension">
+          <div class="rating-dimension-label">Timeliness <span id="label-timeliness"></span></div>
+          <div class="stars" data-dim="timeliness">
+            <span class="star" data-val="1">&#9733;</span>
+            <span class="star" data-val="2">&#9733;</span>
+            <span class="star" data-val="3">&#9733;</span>
+            <span class="star" data-val="4">&#9733;</span>
+            <span class="star" data-val="5">&#9733;</span>
+          </div>
+        </div>
+
+        <div class="rating-dimension">
+          <div class="rating-dimension-label">Communication <span id="label-communication"></span></div>
+          <div class="stars" data-dim="communication">
+            <span class="star" data-val="1">&#9733;</span>
+            <span class="star" data-val="2">&#9733;</span>
+            <span class="star" data-val="3">&#9733;</span>
+            <span class="star" data-val="4">&#9733;</span>
+            <span class="star" data-val="5">&#9733;</span>
+          </div>
+        </div>
+
+        <div class="rating-dimension">
+          <div class="rating-dimension-label">Brief Compliance <span id="label-brief-compliance"></span></div>
+          <div class="stars" data-dim="brief-compliance">
+            <span class="star" data-val="1">&#9733;</span>
+            <span class="star" data-val="2">&#9733;</span>
+            <span class="star" data-val="3">&#9733;</span>
+            <span class="star" data-val="4">&#9733;</span>
+            <span class="star" data-val="5">&#9733;</span>
+          </div>
+        </div>
+
+        <div class="rating-feedback">
+          <textarea id="ratingFeedback" placeholder="Optional feedback for this creator (not shown publicly)..."></textarea>
+        </div>
+
+        <div class="rating-modal-actions">
+          <button class="btn-rate-submit" id="ratingSubmitBtn" onclick="submitRating()" disabled>Submit Rating</button>
+          <button class="btn-rate-skip" onclick="closeRatingModal()">Skip</button>
+        </div>
+      </div>
+
+      <!-- Success state -->
+      <div id="ratingSuccessState" style="display:none">
+        <div class="rating-success">
+          <div class="success-icon">⭐</div>
+          <p>Rating submitted!</p>
+          <div style="font-size:13px;color:#6b7280;margin-top:6px">Creator profile updated.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js"></script>
 
   <script>
     let authToken = null, currentPage = 1;
+
+    // Rating state
+    var ratingState     = {}; // { 'content-quality': 3, 'timeliness': 4, ... }
+    var ratingPartnershipId   = null;
+    var ratingSubmissionId    = null;
+
+    var DIMS = ['content-quality', 'timeliness', 'communication', 'brief-compliance'];
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = '/pages/login.html'; return; }
@@ -130,6 +293,14 @@
         headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', ...(opts?.headers || {}) },
       });
       if (!res.ok) throw new Error('API error');
+      return res.json();
+    }
+
+    async function partnershipFetch(path, opts) {
+      const res = await fetch('/api/partnerships' + path, {
+        ...opts,
+        headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', ...(opts?.headers || {}) },
+      });
       return res.json();
     }
 
@@ -175,6 +346,10 @@
             : (c.contentType === 'video' ? '&#9654;' : '&#128247;');
           const mediaUrl = c.mediaUrls && c.mediaUrls[0] ? c.mediaUrls[0] : '';
           const isVideo = c.contentType === 'video';
+          const creatorName  = (c.influencerProfileId?.displayName || 'Creator');
+          const creatorHandle = (c.influencerProfileId?.handle || '');
+          const partnershipId = c.partnershipId || '';
+
           return `
             <div class="content-card">
               <div class="content-thumb" style="cursor:pointer;position:relative" onclick="previewMedia('${mediaUrl}',${isVideo},'${(c.caption||'').replace(/'/g,"\\'")}')">
@@ -185,7 +360,7 @@
                 <h4>${c.contentType} submission — ${c.brandId?.name || 'Unknown Brand'}</h4>
                 <div style="font-size:13px;color:#666;margin-top:2px">${c.caption ? c.caption.substring(0, 100) : 'No caption'}</div>
                 <div class="content-meta">
-                  <span>By: ${c.influencerProfileId?.displayName || 'Unknown'} (@${c.influencerProfileId?.handle || '?'})</span>
+                  <span>By: ${creatorName} (@${creatorHandle})</span>
                   <span><span class="status-pill ${c.status}">${c.status}</span></span>
                   <span>${new Date(c.createdAt).toLocaleDateString()}</span>
                   ${c.platform ? `<span>Platform: ${c.platform}</span>` : ''}
@@ -193,8 +368,10 @@
               </div>
               <div class="content-actions">
                 ${c.status === 'submitted' ? `
-                  <button class="btn btn-sm" style="background:#D1FAE5;color:#059669" onclick="moderate('${c._id}','approve')">Approve</button>
-                  <button class="btn btn-danger btn-sm" onclick="moderate('${c._id}','reject')">Reject</button>
+                  <button class="btn btn-sm" style="background:#D1FAE5;color:#059669"
+                    onclick="moderate('${c._id}','approve','${partnershipId}','${creatorName.replace(/'/g,"\\'")}','${creatorHandle}')">Approve</button>
+                  <button class="btn btn-danger btn-sm"
+                    onclick="moderate('${c._id}','reject')">Reject</button>
                 ` : ''}
               </div>
             </div>
@@ -239,7 +416,7 @@
       document.body.appendChild(overlay);
     }
 
-    async function moderate(id, action) {
+    async function moderate(id, action, partnershipId, creatorName, creatorHandle) {
       let reason = '';
       if (action === 'reject') {
         reason = prompt('Rejection reason (optional):') || 'Rejected by admin';
@@ -251,10 +428,124 @@
         });
         loadContent(currentPage);
         loadStats();
+
+        // After approve: open rating modal if partnershipId exists
+        if (action === 'approve' && partnershipId) {
+          openRatingModal(partnershipId, id, creatorName || 'Creator', creatorHandle || '');
+        }
       } catch (e) {
         alert('Failed to moderate content');
       }
     }
+
+    // ── Rating Modal ─────────────────────────────────────────
+
+    function openRatingModal(partnershipId, submissionId, creatorName, creatorHandle) {
+      ratingPartnershipId  = partnershipId;
+      ratingSubmissionId   = submissionId;
+      ratingState          = {};
+
+      // Reset all stars
+      document.querySelectorAll('.stars .star').forEach(s => s.classList.remove('filled'));
+      DIMS.forEach(d => {
+        var lbl = document.getElementById('label-' + d);
+        if (lbl) lbl.textContent = '';
+      });
+      document.getElementById('ratingFeedback').value = '';
+      document.getElementById('ratingSubmitBtn').disabled = true;
+
+      // Set creator identity
+      var initial = creatorName ? creatorName[0].toUpperCase() : '?';
+      document.getElementById('ratingAvatar').textContent = initial;
+      document.getElementById('ratingTitle').textContent = 'Rate @' + (creatorHandle || creatorName);
+      document.getElementById('ratingSubtitle').textContent = 'Content approved — how did ' + creatorName + ' do?';
+
+      // Show form, hide success
+      document.getElementById('ratingFormState').style.display = '';
+      document.getElementById('ratingSuccessState').style.display = 'none';
+
+      document.getElementById('ratingModal').classList.add('open');
+    }
+
+    function closeRatingModal() {
+      document.getElementById('ratingModal').classList.remove('open');
+      ratingPartnershipId = null;
+      ratingSubmissionId  = null;
+      ratingState         = {};
+    }
+
+    // Star interaction
+    document.querySelectorAll('.stars').forEach(function(row) {
+      var dim = row.dataset.dim;
+      var stars = row.querySelectorAll('.star');
+
+      stars.forEach(function(star) {
+        var val = parseInt(star.dataset.val);
+
+        star.addEventListener('mouseenter', function() {
+          stars.forEach(function(s) {
+            s.classList.toggle('filled', parseInt(s.dataset.val) <= val);
+          });
+        });
+
+        star.addEventListener('mouseleave', function() {
+          var selected = ratingState[dim] || 0;
+          stars.forEach(function(s) {
+            s.classList.toggle('filled', parseInt(s.dataset.val) <= selected);
+          });
+        });
+
+        star.addEventListener('click', function() {
+          ratingState[dim] = val;
+          stars.forEach(function(s) {
+            s.classList.toggle('filled', parseInt(s.dataset.val) <= val);
+          });
+          // Update label
+          var labels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+          var lbl = document.getElementById('label-' + dim);
+          if (lbl) lbl.textContent = labels[val] || '';
+
+          // Enable submit once all 4 dims are rated
+          var allRated = DIMS.every(function(d) { return ratingState[d] >= 1; });
+          document.getElementById('ratingSubmitBtn').disabled = !allRated;
+        });
+      });
+    });
+
+    async function submitRating() {
+      if (!ratingPartnershipId) return;
+      var btn = document.getElementById('ratingSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      try {
+        await partnershipFetch('/' + ratingPartnershipId + '/brand-rate', {
+          method: 'POST',
+          body: JSON.stringify({
+            contentQuality:  ratingState['content-quality']  || 0,
+            timeliness:      ratingState['timeliness']        || 0,
+            communication:   ratingState['communication']     || 0,
+            briefCompliance: ratingState['brief-compliance']  || 0,
+            feedback:        document.getElementById('ratingFeedback').value.trim() || null,
+            contentSubmissionId: ratingSubmissionId || null,
+          }),
+        });
+
+        // Show success
+        document.getElementById('ratingFormState').style.display = 'none';
+        document.getElementById('ratingSuccessState').style.display = '';
+        setTimeout(closeRatingModal, 1800);
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Rating';
+        alert('Rating failed — please try again');
+      }
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('ratingModal').addEventListener('click', function(e) {
+      if (e.target === this) closeRatingModal();
+    });
   </script>
 </body>
 </html>

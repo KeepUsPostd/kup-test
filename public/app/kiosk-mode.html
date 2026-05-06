@@ -666,12 +666,20 @@
 
     // ========== Preview Kiosk ==========
     function previewKiosk() {
-      window.open('kiosk-display.html', '_blank');
+      if (!_kioskBrandCode) {
+        kupToast('Enable Kiosk Mode first to generate your kiosk URL', 'warning');
+        return;
+      }
+      window.open('/app/kiosk-display.html?brandCode=' + encodeURIComponent(_kioskBrandCode), '_blank');
     }
 
     // ========== Copy Kiosk URL ==========
     function copyKioskUrl() {
-      var url = 'https://keepuspostd.com/kiosk/keepuspostd';
+      if (!_kioskBrandCode) {
+        kupToast('Enable Kiosk Mode first to generate your kiosk URL', 'warning');
+        return;
+      }
+      var url = 'https://keepuspostd.com/kiosk/' + _kioskBrandCode;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(function() {
           var hint = document.getElementById('kioskUrlHint');
@@ -686,6 +694,9 @@
       }
     }
 
+    // Holds the brand's kioskBrandCode once loaded — used by copyKioskUrl() and previewKiosk()
+    var _kioskBrandCode = null;
+
     // ========== Load Kiosk Settings on Page Load ==========
     function loadKioskSettings() {
       var stored = null;
@@ -697,6 +708,13 @@
       kupApi.get('/api/kiosk/config/' + brandId).then(function(data) {
         var k = data.kiosk;
         if (!k) return;
+
+        // Store brand code and update URL display
+        if (k.kioskBrandCode) {
+          _kioskBrandCode = k.kioskBrandCode;
+          var urlDisplay = document.getElementById('kioskUrlDisplay');
+          if (urlDisplay) urlDisplay.textContent = 'keepuspostd.com/kiosk/' + k.kioskBrandCode;
+        }
         if (document.getElementById('offerTitle') && k.kioskOfferTitle) document.getElementById('offerTitle').value = k.kioskOfferTitle;
         if (document.getElementById('rewardType') && k.kioskRewardType) document.getElementById('rewardType').value = k.kioskRewardType;
         if (document.getElementById('rewardValue') && k.kioskRewardValue) document.getElementById('rewardValue').value = k.kioskRewardValue;

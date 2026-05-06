@@ -32,6 +32,8 @@
     .status-paid { background: #D1FAE5; color: #065F46; }
     .btn-mark-paid { background: #059669; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .btn-mark-paid:hover { background: #047857; }
+    .checkbox-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#374151; }
+    .checkbox-row input[type=checkbox] { width:16px; height:16px; accent-color:#2EA5DD; }
   </style>
 </head>
 <body>
@@ -69,7 +71,7 @@
     <div class="admin-content">
       <!-- Create Promotion Form -->
       <div class="promo-form">
-        <h3>Send a Paid Promotion</h3>
+        <h3>Send a Paid Promotion + Brief</h3>
         <div class="form-row">
           <input type="text" id="influencerSearch" placeholder="Search influencer by @handle or email..." oninput="clearLookup()">
           <button class="btn-send" onclick="lookupInfluencer()" style="flex:none">Find</button>
@@ -80,7 +82,20 @@
           <input type="number" id="promoAmount" placeholder="Payment amount ($)" min="1" max="10000" step="0.01">
         </div>
         <div class="form-row">
-          <textarea id="promoDescription" placeholder="Describe what content to create (e.g., 'Create a 30-second video review of the new summer menu')"></textarea>
+          <input type="text" id="videoDuration" placeholder="e.g. 15–30 seconds" style="width:100%">
+        </div>
+        <div class="form-row">
+          <textarea id="promoDoList" placeholder="What to include — e.g. 'Speak about why you love shopping here. Show your favorite products.'" style="min-height:70px"></textarea>
+        </div>
+        <div class="form-row">
+          <textarea id="promoDontList" placeholder="What to avoid — e.g. 'No TikTok logos, watermarks, or previously posted content.'" style="min-height:70px"></textarea>
+        </div>
+        <div class="form-row">
+          <textarea id="promoDescription" placeholder="Any extra context (optional)" style="min-height:50px"></textarea>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="paypalReminder" checked>
+          <label for="paypalReminder">Remind creator to connect PayPal before submitting</label>
         </div>
         <button class="btn-send" id="sendBtn" onclick="sendPromotion()" disabled>Send Promotion Offer</button>
       </div>
@@ -171,9 +186,13 @@
       const brandId = brandSelect.value;
       const brandName = brandSelect.options[brandSelect.selectedIndex].dataset.name;
       const amount = parseFloat(document.getElementById('promoAmount').value);
+      const videoDuration = document.getElementById('videoDuration').value.trim();
+      const dos = document.getElementById('promoDoList').value.trim();
+      const donts = document.getElementById('promoDontList').value.trim();
       const description = document.getElementById('promoDescription').value.trim();
+      const paypalReminder = document.getElementById('paypalReminder').checked;
 
-      if (!brandId || !amount || !description) { alert('Fill in all fields'); return; }
+      if (!brandId || !amount || !dos) { alert('Fill in brand, amount, and the Do\'s field at minimum'); return; }
 
       document.getElementById('sendBtn').disabled = true;
       document.getElementById('sendBtn').textContent = 'Sending...';
@@ -187,7 +206,11 @@
             brandId,
             brandName,
             amount,
+            videoDuration,
+            dos,
+            donts,
             description,
+            paypalReminder,
           }),
         });
 
@@ -195,7 +218,11 @@
           alert('Promotion sent to @' + foundInfluencer.handle);
           document.getElementById('influencerSearch').value = '';
           document.getElementById('promoAmount').value = '';
+          document.getElementById('videoDuration').value = '';
+          document.getElementById('promoDoList').value = '';
+          document.getElementById('promoDontList').value = '';
           document.getElementById('promoDescription').value = '';
+          document.getElementById('paypalReminder').checked = true;
           clearLookup();
           loadPromotions();
         } else {
