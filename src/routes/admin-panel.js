@@ -781,6 +781,7 @@ router.post('/brands/create', async (req, res) => {
     const {
       name, category, subcategory, description, location,
       city, state, zip, websiteUrl, tags, categoryIcon,
+      lat, lon, // optional: decimal coordinates for geo discover filter
     } = req.body;
 
     if (!name) return res.status(400).json({ error: 'Brand name is required' });
@@ -790,6 +791,11 @@ router.post('/brands/create', async (req, res) => {
       name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
     });
     if (existing) return res.status(409).json({ error: `Brand "${name}" already exists` });
+
+    // Build coordinates if lat/lon provided — required for brand to appear in geo-filtered discover
+    const coordinates = (lat != null && lon != null)
+      ? { type: 'Point', coordinates: [parseFloat(lon), parseFloat(lat)] }
+      : undefined;
 
     const brand = await Brand.create({
       name: name.trim(),
@@ -811,6 +817,7 @@ router.post('/brands/create', async (req, res) => {
       categoryIcon: categoryIcon || null,
       heroImageSource: 'gradient',
       status: 'active',
+      ...(coordinates && { coordinates }),
     });
 
     res.status(201).json({ success: true, brand });
@@ -849,6 +856,10 @@ router.post('/brands/bulk-create', async (req, res) => {
       }
 
       try {
+        const bCoordinates = (b.lat != null && b.lon != null)
+          ? { type: 'Point', coordinates: [parseFloat(b.lon), parseFloat(b.lat)] }
+          : undefined;
+
         const brand = await Brand.create({
           name: b.name.trim(),
           brandType: 'admin',
@@ -869,6 +880,7 @@ router.post('/brands/bulk-create', async (req, res) => {
           categoryIcon: b.categoryIcon || null,
           heroImageSource: 'gradient',
           status: 'active',
+          ...(bCoordinates && { coordinates: bCoordinates }),
         });
         results.created.push({ name: brand.name, id: brand._id });
       } catch (err) {
