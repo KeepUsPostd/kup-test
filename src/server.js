@@ -191,9 +191,19 @@ app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
 // Canonical download URL — use this in all outreach, DMs, emails, social bios
-// Never share /pages/download-app.html directly — always use /download
+// Smart redirect: iOS → App Store, Android → Google Play, Desktop → download page
 app.get('/download', (req, res) => {
-  res.redirect(301, '/pages/download-app.html');
+  const ua = req.headers['user-agent'] || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
+  if (isIOS) {
+    return res.redirect(302, 'https://apps.apple.com/us/app/keepuspostd/id1515156338');
+  } else if (isAndroid) {
+    return res.redirect(302, 'https://play.google.com/store/apps/details?id=com.KeepUsPostd.KeepUsPostdApp');
+  } else {
+    return res.redirect(302, '/pages/download-app.html');
+  }
 });
 app.get('/download-app.html', (req, res) => {
   res.redirect(301, '/pages/download-app.html');
