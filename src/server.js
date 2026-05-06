@@ -190,6 +190,11 @@ app.get('/terms-of-service', (req, res) => {
 app.get('/help', (req, res) => {
   res.redirect(301, '/pages/help.html');
 });
+// Canonical download URL — use this in all outreach, DMs, emails, social bios
+// Never share /pages/download-app.html directly — always use /download
+app.get('/download', (req, res) => {
+  res.redirect(301, '/pages/download-app.html');
+});
 app.get('/download-app.html', (req, res) => {
   res.redirect(301, '/pages/download-app.html');
 });
