@@ -274,9 +274,9 @@
     let authToken = null, currentPage = 1;
 
     // Rating state
-    var ratingState     = {}; // { 'content-quality': 3, 'timeliness': 4, ... }
-    var ratingPartnershipId   = null;
-    var ratingSubmissionId    = null;
+    var ratingState          = {}; // { 'content-quality': 3, 'timeliness': 4, ... }
+    var ratingPartnershipId  = null; // null for admin brand submissions
+    var ratingSubmissionId   = null; // always set
 
     var DIMS = ['content-quality', 'timeliness', 'communication', 'brief-compliance'];
 
@@ -430,9 +430,9 @@
         loadContent(currentPage);
         loadStats();
 
-        // After approve: open rating modal if partnershipId exists
-        if (action === 'approve' && partnershipId) {
-          openRatingModal(partnershipId, id, creatorName || 'Creator', creatorHandle || '');
+        // After approve: always open rating modal
+        if (action === 'approve') {
+          openRatingModal(partnershipId || null, id, creatorName || 'Creator', creatorHandle || '');
         }
       } catch (e) {
         alert('Failed to moderate content');
@@ -514,23 +514,33 @@
     });
 
     async function submitRating() {
-      if (!ratingPartnershipId) return;
+      if (!ratingSubmissionId) return;
       var btn = document.getElementById('ratingSubmitBtn');
       btn.disabled = true;
       btn.textContent = 'Submitting…';
 
+      var payload = {
+        contentQuality:  ratingState['content-quality']  || 0,
+        timeliness:      ratingState['timeliness']        || 0,
+        communication:   ratingState['communication']     || 0,
+        briefCompliance: ratingState['brief-compliance']  || 0,
+        feedback:        document.getElementById('ratingFeedback').value.trim() || null,
+      };
+
       try {
-        await partnershipFetch('/' + ratingPartnershipId + '/brand-rate', {
-          method: 'POST',
-          body: JSON.stringify({
-            contentQuality:  ratingState['content-quality']  || 0,
-            timeliness:      ratingState['timeliness']        || 0,
-            communication:   ratingState['communication']     || 0,
-            briefCompliance: ratingState['brief-compliance']  || 0,
-            feedback:        document.getElementById('ratingFeedback').value.trim() || null,
-            contentSubmissionId: ratingSubmissionId || null,
-          }),
-        });
+        if (ratingPartnershipId) {
+          // Campaign/partnership submission — use existing partnership rate endpoint
+          await partnershipFetch('/' + ratingPartnershipId + '/brand-rate', {
+            method: 'POST',
+            body: JSON.stringify({ ...payload, contentSubmissionId: ratingSubmissionId }),
+          });
+        } else {
+          // Admin brand submission — use submission-based rate endpoint
+          await apiFetch('/content/' + ratingSubmissionId + '/rate', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+        }
 
         // Show success
         document.getElementById('ratingFormState').style.display = 'none';

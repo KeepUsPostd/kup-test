@@ -90,6 +90,18 @@ const contentSubmissionSchema = new mongoose.Schema({
   rejectionReason: { type: String, default: null },
   postdAt: { type: Date, default: null },
 
+  // Admin rating — used when submission has no partnershipId (admin brand submissions)
+  // Mirrors brandRating on Partnership for rollup purposes
+  adminRating: {
+    contentQuality:  { type: Number, default: null },
+    timeliness:      { type: Number, default: null },
+    communication:   { type: Number, default: null },
+    briefCompliance: { type: Number, default: null },
+    overall:         { type: Number, default: null },
+    feedback:        { type: String, default: null },
+    ratedAt:         { type: Date,   default: null },
+  },
+
   // Engagement metrics (post-publication)
   metrics: {
     likes: { type: Number, default: 0 },

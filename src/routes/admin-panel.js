@@ -767,6 +767,69 @@ router.put('/content/:id/moderate', async (req, res) => {
   }
 });
 
+// POST /api/admin-panel/content/:id/rate — Rate creator on admin brand submission (no partnershipId)
+router.post('/content/:id/rate', async (req, res) => {
+  try {
+    const { contentQuality, timeliness, communication, briefCompliance, feedback } = req.body;
+
+    const scores = { contentQuality, timeliness, communication, briefCompliance };
+    for (const [key, val] of Object.entries(scores)) {
+      if (!val || val < 1 || val > 5) {
+        return res.status(400).json({ error: `${key} must be between 1 and 5` });
+      }
+    }
+
+    const submission = await ContentSubmission.findById(req.params.id);
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
+    const overall = Math.round((contentQuality + timeliness + communication + briefCompliance) / 4);
+
+    submission.adminRating = {
+      contentQuality, timeliness, communication, briefCompliance,
+      overall,
+      feedback: feedback || null,
+      ratedAt: new Date(),
+    };
+    await submission.save();
+
+    // Roll up to InfluencerProfile — combine Partnership ratings + admin submission ratings
+    try {
+      const profileId = submission.influencerProfileId;
+
+      const [partnershipRatings, submissionRatings] = await Promise.all([
+        Partnership.find(
+          { influencerProfileId: profileId, 'brandRating.overall': { $ne: null } },
+          'brandRating.overall'
+        ).lean(),
+        ContentSubmission.find(
+          { influencerProfileId: profileId, 'adminRating.overall': { $ne: null } },
+          'adminRating.overall'
+        ).lean(),
+      ]);
+
+      const allOveralls = [
+        ...partnershipRatings.map(p => p.brandRating.overall),
+        ...submissionRatings.map(s => s.adminRating.overall),
+      ];
+
+      const ratingCount   = allOveralls.length;
+      const averageRating = ratingCount > 0
+        ? Math.round((allOveralls.reduce((sum, v) => sum + v, 0) / ratingCount) * 10) / 10
+        : null;
+
+      await InfluencerProfile.findByIdAndUpdate(profileId, { averageRating, ratingCount });
+    } catch (rollupErr) {
+      console.error('Admin rating rollup error (non-blocking):', rollupErr.message);
+    }
+
+    console.log(`⭐ Admin rated creator on submission ${submission._id} → ${overall}/5`);
+    res.json({ message: 'Rating saved', overall });
+  } catch (error) {
+    console.error('Admin content rate error:', error.message);
+    res.status(500).json({ error: 'Could not save rating' });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════
 // MODULE 5: FINANCIAL DASHBOARD
 // ═══════════════════════════════════════════════════════════
