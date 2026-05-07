@@ -176,6 +176,7 @@ router.get('/', requireAuth, async (req, res) => {
       if (referredProfileIds.length > 0) {
         completedFirstReview = await ContentSubmission.countDocuments({
           influencerProfileId: { $in: referredProfileIds },
+          status: 'approved',
         });
       }
     }

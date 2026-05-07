@@ -136,6 +136,38 @@ router.post('/register', async (req, res) => {
       } catch (notifyErr) {
         console.error('[auth/register] welcome notify error:', notifyErr.message);
       }
+
+      // Notify admin of new signup (non-blocking)
+      try {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        if (adminEmails.length > 0) {
+          const isCreator = profileType === 'influencer';
+          const typeLabel = isCreator ? 'Creator' : 'Brand';
+          const panelLink = isCreator
+            ? 'https://keepuspostd.com/pages/admin/creators.html'
+            : 'https://keepuspostd.com/pages/admin/users.html';
+          for (const adminEmail of adminEmails) {
+            sendEmail({
+              to: adminEmail,
+              subject: `New ${typeLabel} signed up — ${email}`,
+              headline: `New ${typeLabel} Account`,
+              preheader: `${email} just joined KUP as a ${typeLabel.toLowerCase()}`,
+              bodyHtml: `
+                <p>A new ${typeLabel.toLowerCase()} just created an account on KUP.</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Name:</strong> ${[user.legalFirstName, user.legalLastName].filter(Boolean).join(' ') || 'Not provided'}</p>
+                <p><strong>Account type:</strong> ${typeLabel}</p>
+                <p><strong>Joined:</strong> ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })} CT</p>
+              `,
+              ctaText: `View in Admin Panel`,
+              ctaUrl: panelLink,
+              variant: 'brand',
+            }).catch(e => console.error(`[auth/register] admin notify error: ${e.message}`));
+          }
+        }
+      } catch (adminNotifyErr) {
+        console.error('[auth/register] admin notify error:', adminNotifyErr.message);
+      }
     }
 
     res.status(201).json({
@@ -1178,12 +1210,13 @@ router.post('/social-verify', requireAuth, async (req, res) => {
 
     await influencer.save();
 
-    // Push-notify all admin users
+    // Push-notify + email all admin users about new verification request
     try {
       const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
       if (adminEmails.length > 0) {
         const adminUsers = await User.find({ email: { $in: adminEmails } }).select('_id').lean();
         const firstHandle = Object.values(handles)[0];
+        // Push
         await Promise.allSettled(
           adminUsers.map(adminUser =>
             sendPushToUser(adminUser._id, {
@@ -1193,9 +1226,31 @@ router.post('/social-verify', requireAuth, async (req, res) => {
             })
           )
         );
+        // Email
+        const handleList = Object.entries(handles)
+          .map(([platform, handle]) => `${platform}: @${handle}`)
+          .join(', ');
+        for (const adminEmail of adminEmails) {
+          sendEmail({
+            to: adminEmail,
+            subject: `Verification request — ${influencer.displayName} (@${firstHandle})`,
+            headline: 'New Verification Request',
+            preheader: `${influencer.displayName} submitted handles for tier review`,
+            bodyHtml: `
+              <p><strong>${influencer.displayName}</strong> (@${firstHandle}) submitted a verification request.</p>
+              <p><strong>Handles:</strong> ${handleList}</p>
+              <p><strong>Claimed followers:</strong> ${followerCount?.toLocaleString() || 'Not provided'}</p>
+              ${engagementRate ? `<p><strong>Engagement rate:</strong> ${engagementRate}%</p>` : ''}
+              <p>Log in to the admin panel to review and approve or reject.</p>
+            `,
+            ctaText: 'Review in Admin Panel',
+            ctaUrl: 'https://keepuspostd.com/pages/admin/verifications.html',
+            variant: 'brand',
+          }).catch(e => console.error('[social-verify] admin email error:', e.message));
+        }
       }
     } catch (pushErr) {
-      console.warn('⚠️  Admin push notification failed:', pushErr.message);
+      console.warn('⚠️  Admin push/email notification failed:', pushErr.message);
     }
 
     res.json({

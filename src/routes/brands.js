@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const { startTrial, checkTrialStatus } = require('../services/trial');
 const notify = require('../services/notifications');
 const { scrapeBrandFromUrl } = require('../services/brandScrape');
+const { sendEmail } = require('../config/email');
 const rateLimit = require('express-rate-limit');
 
 // Per-user rate limit for the scrape endpoint — prevents using the API as a
@@ -824,6 +825,33 @@ router.post('/:id/claim', async (req, res) => {
     // Update brand claim status to pending
     brand.claimStatus = 'pending';
     await brand.save();
+
+    // Admin email notification (non-blocking)
+    try {
+      const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+      for (const adminEmail of adminEmails) {
+        sendEmail({
+          to: adminEmail,
+          subject: `Brand claim request — ${brand.name}`,
+          headline: 'New Brand Claim Request',
+          preheader: `${claimerName} claims to own ${brand.name}`,
+          bodyHtml: `
+            <p><strong>${claimerName}</strong> (${claimerTitle || 'no title'}) has submitted a claim for <strong>${brand.name}</strong>.</p>
+            <p><strong>Email:</strong> ${claimerEmail}</p>
+            ${claimerPhone ? `<p><strong>Phone:</strong> ${claimerPhone}</p>` : ''}
+            <p><strong>Email domain match:</strong> ${emailDomainMatch ? '✅ Yes' : '❌ No'}</p>
+            ${documentUrl ? `<p><strong>Document:</strong> <a href="${documentUrl}">View uploaded document</a></p>` : ''}
+            ${authorizationStatement ? `<p><strong>Statement:</strong> ${authorizationStatement}</p>` : ''}
+            <p>Review and approve or reject in the admin panel.</p>
+          `,
+          ctaText: 'Review Claim',
+          ctaUrl: 'https://keepuspostd.com/pages/admin/brands.html',
+          variant: 'brand',
+        }).catch(e => console.error('[brand-claim] admin email error:', e.message));
+      }
+    } catch (adminNotifyErr) {
+      console.error('[brand-claim] admin notify error (non-blocking):', adminNotifyErr.message);
+    }
 
     res.status(201).json({ success: true, message: 'Claim submitted for review', claimId: claim._id });
   } catch (error) {

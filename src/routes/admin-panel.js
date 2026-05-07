@@ -659,6 +659,40 @@ router.put('/content/:id/moderate', async (req, res) => {
     console.log(`🛡️ Admin ${action}ed content ${submission._id}: ${reason || ''}`);
 
     if (action === 'approve') {
+      // ── Referral bonus: $5 to referrer when referred creator gets first approved review ──
+      try {
+        const approvedCreator = await InfluencerProfile.findById(submission.influencerProfileId).lean();
+        if (approvedCreator) {
+          const creatorUser = await User.findById(approvedCreator.userId, { referredByCode: 1 }).lean();
+          if (creatorUser?.referredByCode) {
+            // Count approved reviews for this creator (including the one we just approved)
+            const approvedCount = await ContentSubmission.countDocuments({
+              influencerProfileId: approvedCreator._id,
+              status: 'approved',
+            });
+            // Only fire on their FIRST approved review
+            if (approvedCount === 1) {
+              const referrer = await InfluencerProfile.findOne({ referralCode: creatorUser.referredByCode }).lean();
+              if (referrer) {
+                await Transaction.create({
+                  payerType: 'platform',
+                  payeeInfluencerId: referrer._id,
+                  type: 'referral_bonus',
+                  amount: 5,
+                  contentSubmissionId: submission._id,
+                  status: 'pending',  // pending until PayPal vault is live
+                  paymentRouting: 'vault_kup',
+                });
+                console.log(`🎁 Referral bonus queued: $5 → referrer ${referrer._id} (referred creator ${approvedCreator._id} got first approval)`);
+              }
+            }
+          }
+        }
+      } catch (refErr) {
+        console.error('Referral bonus check error (non-blocking):', refErr.message);
+        // Non-fatal — approval is still saved
+      }
+
       // Fire approval + rating_request notifications to the creator
       try {
         const { createInApp } = require('../services/notifications');

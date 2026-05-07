@@ -8,6 +8,7 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
 const paypal = require('../config/paypal');
+const { sendEmail } = require('../config/email');
 
 // ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
 // Rule G7: Brands cannot override — rates come from influencer tier.
@@ -424,15 +425,49 @@ router.post('/', requireAuth, async (req, res) => {
     console.log(`📸 Content submitted for brand ${brandId} (${contentType})`);
 
     // 📧 Notify brand (new submission) + influencer (confirmation)
+    let loadedBrand = null;
+    let loadedInfluencer = null;
     try {
-      const brand = await Brand.findById(brandId);
-      const influencer = await InfluencerProfile.findById(submission.influencerProfileId);
-      if (brand && influencer) {
-        notify.contentSubmitted({ brand, influencer, submission }).catch(() => {});
-        notify.contentSubmissionConfirmed({ influencer: { ...influencer.toObject(), email: req.user.email, userId: req.user._id }, brand, submission }).catch(() => {});
+      loadedBrand = await Brand.findById(brandId);
+      loadedInfluencer = await InfluencerProfile.findById(submission.influencerProfileId);
+      if (loadedBrand && loadedInfluencer) {
+        notify.contentSubmitted({ brand: loadedBrand, influencer: loadedInfluencer, submission }).catch(() => {});
+        notify.contentSubmissionConfirmed({ influencer: { ...loadedInfluencer.toObject(), email: req.user.email, userId: req.user._id }, brand: loadedBrand, submission }).catch(() => {});
       }
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);
+    }
+
+    // 📣 Admin email: new content submitted to an admin brand (no partnershipId = admin-managed brand)
+    // Skip if this is a promo submission — that path already handles admin notification below
+    try {
+      if (!partnershipId && loadedBrand && loadedInfluencer) {
+        // Admin brands = 'admin' (unclaimed, Santana-created) or 'admin_claimed' (user claimed via form)
+        // User brands handle their own approval notifications — only admin brands need Santana's attention
+        const isAdminBrand = loadedBrand.brandType === 'admin' || loadedBrand.brandType === 'admin_claimed';
+        if (isAdminBrand) {
+          const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+          for (const adminEmail of adminEmails) {
+            sendEmail({
+              to: adminEmail,
+              subject: `New content submitted — @${loadedInfluencer.handle} → ${loadedBrand.name}`,
+              headline: 'New Content Submission',
+              preheader: `@${loadedInfluencer.handle} submitted a ${contentType} for ${loadedBrand.name}`,
+              bodyHtml: `
+                <p><strong>@${loadedInfluencer.handle}</strong> (${loadedInfluencer.displayName}) submitted a <strong>${contentType}</strong> for <strong>${loadedBrand.name}</strong>.</p>
+                ${caption ? `<p><strong>Caption:</strong> ${caption}</p>` : ''}
+                <p>Log in to the admin content panel to review and approve or reject.</p>
+              `,
+              ctaText: 'Review in Admin Panel',
+              ctaUrl: 'https://keepuspostd.com/pages/admin/content.html',
+              variant: 'brand',
+            }).catch(e => console.error('[content/submit] admin email error:', e.message));
+          }
+          console.log(`📣 Admin notified: new content submitted by @${loadedInfluencer.handle} for admin brand ${loadedBrand.name}`);
+        }
+      }
+    } catch (adminNotifyErr) {
+      console.error('Admin brand content notify error (non-blocking):', adminNotifyErr.message);
     }
 
     // 🏆 Award "submitted" content points — fires point notifications per reward

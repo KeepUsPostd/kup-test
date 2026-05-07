@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You've been invited to KUP — KeepUsPostd</title>
+  <meta name="description" content="Your friend invited you to earn cash by reviewing brands you love. No follower minimum required.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Your friend invited you to KUP">
+  <meta property="og:description" content="Turn your honest reviews into real cash. No follower minimum. Join free.">
+  <meta property="og:image" content="https://keepuspostd.com/images/og-image.png">
+  <meta property="og:url" content="https://keepuspostd.com">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #0f0f1a;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1a1a2e;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 100%;
+      padding: 40px 32px;
+      text-align: center;
+      border: 1px solid rgba(46, 165, 221, 0.2);
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(46, 165, 221, 0.15);
+      color: #2EA5DD;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+    h1 span { color: #2EA5DD; }
+    p {
+      color: #aaaacc;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .perks {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .perk {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #ccccee;
+    }
+    .perk:last-child { margin-bottom: 0; }
+    .perk .icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(46, 165, 221, 0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .cta {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: #2EA5DD;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: opacity 0.2s;
+    }
+    .cta:hover { opacity: 0.9; }
+    .sub {
+      font-size: 12px;
+      color: #666688;
+    }
+    .ref-code-display {
+      font-size: 11px;
+      color: #555577;
+      margin-top: 16px;
+    }
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="/images/favicon/apple-touch-icon.png" alt="KUP">
+    <div class="badge">You're invited</div>
+    <h1>Your opinion is worth <span>real cash</span></h1>
+    <p>A friend invited you to KUP — the platform where anyone can earn by reviewing brands they love. No followers required.</p>
+
+    <div class="perks">
+      <div class="perk">
+        <div class="icon">💰</div>
+        <span>Get paid on every approved review</span>
+      </div>
+      <div class="perk">
+        <div class="icon">🚫</div>
+        <span>No follower minimum — anyone can earn</span>
+      </div>
+      <div class="perk">
+        <div class="icon">🎁</div>
+        <span>Your friend earns $5 when you get approved</span>
+      </div>
+    </div>
+
+    <a id="downloadBtn" class="cta" href="#">Download KUP — It's Free</a>
+    <div class="sub">Available on iOS &amp; Android</div>
+    <div class="ref-code-display" id="refDisplay"></div>
+  </div>
+
+  <script>
+    (function () {
+      // Extract referral code from URL path: /ref/INF-XXXXXX
+      const pathParts = window.location.pathname.split('/');
+      const code = pathParts[pathParts.length - 1] || '';
+
+      if (code && code !== 'ref') {
+        // Store in localStorage so the app can pick it up on first launch
+        try {
+          localStorage.setItem('kup_referral_code', code.toUpperCase());
+        } catch (e) {}
+
+        // Also pass as query param to the download page so deep link handlers can read it
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.href = '/download?ref=' + encodeURIComponent(code.toUpperCase());
+
+        const refDisplay = document.getElementById('refDisplay');
+        refDisplay.textContent = 'Referral code: ' + code.toUpperCase() + ' — applied automatically';
+      } else {
+        document.getElementById('downloadBtn').href = '/download';
+      }
+
+      // Smart redirect: if on mobile, auto-redirect after 2s so users land on the store fast
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+
+      if (isIOS || isAndroid) {
+        setTimeout(function () {
+          window.location.href = document.getElementById('downloadBtn').href;
+        }, 2000);
+      }
+    })();
+  </script>
+</body>
+</html>

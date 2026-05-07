@@ -217,6 +217,12 @@ app.get('/redeem/:code', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'redeem.html'));
 });
 
+// Creator referral landing page — keepuspostd.com/ref/INF-XXXXXX
+// Stores referral code in localStorage then redirects to download
+app.get('/ref/:code', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'ref-landing.html'));
+});
+
 // Legacy QR redirect — handled by database lookup route below (line ~360)
 // Removed old hardcoded map — now uses Brand.legacyBrandId field
 
