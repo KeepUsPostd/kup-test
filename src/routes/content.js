@@ -624,6 +624,7 @@ router.get('/feed', optionalAuth, async (req, res) => {
       avatarUrl:     s.influencerProfileId?.avatarUrl || null,
       verified:      s.influencerProfileId?.verificationStatus === 'verified',
       caption:       s.caption || '',
+      brandId:       s.brandId?._id?.toString() || null,
       brandName:     s.brandId?.name || 'Brand',
       brandLogo:     s.brandId?.logoUrl || null,
       brandColor:    s.brandId?.generatedColor || '#1A1A1A',
