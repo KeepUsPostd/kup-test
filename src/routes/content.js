@@ -773,11 +773,34 @@ router.get('/brand/:brandId', requireAuth, async (req, res) => {
       brandId: req.params.brandId,
       status: { $in: ['approved', 'postd'] },
     })
-      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier')
+      .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier isVerified verificationStatus')
+      .populate('brandId', 'name logoUrl generatedColor')
       .sort({ submittedAt: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
-    res.json({ submissions });
+    const result = submissions.map(s => ({
+      _id:         s._id,
+      status:      s.status,
+      displayName: s.influencerProfileId?.displayName || 'Creator',
+      handle:      s.influencerProfileId?.handle || 'creator',
+      avatarUrl:   s.influencerProfileId?.avatarUrl || null,
+      verified:    s.influencerProfileId?.verificationStatus === 'verified',
+      caption:     s.caption || '',
+      brandId:     s.brandId?._id?.toString() || req.params.brandId,
+      brandName:   s.brandId?.name || 'Brand',
+      brandLogo:   s.brandId?.logoUrl || null,
+      brandColor:  s.brandId?.generatedColor || '#1A1A1A',
+      mediaUrls:   s.mediaUrls || [],
+      posterUrl:   s.posterUrl || null,
+      contentType: s.contentType,
+      likes:       s.metrics?.likes || 0,
+      comments:    s.metrics?.comments || 0,
+      shares:      s.metrics?.shares || 0,
+      likedBy:     s.likedBy || [],
+    }));
+
+    res.json({ submissions: result });
   } catch (error) {
     console.error('Brand content error:', error.message);
     res.status(500).json({ error: 'Could not fetch brand content' });
