@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>Creators — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    /* ── Creator-specific styles ── */
+    .creator-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; color: #fff;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-cell { display: flex; align-items: center; gap: 10px; }
+    .creator-name  { font-weight: 600; font-size: 14px; color: #1a1a2e; }
+    .creator-handle { font-size: 12px; color: #888; }
+
+    .tier-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .tier-celebrity   { background:#fff3cd; color:#856404; }
+    .tier-premium     { background:#f3e8ff; color:#7c3aed; }
+    .tier-established { background:#dbeafe; color:#1d4ed8; }
+    .tier-rising      { background:#d1fae5; color:#065f46; }
+    .tier-micro       { background:#e0f2fe; color:#0369a1; }
+    .tier-nano        { background:#fce7f3; color:#9d174d; }
+    .tier-startup     { background:#f3f4f6; color:#374151; }
+    .tier-unverified  { background:#f3f4f6; color:#9ca3af; }
+
+    .paypal-yes { color: #0070e0; font-weight: 600; font-size: 12px; }
+    .paypal-no  { color: #e53e3e; font-size: 12px; }
+    .verified-check { color: #2EA5DD; font-size: 14px; }
+    .verified-pending { color: #f59e0b; font-size: 12px; }
+    .verified-no { color: #d1d5db; font-size: 12px; }
+
+    .stat-chip {
+      display: inline-block; padding: 2px 7px; border-radius: 8px;
+      background: #f0f4f8; color: #374151; font-size: 12px; font-weight: 600;
+    }
+
+    /* Detail modal */
+    .detail-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 300;
+      align-items: center; justify-content: center;
+    }
+    .detail-modal-overlay.open { display: flex; }
+    .detail-modal {
+      background: #fff; border-radius: 16px;
+      max-width: 640px; width: 92%;
+      max-height: 85vh; overflow-y: auto;
+      padding: 28px;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 20px;
+    }
+    .modal-close-btn {
+      background: none; border: none; font-size: 22px;
+      cursor: pointer; color: #666; line-height: 1;
+    }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section h4 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #888; margin: 0 0 10px;
+    }
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .detail-item label {
+      display: block; font-size: 11px; color: #888; margin-bottom: 2px;
+    }
+    .detail-item span {
+      font-size: 14px; font-weight: 600; color: #1a1a2e;
+    }
+    .social-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .social-tag {
+      padding: 3px 10px; border-radius: 20px;
+      background: #e0f2fe; color: #0369a1;
+      font-size: 12px; font-weight: 600;
+    }
+    .submission-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+    }
+    .submission-row:last-child { border-bottom: none; }
+    .sub-status {
+      padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    }
+    .sub-approved  { background: #d1fae5; color: #065f46; }
+    .sub-submitted { background: #fef3c7; color: #92400e; }
+    .sub-published { background: #dbeafe; color: #1d4ed8; }
+    .sub-rejected  { background: #fee2e2; color: #991b1b; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+    .empty-state {
+      text-align: center; padding: 48px 24px; color: #999;
+    }
+    .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .stat-card {
+      flex: 1; min-width: 140px; background: #fff;
+      border-radius: 12px; padding: 16px 20px;
+      border: 1px solid #e8ecf0;
+    }
+    .stat-card .stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-card .stat-value { font-size: 24px; font-weight: 800; color: #1a1a2e; margin-top: 4px; }
+    .stat-card .stat-sub   { font-size: 12px; color: #aaa; margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/creators.html" class="active"><span class="nav-icon">&#127775;</span> Creators</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <a href="/pages/admin/verifications.html"><span class="nav-icon">&#10003;</span> Verifications <span class="nav-badge" id="navBadgeVerifications" style="display:none"></span></a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <a href="/pages/admin/promotions.html"><span class="nav-icon">&#128227;</span> Promotions</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Creators</h2>
+      <div class="header-actions">
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- Stats bar -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+          <div class="stat-label">Total Creators</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-sub">all profiles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">PayPal Connected</div>
+          <div class="stat-value" id="statPaypal">—</div>
+          <div class="stat-sub">ready to receive</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Verified</div>
+          <div class="stat-value" id="statVerified">—</div>
+          <div class="stat-sub">social verified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Have Submitted</div>
+          <div class="stat-value" id="statSubmitted">—</div>
+          <div class="stat-sub">at least 1 review</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by name, handle, or email..."
+               onkeyup="if(event.key==='Enter')loadCreators()">
+        <select id="tierFilter" onchange="loadCreators()">
+          <option value="">All Tiers</option>
+          <option value="celebrity">Celebrity (5M+)</option>
+          <option value="premium">Mega (1M–5M)</option>
+          <option value="established">Macro (500K–1M)</option>
+          <option value="rising">Mid (50K–500K)</option>
+          <option value="micro">Micro (10K–50K)</option>
+          <option value="nano">Nano (5K–10K)</option>
+          <option value="startup">Startup (0–5K)</option>
+          <option value="unverified">Unverified</option>
+        </select>
+        <select id="paypalFilter" onchange="loadCreators()">
+          <option value="">Any PayPal</option>
+          <option value="connected">PayPal Connected</option>
+          <option value="missing">No PayPal</option>
+        </select>
+        <select id="verifiedFilter" onchange="loadCreators()">
+          <option value="">Any Verification</option>
+          <option value="true">Verified</option>
+          <option value="false">Not Verified</option>
+        </select>
+        <select id="sortFilter" onchange="loadCreators()">
+          <option value="">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="reviews">Most Reviews</option>
+          <option value="rating">Highest Rated</option>
+          <option value="cash">Most Earned</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadCreators()">Search</button>
+      </div>
+
+      <!-- Creators Table -->
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Creators <span id="creatorCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Creator</th>
+                <th>Email</th>
+                <th>Tier</th>
+                <th>Verified</th>
+                <th>PayPal</th>
+                <th>Reviews</th>
+                <th>Rating</th>
+                <th>Earned</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="creatorsBody">
+              <tr><td colspan="10" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Creator Detail Modal -->
+  <div class="detail-modal-overlay" id="detailModal">
+    <div class="detail-modal">
+      <div class="modal-header">
+        <div class="creator-cell" id="modalCreatorHeader">
+          <div class="creator-avatar" id="modalAvatar"></div>
+          <div>
+            <div class="creator-name" id="modalName"></div>
+            <div class="creator-handle" id="modalHandle"></div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeDetail()">&times;</button>
+      </div>
+
+      <div id="modalBody">Loading...</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null;
+    let currentPage = 1;
+    let statsLoaded = false;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadCreators();
+      loadStats();
+      loadVerificationBadge();
+    });
+
+    async function apiFetch(path, options = {}) {
+      const res = await fetch('/api/admin-panel' + path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken,
+          ...(options.headers || {}),
+        },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Request failed');
+      }
+      return res.json();
+    }
+
+    // ── Stats ────────────────────────────────────────────────
+    async function loadStats() {
+      if (statsLoaded) return;
+      try {
+        // Pull from two quick counts — reuse what's already returned by the main list
+        const [all, paypalOk, verified, submitted] = await Promise.all([
+          apiFetch('/creators?limit=1'),
+          apiFetch('/creators?paypal=connected&limit=1'),
+          apiFetch('/creators?verified=true&limit=1'),
+          apiFetch('/creators?sort=reviews&limit=1'),
+        ]);
+        document.getElementById('statTotal').textContent     = all.pagination.total.toLocaleString();
+        document.getElementById('statPaypal').textContent    = paypalOk.pagination.total.toLocaleString();
+        document.getElementById('statVerified').textContent  = verified.pagination.total.toLocaleString();
+
+        // "Have submitted" = creators where totalReviews > 0 — approximate from sort=reviews
+        // We can't easily count this without an extra endpoint; show total for now
+        document.getElementById('statSubmitted').textContent = '—';
+        statsLoaded = true;
+      } catch (e) {
+        console.warn('Stats load failed', e.message);
+      }
+    }
+
+    // ── Main List ────────────────────────────────────────────
+    async function loadCreators(page = 1) {
+      currentPage = page;
+      const tbody = document.getElementById('creatorsBody');
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>';
+
+      const params = new URLSearchParams({
+        page,
+        limit: 25,
+        search:   document.getElementById('searchInput').value.trim(),
+        tier:     document.getElementById('tierFilter').value,
+        paypal:   document.getElementById('paypalFilter').value,
+        verified: document.getElementById('verifiedFilter').value,
+        sort:     document.getElementById('sortFilter').value,
+      });
+
+      try {
+        const data = await apiFetch('/creators?' + params.toString());
+        renderCreators(data.creators);
+        document.getElementById('creatorCount').textContent = `(${data.pagination.total.toLocaleString()})`;
+        renderPagination(data.pagination);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:#e53e3e">${e.message}</td></tr>`;
+      }
+    }
+
+    function renderCreators(creators) {
+      const tbody = document.getElementById('creatorsBody');
+      if (!creators.length) {
+        tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">&#127775;</div>No creators found</div></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = creators.map(c => {
+        const initials  = (c.displayName || 'CR').substring(0, 2).toUpperCase();
+        const avatarHtml = c.avatarUrl
+          ? `<img src="${c.avatarUrl}" alt="${initials}" onerror="this.parentNode.textContent='${initials}'">`
+          : initials;
+        const tierKey    = c.influenceTier || 'unverified';
+        const tierLabel  = tierDisplay(tierKey);
+        const verifiedHtml = c.isVerified
+          ? `<span class="verified-check" title="Verified">&#10004; Verified</span>`
+          : c.verificationPending
+            ? `<span class="verified-pending">&#8987; Pending</span>`
+            : `<span class="verified-no">—</span>`;
+        const paypalHtml = c.paypalEmail
+          ? `<span class="paypal-yes">&#10004; Connected</span>`
+          : `<span class="paypal-no">&#10005; Missing</span>`;
+        const reviews   = (c.totalReviews || 0);
+        const adminRevs = (c.adminBrandReviews || 0);
+        const rating    = c.averageRating ? c.averageRating.toFixed(1) + ' &#9733;' : '—';
+        const earned    = c.totalCashEarned ? '$' + c.totalCashEarned.toFixed(2) : '$0';
+        const joined    = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+
+        return `<tr>
+          <td>
+            <div class="creator-cell">
+              <div class="creator-avatar">${avatarHtml}</div>
+              <div>
+                <div class="creator-name">${escHtml(c.displayName || '—')}</div>
+                <div class="creator-handle">@${escHtml(c.handle || '—')}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:12px;color:#555">${escHtml(c.accountEmail || '—')}</td>
+          <td><span class="tier-badge tier-${tierKey}">${tierLabel}</span></td>
+          <td>${verifiedHtml}</td>
+          <td>${paypalHtml}</td>
+          <td>
+            <span class="stat-chip">${reviews}</span>
+            ${adminRevs > 0 ? `<span style="font-size:11px;color:#888;margin-left:4px">(${adminRevs} admin)</span>` : ''}
+          </td>
+          <td style="font-size:13px">${rating}</td>
+          <td style="font-size:13px;font-weight:600;color:#2EA5DD">${earned}</td>
+          <td style="font-size:12px;color:#888">${joined}</td>
+          <td>
+            <button class="btn btn-sm" style="padding:4px 10px;font-size:12px"
+              onclick="openDetail('${c.userId}', ${JSON.stringify(c).replace(/"/g, '&quot;')})">
+              View
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function tierDisplay(key) {
+      const map = {
+        celebrity: 'Celebrity', premium: 'Mega', established: 'Macro',
+        rising: 'Mid', micro: 'Micro', nano: 'Nano', startup: 'Startup',
+        unverified: 'Unverified',
+      };
+      return map[key] || key;
+    }
+
+    // ── Pagination ───────────────────────────────────────────
+    function renderPagination({ page, pages }) {
+      const el = document.getElementById('pagination');
+      if (pages <= 1) { el.innerHTML = ''; return; }
+      let html = '';
+      if (page > 1) html += `<button onclick="loadCreators(${page - 1})">&#8592; Prev</button>`;
+      html += `<span style="padding:0 12px;color:#555">Page ${page} of ${pages}</span>`;
+      if (page < pages) html += `<button onclick="loadCreators(${page + 1})">Next &#8594;</button>`;
+      el.innerHTML = html;
+    }
+
+    // ── Detail Modal ─────────────────────────────────────────
+    async function openDetail(userId, cached) {
+      // Show overlay immediately with cached row data
+      document.getElementById('detailModal').classList.add('open');
+
+      const initials = (cached.displayName || 'CR').substring(0, 2).toUpperCase();
+      const avatar   = document.getElementById('modalAvatar');
+      avatar.innerHTML = cached.avatarUrl
+        ? `<img src="${cached.avatarUrl}" alt="${initials}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : initials;
+
+      document.getElementById('modalName').textContent   = cached.displayName || '—';
+      document.getElementById('modalHandle').textContent = '@' + (cached.handle || '—');
+      document.getElementById('modalBody').innerHTML     = '<p style="color:#999;text-align:center;padding:24px">Loading...</p>';
+
+      try {
+        const data = await apiFetch('/creators/' + userId);
+        renderDetailBody(data, cached);
+      } catch (e) {
+        document.getElementById('modalBody').innerHTML = `<p style="color:#e53e3e;text-align:center">${e.message}</p>`;
+      }
+    }
+
+    function renderDetailBody({ profile, user, recentSubmissions }, cached) {
+      const socialLinks = profile.socialLinks || {};
+      const socials = Object.entries(socialLinks);
+
+      const subsHtml = recentSubmissions.length
+        ? recentSubmissions.map(s => `
+            <div class="submission-row">
+              <span>${s.brandId?.name || 'Unknown Brand'} · ${s.contentType || 'video'}</span>
+              <span class="sub-status sub-${s.status}">${s.status}</span>
+            </div>`).join('')
+        : '<p style="color:#aaa;font-size:13px">No submissions yet.</p>';
+
+      const tierKey = profile.influenceTier || 'unverified';
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="detail-section">
+          <h4>Account</h4>
+          <div class="detail-grid">
+            <div class="detail-item"><label>Email</label><span>${escHtml(user?.email || '—')}</span></div>
+            <div class="detail-item"><label>Status</label><span>${escHtml(user?.status || '—')}</span></div>
+            <div class="detail-item"><label>Last Login</label><span>${user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : '—'}</span></div>
+            <div class="detail-item"><label>Joined</label><span>${new Date(profile.createdAt).toLocaleDateString()}</span></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Creator Profile</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Influence Tier</label>
+              <span><span class="tier-badge tier-${tierKey}">${tierDisplay(tierKey)}</span></span>
+            </div>
+            <div class="detail-item">
+              <label>Creator Tier</label>
+              <span>${escHtml(profile.creatorTier || '—')}</span>
+            </div>
+            <div class="detail-item">
+              <label>Followers</label>
+              <span>${profile.realFollowerCount ? profile.realFollowerCount.toLocaleString() : '—'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Verified</label>
+              <span>${profile.isVerified ? '✅ Verified' : profile.verificationPending ? '⏳ Pending' : '—'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Total Reviews</label>
+              <span>${profile.totalReviews || 0} (${profile.adminBrandReviews || 0} admin brands)</span>
+            </div>
+            <div class="detail-item">
+              <label>Brands Partnered</label>
+              <span>${profile.totalBrandsPartnered || 0}</span>
+            </div>
+            <div class="detail-item">
+              <label>Avg Rating</label>
+              <span>${profile.averageRating ? profile.averageRating.toFixed(1) + ' ★ (' + profile.ratingCount + ')' : '—'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Cash Earned</label>
+              <span style="color:#2EA5DD">$${(profile.totalCashEarned || 0).toFixed(2)}</span>
+            </div>
+            <div class="detail-item">
+              <label>Points Earned</label>
+              <span>${(profile.totalPointsEarned || 0).toLocaleString()} pts</span>
+            </div>
+            <div class="detail-item">
+              <label>Hidden</label>
+              <span>${profile.isHidden ? '🙈 Hidden' : 'Visible'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>PayPal</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>PayPal Email</label>
+              <span>${profile.paypalEmail
+                ? `<span class="paypal-yes">✔ ${escHtml(profile.paypalEmail)}</span>`
+                : `<span class="paypal-no">✗ Not connected</span>`}</span>
+            </div>
+            <div class="detail-item">
+              <label>Connected</label>
+              <span>${profile.paypalConnectedAt ? new Date(profile.paypalConnectedAt).toLocaleDateString() : '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        ${socials.length ? `
+        <div class="detail-section">
+          <h4>Social Links</h4>
+          <div class="social-tags">
+            ${socials.map(([platform, handle]) =>
+              `<span class="social-tag">${escHtml(platform)}: @${escHtml(handle)}</span>`
+            ).join('')}
+          </div>
+        </div>` : ''}
+
+        <div class="detail-section">
+          <h4>Recent Submissions</h4>
+          ${subsHtml}
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary btn-sm"
+            onclick="window.open('/pages/admin/promotions.html','_blank')">
+            Send Promo
+          </button>
+          <button class="btn btn-sm"
+            onclick="window.open('/pages/admin/content.html','_blank')">
+            View in Content
+          </button>
+          <button class="btn btn-sm" style="background:#fff5f5;color:#e53e3e;border:1px solid #fecaca"
+            onclick="toggleHide('${profile.userId}', ${profile.isHidden})">
+            ${profile.isHidden ? 'Unhide Creator' : 'Hide Creator'}
+          </button>
+        </div>
+      `;
+    }
+
+    async function toggleHide(userId, currentlyHidden) {
+      try {
+        await apiFetch('/creators/' + userId + '/hide', {
+          method: 'PUT',
+          body: JSON.stringify({ hidden: !currentlyHidden }),
+        });
+        closeDetail();
+        loadCreators(currentPage);
+        showToast(currentlyHidden ? 'Creator unhidden.' : 'Creator hidden from brand portal.');
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('open');
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('detailModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDetail();
+    });
+
+    // ── Verification nav badge ───────────────────────────────
+    async function loadVerificationBadge() {
+      try {
+        const data = await apiFetch('/verifications/count');
+        const badge = document.getElementById('navBadgeVerifications');
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) { /* silent */ }
+    }
+
+    // ── Toast ────────────────────────────────────────────────
+    function showToast(msg, isError = false) {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      Object.assign(t.style, {
+        position: 'fixed', bottom: '24px', right: '24px',
+        background: isError ? '#e53e3e' : '#1a1a2e',
+        color: '#fff', padding: '12px 20px', borderRadius: '10px',
+        fontSize: '14px', fontWeight: '600', zIndex: '9999',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        fontFamily: 'Montserrat, sans-serif',
+      });
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // ── Util ─────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

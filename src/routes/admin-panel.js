@@ -436,6 +436,113 @@ router.post('/users/:id/grant-plan', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// MODULE: CREATOR MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/admin-panel/creators — Paginated list of all creator profiles
+router.get('/creators', async (req, res) => {
+  try {
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+    const skip  = (page - 1) * limit;
+    const { search, tier, paypal, verified, sort } = req.query;
+
+    // Build match stage
+    const match = {};
+    if (tier)     match.influenceTier = tier;
+    if (verified === 'true')  match.isVerified = true;
+    if (verified === 'false') match.isVerified = false;
+    if (paypal === 'connected')    match.paypalEmail = { $ne: null };
+    if (paypal === 'missing')      match.paypalEmail = null;
+
+    if (search) {
+      match.$or = [
+        { handle:      { $regex: search, $options: 'i' } },
+        { displayName: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const sortOption = sort === 'oldest'    ? { createdAt: 1 }
+      : sort === 'reviews'                  ? { totalReviews: -1 }
+      : sort === 'rating'                   ? { averageRating: -1 }
+      : sort === 'cash'                     ? { totalCashEarned: -1 }
+      : { createdAt: -1 };
+
+    // Fetch profiles + join account email from User
+    const [profiles, total] = await Promise.all([
+      InfluencerProfile.find(match, {
+        userId: 1, displayName: 1, handle: 1, avatarUrl: 1,
+        influenceTier: 1, isVerified: 1, verificationPending: 1, creatorTier: 1,
+        totalReviews: 1, adminBrandReviews: 1, totalBrandsPartnered: 1,
+        totalCashEarned: 1, totalPointsEarned: 1,
+        paypalEmail: 1, paypalConnectedAt: 1,
+        averageRating: 1, ratingCount: 1,
+        realFollowerCount: 1, socialLinks: 1,
+        isHidden: 1, createdAt: 1,
+      }).sort(sortOption).skip(skip).limit(limit).lean(),
+      InfluencerProfile.countDocuments(match),
+    ]);
+
+    // Attach account emails in one batch
+    const userIds = profiles.map(p => p.userId);
+    const users   = await User.find({ _id: { $in: userIds } }, { email: 1 }).lean();
+    const emailMap = {};
+    users.forEach(u => { emailMap[u._id.toString()] = u.email; });
+
+    const enriched = profiles.map(p => ({
+      ...p,
+      accountEmail: emailMap[p.userId?.toString()] || null,
+    }));
+
+    res.json({
+      creators: enriched,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
+  } catch (error) {
+    console.error('Creators list error:', error);
+    res.status(500).json({ error: 'Failed to load creators' });
+  }
+});
+
+// GET /api/admin-panel/creators/:userId — Full creator detail
+router.get('/creators/:userId', async (req, res) => {
+  try {
+    const profile = await InfluencerProfile.findOne({ userId: req.params.userId }).lean();
+    if (!profile) return res.status(404).json({ error: 'Creator not found' });
+
+    const [user, recentSubmissions] = await Promise.all([
+      User.findById(profile.userId, { email: 1, status: 1, lastLoginAt: 1, createdAt: 1 }).lean(),
+      ContentSubmission.find({ influencerId: profile.userId })
+        .sort({ createdAt: -1 }).limit(5)
+        .select('brandId status contentType createdAt')
+        .populate('brandId', 'name')
+        .lean(),
+    ]);
+
+    res.json({ profile, user, recentSubmissions });
+  } catch (error) {
+    console.error('Creator detail error:', error);
+    res.status(500).json({ error: 'Failed to load creator detail' });
+  }
+});
+
+// PUT /api/admin-panel/creators/:userId/hide — Toggle isHidden flag
+router.put('/creators/:userId/hide', async (req, res) => {
+  try {
+    const { hidden } = req.body;
+    const profile = await InfluencerProfile.findOneAndUpdate(
+      { userId: req.params.userId },
+      { isHidden: !!hidden },
+      { new: true, select: 'isHidden displayName' }
+    );
+    if (!profile) return res.status(404).json({ error: 'Creator not found' });
+    res.json({ success: true, isHidden: profile.isHidden });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update creator' });
+  }
+});
+
 // GET /api/admin-panel/brands — List all brands with filters
 router.get('/brands', async (req, res) => {
   try {
