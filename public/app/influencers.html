@@ -3614,7 +3614,7 @@
 
       var avatarHtml = avatarUrl
         ? '<div class="avatar" style="overflow:hidden"><img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""></div>'
-        : '<div class="avatar" style="background:' + gradient + ';display:flex;align-items:center;justify-content:center">' + PERSON_SVG + '</div>';
+        : '<div class="avatar">' + PERSON_SVG + '</div>';
 
       return '<tr data-partnership-id="' + p._id + '" data-handle="' + handle + '" data-name="' + name + '" data-status="' + p.status + '">' +
         '<td data-label="Influencer"><div class="influencer-cell">' + avatarHtml +
@@ -3687,7 +3687,7 @@
         var followers = inf.realFollowerCount ? (inf.realFollowerCount >= 1000 ? (inf.realFollowerCount / 1000).toFixed(1) + 'K' : inf.realFollowerCount) : '—';
 
         html += '<div class="request-card" data-partnership-id="' + p._id + '">' +
-          '<div class="request-avatar" style="background:' + gradient + ';display:flex;align-items:center;justify-content:center">' + PERSON_SVG + '</div>' +
+          '<div class="request-avatar">' + PERSON_SVG + '</div>' +
           '<div class="request-info"><p class="request-name">@' + handle + '</p>' +
           '<div class="request-meta"><span class="tier-badge ' + tierBadgeClass(tier) + '">' + tierLabel(tier, reqVerified) + '</span>' +
           '<span>Requested ' + timeAgo(p.createdAt) + '</span></div></div>' +
