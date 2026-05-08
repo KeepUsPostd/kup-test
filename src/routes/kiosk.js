@@ -7,8 +7,10 @@ const router = express.Router();
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const { requireAuth } = require('../middleware/auth');
-const { Brand, GuestReviewer, KioskReward, ContentSubmission, BrandProfile } = require('../models');
+const { Brand, GuestReviewer, KioskReward, ContentSubmission, BrandProfile, BrandMember } = require('../models');
 const { sendEmail } = require('../config/email');
+const { createInApp } = require('../services/notifications');
+const { sendPushToUser } = require('../config/push');
 const { checkTrialStatus } = require('../services/trial');
 const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
 
@@ -167,6 +169,30 @@ router.post('/session', async (req, res) => {
     });
 
     console.log(`🎬 Kiosk session: ${guest.firstName} at ${brand.name} → ${reward.code}`);
+
+    // Notify brand owner of new kiosk review (non-blocking)
+    try {
+      const ownerMember = await BrandMember.findOne({ brandId, role: 'owner', status: 'active' });
+      if (ownerMember) {
+        const ownerId = ownerMember.userId.toString();
+        const notifTitle = `New kiosk review at ${brand.name}`;
+        const notifBody = `${guest.firstName} just left a review and earned ${reward.rewardValue}`;
+        await createInApp({
+          userId: ownerId,
+          type: 'kiosk_review',
+          title: notifTitle,
+          message: notifBody,
+          metadata: { brandId: brandId.toString(), rewardCode: reward.code },
+        });
+        await sendPushToUser(ownerId, {
+          title: notifTitle,
+          body: notifBody,
+          data: { type: 'kiosk_review', brandId: brandId.toString() },
+        });
+      }
+    } catch (notifyErr) {
+      console.warn('[kiosk] brand notify error:', notifyErr.message);
+    }
 
     // Send reward email if guest provided one (non-blocking)
     if (guest.email) {

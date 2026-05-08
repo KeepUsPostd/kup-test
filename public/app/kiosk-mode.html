@@ -652,15 +652,49 @@
 
     if (kioskToggleInput) {
       kioskToggleInput.addEventListener('change', function() {
-        if (this.checked) {
+        var enabled = this.checked;
+        var self = this;
+
+        // Update UI immediately
+        if (enabled) {
           statusDot.className = 'status-dot active';
           statusText.innerHTML = 'Active &mdash; 1 Location';
-          kupToast('Kiosk Mode enabled', 'success');
         } else {
           statusDot.className = 'status-dot inactive';
           statusText.innerHTML = 'Inactive';
-          kupToast('Kiosk Mode disabled', 'info');
         }
+
+        // Persist to server
+        var stored = null;
+        try { stored = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+        var params = new URLSearchParams(window.location.search);
+        var brandId = params.get('brandId') || (stored && stored.id);
+        if (!brandId) {
+          kupToast(enabled ? 'Kiosk Mode enabled' : 'Kiosk Mode disabled', enabled ? 'success' : 'info');
+          return;
+        }
+
+        kupApi.put('/api/kiosk/config/' + brandId, { kioskEnabled: enabled }).then(function(data) {
+          // Capture brand code if newly generated (first time enabling)
+          if (data.kiosk && data.kiosk.kioskBrandCode && !_kioskBrandCode) {
+            _kioskBrandCode = data.kiosk.kioskBrandCode;
+            var urlDisplay = document.getElementById('kioskUrlDisplay');
+            if (urlDisplay) urlDisplay.textContent = 'keepuspostd.com/kiosk/' + _kioskBrandCode;
+          }
+          kupToast(enabled ? 'Kiosk Mode enabled' : 'Kiosk Mode disabled', enabled ? 'success' : 'info');
+        }).catch(function(err) {
+          // Revert toggle on failure
+          self.checked = !enabled;
+          if (!enabled) {
+            statusDot.className = 'status-dot active';
+            statusText.innerHTML = 'Active &mdash; 1 Location';
+          } else {
+            statusDot.className = 'status-dot inactive';
+            statusText.innerHTML = 'Inactive';
+          }
+          kupToast('Could not save kiosk setting. Please try again.', 'error');
+          console.error('[kiosk] toggle save error:', err);
+        });
       });
     }
 

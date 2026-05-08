@@ -1408,6 +1408,55 @@
     .btn-copy-link:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
     .btn-copy-link.copied { border-color: #16a34a; color: #16a34a; background: rgba(22,163,74,0.04); }
 
+    /* ============== SMS INVITE SECTION ============== */
+    .sms-invite-section { margin-top: 20px; }
+    .sms-invite-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .sms-invite-divider::before,
+    .sms-invite-divider::after { content: ''; flex: 1; height: 1px; background: #E5E7EB; }
+    .sms-invite-divider span { font-size: 12px; color: #9CA3AF; font-weight: 500; white-space: nowrap; }
+    .sms-msg-box {
+      background: #F8F9FB;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      min-height: 52px;
+      word-break: break-word;
+    }
+    .sms-invite-actions { display: flex; gap: 10px; }
+    .btn-send-sms {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      background: var(--kup-blue, #2EA5DD);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-send-sms:hover { opacity: 0.88; }
+    .btn-copy-sms {
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 16px;
+      background: #fff;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-copy-sms:hover { border-color: var(--kup-blue); color: var(--kup-blue); }
+
     /* ============== TOAST NOTIFICATIONS ============== */
     .kup-toast-container {
       position: fixed;
@@ -2272,6 +2321,19 @@
           <button class="btn-copy-link" id="copyLinkBtn">Copy</button>
         </div>
       </div>
+
+      <!-- Send via Text Section -->
+      <div class="sms-invite-section">
+        <div class="sms-invite-divider"><span>or send via text</span></div>
+        <div class="sms-msg-box" id="smsMsgBox"></div>
+        <div class="sms-invite-actions">
+          <button class="btn-send-sms" id="btnSendSms">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Open in Messages
+          </button>
+          <button class="btn-copy-sms" id="btnCopySms">Copy Message</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2828,6 +2890,14 @@
           })
           .catch(function() {});
       }
+
+      // Build personalized SMS invite message
+      var smsDeepLink = 'https://keepuspostd.com/download?brandId=' + brandId;
+      var brandLabel = ab.name || 'Our brand';
+      var smsText = brandLabel + ' wants to pay you to review us on KUP — no followers needed. Just your honest take. Download and find us here: ' + smsDeepLink;
+      window._kupSmsMsg = smsText;
+      var smsMsgBox = document.getElementById('smsMsgBox');
+      if (smsMsgBox) smsMsgBox.textContent = smsText;
     }
 
     // Open from toolbar buttons (both tabs have one)
@@ -2845,6 +2915,45 @@
     }
     document.getElementById('addModalClose').addEventListener('click', function() {
       closeModal('addModal');
+    });
+
+    // ── SMS Invite handlers ──
+    document.getElementById('btnSendSms').addEventListener('click', function() {
+      var msg = window._kupSmsMsg || '';
+      if (!msg) { kupToast('Brand info not loaded yet. Try again.', 'info'); return; }
+      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        // Open native Messages app with pre-filled message
+        window.location.href = 'sms:?body=' + encodeURIComponent(msg);
+      } else {
+        // Desktop: copy to clipboard and prompt user to paste into their preferred app
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(msg).then(function() {
+            kupToast('Message copied — paste it into your phone\'s Messages app to send', 'success');
+          }).catch(function() {
+            kupToast('Select and copy the message above, then paste it in your Messages app', 'info');
+          });
+        } else {
+          kupToast('Select and copy the message above, then paste it in your Messages app', 'info');
+        }
+      }
+    });
+
+    document.getElementById('btnCopySms').addEventListener('click', function() {
+      var msg = window._kupSmsMsg || '';
+      if (!msg) { kupToast('Brand info not loaded yet. Try again.', 'info'); return; }
+      var btn = this;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(msg).then(function() {
+          kupToast('Message copied to clipboard!', 'success');
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy Message'; }, 2000);
+        }).catch(function() {
+          kupToast('Could not copy automatically — please select and copy the text manually', 'info');
+        });
+      } else {
+        kupToast('Please select and copy the message text manually', 'info');
+      }
     });
 
     // Email tags system
