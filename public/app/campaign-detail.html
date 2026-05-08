@@ -1828,78 +1828,36 @@
           <!-- Campaign Brief -->
           <div class="campaign-brief-section" id="campaignBriefSection">
             <div class="brief-section-header">
-              <h4>Campaign Brief</h4>
-              <button class="btn-send-brief" id="btnSendBrief" disabled>
+              <h4>Send a Brief</h4>
+              <button class="btn-send-brief" id="btnSendBrief">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Send to All Influencers
+                Send to Influencers
               </button>
             </div>
+            <p style="font-size:.82rem;color:#888;margin:0 0 18px;">Briefings are delivered as push notifications to your campaign influencers and appear in their Activity tab.</p>
 
-            <!-- Saved brief (hidden until composed) -->
-            <div class="brief-card" id="briefCard">
-              <div class="brief-card-subject" id="briefCardSubject"></div>
-              <div class="brief-card-body" id="briefCardBody"></div>
-              <div class="brief-card-deliverables" id="briefCardDeliverables" style="display:none;">
-                <h5>Deliverables</h5>
-                <ul id="briefCardDeliverablesList"></ul>
-              </div>
-              <div class="brief-card-meta">
-                <span id="briefCardDate"></span>
-                <span class="sent-badge" id="briefSentBadge" style="display:none;">Sent</span>
-              </div>
-            </div>
-
-            <!-- AI Assist -->
-            <div class="ai-assist-toggle" id="briefAiToggle">
-              <span class="ai-icon">&#10024;</span>
-              <span class="ai-label">AI Assist</span>
-              <span class="ai-hint">Describe your brief, AI writes it</span>
-            </div>
-            <div class="ai-assist-panel" id="briefAiPanel">
-              <textarea id="briefAiInput" placeholder="Describe what you need from influencers in plain language...&#10;&#10;Example: &quot;We need 3 Instagram Reels showcasing our summer collection. Each should feature at least 2 products, use brand colors, and include the hashtag #SummerWithUs. Deadline is March 30th.&quot;"></textarea>
-              <button class="btn-generate-brief" id="briefAiGenerate">
-                <span class="ai-icon">&#10024;</span> Generate Brief
-              </button>
-            </div>
-
-            <!-- Brief form -->
+            <!-- Brief form — 4 fields, no payment -->
             <div class="brief-form" id="briefForm">
               <div class="brief-field">
-                <label for="briefType">Brief Type</label>
-                <select id="briefType">
-                  <option value="" disabled selected>Select brief type...</option>
-                  <option value="content-guidelines">Content Guidelines</option>
-                  <option value="campaign-kickoff">Campaign Kickoff</option>
-                  <option value="deliverable-reminder">Deliverable Reminder</option>
-                  <option value="custom">Custom</option>
-                </select>
+                <label for="briefMediaDuration">Image / Video Duration <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                <input type="text" id="briefMediaDuration" placeholder="e.g. 15–30 seconds, 3–5 images, under 60 seconds...">
               </div>
               <div class="brief-field">
-                <label for="briefSubject">Subject</label>
-                <input type="text" id="briefSubject" placeholder="Brief subject line...">
+                <label for="briefInclude">What to Include <span style="color:#e53e3e;font-size:.85em;">*</span></label>
+                <textarea id="briefInclude" rows="4" placeholder="What should creators show, mention, or highlight? e.g. Show the product in use, mention the launch date, include hashtag #BrandName..."></textarea>
               </div>
               <div class="brief-field">
-                <label for="briefDetails">Details</label>
-                <textarea id="briefDetails" rows="6" placeholder="Provide detailed instructions, guidelines, and expectations for this campaign..."></textarea>
+                <label for="briefAvoid">What to Avoid <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                <textarea id="briefAvoid" rows="3" placeholder="What should creators NOT do? e.g. No competitor mentions, avoid showing the price, no low-light footage..."></textarea>
               </div>
               <div class="brief-field">
-                <div class="brief-deliverables-label">Deliverables</div>
-                <div class="brief-deliverables-list" id="briefDeliverablesList">
-                  <div class="brief-deliverable-item">
-                    <input type="text" placeholder="e.g. 2 Instagram Reels" class="deliverable-input">
-                    <button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>
-                  </div>
-                </div>
-                <button class="btn-add-deliverable" id="btnAddDeliverable">+ Add Deliverable</button>
-              </div>
-              <div class="brief-field">
-                <label for="briefDeadline">Deadline</label>
-                <input type="date" id="briefDeadline">
+                <label for="briefExtra">Extra Notes <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                <textarea id="briefExtra" rows="3" placeholder="Anything else creators should know — tone, links, deadlines, reference examples..."></textarea>
               </div>
             </div>
             <div class="brief-footer">
-              <span class="brief-preview-text" id="briefPreviewText">Will be sent to associated influencers as a notification</span>
-              <button class="btn-compose-brief" id="btnComposeBrief">Save Brief</button>
+              <span class="brief-preview-text">Sent as a push notification + in-app alert to your influencers</span>
+              <button class="btn-compose-brief" id="btnSendBriefSubmit">Send Brief</button>
             </div>
           </div>
 
@@ -2908,91 +2866,53 @@
     /* ============================================
        CAMPAIGN BRIEF — COMPOSE & SEND
        ============================================ */
-    // Add deliverable
-    document.getElementById('btnAddDeliverable').addEventListener('click', function() {
-      var item = document.createElement('div');
-      item.className = 'brief-deliverable-item';
-      item.innerHTML = '<input type="text" placeholder="e.g. 1 TikTok video" class="deliverable-input"><button class="btn-remove-deliverable" onclick="this.parentElement.remove()">&times;</button>';
-      document.getElementById('briefDeliverablesList').appendChild(item);
-    });
+    // ── Send Brief (real API) ───────────────────────────────────
+    document.getElementById('btnSendBriefSubmit').addEventListener('click', async function() {
+      var include = (document.getElementById('briefInclude').value || '').trim();
+      if (!include) { kupToast('Please fill in "What to Include" before sending.', 'error'); return; }
 
-    // Save brief
-    document.getElementById('btnComposeBrief').addEventListener('click', function() {
-      var type = document.getElementById('briefType').value;
-      var subject = document.getElementById('briefSubject').value.trim();
-      if (!type) { kupToast('Please select a brief type', 'error'); return; }
-      if (!subject) { kupToast('Please enter a subject line', 'error'); return; }
+      var mediaDuration = (document.getElementById('briefMediaDuration').value || '').trim();
+      var avoid  = (document.getElementById('briefAvoid').value || '').trim();
+      var extra  = (document.getElementById('briefExtra').value || '').trim();
 
-      var details = document.getElementById('briefDetails').value.trim();
-      var deadline = document.getElementById('briefDeadline').value;
+      // campaignId is embedded in the page URL: campaign-detail.html?id=XXXX
+      var params = new URLSearchParams(window.location.search);
+      var campaignId = params.get('id') || params.get('campaignId');
+      if (!campaignId) { kupToast('Campaign not identified — please reload and try again.', 'error'); return; }
 
-      // Gather deliverables
-      var deliverables = [];
-      document.querySelectorAll('.deliverable-input').forEach(function(input) {
-        if (input.value.trim()) deliverables.push(input.value.trim());
-      });
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
 
-      // Populate brief card
-      document.getElementById('briefCardSubject').textContent = subject;
-      document.getElementById('briefCardBody').textContent = details;
-
-      var delSection = document.getElementById('briefCardDeliverables');
-      var delList = document.getElementById('briefCardDeliverablesList');
-      delList.innerHTML = '';
-      if (deliverables.length > 0) {
-        deliverables.forEach(function(d) {
-          var li = document.createElement('li');
-          li.textContent = d;
-          delList.appendChild(li);
+      try {
+        var token = await firebase.auth().currentUser.getIdToken();
+        var resp = await fetch('/api/campaigns/' + campaignId + '/send-briefing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ include, avoid: avoid || null, mediaDuration: mediaDuration || null, extra: extra || null, audienceType: 'all' }),
         });
-        delSection.style.display = 'block';
-      } else {
-        delSection.style.display = 'none';
+        var data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Failed to send briefing');
+
+        kupToast('Brief sent to ' + data.sentCount + ' influencer' + (data.sentCount !== 1 ? 's' : '') + ' ✓', 'success');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Sent';
+        // Clear form
+        document.getElementById('briefMediaDuration').value = '';
+        document.getElementById('briefInclude').value = '';
+        document.getElementById('briefAvoid').value = '';
+        document.getElementById('briefExtra').value = '';
+        setTimeout(function() { btn.disabled = false; btn.textContent = 'Send Brief'; }, 8000);
+      } catch (err) {
+        kupToast(err.message || 'Could not send brief — please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Send Brief';
       }
-
-      var now = new Date();
-      document.getElementById('briefCardDate').textContent = 'Saved ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-      document.getElementById('briefSentBadge').style.display = 'none';
-
-      // Show card, enable send button
-      document.getElementById('briefCard').classList.add('show');
-      document.getElementById('btnSendBrief').disabled = false;
-
-      // Hide form
-      document.getElementById('briefForm').style.display = 'none';
-      document.querySelector('.brief-footer').style.display = 'none';
-      briefAiToggle.style.display = 'none';
-
-      kupToast('Brief saved — ready to send to influencers', 'success');
     });
 
-    // Send to all influencers
+    // Header "Send to Influencers" button — scrolls to the form
     document.getElementById('btnSendBrief').addEventListener('click', function() {
-      if (this.disabled) return;
-      var influencerCount = document.querySelectorAll('.influencer-avatar:not(.av-more)').length;
-      var moreEl = document.querySelector('.influencer-avatar.av-more');
-      if (moreEl) {
-        var moreNum = parseInt(moreEl.textContent.replace('+', ''));
-        if (!isNaN(moreNum)) influencerCount += moreNum;
-      }
-      kupToast('Brief sent to ' + influencerCount + ' influencers', 'success');
-      document.getElementById('briefSentBadge').style.display = 'inline-flex';
-      this.disabled = true;
-      this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Sent';
-    });
-
-    // Brief type auto-suggest
-    document.getElementById('briefType').addEventListener('change', function() {
-      var subjectInput = document.getElementById('briefSubject');
-      if (subjectInput.value.trim()) return;
-      var campaignTitle = document.querySelector('.hero-title') ? document.querySelector('.hero-title').textContent.trim() : 'Campaign';
-      var suggestions = {
-        'content-guidelines': 'Content Guidelines: ' + campaignTitle,
-        'campaign-kickoff': 'Campaign Kickoff: ' + campaignTitle,
-        'deliverable-reminder': 'Deliverable Reminder: ' + campaignTitle,
-        'custom': ''
-      };
-      if (suggestions[this.value]) subjectInput.value = suggestions[this.value];
+      document.getElementById('briefInclude').focus();
+      document.getElementById('briefInclude').scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     /* ============================================

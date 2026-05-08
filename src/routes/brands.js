@@ -860,4 +860,110 @@ router.post('/:id/claim', async (req, res) => {
   }
 });
 
+/* ============================================================
+   BRAND BRIEFINGS — POST /api/brands/:brandId/send-briefing
+   Send a creative brief to all (or selected) influencers who
+   have a partnership with this brand.
+   No payment fields — admin-only (see Promotion model).
+   ============================================================ */
+router.post('/:brandId/send-briefing', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.params;
+    const { include, avoid, mediaDuration, extra, audienceType, selectedInfluencerProfileIds } = req.body;
+
+    if (!include || !include.trim()) {
+      return res.status(400).json({ error: '"What to include" is required.' });
+    }
+
+    // Verify caller is a member of this brand
+    const membership = await BrandMember.findOne({ brandId, userId: req.user._id });
+    if (!membership) {
+      return res.status(403).json({ error: 'You do not have access to this brand.' });
+    }
+
+    const brand = await Brand.findById(brandId).select('name');
+    if (!brand) return res.status(404).json({ error: 'Brand not found.' });
+
+    const { Partnership, InfluencerProfile, Briefing } = require('../models');
+    const { createInApp } = require('../services/notifications');
+    const { sendPushToUser } = require('../config/push');
+
+    // Resolve audience
+    let partnerFilter = { brandId, status: 'active' };
+    if (audienceType === 'selected' && Array.isArray(selectedInfluencerProfileIds) && selectedInfluencerProfileIds.length > 0) {
+      partnerFilter.influencerProfileId = { $in: selectedInfluencerProfileIds };
+    }
+
+    const partnerships = await Partnership.find(partnerFilter).select('influencerProfileId');
+    if (!partnerships.length) {
+      return res.status(400).json({ error: 'No active influencers found for this brand.' });
+    }
+
+    const profileIds = partnerships.map(p => p.influencerProfileId);
+    const influencers = await InfluencerProfile.find({ _id: { $in: profileIds } }).select('userId handle displayName');
+
+    // Compose the structured notification body
+    const sections = [];
+    if (mediaDuration)   sections.push(`⏱ Duration: ${mediaDuration}`);
+    if (include.trim()) sections.push(`✅ Include: ${include.trim()}`);
+    if (avoid && avoid.trim())  sections.push(`🚫 Avoid: ${avoid.trim()}`);
+    if (extra && extra.trim())  sections.push(`📝 Notes: ${extra.trim()}`);
+    const notifBody = sections.join('\n');
+
+    // Save briefing record
+    const briefing = await Briefing.create({
+      brandId,
+      brandName: brand.name,
+      sentBy: req.user._id,
+      campaignId: null,
+      audienceType: audienceType || 'all',
+      selectedInfluencerProfileIds: audienceType === 'selected' ? selectedInfluencerProfileIds : [],
+      mediaDuration: mediaDuration || null,
+      include: include.trim(),
+      avoid: avoid?.trim() || null,
+      extra: extra?.trim() || null,
+      sentCount: influencers.length,
+    });
+
+    // Notify each influencer — non-blocking fan-out
+    const pushTitle = `📋 New brief from ${brand.name}`;
+    const pushBody  = `New creative brief inside. Tap to view.`;
+
+    await Promise.allSettled(influencers.map(async (inf) => {
+      if (!inf.userId) return;
+      const userId = inf.userId.toString();
+
+      // In-app notification
+      await createInApp({
+        userId,
+        type: 'briefing',
+        title: pushTitle,
+        message: notifBody || pushBody,
+        metadata: {
+          brandId: brandId.toString(),
+          briefingId: briefing._id.toString(),
+          brandName: brand.name,
+        },
+      });
+
+      // Push notification
+      await sendPushToUser(userId, {
+        title: pushTitle,
+        body: pushBody,
+        data: {
+          type: 'briefing',
+          brandId: brandId.toString(),
+          briefingId: briefing._id.toString(),
+        },
+      });
+    }));
+
+    console.log(`✅ Brand briefing sent: "${brand.name}" → ${influencers.length} influencers`);
+    res.json({ success: true, sentCount: influencers.length, briefingId: briefing._id });
+  } catch (error) {
+    console.error('Brand briefing error:', error);
+    res.status(500).json({ error: 'Failed to send briefing.' });
+  }
+});
+
 module.exports = router;

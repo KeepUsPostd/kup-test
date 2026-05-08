@@ -29,4 +29,5 @@ module.exports = {
   BrandMusic: require('./BrandMusic'),
   BrandCatalog: require('./BrandCatalog'),
   Promotion: require('./Promotion'),
+  Briefing: require('./Briefing'),
 };

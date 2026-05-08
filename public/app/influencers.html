@@ -521,6 +521,22 @@
 
     /* ============== FILTER/SORT PANEL ============== */
     .filter-wrap { position: relative; }
+    .btn-send-brief {
+      padding: 9px 16px;
+      background: var(--kup-blue, #2ea5dd);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--kup-font);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-send-brief:hover { background: #258fc4; }
     .btn-filter {
       padding: 8px 16px;
       border: 1px solid #ddd;
@@ -1991,6 +2007,11 @@
           </span>
         </div>
         <div class="toolbar-right">
+          <!-- Send Briefing -->
+          <button class="btn-send-brief" id="btnBrandBriefing" title="Send a creative brief to all your influencers">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send Briefing
+          </button>
           <!-- Filter -->
           <div class="filter-wrap">
             <button class="btn-filter" id="filterBtn">
@@ -2356,6 +2377,39 @@
       <div class="notice-footer">
         <span class="notice-preview-text">Influencer will receive this as a notification with response options</span>
         <button class="btn-send-notice" id="btnSendNotice">Send Notice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== BRAND BRIEFING MODAL ============== -->
+  <div class="kup-modal-overlay" id="brandBriefingModal" role="dialog" aria-modal="true" aria-labelledby="briefingModalTitle" style="display:none;">
+    <div class="kup-modal" style="max-width: 560px;">
+      <button class="kup-modal-close" id="briefingModalClose" aria-label="Close">&times;</button>
+      <h3 id="briefingModalTitle" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #1a1a1a;">Send a Brief to Your Influencers</h3>
+      <p style="font-size:.82rem;color:#888;margin:0 0 20px;">Delivered as a push notification + in-app alert to all active influencer partners.</p>
+
+      <div class="notice-form">
+        <div class="notice-field">
+          <label for="bbMediaDuration">Image / Video Duration <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+          <input type="text" id="bbMediaDuration" placeholder="e.g. 15–30 seconds, 3–5 images, under 1 minute...">
+        </div>
+        <div class="notice-field">
+          <label for="bbInclude">What to Include <span style="color:#e53e3e;font-size:.85em;">*</span></label>
+          <textarea id="bbInclude" rows="4" placeholder="What should creators show, mention, or highlight?&#10;e.g. Show the product in use, tag @yourbrand, use #BrandName..."></textarea>
+        </div>
+        <div class="notice-field">
+          <label for="bbAvoid">What to Avoid <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+          <textarea id="bbAvoid" rows="3" placeholder="What should creators NOT do?&#10;e.g. No competitor mentions, no pricing disclosure..."></textarea>
+        </div>
+        <div class="notice-field">
+          <label for="bbExtra">Extra Notes <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+          <textarea id="bbExtra" rows="3" placeholder="Anything else — tone, links, deadlines, references..."></textarea>
+        </div>
+      </div>
+
+      <div class="notice-footer">
+        <span class="notice-preview-text" id="bbAudienceHint">Sending to all active influencers</span>
+        <button class="btn-send-notice" id="btnSendBrandBriefing">Send Brief</button>
       </div>
     </div>
   </div>
@@ -3373,6 +3427,86 @@
       });
     });
   </script>
+
+  <!-- Brand Briefing Modal -->
+  <script>
+    (function() {
+      var modal = document.getElementById('brandBriefingModal');
+      var openBtn = document.getElementById('btnBrandBriefing');
+      var closeBtn = document.getElementById('briefingModalClose');
+      var sendBtn = document.getElementById('btnSendBrandBriefing');
+
+      function openBriefingModal() {
+        // Update audience hint with live count
+        var count = parseInt(document.getElementById('toolbarInfluencerCount').textContent) || 0;
+        document.getElementById('bbAudienceHint').textContent =
+          count > 0 ? 'Sending to ' + count + ' active influencer' + (count !== 1 ? 's' : '') : 'Sending to all active influencers';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('bbInclude').focus();
+      }
+
+      function closeBriefingModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      if (openBtn) openBtn.addEventListener('click', openBriefingModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeBriefingModal);
+      modal.addEventListener('click', function(e) { if (e.target === modal) closeBriefingModal(); });
+
+      if (sendBtn) {
+        sendBtn.addEventListener('click', async function() {
+          var include = (document.getElementById('bbInclude').value || '').trim();
+          if (!include) { kupToast('Please fill in "What to Include" before sending.', 'error'); return; }
+
+          var mediaDuration = (document.getElementById('bbMediaDuration').value || '').trim();
+          var avoid  = (document.getElementById('bbAvoid').value || '').trim();
+          var extra  = (document.getElementById('bbExtra').value || '').trim();
+
+          // Get active brand from localStorage (same pattern as rest of page)
+          var activeBrand = null;
+          try { activeBrand = JSON.parse(localStorage.getItem('kup_active_brand')); } catch(e) {}
+          var brandId = activeBrand && (activeBrand.mongoId || activeBrand.id);
+          if (!brandId) { kupToast('No active brand found — please reload.', 'error'); return; }
+
+          sendBtn.disabled = true;
+          sendBtn.textContent = 'Sending…';
+
+          try {
+            var token = await firebase.auth().currentUser.getIdToken();
+            var resp = await fetch('/api/brands/' + brandId + '/send-briefing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+              body: JSON.stringify({
+                include,
+                avoid: avoid || null,
+                mediaDuration: mediaDuration || null,
+                extra: extra || null,
+                audienceType: 'all',
+              }),
+            });
+            var data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Failed to send briefing');
+
+            kupToast('Brief sent to ' + data.sentCount + ' influencer' + (data.sentCount !== 1 ? 's' : '') + ' ✓', 'success');
+            closeBriefingModal();
+            // Clear form
+            document.getElementById('bbMediaDuration').value = '';
+            document.getElementById('bbInclude').value = '';
+            document.getElementById('bbAvoid').value = '';
+            document.getElementById('bbExtra').value = '';
+          } catch (err) {
+            kupToast(err.message || 'Could not send brief — please try again.', 'error');
+          } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send Brief';
+          }
+        });
+      }
+    })();
+  </script>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
