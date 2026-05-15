@@ -545,7 +545,9 @@
       <p class="brand-nav-label">Brand Settings</p>
       <ul class="brand-nav">
         <li>
-          <a href="brand-profile.html" class="active">
+          <!-- Routes to the editor (add-brand.html?edit=true) not the public viewer.
+               brand-context injection JS below appends &brandId=... at runtime. -->
+          <a href="add-brand.html?edit=true" class="active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -649,7 +651,7 @@
         </a>
         <div class="dashboard-tips">
           <div class="step-tip"><span class="tip-icon">🚀</span><span><strong>You're Live!</strong>Your brand is live in the marketplace. Influencers can discover and partner with you right now.</span></div>
-          <div class="step-tip"><span class="tip-icon">📷</span><span><strong>Update Your Look</strong>Need to change your logo or banner? Head to <a href="brand-profile.html#assets">Brand Profile → Assets</a>.</span></div>
+          <div class="step-tip"><span class="tip-icon">📷</span><span><strong>Update Your Look</strong>Need to change your logo or banner? Head to <a href="add-brand.html?edit=true">Edit Brand</a>.</span></div>
           <div class="step-tip"><span class="tip-icon">🏆</span><span><strong>Launch a Campaign</strong>Create your first campaign to start attracting influencer content submissions.</span></div>
         </div>
       </div>
