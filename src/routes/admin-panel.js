@@ -436,6 +436,105 @@ router.post('/users/:id/grant-plan', async (req, res) => {
   }
 });
 
+// POST /api/admin-panel/users/:id/override-features — Upgrade a brand's
+// feature tier WITHOUT touching their PayPal subscription.
+// Use case: partner deals where the brand pays the published Growth price
+// ($29/mo) via real PayPal subscription but gets Agency feature access on
+// the platform. Unlike grant-plan (which cancels PayPal subs and creates a
+// free internal record), this leaves billing untouched — KUP still collects
+// real MRR via the existing subscription.
+// Body: { planTier: 'starter' | 'growth' | 'pro' | 'agency' | 'enterprise' }
+router.post('/users/:id/override-features', async (req, res) => {
+  try {
+    const { planTier } = req.body;
+    const validTiers = ['starter', 'growth', 'pro', 'agency', 'enterprise'];
+    if (!validTiers.includes(planTier)) {
+      return res.status(400).json({ error: `planTier must be one of: ${validTiers.join(', ')}` });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.hasBrandProfile) {
+      return res.status(400).json({ error: 'User has no brand profile' });
+    }
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (!brandProfile) {
+      return res.status(404).json({ error: 'BrandProfile not found' });
+    }
+
+    // Find the active PayPal subscription so we can show a meaningful message
+    // about the divergence the admin is creating. We do NOT modify the
+    // Subscription record — that's the whole point.
+    const activeSub = await Subscription.findOne({
+      brandProfileId: brandProfile._id,
+      status: { $in: ['active', 'trialing'] },
+    });
+
+    const previousTier = brandProfile.planTier;
+    brandProfile.planTier = planTier;
+    brandProfile.planTierLockedByAdmin = true;
+    brandProfile.planTierLockedAt = new Date();
+    brandProfile.planTierLockedBy = req.user?.email || 'admin';
+    await brandProfile.save();
+
+    console.log(`🔓 Admin ${req.user?.email} overrode features for ${user.email}: ${previousTier} → ${planTier} (subscription untouched: ${activeSub?.planTier || 'none'})`);
+
+    res.json({
+      message: `Feature tier overridden to ${planTier} for ${user.email}. PayPal subscription unchanged.`,
+      brandProfile: {
+        planTier: brandProfile.planTier,
+        planTierLockedByAdmin: true,
+        planTierLockedAt: brandProfile.planTierLockedAt,
+      },
+      subscription: activeSub ? {
+        planTier: activeSub.planTier,
+        status: activeSub.status,
+        paypalSubscriptionId: activeSub.paypalSubscriptionId,
+      } : null,
+    });
+  } catch (error) {
+    console.error('Override features error:', error.message);
+    res.status(500).json({ error: 'Failed to override features', message: error.message });
+  }
+});
+
+// POST /api/admin-panel/users/:id/clear-feature-override — Remove the admin
+// feature override and resync planTier to the active subscription's tier.
+// Use when a partner deal ends or you want to revert to normal behavior.
+router.post('/users/:id/clear-feature-override', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (!brandProfile) return res.status(404).json({ error: 'BrandProfile not found' });
+
+    if (!brandProfile.planTierLockedByAdmin) {
+      return res.status(400).json({ error: 'No active feature override on this brand' });
+    }
+
+    // Resync planTier to the active subscription tier (or starter if no sub)
+    const activeSub = await Subscription.findOne({
+      brandProfileId: brandProfile._id,
+      status: { $in: ['active', 'trialing'] },
+    });
+    const previousTier = brandProfile.planTier;
+    brandProfile.planTier = activeSub?.planTier || 'starter';
+    brandProfile.planTierLockedByAdmin = false;
+    brandProfile.planTierLockedAt = null;
+    brandProfile.planTierLockedBy = null;
+    await brandProfile.save();
+
+    console.log(`🔓 Admin ${req.user?.email} cleared feature override for ${user.email}: ${previousTier} → ${brandProfile.planTier}`);
+    res.json({
+      message: `Feature override cleared. Tier resynced to ${brandProfile.planTier}.`,
+      brandProfile: { planTier: brandProfile.planTier, planTierLockedByAdmin: false },
+    });
+  } catch (error) {
+    console.error('Clear feature override error:', error.message);
+    res.status(500).json({ error: 'Failed to clear feature override', message: error.message });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════
 // MODULE: CREATOR MANAGEMENT
 // ═══════════════════════════════════════════════════════════

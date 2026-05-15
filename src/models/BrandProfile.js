@@ -49,6 +49,17 @@ const brandProfileSchema = new mongoose.Schema({
   planStartedAt: { type: Date, default: null },
   planExpiresAt: { type: Date, default: null },
 
+  // Admin feature-override lock.
+  // Set to true when an admin upgrades a brand's planTier via the
+  // /override-features endpoint without changing their PayPal subscription
+  // (e.g. partner deals: subscription stays at Growth $29/mo, planTier upgraded
+  // to Agency for feature access). Prevents the billing/confirm flow from
+  // resetting planTier back to subscription.planTier on any re-confirm.
+  // Cancellation webhooks DO clear this (back to starter is the correct exit).
+  planTierLockedByAdmin: { type: Boolean, default: false },
+  planTierLockedAt: { type: Date, default: null },
+  planTierLockedBy: { type: String, default: null }, // admin email for audit
+
   // 14-day free trial — full Pro access, no CC required
   trialActive: { type: Boolean, default: false },
   trialTier: { type: String, default: 'pro' },  // What tier they get during trial

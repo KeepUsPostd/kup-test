@@ -453,7 +453,12 @@ router.post('/activate', requireAuth, async (req, res) => {
       // Update brand profile — deactivate trial if still running
       const brandProfile = await BrandProfile.findById(subscription.brandProfileId);
       if (brandProfile) {
-        brandProfile.planTier = subscription.planTier;
+        // Respect admin feature override: if planTier was upgraded by an admin
+        // (partner deals where subscription stays at the lower tier), don't
+        // clobber it during subscription confirm. Other fields still sync.
+        if (!brandProfile.planTierLockedByAdmin) {
+          brandProfile.planTier = subscription.planTier;
+        }
         brandProfile.billingCycle = subscription.billingCycle;
         brandProfile.paypalCustomerId = ppSub.subscriber?.payer_id || null;
         brandProfile.paypalSubscriptionId = paypalSubscriptionId;

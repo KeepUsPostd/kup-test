@@ -74,11 +74,15 @@ router.post('/paypal', async (req, res) => {
           const oldTier = sub.planTier;
           await sub.save();
 
-          // Downgrade brand to starter
+          // Downgrade brand to starter and clear any admin feature override
+          // (cancellation = full reset; the partner deal is dead too).
           const bp = await BrandProfile.findById(sub.brandProfileId);
           if (bp) {
             bp.planTier = 'starter';
             bp.billingCycle = null;
+            bp.planTierLockedByAdmin = false;
+            bp.planTierLockedAt = null;
+            bp.planTierLockedBy = null;
             await bp.save();
 
             // 📧 Notify brand: subscription canceled

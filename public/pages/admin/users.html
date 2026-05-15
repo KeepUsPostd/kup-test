@@ -233,17 +233,32 @@
               <strong>Current:</strong>
               <span class="status-pill active" style="text-transform:capitalize;margin-left:6px;">${data.brandProfile.planTier || 'starter'}</span>
               ${data.brandProfile.trialActive ? '<span style="color:#D97706;font-size:12px;margin-left:6px;">⏱ Trial active</span>' : ''}
+              ${data.brandProfile.planTierLockedByAdmin ? `<span style="color:#7C3AED;font-size:12px;margin-left:6px;">🔓 Feature override active${data.brandProfile.planTierLockedBy ? ` (by ${data.brandProfile.planTierLockedBy})` : ''}</span>` : ''}
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+
+            <div style="font-size:12px;color:#666;margin-bottom:6px;font-weight:600;">Grant Plan — bypasses PayPal, cancels any active subscription</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
               <select id="grantPlanSelect" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;">
                 <option value="starter">Starter (free)</option>
                 <option value="growth" ${data.brandProfile.planTier === 'growth' ? 'selected' : ''}>Growth — $29/mo</option>
                 <option value="pro" ${data.brandProfile.planTier === 'pro' ? 'selected' : ''}>Pro — $79/mo</option>
-                <option value="agency" ${data.brandProfile.planTier === 'agency' ? 'selected' : ''}>Agency — custom</option>
+                <option value="agency" ${data.brandProfile.planTier === 'agency' ? 'selected' : ''}>Agency — $149/mo</option>
                 <option value="enterprise" ${data.brandProfile.planTier === 'enterprise' ? 'selected' : ''}>Enterprise</option>
               </select>
               <button class="btn btn-primary btn-sm" onclick="grantPlan('${u._id}')">Grant Plan</button>
-              <span style="font-size:11px;color:#999;">Bypasses PayPal — use for custom pricing agreements</span>
+            </div>
+
+            <div style="font-size:12px;color:#666;margin-bottom:6px;font-weight:600;">Override Features — keeps PayPal subscription, upgrades features only</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select id="overrideFeaturesSelect" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;">
+                <option value="growth">Growth features</option>
+                <option value="pro">Pro features</option>
+                <option value="agency" selected>Agency features</option>
+                <option value="enterprise">Enterprise features</option>
+              </select>
+              <button class="btn btn-sm" style="background:#7C3AED;color:white;" onclick="overrideFeatures('${u._id}')">Override Features</button>
+              ${data.brandProfile.planTierLockedByAdmin ? `<button class="btn btn-sm" style="background:#999;color:white;" onclick="clearFeatureOverride('${u._id}')">Clear Override</button>` : ''}
+              <span style="font-size:11px;color:#999;">Use for partner deals — keep $29 PayPal sub, unlock higher-tier features</span>
             </div>
           ` : '<p style="font-size:12px;color:#999;margin-top:12px;">No brand profile — user must create a brand first before granting a plan.</p>'}
         `;
@@ -273,6 +288,43 @@
         viewUser(userId); // Refresh the modal to show updated plan
       } catch (e) {
         alert('❌ Failed to grant plan: ' + e.message);
+      }
+    }
+
+    async function overrideFeatures(userId) {
+      const select = document.getElementById('overrideFeaturesSelect');
+      if (!select) return;
+      const planTier = select.value;
+      if (!confirm(`Override features to ${planTier.toUpperCase()} for this user?\n\nThis keeps their PayPal subscription intact (real MRR keeps flowing) but unlocks ${planTier.toUpperCase()}-tier features. Use for partner deals.`)) return;
+      try {
+        const res = await fetch(`/api/admin-panel/users/${userId}/override-features`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planTier }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        const subMsg = data.subscription ? `\nPayPal subscription stayed at: ${data.subscription.planTier.toUpperCase()} (${data.subscription.status})` : '\nNo active subscription found.';
+        alert(`✅ Features overridden to ${planTier.toUpperCase()}.${subMsg}`);
+        viewUser(userId);
+      } catch (e) {
+        alert('❌ Failed to override features: ' + e.message);
+      }
+    }
+
+    async function clearFeatureOverride(userId) {
+      if (!confirm('Clear the feature override?\n\nThis resyncs the user back to whatever their active subscription tier is. If they have no active subscription, they revert to Starter.')) return;
+      try {
+        const res = await fetch(`/api/admin-panel/users/${userId}/clear-feature-override`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        alert(`✅ Override cleared. Tier resynced to ${data.brandProfile.planTier.toUpperCase()}.`);
+        viewUser(userId);
+      } catch (e) {
+        alert('❌ Failed to clear override: ' + e.message);
       }
     }
 
