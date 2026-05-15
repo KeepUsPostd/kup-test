@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>Claim Requests — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="/assets/images/kup_WHT_new_logo.png" alt="KUP" onerror="this.style.display='none'">
+      <span>KeepUsPostd</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/creators.html"><span class="nav-icon">&#127775;</span> Creators</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/claims.html" class="active"><span class="nav-icon">&#9873;</span> Claims <span class="nav-badge" id="navBadgeClaims" style="display:none"></span></a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <a href="/pages/admin/verifications.html"><span class="nav-icon">&#10003;</span> Verifications <span class="nav-badge" id="navBadgeVerifications" style="display:none"></span></a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <a href="/pages/admin/promotions.html"><span class="nav-icon">&#128227;</span> Promotions</a>
+
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/inner/brand-home.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <h2>Brand Claim Requests</h2>
+      <div class="header-actions">
+        <div class="header-user"><div class="user-avatar" id="userInitials">ST</div></div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <select id="statusFilter" onchange="loadClaims()">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="all">All</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadClaims()">Refresh</button>
+      </div>
+
+      <!-- Claims Table -->
+      <div class="admin-panel-section">
+        <div class="section-header">
+          <h3>Claim Requests <span id="claimCount" style="color:#999;font-weight:400"></span></h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Claimer</th>
+                <th>Email</th>
+                <th>Domain Match</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="claimsBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Claim Detail Modal -->
+      <div id="claimModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:640px;width:90%;max-height:85vh;overflow-y:auto;padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 id="modalTitle" style="font-size:18px;font-weight:700;">Claim Detail</h3>
+            <button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+          </div>
+          <div id="modalContent">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+
+  <script>
+    let authToken = null;
+    let claimsCache = [];
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/login.html'; return; }
+      authToken = await user.getIdToken();
+      document.getElementById('userInitials').textContent = (user.email || '').substring(0, 2).toUpperCase();
+      loadClaims();
+    });
+
+    async function apiFetch(path, opts = {}) {
+      const res = await fetch('/api/admin-panel' + path, {
+        ...opts,
+        headers: {
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json',
+          ...(opts.headers || {}),
+        },
+      });
+      if (res.status === 403) throw new Error('Forbidden');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+      return data;
+    }
+
+    async function loadClaims() {
+      const status = document.getElementById('statusFilter').value;
+      const tbody = document.getElementById('claimsBody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#999">Loading...</td></tr>';
+
+      try {
+        const data = await apiFetch(`/claims?status=${status}`);
+        claimsCache = data.claims || [];
+        document.getElementById('claimCount').textContent = `(${claimsCache.length})`;
+
+        if (claimsCache.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#999">No ${status === 'all' ? '' : status} claims</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = claimsCache.map(c => {
+          const brandName = c.brandId?.name || '(brand deleted)';
+          const submitted = c.createdAt ? new Date(c.createdAt).toLocaleString() : '—';
+          const domainPill = c.emailDomainMatch
+            ? '<span class="status-pill active" style="background:#D1FAE5;color:#059669">Match</span>'
+            : '<span class="status-pill" style="background:#FEF3C7;color:#92400E">No match</span>';
+          const statusPill = c.status === 'pending'
+            ? '<span class="status-pill" style="background:#FEF3C7;color:#92400E">Pending</span>'
+            : c.status === 'approved'
+              ? '<span class="status-pill active" style="background:#D1FAE5;color:#059669">Approved</span>'
+              : '<span class="status-pill" style="background:#FEE2E2;color:#991B1B">Rejected</span>';
+          const actions = c.status === 'pending'
+            ? `<button class="btn btn-secondary btn-sm" onclick="viewClaim('${c._id}')">View</button>
+               <button class="btn btn-primary btn-sm" style="background:#059669" onclick="approveClaim('${c._id}')">Approve</button>
+               <button class="btn btn-danger btn-sm" onclick="rejectClaim('${c._id}')">Reject</button>`
+            : `<button class="btn btn-secondary btn-sm" onclick="viewClaim('${c._id}')">View</button>`;
+
+          return `
+            <tr>
+              <td><strong>${brandName}</strong></td>
+              <td>${c.claimerName || '—'}${c.claimerTitle ? `<div style="font-size:11px;color:#999">${c.claimerTitle}</div>` : ''}</td>
+              <td style="font-size:12px">${c.claimerEmail}</td>
+              <td>${domainPill}</td>
+              <td style="font-size:12px;color:#666">${submitted}</td>
+              <td>${statusPill}</td>
+              <td>${actions}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#c00">Failed to load: ${e.message}</td></tr>`;
+      }
+    }
+
+    function viewClaim(claimId) {
+      const c = claimsCache.find(x => x._id === claimId);
+      if (!c) return;
+      const modal = document.getElementById('claimModal');
+      modal.style.display = 'flex';
+      document.getElementById('modalTitle').textContent = `Claim: ${c.brandId?.name || 'Brand'}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div style="font-size:13px;line-height:1.6;">
+          <p><strong>Claimer:</strong> ${c.claimerName || '—'}${c.claimerTitle ? ` (${c.claimerTitle})` : ''}</p>
+          <p><strong>Email:</strong> ${c.claimerEmail} ${c.emailDomainMatch ? '<span style="color:#059669">✓ matches brand domain</span>' : '<span style="color:#92400E">⚠ no domain match</span>'}</p>
+          ${c.claimerPhone ? `<p><strong>Phone:</strong> ${c.claimerPhone}</p>` : ''}
+          <p><strong>Submitted:</strong> ${c.createdAt ? new Date(c.createdAt).toLocaleString() : '—'}</p>
+          <p><strong>Status:</strong> ${c.status}</p>
+          ${c.authorizationStatement ? `
+            <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+            <p><strong>Authorization statement:</strong></p>
+            <p style="background:#f5f5f5;padding:12px;border-radius:8px;font-style:italic;">${c.authorizationStatement}</p>
+          ` : ''}
+          ${c.documentUrl ? `
+            <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+            <p><strong>Proof document:</strong> <a href="${c.documentUrl}" target="_blank" style="color:#2EA5DD;">View attachment</a></p>
+          ` : ''}
+          ${c.reviewNotes ? `
+            <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+            <p><strong>Review notes:</strong> ${c.reviewNotes}</p>
+            <p style="font-size:11px;color:#999;">Reviewed by ${c.reviewedBy || '—'} on ${c.reviewedAt ? new Date(c.reviewedAt).toLocaleString() : '—'}</p>
+          ` : ''}
+          ${c.status === 'pending' ? `
+            <hr style="margin:16px 0;border:none;border-top:1px solid #eee;">
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+              <button class="btn btn-danger btn-sm" onclick="rejectClaim('${c._id}')">Reject</button>
+              <button class="btn btn-primary btn-sm" style="background:#059669" onclick="approveClaim('${c._id}')">Approve</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function closeModal() {
+      document.getElementById('claimModal').style.display = 'none';
+    }
+
+    async function approveClaim(claimId) {
+      const c = claimsCache.find(x => x._id === claimId);
+      const brandName = c?.brandId?.name || 'this brand';
+      const claimerEmail = c?.claimerEmail || '';
+      if (!confirm(`Approve the claim for ${brandName}?\n\nThis will:\n• Mark the brand as claimed\n• Wire ${claimerEmail} as the brand owner (if account exists)\n• Auto-start a 14-day Pro trial\n• Send the claimer an approval email`)) return;
+      const notes = prompt('Optional review notes (press Enter to skip):', '') || null;
+      try {
+        await apiFetch(`/claims/${claimId}/approve`, {
+          method: 'PUT',
+          body: JSON.stringify({ notes }),
+        });
+        alert(`✅ Claim approved for ${brandName}.`);
+        closeModal();
+        loadClaims();
+      } catch (e) {
+        alert('❌ Failed to approve: ' + e.message);
+      }
+    }
+
+    async function rejectClaim(claimId) {
+      const c = claimsCache.find(x => x._id === claimId);
+      const brandName = c?.brandId?.name || 'this brand';
+      const notes = prompt(`Reject the claim for ${brandName}?\n\nProvide a reason (will be saved as review notes):`, '');
+      if (notes === null) return;
+      try {
+        await apiFetch(`/claims/${claimId}/reject`, {
+          method: 'PUT',
+          body: JSON.stringify({ notes: notes || 'Claim rejected' }),
+        });
+        alert(`Claim rejected for ${brandName}.`);
+        closeModal();
+        loadClaims();
+      } catch (e) {
+        alert('❌ Failed to reject: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>
