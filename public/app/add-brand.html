@@ -1546,6 +1546,17 @@
   document.getElementById('publishBtn').addEventListener('click', async function() {
     var btn = this;
     var isEdit = !!_editBrandId;
+    // Defensive guard: if the URL says edit=true but _editBrandId never resolved
+    // (because brand-context loading timed out or the brandId param was missing),
+    // refuse to fall through to create mode. Doing so was creating duplicate
+    // brand records every time a user clicked Edit before the brand context
+    // finished loading. Surface the failure instead of silently creating a dupe.
+    var urlSaysEdit = (new URLSearchParams(window.location.search)).get('edit') === 'true';
+    if (urlSaysEdit && !_editBrandId) {
+      kupToast('Could not load your brand for editing. Please go back to your dashboard and try again.', 'error');
+      setTimeout(function() { window.location.href = '/app/brand-home.html'; }, 1800);
+      return;
+    }
     btn.disabled = true;
     btn.textContent = isEdit ? 'Saving...' : 'Publishing...';
 
@@ -1614,6 +1625,20 @@
 
   document.getElementById('draftBtn').addEventListener('click', async function() {
     var btn = this;
+    // Same defensive guard as the Publish path: if the URL says edit=true but
+    // _editBrandId never resolved, refuse to call POST and create a duplicate.
+    // In edit mode the user is updating, not drafting a new brand.
+    var urlSaysEdit = (new URLSearchParams(window.location.search)).get('edit') === 'true';
+    if (urlSaysEdit && !_editBrandId) {
+      kupToast('Could not load your brand for editing. Please go back to your dashboard and try again.', 'error');
+      setTimeout(function() { window.location.href = '/app/brand-home.html'; }, 1800);
+      return;
+    }
+    // Edit mode reuses the Publish path's PUT flow — drafts only apply to brand-new brands.
+    if (_editBrandId) {
+      kupToast('You\'re in edit mode — use Save Changes (the green button) instead.', 'info');
+      return;
+    }
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
@@ -1875,12 +1900,48 @@
     auth.onAuthStateChanged(function(user) {
       if (!user) return; // skip null (session still loading)
       var params = new URLSearchParams(window.location.search);
-      if (params.get('edit') !== 'true') return;
+      var isEditMode = params.get('edit') === 'true';
 
-      // Wait for brand-context to expose a real active brand (with mongoId)
-      // before running edit-mode. The old setTimeout(600) often fired before
-      // the API sync finished, which left _editBrandId null and silently
-      // skipped the entire pre-fill. Poll every 200ms up to 6s.
+      // Anchor-brand protection: if a user already owns an Anchor brand (the
+      // primary legacy/claimed brand on their account) and lands here in
+      // create mode, they almost certainly meant to EDIT that brand, not
+      // create a second one. Surface a warning + offer to redirect to edit
+      // before they can accidentally create a duplicate. Skip when explicitly
+      // in edit mode — that's the intended path.
+      if (!isEditMode) {
+        var anchorCheckAttempts = 0;
+        (function checkForAnchor() {
+          var active = null;
+          try {
+            active = (typeof KUP_BRAND_CONTEXT !== 'undefined')
+              ? KUP_BRAND_CONTEXT.getActiveBrand()
+              : null;
+          } catch (e) {}
+          if (active && active.isAnchor) {
+            var anchorId = active.mongoId || active._id || active.id;
+            var anchorName = active.name || 'your existing brand';
+            var goToEdit = confirm(
+              'You already own "' + anchorName + '" on KeepUsPostd.\n\n' +
+              'To update that brand, click OK — we\'ll take you to its edit page.\n\n' +
+              'If you really want to create a separate, additional brand, click Cancel.'
+            );
+            if (goToEdit && anchorId) {
+              window.location.href = '/app/add-brand.html?edit=true&brandId=' + anchorId;
+              return;
+            }
+            // User explicitly chose to continue creating a separate brand — let them.
+            return;
+          }
+          // Active brand not loaded yet (or isn't an anchor) — retry up to 4s
+          if (++anchorCheckAttempts < 20) setTimeout(checkForAnchor, 200);
+        })();
+        return;
+      }
+
+      // Edit mode: wait for brand-context to expose a real active brand (with
+      // mongoId) before running edit-mode. The old setTimeout(600) often fired
+      // before the API sync finished, which left _editBrandId null and
+      // silently skipped the entire pre-fill. Poll every 200ms up to 6s.
       var attempts = 0;
       (function waitForBrand() {
         var active = null;
