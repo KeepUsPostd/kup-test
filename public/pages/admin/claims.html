@@ -226,14 +226,17 @@
       const c = claimsCache.find(x => x._id === claimId);
       const brandName = c?.brandId?.name || 'this brand';
       const claimerEmail = c?.claimerEmail || '';
-      if (!confirm(`Approve the claim for ${brandName}?\n\nThis will:\n• Mark the brand as claimed\n• Wire ${claimerEmail} as the brand owner (if account exists)\n• Auto-start a 14-day Pro trial\n• Send the claimer an approval email`)) return;
+      if (!confirm(`Approve the claim for ${brandName}?\n\nThis will:\n• Mark the brand as claimed\n• Wire ${claimerEmail} as the brand owner\n• Auto-create a Firebase + KUP account if no user exists with this email (they'll receive a "set your password" email)\n• Auto-start a 14-day Pro trial\n• Send the claimer an approval email`)) return;
       const notes = prompt('Optional review notes (press Enter to skip):', '') || null;
       try {
-        await apiFetch(`/claims/${claimId}/approve`, {
+        const result = await apiFetch(`/claims/${claimId}/approve`, {
           method: 'PUT',
           body: JSON.stringify({ notes }),
         });
-        alert(`✅ Claim approved for ${brandName}.`);
+        const autoCreateNote = result.userWasAutoCreated
+          ? `\n\n✨ New user account was auto-created for ${claimerEmail}.\n${result.passwordResetLinkSent ? 'A "set your password" link was emailed to them.' : 'Welcome email sent, but the password-reset link could not be generated — you may need to share login instructions manually.'}`
+          : `\n\nExisting user account at ${claimerEmail} wired as brand owner.`;
+        alert(`✅ Claim approved for ${brandName}.${autoCreateNote}`);
         closeModal();
         loadClaims();
       } catch (e) {

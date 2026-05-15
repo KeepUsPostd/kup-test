@@ -267,9 +267,10 @@
             <td>${b.totalContentPieces || 0}</td>
             <td>${b.totalInfluencersEngaged || 0}</td>
             <td style="font-size:12px;color:#999">${new Date(b.createdAt).toLocaleDateString()}</td>
-            <td style="display:flex;gap:6px">
+            <td style="display:flex;gap:6px;flex-wrap:wrap">
               <button class="btn btn-secondary btn-sm" onclick="viewBrand('${b._id}')">View</button>
               <button class="btn btn-sm" style="background:#2EA5DD;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="editBrand('${b._id}')">Edit</button>
+              <button class="btn btn-sm" style="background:#7C3AED;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="setBrandOwner('${b._id}','${b.name.replace(/'/g, "\\'")}')">Set Owner</button>
               <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="deleteBrand('${b._id}','${b.name.replace(/'/g, "\\'")}')">Delete</button>
             </td>
           </tr>
@@ -483,6 +484,31 @@
         loadBrands();
         loadAdminStats();
       } catch (e) { alert('Failed to reject: ' + e.message); }
+    }
+
+    async function setBrandOwner(id, name) {
+      const ownerEmail = prompt('Wire which user account as owner of "' + name + '"?\n\nEnter the user\'s email address. They must already be registered at keepuspostd.com.\n\n(For new claims, prefer approving via the Claims page — that auto-creates the account.)');
+      if (!ownerEmail || !ownerEmail.trim()) return;
+      if (!confirm('Set ' + ownerEmail.trim() + ' as owner of "' + name + '"?\n\nThis will:\n• Create a BrandMember (owner role) if not already\n• Attach this brand to their BrandProfile\n• Start a 14-day Pro trial if they don\'t have one\n• Mark the brand as claimed')) return;
+      try {
+        const res = await fetch('/api/admin-panel/brands/' + id + '/set-owner', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ownerEmail: ownerEmail.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error + (data.message ? ': ' + data.message : ''));
+        const created = data.created || {};
+        const details = [];
+        if (created.brandMember) details.push('Owner BrandMember created');
+        if (created.brandProfile) details.push('BrandProfile created with Pro trial');
+        if (created.brandTransitionedToClaimed) details.push('Brand transitioned to claimed');
+        const detailStr = details.length ? '\n\n' + details.join('\n') : '\n\nNo state changes needed — already wired correctly.';
+        alert('✅ ' + data.message + detailStr);
+        loadBrands(currentPage);
+      } catch (e) {
+        alert('❌ Failed to set owner: ' + e.message);
+      }
     }
 
     async function deleteBrand(id, name) {

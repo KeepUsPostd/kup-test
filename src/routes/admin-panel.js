@@ -1433,12 +1433,73 @@ router.put('/claims/:id/approve', async (req, res) => {
     brand.claimedAt = new Date();
     await brand.save();
 
-    // Find or prepare the claimer's user account
+    // Find or auto-create the claimer's user account.
+    //
+    // Why auto-create: the claim form is unauthenticated (any brand owner who
+    // discovers KUP via the in-app "Claim This Brand" link can submit a claim
+    // without first registering). Before this change, approving a claim where
+    // no matching User existed would silently leave the brand ownerless and
+    // dump the claimer into a manual signup flow. Auto-creating a Firebase
+    // user + KUP user record + BrandProfile here turns the claim flow into a
+    // one-touch onboarding: brand owner submits claim → admin approves → owner
+    // receives an email with a one-time link to set their password and log in.
     let claimer = await User.findOne({ email: claim.claimerEmail.toLowerCase() });
+    let userWasAutoCreated = false;
+    let passwordResetLink = null;
 
-    // If user already exists — wire brand ownership
+    if (!claimer) {
+      try {
+        const admin = require('firebase-admin');
+        const emailLower = claim.claimerEmail.toLowerCase();
+
+        // 1. Firebase Auth user — create with random throwaway password.
+        //    The claimer never uses it; they go through password-reset to set their own.
+        let firebaseUser;
+        try {
+          firebaseUser = await admin.auth().getUserByEmail(emailLower);
+          console.log(`ℹ️ Firebase user already exists for ${emailLower} — reusing`);
+        } catch (notFoundErr) {
+          firebaseUser = await admin.auth().createUser({
+            email: emailLower,
+            password: require('crypto').randomBytes(24).toString('hex'),
+            displayName: claim.claimerName,
+            emailVerified: false,
+          });
+          console.log(`✨ Firebase user auto-created for ${emailLower} (uid: ${firebaseUser.uid})`);
+        }
+
+        // 2. KUP User record
+        const [legalFirstName, ...legalLastParts] = (claim.claimerName || '').trim().split(/\s+/);
+        claimer = await User.create({
+          email: emailLower,
+          firebaseUid: firebaseUser.uid,
+          legalFirstName: legalFirstName || null,
+          legalLastName: legalLastParts.join(' ') || null,
+          hasBrandProfile: true,
+          activeProfile: 'brand',
+        });
+
+        // 3. Password-reset link for the welcome email — gives them a one-click
+        //    path to set their own password without registering through the UI.
+        try {
+          passwordResetLink = await admin.auth().generatePasswordResetLink(emailLower);
+        } catch (linkErr) {
+          console.error('Password reset link generation failed:', linkErr.message);
+          passwordResetLink = 'https://keepuspostd.com/pages/login.html'; // fallback
+        }
+
+        userWasAutoCreated = true;
+        console.log(`✅ KUP user auto-provisioned for claim approval: ${emailLower}`);
+      } catch (autoCreateErr) {
+        console.error('User auto-create failed during claim approval:', autoCreateErr.message);
+        // Fall through — brand stays approved but ownerless. Admin can use the
+        // /brands/:id/set-owner endpoint to wire ownership manually later.
+        claimer = null;
+      }
+    }
+
+    // Wire brand ownership if we have a user (existing or auto-created)
     if (claimer) {
-      // Create BrandMember as owner if not already
       const BrandMember = require('../models/BrandMember');
       const existing = await BrandMember.findOne({ brandId: brand._id, userId: claimer._id });
       if (!existing) {
@@ -1469,37 +1530,57 @@ router.put('/claims/:id/approve', async (req, res) => {
         bp.ownedBrandIds.push(brand._id);
         await bp.save();
       }
+
+      // Make sure the User flags reflect brand ownership
+      if (!claimer.hasBrandProfile) {
+        claimer.hasBrandProfile = true;
+        claimer.activeProfile = claimer.activeProfile || 'brand';
+        await claimer.save();
+      }
     }
 
-    // Send approval email to claimer with next steps
+    // Send approval email — content depends on whether we just provisioned them
     try {
+      const firstName = (claim.claimerName || '').split(' ')[0] || 'there';
+      const bodyHtml = userWasAutoCreated
+        ? `
+          <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
+          <p>We've set up your account using <strong>${claim.claimerEmail}</strong>. Click the button below to set your password and log in to your brand dashboard.</p>
+          <p>You're starting on a <strong>14-day free Pro trial</strong> — no credit card required.</p>
+          <p>Your QR code and brand profile are already live and ready for customers.</p>
+        `
+        : `
+          <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
+          <p>Log in with <strong>${claim.claimerEmail}</strong> to access your brand dashboard. You're starting on a <strong>14-day free Pro trial</strong>.</p>
+          <p>Your QR code and brand profile are already live and ready for customers.</p>
+        `;
+
       await sendEmail({
         to: claim.claimerEmail,
         subject: `Your ${brand.name} brand claim on KeepUsPostd has been approved`,
-        headline: `You're in, ${claim.claimerName.split(' ')[0]}`,
+        headline: `You're in, ${firstName}`,
         variant: 'brand',
-        bodyHtml: `
-          <p>Your claim for <strong>${brand.name}</strong> has been approved. Welcome to KeepUsPostd!</p>
-          <p>Here's what to do next:</p>
-          <ol>
-            <li>Visit <a href="https://keepuspostd.com/app/creator-signup.html">keepuspostd.com</a> and <strong>create your account</strong></li>
-            <li>Use this email address to sign up: <strong>${claim.claimerEmail}</strong></li>
-            <li>Your brand dashboard will be ready — you'll start your <strong>14-day free Pro trial</strong> automatically</li>
-          </ol>
-          <p>Your QR code and brand profile are already live and ready for customers.</p>
-        `,
-        ctaText: 'Set Up Your Account',
-        ctaUrl: 'https://keepuspostd.com/app/creator-signup.html',
+        bodyHtml,
+        ctaText: userWasAutoCreated ? 'Set Your Password' : 'Log In to Your Dashboard',
+        ctaUrl: userWasAutoCreated
+          ? (passwordResetLink || 'https://keepuspostd.com/pages/login.html')
+          : 'https://keepuspostd.com/pages/login.html',
       });
     } catch (emailErr) {
       console.error('Claim approval email failed:', emailErr.message);
       // Non-fatal — claim is still approved
     }
 
-    res.json({ success: true, claim, brand });
+    res.json({
+      success: true,
+      claim,
+      brand,
+      userWasAutoCreated,
+      passwordResetLinkSent: userWasAutoCreated && !!passwordResetLink,
+    });
   } catch (error) {
     console.error('Claim approve error:', error);
-    res.status(500).json({ error: 'Failed to approve claim' });
+    res.status(500).json({ error: 'Failed to approve claim', message: error.message });
   }
 });
 
@@ -1529,6 +1610,108 @@ router.put('/claims/:id/reject', async (req, res) => {
   } catch (error) {
     console.error('Claim reject error:', error);
     res.status(500).json({ error: 'Failed to reject claim' });
+  }
+});
+
+// POST /api/admin-panel/brands/:brandId/set-owner — Manually wire a user as
+// the owner of a brand. Safety net for cases where the natural claim approval
+// flow couldn't wire ownership (e.g. brand approved before the auto-create-
+// user feature shipped, or the auto-create failed). Idempotent — safe to call
+// multiple times.
+//
+// Body: { ownerEmail }
+router.post('/brands/:brandId/set-owner', async (req, res) => {
+  try {
+    const { ownerEmail } = req.body;
+    if (!ownerEmail || typeof ownerEmail !== 'string') {
+      return res.status(400).json({ error: 'ownerEmail is required' });
+    }
+    const emailLower = ownerEmail.trim().toLowerCase();
+
+    const brand = await Brand.findById(req.params.brandId);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const user = await User.findOne({ email: emailLower });
+    if (!user) {
+      return res.status(404).json({
+        error: 'No user account found with that email',
+        message: 'Have the brand owner register at keepuspostd.com first, then re-run this. Or approve a fresh claim — that flow auto-creates the account.',
+      });
+    }
+
+    const BrandMember = require('../models/BrandMember');
+    const existingMember = await BrandMember.findOne({ brandId: brand._id, userId: user._id });
+    let memberCreated = false;
+    if (!existingMember) {
+      await BrandMember.create({
+        brandId: brand._id,
+        userId: user._id,
+        role: 'owner',
+        status: 'active',
+        acceptedAt: new Date(),
+      });
+      memberCreated = true;
+    } else if (existingMember.role !== 'owner' || existingMember.status !== 'active') {
+      existingMember.role = 'owner';
+      existingMember.status = 'active';
+      existingMember.acceptedAt = existingMember.acceptedAt || new Date();
+      await existingMember.save();
+    }
+
+    // Find or create BrandProfile, attach brand
+    let bp = await BrandProfile.findOne({ userId: user._id });
+    let bpCreated = false;
+    if (!bp) {
+      const trialStart = new Date();
+      const trialEnd = new Date(trialStart.getTime() + 14 * 24 * 60 * 60 * 1000);
+      bp = await BrandProfile.create({
+        userId: user._id,
+        ownedBrandIds: [brand._id],
+        planTier: 'pro',
+        trialActive: true,
+        trialTier: 'pro',
+        trialStartedAt: trialStart,
+        trialEndsAt: trialEnd,
+      });
+      bpCreated = true;
+    } else if (!bp.ownedBrandIds.includes(brand._id)) {
+      bp.ownedBrandIds.push(brand._id);
+      await bp.save();
+    }
+
+    // Make sure brand reflects claimed state (in case admin is using this to
+    // recover from a broken state where the brand never transitioned)
+    let brandTransitioned = false;
+    if (brand.claimStatus !== 'claimed' || brand.brandType !== 'admin_claimed') {
+      brand.brandType = brand.brandType === 'admin' ? 'admin_claimed' : brand.brandType;
+      brand.claimStatus = 'claimed';
+      brand.claimedAt = brand.claimedAt || new Date();
+      await brand.save();
+      brandTransitioned = true;
+    }
+
+    // Make sure User flags reflect brand ownership
+    if (!user.hasBrandProfile) {
+      user.hasBrandProfile = true;
+      user.activeProfile = user.activeProfile || 'brand';
+      await user.save();
+    }
+
+    console.log(`🔧 Admin ${req.user?.email} set ${emailLower} as owner of brand ${brand.name} (${brand._id})`);
+
+    res.json({
+      message: `${emailLower} is now the owner of ${brand.name}.`,
+      brand: { id: brand._id, name: brand.name, claimStatus: brand.claimStatus, brandType: brand.brandType },
+      user: { id: user._id, email: user.email },
+      created: {
+        brandMember: memberCreated,
+        brandProfile: bpCreated,
+        brandTransitionedToClaimed: brandTransitioned,
+      },
+    });
+  } catch (error) {
+    console.error('Set brand owner error:', error);
+    res.status(500).json({ error: 'Failed to set brand owner', message: error.message });
   }
 });
 
