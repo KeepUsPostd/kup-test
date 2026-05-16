@@ -343,10 +343,12 @@
     footer{margin-top:auto;flex-shrink:0}
 
     /* ============ EDIT MODE: behaves like a settings page ============ */
-    /* Show all sections at once instead of stepping through. */
-    body.edit-mode #step1,
+    /* Show step1 only. Step2 (Offers) and Step3 (Review & Publish) are
+       wizard-only — in edit mode they'd duplicate the sticky save bar
+       and silently drop changes (offers aren't part of the PUT). */
+    body.edit-mode #step1 { display:block !important; }
     body.edit-mode #step2,
-    body.edit-mode #step3 { display:block !important; }
+    body.edit-mode #step3 { display:none !important; }
     /* Hide the wizard step nav (progress dots, step labels, Continue/Back buttons). */
     body.edit-mode .wizard-progress,
     body.edit-mode .step-label,
@@ -409,6 +411,16 @@
     body.edit-mode .form-subtitle{
       font-size:.82rem !important; color:#888 !important; margin:0 0 18px !important;
     }
+    /* Breadcrumb in edit mode: smaller + no wrap so it doesn't truncate. */
+    body.edit-mode .breadcrumb-text{
+      font-size:.72rem; letter-spacing:.3px; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+      margin-bottom:14px;
+    }
+    /* Banner overlay: fade in on hover when a banner image is present. */
+    #bannerUploadBox.has-image #bannerOverlay{ display:flex !important; }
+    #bannerUploadBox.has-image:hover #bannerOverlay{ opacity:1 !important; }
+    #bannerUploadBox.has-image{ cursor:default; border-style:solid; border-color:#e0e0e0; }
   </style>
 </head>
 <body>
@@ -599,6 +611,11 @@
             <p style="font-size:.78rem;color:#888;margin:-2px 0 10px;line-height:1.4">Shown at the top of your brand page. Recommended 1200&times;630.</p>
             <div id="bannerUploadBox" onclick="document.getElementById('bannerFileInput').click()" style="position:relative;border:2px dashed #ddd;border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden">
               <img id="bannerPreviewImg" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
+              <!-- Overlay actions shown when an image is present (edit mode). -->
+              <div id="bannerOverlay" style="display:none;position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;gap:10px;z-index:2;opacity:0;transition:opacity .15s">
+                <button type="button" id="bannerReplaceBtn" style="background:rgba(255,255,255,0.95);color:#1a1a1a;border:none;padding:8px 14px;font-size:.78rem;font-weight:600;border-radius:8px;cursor:pointer;font-family:var(--kup-font)">Replace</button>
+                <button type="button" id="bannerRemoveBtn" style="background:rgba(255,255,255,0.95);color:#d33;border:none;padding:8px 14px;font-size:.78rem;font-weight:600;border-radius:8px;cursor:pointer;font-family:var(--kup-font)">Remove</button>
+              </div>
               <div id="bannerUploadPlaceholder" style="position:relative;z-index:1">
                 <div style="font-size:.85rem;color:#666;font-weight:600;margin-bottom:4px">Click to upload banner</div>
                 <div style="font-size:.7rem;color:#bbb">PNG / JPG / WebP &middot; max 5 MB</div>
@@ -994,7 +1011,13 @@
       hex.addEventListener('input', function() {
         var v = hex.value.trim();
         if (!v.startsWith('#')) v = '#' + v;
-        if (/^#[0-9A-Fa-f]{6}$/.test(v)) { picker.value = v; updateObGradient(); }
+        if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+          picker.value = v;
+          // Programmatic .value changes don't fire native change events.
+          // Dispatch one so the edit-mode dirty tracker sees the update.
+          picker.dispatchEvent(new Event('change', { bubbles: true }));
+          updateObGradient();
+        }
       });
       hex.addEventListener('blur', function() {
         var v = hex.value.trim();
@@ -1010,9 +1033,20 @@
       if (grad && pc && sc) {
         var g = 'linear-gradient(135deg,' + pc.value + ' 0%,' + sc.value + ' 100%)';
         grad.style.background = g;
-        // Also update the live phone preview banner
+        // Live phone preview banner: gradient is a *fallback* only — when a
+        // banner image is set, the image stays put. Colors live alongside it
+        // as a background-color underneath so the corners pick up the brand
+        // colors if the image fails to load.
         var banner = document.getElementById('previewBanner');
-        if (banner) banner.style.background = g;
+        if (banner) {
+          var hasImage = banner.style.backgroundImage && banner.style.backgroundImage !== 'none' && banner.style.backgroundImage !== '';
+          if (hasImage) {
+            // Preserve backgroundImage; only set the color underneath.
+            banner.style.backgroundColor = pc.value;
+          } else {
+            banner.style.background = g;
+          }
+        }
       }
     }
     syncColor('obColorPrimary', 'obColorPrimaryHex');
@@ -1218,6 +1252,7 @@
       if (img) { img.src = url; img.style.display = 'block'; }
       var placeholder = document.getElementById('bannerUploadPlaceholder');
       if (placeholder) placeholder.style.display = 'none';
+      _setBannerOverlayActive(true);
       var previewBanner = document.getElementById('previewBanner');
       if (previewBanner) {
         previewBanner.style.backgroundImage = 'url(' + url + ')';
@@ -1882,6 +1917,7 @@
         if (bannerImg) { bannerImg.src = b.heroImageUrl; bannerImg.style.display = 'block'; }
         var bannerPlaceholder = document.getElementById('bannerUploadPlaceholder');
         if (bannerPlaceholder) bannerPlaceholder.style.display = 'none';
+        _setBannerOverlayActive(true);
       }
 
       // Skip to step 1 (the form) instead of step 0 (scrape/manual choice)
@@ -1973,9 +2009,11 @@
       var original = _originalValues[f.id] || '';
       if (current !== original) return true;
     }
-    // Asset uploads count as dirty too
-    if (window.__kupUploadedLogoUrl)   return true;
-    if (window.__kupUploadedBannerUrl) return true;
+    // Asset uploads count as dirty too. Empty string is a deliberate
+    // "remove" signal (e.g., user clicked Remove on the banner), so we
+    // check for "set at all" rather than truthy.
+    if (window.__kupUploadedLogoUrl   !== undefined && window.__kupUploadedLogoUrl   !== null) return true;
+    if (window.__kupUploadedBannerUrl !== undefined && window.__kupUploadedBannerUrl !== null) return true;
     return false;
   }
 
@@ -1988,6 +2026,58 @@
     if (status) status.textContent = dirty ? 'You have unsaved changes' : 'No changes yet';
     if (saveBtn) saveBtn.disabled = !dirty;
   }
+
+  // Toggle the banner overlay (Replace / Remove buttons) on/off and
+  // keep the upload-box state in sync. Called after prefill, after a
+  // new upload lands, and after Remove.
+  function _setBannerOverlayActive(active) {
+    var box = document.getElementById('bannerUploadBox');
+    if (!box) return;
+    box.classList.toggle('has-image', !!active);
+    // When inactive, also clear the overlay's flex display so :hover
+    // doesn't try to show it without the .has-image class.
+    var overlay = document.getElementById('bannerOverlay');
+    if (overlay && !active) overlay.style.opacity = '0';
+  }
+
+  // Wire the overlay buttons once on DOMContentLoaded.
+  document.addEventListener('DOMContentLoaded', function() {
+    var box       = document.getElementById('bannerUploadBox');
+    var replace   = document.getElementById('bannerReplaceBtn');
+    var remove    = document.getElementById('bannerRemoveBtn');
+    var fileInput = document.getElementById('bannerFileInput');
+    var img       = document.getElementById('bannerPreviewImg');
+    var placeholder = document.getElementById('bannerUploadPlaceholder');
+    if (!box || !replace || !remove) return;
+
+    // Stop the box's onclick (which opens the file picker) from firing
+    // when the user clicks INTO the overlay area.
+    var overlay = document.getElementById('bannerOverlay');
+    if (overlay) overlay.addEventListener('click', function(e) { e.stopPropagation(); });
+
+    replace.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (fileInput) fileInput.click();
+    });
+
+    remove.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!confirm('Remove the banner image? You can upload a new one anytime.')) return;
+      // Local UI state
+      if (img) { img.src = ''; img.style.display = 'none'; }
+      if (placeholder) placeholder.style.display = '';
+      _setBannerOverlayActive(false);
+      // Mark as a pending change: an empty string tells the backend to clear heroImageUrl.
+      window.__kupUploadedBannerUrl = '';
+      // Phone preview: drop the image and let the gradient fallback paint.
+      var previewBanner = document.getElementById('previewBanner');
+      if (previewBanner) {
+        previewBanner.style.backgroundImage = 'none';
+        if (typeof updateObGradient === 'function') updateObGradient();
+      }
+      if (typeof _updateDirtyState === 'function') _updateDirtyState();
+    });
+  });
 
   function _collectChangedFields() {
     var changed = {};
@@ -2006,9 +2096,9 @@
         changed[f.api] = current;
       }
     });
-    // Asset uploads
-    if (window.__kupUploadedLogoUrl)   changed.logoUrl      = window.__kupUploadedLogoUrl;
-    if (window.__kupUploadedBannerUrl) changed.heroImageUrl = window.__kupUploadedBannerUrl;
+    // Asset uploads: empty string is meaningful (signals a remove on the server).
+    if (window.__kupUploadedLogoUrl   !== undefined && window.__kupUploadedLogoUrl   !== null) changed.logoUrl      = window.__kupUploadedLogoUrl;
+    if (window.__kupUploadedBannerUrl !== undefined && window.__kupUploadedBannerUrl !== null) changed.heroImageUrl = window.__kupUploadedBannerUrl;
     // Brand colors: if only one half was edited, merge with the other
     // half from the snapshot so we don't accidentally null it server-side.
     if (changed.brandColors) {
