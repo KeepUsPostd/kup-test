@@ -90,15 +90,19 @@
       if (el && !el.textContent.trim()) el.textContent = nameShort;
     });
 
+    // Avatar slots: skip if a brand logo <img> has already been rendered here
+    // by brand-context.js. Without this guard, our second hydrate pass sees
+    // "no textContent" (img tags have no text) and overwrites the brand logo
+    // with user initials, causing the logo to blink in and out.
     ['headerAvatar', 'headerProfileAvatar', 'profileAvatar'].forEach(function(id) {
       var el = document.getElementById(id);
-      if (el && !el.textContent.trim()) el.textContent = inits;
+      if (el && !el.textContent.trim() && !el.querySelector('img')) el.textContent = inits;
     });
 
     // Fallback: any .profile-avatar that is still empty (and has no id match above)
     var avatars = document.querySelectorAll('.profile-avatar');
     for (var i = 0; i < avatars.length; i++) {
-      if (!avatars[i].textContent.trim()) avatars[i].textContent = inits;
+      if (!avatars[i].textContent.trim() && !avatars[i].querySelector('img')) avatars[i].textContent = inits;
     }
 
     // Class-based fallback for pages that don't use id-based slots.
