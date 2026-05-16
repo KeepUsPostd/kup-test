@@ -611,12 +611,24 @@ var KUP_BRAND_CONTEXT = (function() {
         var changed = false;
 
         data.brands.forEach(function(apiBrand) {
-          // Try to match by name (case-insensitive)
+          // 1) PRIMARY: match by mongoId — survives renames and casing changes.
+          // 2) FALLBACK: match by name (case-insensitive) for entries that
+          //    haven't synced yet and have no mongoId. Once a name match
+          //    succeeds, the entry gets enriched with mongoId so future syncs
+          //    use the primary path.
           var match = null;
           for (var i = 0; i < stored.length; i++) {
-            if (stored[i].name.toLowerCase() === apiBrand.name.toLowerCase()) {
+            if (stored[i].mongoId && stored[i].mongoId === apiBrand._id) {
               match = stored[i];
               break;
+            }
+          }
+          if (!match) {
+            for (var i = 0; i < stored.length; i++) {
+              if (!stored[i].mongoId && stored[i].name && stored[i].name.toLowerCase() === apiBrand.name.toLowerCase()) {
+                match = stored[i];
+                break;
+              }
             }
           }
 
@@ -626,12 +638,23 @@ var KUP_BRAND_CONTEXT = (function() {
               match.mongoId = apiBrand._id;
               changed = true;
             }
+            // Sync name from API so renames propagate to the dropdown.
+            // (Names are never edited locally — API is the source of truth.)
+            if (match.name !== apiBrand.name) {
+              match.name = apiBrand.name;
+              // Regenerate abbreviation to match the new name
+              var renameWords = apiBrand.name.trim().split(/\s+/);
+              match.abbreviation = renameWords.length === 1
+                ? renameWords[0].charAt(0).toUpperCase()
+                : renameWords.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
+              changed = true;
+            }
             // Sync logoUrl from API
             if (apiBrand.logoUrl && match.logoUrl !== apiBrand.logoUrl) {
               match.logoUrl = apiBrand.logoUrl;
               changed = true;
             }
-            // Sync name-derived abbreviation if missing
+            // Sync name-derived abbreviation if still missing
             if (!match.abbreviation && apiBrand.name) {
               var words = apiBrand.name.trim().split(/\s+/);
               match.abbreviation = words.length === 1 ? words[0].charAt(0).toUpperCase() : words.map(function(w) { return w[0]; }).join('').toUpperCase().substring(0, 3);
@@ -662,6 +685,25 @@ var KUP_BRAND_CONTEXT = (function() {
             changed = true;
           }
         });
+
+        // Dedupe: collapse entries that point to the same brand (same mongoId).
+        // This retroactively cleans up duplicates left behind by older sync
+        // versions that matched only by name and pushed a second entry when
+        // the local name drifted from the DB name (e.g. after a rename).
+        var seenMongoIds = {};
+        var dedupedStored = [];
+        for (var di = 0; di < stored.length; di++) {
+          var entry = stored[di];
+          if (entry.mongoId) {
+            if (seenMongoIds[entry.mongoId]) continue; // Skip duplicate
+            seenMongoIds[entry.mongoId] = true;
+          }
+          dedupedStored.push(entry);
+        }
+        if (dedupedStored.length !== stored.length) {
+          stored = dedupedStored;
+          changed = true;
+        }
 
         // Prune brands that are no longer returned by the API (removed memberships,
         // deleted brands, etc.). Only removes entries that have a mongoId AND are not
