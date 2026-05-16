@@ -1736,6 +1736,21 @@
             unlockThreshold: _getHighestLevelThreshold(),
             levels: _collectLevels()
           };
+        } else if (earningMethod === 'per-approval') {
+          // Per Approval rewards don't use a point ladder. Explicitly clear
+          // pointConfig so saved levels/thresholds from a prior point-based
+          // configuration don't leak through. Without this, a brand that
+          // switches from Point-Based → Per Approval would still show its
+          // old levels in the Flutter app because the backend $set wouldn't
+          // touch fields the frontend omits.
+          payload.pointConfig = {
+            contentEnabled: false,
+            contentPoints: { submitted: 0, approved: 0, published: 0, bonus: 0 },
+            gratitudeEnabled: false,
+            gratitudePoints: { join: 0, birthday: 0, anniversary: 0 },
+            unlockThreshold: null,
+            levels: []
+          };
         }
       } else if (selectedType === 'free-product') {
         payload.title = (document.getElementById('fpTitle') || {}).value || '';
