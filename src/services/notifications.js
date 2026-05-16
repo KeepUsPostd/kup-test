@@ -275,9 +275,24 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
 async function contentApproved({ influencer, brand, submission, reward = null }) {
   if (!influencer.email) return;
 
+  // Reward-line copy varies by reward type:
+  // - cash_per_approval rewards: "$X added to your wallet"
+  // - per_approval (non-cash) rewards (events, sweepstakes, pop-ups): the
+  //   reward title + description from the brand's portal — so creators
+  //   know what they just unlocked, even if the platform isn't sending money.
+  // - no reward attached: omit the line entirely.
   let rewardLine = '';
+  let rewardShortMsg = '';
   if (reward) {
-    rewardLine = `<p>🎉 <strong>Reward earned:</strong> ${$(reward.amount)} has been added to your wallet!</p>`;
+    if (reward.type === 'per_approval') {
+      const rTitle = reward.title || 'Reward';
+      const rDesc = reward.description || '';
+      rewardLine = `<p>🎉 <strong>Reward unlocked:</strong> ${rTitle}${rDesc ? ` — ${rDesc}` : ''}</p>`;
+      rewardShortMsg = ` ${rTitle} unlocked!`;
+    } else if (typeof reward.amount === 'number') {
+      rewardLine = `<p>🎉 <strong>Reward earned:</strong> ${$(reward.amount)} has been added to your wallet!</p>`;
+      rewardShortMsg = ` You earned ${$(reward.amount)}!`;
+    }
   }
 
   await sendEmail({
@@ -297,7 +312,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
 
   // In-app + push notification to influencer
   if (influencer.userId) {
-    const msg = `${brand.name} approved your ${submission.contentType || 'content'}.${reward ? ` You earned ${$(reward.amount)}!` : ''}`;
+    const msg = `${brand.name} approved your ${submission.contentType || 'content'}.${rewardShortMsg}`;
     await createInApp({
       userId: influencer.userId,
       title: 'Content Approved!',
@@ -312,6 +327,8 @@ async function contentApproved({ influencer, brand, submission, reward = null })
         brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
         contentType: submission.contentType,
         thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
+        rewardType: reward?.type || null,
+        rewardTitle: reward?.title || null,
       },
     });
     push(influencer.userId, {
@@ -327,7 +344,17 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     const bp = await BrandProfile.findOne({ ownedBrandIds: brand._id });
     if (bp?.userId) {
       const infName = influencer.displayName || influencer.handle || 'an influencer';
-      const brandMsg = `You approved ${submission.contentType || 'content'} from ${infName}.${reward ? ` $${reward.amount} payment triggered.` : ''}`;
+      // Brand-side reward suffix: cash shows the payment line, per-approval
+      // shows that the reward unlocked, no reward shows nothing.
+      let brandRewardSuffix = '';
+      if (reward) {
+        if (reward.type === 'per_approval') {
+          brandRewardSuffix = ` "${reward.title || 'Reward'}" unlocked for ${infName}.`;
+        } else if (typeof reward.amount === 'number') {
+          brandRewardSuffix = ` $${reward.amount} payment triggered.`;
+        }
+      }
+      const brandMsg = `You approved ${submission.contentType || 'content'} from ${infName}.${brandRewardSuffix}`;
       await createInApp({
         userId: bp.userId,
         title: 'Content Approved',
@@ -354,7 +381,16 @@ async function contentApproved({ influencer, brand, submission, reward = null })
           preheader: `You approved ${submission.contentType || 'content'} from ${infName}`,
           bodyHtml: `
             <p>You approved <strong>${submission.contentType || 'content'}</strong> from <strong>${infName}</strong>.</p>
-            ${reward ? `<p>💰 <strong>Payment triggered:</strong> $${reward.amount} to ${infName}.</p>` : ''}
+            ${(() => {
+              if (!reward) return '';
+              if (reward.type === 'per_approval') {
+                return `<p>🎁 <strong>Reward unlocked:</strong> "${reward.title || 'Reward'}" for ${infName}.</p>`;
+              }
+              if (typeof reward.amount === 'number') {
+                return `<p>💰 <strong>Payment triggered:</strong> $${reward.amount} to ${infName}.</p>`;
+              }
+              return '';
+            })()}
             <p>The content is now available in your Content Library.</p>
           `,
           ctaText: 'View Content',

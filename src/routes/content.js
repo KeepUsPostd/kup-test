@@ -1112,7 +1112,41 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
         // Use the User's login email for notifications (not paypalEmail which is for payouts)
         const infUser = await User.findById(influencer.userId, 'email').lean();
         const inf = { ...influencer.toObject(), email: infUser?.email || influencer.paypalEmail || '', userId: influencer.userId };
-        notify.contentApproved({ influencer: inf, brand, submission, reward: rewardTriggered }).catch(() => {});
+
+        // For per-approval (non-cash) rewards — events, pop-ups, sweepstakes —
+        // surface the reward title + description in the approval notification
+        // so the creator knows what they just "earned." Without this, the
+        // approval email/in-app/push would say only "your content was
+        // approved" with no mention of the reward, which is confusing for
+        // drawing-style flows (e.g. TEDx Marvila → entered to win tickets).
+        let perApprovalReward = null;
+        if (!rewardTriggered) {
+          try {
+            const perApp = await Reward.findOne({
+              brandId: submission.brandId,
+              earningMethod: 'per_approval',
+              status: 'active',
+            }).lean();
+            if (perApp) {
+              perApprovalReward = {
+                type: 'per_approval',
+                title: perApp.title || 'Reward',
+                description: perApp.description || '',
+                rewardId: perApp._id?.toString(),
+                bannerImageUrl: perApp.bannerImageUrl || null,
+              };
+            }
+          } catch (perAppErr) {
+            console.warn('Per-approval reward lookup (non-blocking):', perAppErr.message);
+          }
+        }
+
+        notify.contentApproved({
+          influencer: inf,
+          brand,
+          submission,
+          reward: rewardTriggered || perApprovalReward,
+        }).catch(() => {});
         if (rewardTriggered) {
           notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval', partnershipId: submission.partnershipId?.toString() }).catch(() => {});
         }
