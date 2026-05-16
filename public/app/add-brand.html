@@ -341,6 +341,74 @@
     body{display:flex;flex-direction:column;min-height:100vh}
     main,.page-content,.wizard-layout,.brand-layout,.kup-inner-main{flex:1;width:100%}
     footer{margin-top:auto;flex-shrink:0}
+
+    /* ============ EDIT MODE: behaves like a settings page ============ */
+    /* Show all sections at once instead of stepping through. */
+    body.edit-mode #step1,
+    body.edit-mode #step2,
+    body.edit-mode #step3 { display:block !important; }
+    /* Hide the wizard step nav (progress dots, step labels, Continue/Back buttons). */
+    body.edit-mode .wizard-progress,
+    body.edit-mode .step-label,
+    body.edit-mode .wizard-actions,
+    body.edit-mode .save-exit-link,
+    body.edit-mode .ai-mode-tabs,
+    body.edit-mode #modeWebsite,
+    body.edit-mode #modeSocial,
+    body.edit-mode #modeDescribe,
+    body.edit-mode #manualSetupLink,
+    body.edit-mode #manualSetupPrompt,
+    body.edit-mode .kup-ob-pill,
+    body.edit-mode .kup-ob-panel,
+    body.edit-mode .ai-results-banner { display:none !important; }
+    /* AI results section is normally toggled by JS — force-show in edit mode
+       since the user is editing real data, not running the scrape flow. */
+    body.edit-mode #aiResultsSection { display:block !important; }
+    /* Hide the Step 3 review-card (it duplicates the live preview pane). */
+    body.edit-mode .review-card-inline { display:none !important; }
+    /* Sticky save header — visible whenever the user has unsaved changes. */
+    .edit-save-bar{
+      display:none;
+      position:sticky; top:0; z-index:50;
+      background:#fff; border-bottom:1px solid #eee;
+      padding:14px 0 14px;
+      margin:-16px -32px 24px;
+      padding-left:32px; padding-right:32px;
+      align-items:center; justify-content:space-between; gap:12px;
+    }
+    body.edit-mode .edit-save-bar{ display:flex; }
+    .edit-save-bar-status{
+      font-size:.8rem; color:#888; font-weight:500;
+    }
+    .edit-save-bar.dirty .edit-save-bar-status{ color:#b06b00; font-weight:600; }
+    .edit-save-bar-actions{ display:flex; gap:8px; }
+    .edit-save-bar .btn-cancel{
+      padding:9px 16px; border-radius:var(--radius-sm);
+      background:#f0f0f0; color:#666; font-weight:600; font-size:.85rem;
+      border:none; cursor:pointer;
+    }
+    .edit-save-bar .btn-cancel:hover{ background:#e4e4e4; }
+    .edit-save-bar .btn-save{
+      padding:9px 20px; border-radius:var(--radius-sm);
+      background:var(--kup-blue); color:#fff; font-weight:600; font-size:.85rem;
+      border:none; cursor:pointer; transition:background .2s, opacity .2s;
+    }
+    .edit-save-bar .btn-save:disabled{
+      opacity:.45; cursor:not-allowed; background:#999;
+    }
+    .edit-save-bar .btn-save:not(:disabled):hover{ background:#258fc4; }
+    /* Section dividers — give the long form some structure when collapsed into one page. */
+    body.edit-mode .form-section{
+      padding-top:24px; padding-bottom:8px;
+      border-top:1px solid #f0f0f0;
+    }
+    body.edit-mode #step1{ border-top:none; padding-top:8px; }
+    body.edit-mode .form-heading{
+      font-size:1.15rem !important; margin:0 0 4px !important;
+    }
+    body.edit-mode .form-subtitle{
+      font-size:.82rem !important; color:#888 !important; margin:0 0 18px !important;
+    }
   </style>
 </head>
 <body>
@@ -400,6 +468,15 @@
 
       <p class="breadcrumb-text" id="breadcrumb">Brands &nbsp;|&nbsp; <span>Add Your Brand</span></p>
 
+      <!-- Sticky Save Bar — visible only in edit mode (see body.edit-mode CSS) -->
+      <div class="edit-save-bar" id="editSaveBar">
+        <span class="edit-save-bar-status" id="editSaveBarStatus">No changes yet</span>
+        <div class="edit-save-bar-actions">
+          <button type="button" class="btn-cancel" id="editCancelBtn">Cancel</button>
+          <button type="button" class="btn-save" id="editSaveBtn" disabled>Save Changes</button>
+        </div>
+      </div>
+
       <!-- Progress Bar -->
       <div class="wizard-progress">
         <div class="progress-step active" id="prog1"></div>
@@ -414,6 +491,23 @@
 
         <h1 class="form-heading" id="step1Heading">Let's find your brand</h1>
         <p class="form-subtitle" id="step1Subtitle">Pick how you'd like to start — we'll set up your profile automatically.</p>
+        <script>
+          // Edit-mode heading swap — runs synchronously so the "Let's find
+          // your brand" placeholder never paints when the URL says ?edit=true.
+          (function() {
+            try {
+              if (new URLSearchParams(window.location.search).get('edit') === 'true') {
+                document.body.classList.add('edit-mode');
+                var h = document.getElementById('step1Heading');
+                var s = document.getElementById('step1Subtitle');
+                if (h) h.textContent = 'Edit Your Brand';
+                if (s) s.textContent = 'Change any field below. Only what you edit gets saved.';
+                var bc = document.getElementById('breadcrumb');
+                if (bc) bc.innerHTML = 'Brands &nbsp;|&nbsp; <span>Edit Brand</span>';
+              }
+            } catch(e) {}
+          })();
+        </script>
 
         <!-- AI Mode Tabs -->
         <div class="ai-mode-tabs" id="aiModeTabs">
@@ -464,7 +558,7 @@
           </button>
         </div>
 
-        <p class="helper" style="margin-top:12px">Prefer to do it yourself? <a href="#" id="manualSetupLink" class="helper-link">Set up manually</a></p>
+        <p class="helper" id="manualSetupPrompt" style="margin-top:12px">Prefer to do it yourself? <a href="#" id="manualSetupLink" class="helper-link">Set up manually</a></p>
 
         <!-- AI Results (initially hidden) -->
         <div id="aiResultsSection" style="display:none">
@@ -1105,6 +1199,7 @@
       if (previewLogo) previewLogo.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
       if (typeof kupToast === 'function') kupToast('Logo uploaded', 'success');
       this.value = ''; // allow re-selecting the same file
+      if (typeof _updateDirtyState === 'function') _updateDirtyState();
     });
   })();
 
@@ -1131,6 +1226,7 @@
       }
       if (typeof kupToast === 'function') kupToast('Banner uploaded', 'success');
       this.value = '';
+      if (typeof _updateDirtyState === 'function') _updateDirtyState();
     });
   })();
 
@@ -1759,6 +1855,11 @@
         if (cs && b.brandColors.secondary) { cs.value = b.brandColors.secondary; if (csh) csh.value = b.brandColors.secondary; }
       }
 
+      // Snapshot the current asset URLs so the dirty tracker knows
+      // whether the user uploaded a new image during this session.
+      window.__kupCurrentLogoUrl = b.logoUrl || null;
+      window.__kupCurrentHeroUrl = b.heroImageUrl || null;
+
       // Logo preview
       if (b.logoUrl) {
         var logoCircle = document.getElementById('logoPreviewCircle');
@@ -1789,37 +1890,206 @@
       if (step0) step0.style.display = 'none';
       if (step1) step1.style.display = '';
 
+      // ── EDIT-MODE SETTINGS LAYOUT ──────────────────────────────────
+      // Switch the page from wizard mode to settings mode: show every
+      // section at once, hide the step nav, show the sticky save bar.
+      document.body.classList.add('edit-mode');
+
+      // Snapshot the prefilled values so we can diff against them later.
+      _captureOriginalValues();
+      _wireDirtyListeners();
+      _updateDirtyState(); // baseline: clean, save disabled
+
       console.log('[edit-brand] Pre-filled from brand:', b.name);
     } catch(err) {
       console.error('[edit-brand] Failed to load brand data:', err);
     }
   }
 
-  // Override publish handler for edit mode
-  document.getElementById('publishBtn').addEventListener('click', async function(e) {
-    if (!_editBrandId) return; // let the original handler run for new brands
-    e.stopImmediatePropagation();
-    var btn = this;
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    try {
-      var payload = collectBrandPayload('published');
-      var result = await kupApi.put('/api/brands/' + _editBrandId, payload);
-      if (result && result.error) {
-        kupToast(result.error || 'Failed to save.', 'error');
-        btn.disabled = false;
-        btn.textContent = 'Save Changes';
+  // ────────────────────────────────────────────────────────────────
+  //  DIRTY-STATE TRACKING (edit mode only)
+  //  Snapshot original values on prefill, listen for changes,
+  //  enable Save button only when something diverges from original.
+  // ────────────────────────────────────────────────────────────────
+
+  // Fields tracked for diffing. Each entry maps a DOM id → API field
+  // name in the PUT payload. Nested fields (socialLinks, brandColors)
+  // are flattened here and reassembled in _collectChangedFields().
+  var _trackedFields = [
+    { id: 'brandName',        api: 'name' },
+    { id: 'brandHandle',      api: 'brandHandle' },
+    { id: 'brandIndustry',    api: 'category' },
+    { id: 'brandDescription', api: 'description' },
+    { id: 'brandLocation',    api: 'location' },
+    { id: 'brandAddress',     api: 'address' },
+    { id: 'brandCity',        api: 'city' },
+    { id: 'brandState',       api: 'state' },
+    { id: 'brandZip',         api: 'zip' },
+    { id: 'brandUrl',         api: 'websiteUrl' },
+    { id: 'socialIg',         api: 'socialLinks.instagram' },
+    { id: 'socialX',          api: 'socialLinks.twitter' },
+    { id: 'socialTt',         api: 'socialLinks.tiktok' },
+    { id: 'socialFb',         api: 'socialLinks.facebook' },
+    { id: 'socialLi',         api: 'socialLinks.linkedin' },
+    { id: 'obColorPrimary',   api: 'brandColors.primary' },
+    { id: 'obColorSecondary', api: 'brandColors.secondary' },
+  ];
+
+  var _originalValues = {};
+
+  function _captureOriginalValues() {
+    _originalValues = {};
+    _trackedFields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      if (el) _originalValues[f.id] = (el.value || '').trim();
+    });
+    // Asset uploads: snapshot the current URLs so we know if the user
+    // uploaded a new one during this session.
+    _originalValues.__logoUrl = window.__kupCurrentLogoUrl || null;
+    _originalValues.__heroUrl = window.__kupCurrentHeroUrl || null;
+  }
+
+  function _wireDirtyListeners() {
+    _trackedFields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      if (!el) return;
+      var ev = (el.tagName === 'SELECT' || el.type === 'color') ? 'change' : 'input';
+      el.addEventListener(ev, _updateDirtyState);
+    });
+    // Cancel button: reload the page to discard local edits.
+    var cancelBtn = document.getElementById('editCancelBtn');
+    if (cancelBtn) cancelBtn.addEventListener('click', function() {
+      if (!_isDirty()) { window.location.href = 'brand-home.html'; return; }
+      if (confirm('Discard your unsaved changes?')) window.location.reload();
+    });
+  }
+
+  function _isDirty() {
+    for (var i = 0; i < _trackedFields.length; i++) {
+      var f = _trackedFields[i];
+      var el = document.getElementById(f.id);
+      if (!el) continue;
+      var current = (el.value || '').trim();
+      var original = _originalValues[f.id] || '';
+      if (current !== original) return true;
+    }
+    // Asset uploads count as dirty too
+    if (window.__kupUploadedLogoUrl)   return true;
+    if (window.__kupUploadedBannerUrl) return true;
+    return false;
+  }
+
+  function _updateDirtyState() {
+    var dirty = _isDirty();
+    var bar    = document.getElementById('editSaveBar');
+    var status = document.getElementById('editSaveBarStatus');
+    var saveBtn = document.getElementById('editSaveBtn');
+    if (bar)    bar.classList.toggle('dirty', dirty);
+    if (status) status.textContent = dirty ? 'You have unsaved changes' : 'No changes yet';
+    if (saveBtn) saveBtn.disabled = !dirty;
+  }
+
+  function _collectChangedFields() {
+    var changed = {};
+    _trackedFields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      if (!el) return;
+      var current  = (el.value || '').trim();
+      var original = _originalValues[f.id] || '';
+      if (current === original) return;
+      // Empty string is meaningful for clearing a field
+      if (f.api.indexOf('.') !== -1) {
+        var parts = f.api.split('.');
+        if (!changed[parts[0]]) changed[parts[0]] = {};
+        changed[parts[0]][parts[1]] = current;
+      } else {
+        changed[f.api] = current;
+      }
+    });
+    // Asset uploads
+    if (window.__kupUploadedLogoUrl)   changed.logoUrl      = window.__kupUploadedLogoUrl;
+    if (window.__kupUploadedBannerUrl) changed.heroImageUrl = window.__kupUploadedBannerUrl;
+    // Brand colors: if only one half was edited, merge with the other
+    // half from the snapshot so we don't accidentally null it server-side.
+    if (changed.brandColors) {
+      if (!changed.brandColors.primary) {
+        var p = document.getElementById('obColorPrimary');
+        if (p) changed.brandColors.primary = p.value;
+      }
+      if (!changed.brandColors.secondary) {
+        var s = document.getElementById('obColorSecondary');
+        if (s) changed.brandColors.secondary = s.value;
+      }
+    }
+    // Same logic for socialLinks — preserve untouched handles.
+    if (changed.socialLinks) {
+      var socialMap = { socialIg:'instagram', socialX:'twitter', socialTt:'tiktok', socialFb:'facebook', socialLi:'linkedin' };
+      Object.keys(socialMap).forEach(function(id) {
+        var key = socialMap[id];
+        if (changed.socialLinks[key] === undefined) {
+          var el = document.getElementById(id);
+          if (el) changed.socialLinks[key] = (el.value || '').trim();
+        }
+      });
+    }
+    return changed;
+  }
+
+  // ────────────────────────────────────────────────────────────────
+  //  EDIT-MODE SAVE HANDLER
+  //  Wired to the sticky save bar's Save Changes button. PUTs only
+  //  the fields that diverged from the prefilled originals — every
+  //  other field is left untouched on the server.
+  // ────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    var saveBtn = document.getElementById('editSaveBtn');
+    if (!saveBtn) return;
+    saveBtn.addEventListener('click', async function() {
+      if (!_editBrandId) return;
+      if (saveBtn.disabled) return;
+      var changed = _collectChangedFields();
+      var changedKeys = Object.keys(changed);
+      if (changedKeys.length === 0) {
+        kupToast('No changes to save.', 'info');
         return;
       }
-      kupToast('Brand updated successfully!', 'success');
-      setTimeout(function() { window.location.href = 'activity.html'; }, 1500);
-    } catch(err) {
-      console.error('Edit brand error:', err);
-      kupToast('Something went wrong.', 'error');
-      btn.disabled = false;
-      btn.textContent = 'Save Changes';
-    }
-  }, true); // 'true' = capture phase, runs before the original handler
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      try {
+        var result = await kupApi.put('/api/brands/' + _editBrandId, changed);
+        if (result && result.error) {
+          kupToast(result.error || 'Failed to save.', 'error');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Changes';
+          return;
+        }
+        kupToast('Saved ' + changedKeys.length + ' change' + (changedKeys.length === 1 ? '' : 's') + '.', 'success');
+        // Reset the dirty baseline — the API now reflects what's on screen.
+        _captureOriginalValues();
+        window.__kupUploadedLogoUrl = null;
+        window.__kupUploadedBannerUrl = null;
+        _updateDirtyState();
+        saveBtn.textContent = 'Save Changes';
+      } catch(err) {
+        console.error('Edit brand error:', err);
+        kupToast('Something went wrong.', 'error');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    });
+  });
+
+  // Old wizard publishBtn override — short-circuits if we're in edit mode
+  // (the sticky save bar handles it now). Kept as a no-op so any stray click
+  // on the bottom-of-Step-3 publish button doesn't fall through to create
+  // mode and spawn a duplicate brand.
+  document.getElementById('publishBtn').addEventListener('click', function(e) {
+    if (!_editBrandId) return; // create mode — let original handler run
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    var saveBtn = document.getElementById('editSaveBtn');
+    if (saveBtn) saveBtn.click();
+  }, true);
 
   </script>
 
