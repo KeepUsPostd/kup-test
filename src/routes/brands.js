@@ -316,7 +316,7 @@ router.post('/scrape', requireAuth, scrapeLimiter, async (req, res) => {
 // MUST be before /:brandId to prevent "discover" being treated as a brandId
 router.get('/discover', requireAuth, async (req, res) => {
   try {
-    const { category, search, lat, lon, radiusMi } = req.query;
+    const { category, search, lat, lon, radiusMi, nearbyOnly } = req.query;
     const filter = { status: { $ne: 'deleted' } };
 
     if (category && category !== 'all') filter.category = { $regex: category, $options: 'i' };
@@ -327,8 +327,11 @@ router.get('/discover', requireAuth, async (req, res) => {
       ];
     }
 
-    // Geo filter — find brands with locations near the user
-    if (lat && lon) {
+    // Geo filter — opt-in only via nearbyOnly=true.
+    // Default behavior: show every brand globally regardless of user location.
+    // Text search always bypasses geo so a US user can find a Lisbon brand by name.
+    const useGeo = nearbyOnly === 'true' && !search && lat && lon;
+    if (useGeo) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lon);
       const radius = Math.min(parseFloat(radiusMi) || 25, 100);
