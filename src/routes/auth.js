@@ -369,10 +369,49 @@ router.get('/me', requireAuth, async (req, res) => {
     const user = req.user;
 
     // Parallelize profile queries for speed
-    const [influencerProfile, brandProfile] = await Promise.all([
+    let [influencerProfile, brandProfile] = await Promise.all([
       user.hasInfluencerProfile ? InfluencerProfile.findOne({ userId: user._id }) : null,
       user.hasBrandProfile ? BrandProfile.findOne({ userId: user._id }).populate('ownedBrandIds') : null,
     ]);
+
+    // Safety net: any brandProfile that still lacks a referralCode (from
+    // pre-referral-system signups) gets one minted now so the referral page
+    // never falls back to a placeholder.
+    if (brandProfile && !brandProfile.referralCode) {
+      try {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const code = 'BRD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+          try {
+            brandProfile.referralCode = code;
+            await brandProfile.save();
+            break;
+          } catch (err) {
+            if (err && err.code === 11000) continue; // collision — regenerate
+            throw err;
+          }
+        }
+      } catch (refErr) {
+        console.warn('referralCode mint-on-fetch failed:', refErr.message);
+      }
+    }
+    // Same safety net for influencer profiles
+    if (influencerProfile && !influencerProfile.referralCode) {
+      try {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const code = 'INF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+          try {
+            influencerProfile.referralCode = code;
+            await influencerProfile.save();
+            break;
+          } catch (err) {
+            if (err && err.code === 11000) continue;
+            throw err;
+          }
+        }
+      } catch (refErr) {
+        console.warn('influencer referralCode mint-on-fetch failed:', refErr.message);
+      }
+    }
 
     res.json({
       user: {
