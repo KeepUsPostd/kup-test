@@ -164,6 +164,24 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/rewards?brandId=xxx — List rewards for a brand
 // Optional filters: ?status=active&type=points_store_credit
+// Display-label override for Per Approval rewards. The Reward schema's
+// `type` enum doesn't include a "per_approval" type — Per Approval is
+// modeled as an earningMethod under the points_store_credit type. The
+// Flutter app's reward detail screen falls back to type.replaceAll('_',' ')
+// when earningMethod !== 'point_based', which would render TEDx-style
+// rewards as "points store credit" — wrong for the user-facing label.
+// This helper rewrites the response's `type` field for Per Approval
+// rewards only, without touching the DB. Pre-build-128 app workaround;
+// post-build we should add a proper "per_approval_reward" type to the
+// schema and a matching display branch in Flutter.
+function _withDisplayType(reward) {
+  const r = reward && reward.toObject ? reward.toObject() : reward;
+  if (r && r.earningMethod === 'per_approval') {
+    r.type = 'Per Approval Reward';
+  }
+  return r;
+}
+
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { brandId, status, type } = req.query;
@@ -180,7 +198,9 @@ router.get('/', requireAuth, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(50);
 
-    // Gather stats
+    // Gather stats from the ORIGINAL (DB) types — _withDisplayType swaps
+    // the type string AFTER stats are computed so cash/non-cash counts
+    // stay accurate.
     const stats = {
       total: rewards.length,
       active: rewards.filter(r => r.status === 'active').length,
@@ -189,7 +209,7 @@ router.get('/', requireAuth, async (req, res) => {
       nonCashRewards: rewards.filter(r => NON_CASH_TYPES.includes(r.type)).length,
     };
 
-    res.json({ rewards, stats });
+    res.json({ rewards: rewards.map(_withDisplayType), stats });
   } catch (error) {
     console.error('List rewards error:', error.message);
     res.status(500).json({ error: 'Could not fetch rewards' });
@@ -446,7 +466,7 @@ router.get('/:rewardId', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Reward not found' });
     }
 
-    res.json({ reward });
+    res.json({ reward: _withDisplayType(reward) });
   } catch (error) {
     console.error('Get reward error:', error.message);
     res.status(500).json({ error: 'Could not fetch reward' });
