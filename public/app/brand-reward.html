@@ -357,7 +357,21 @@
 
         <!-- Loyalty Points -->
         <div class="step2-fields" id="fields-points">
-          <div class="form-group"><label>Program Name</label><input type="text" id="ptTitle" placeholder="e.g., Gold Star Rewards" maxlength="21"><p class="helper">What influencers see on your reward card (21 char max)</p></div>
+          <div class="form-group">
+            <label id="ptTitleLabel">Program Name</label>
+            <input type="text" id="ptTitle" placeholder="e.g., Gold Star Rewards" maxlength="21">
+            <p class="helper" id="ptTitleHelper">What influencers see on your reward card (21 char max)</p>
+          </div>
+          <!-- Description field — required for Per Approval rewards (events,
+               sweepstakes, pop-ups) where the rules of the offer can't be
+               inferred from a tier ladder. Hidden for Point-Based rewards
+               since each level has its own description. -->
+          <div class="form-group" id="ptDescGroup" style="display:none">
+            <label>Reward Description</label>
+            <textarea id="ptDesc" maxlength="85" rows="3"
+              placeholder="Explain the reward and how creators receive it. For drawings/sweepstakes, name the prize and entry rules."></textarea>
+            <p class="helper">What creators see when they view the reward — 85 character max.</p>
+          </div>
         </div>
 
         <!-- Free Product or Service -->
@@ -446,7 +460,7 @@
 
           <!-- Per Approval Confirmation (shown when Per Approval selected) -->
           <div class="per-approval-confirm" id="perApprovalConfirm" style="display:none">
-            <i class="ph ph-lightning"></i> <strong>Per Approval</strong> &mdash; This reward will be automatically triggered each time you approve an influencer's content submission. No points or thresholds needed.
+            <i class="ph ph-lightning"></i> <strong>Per Approval</strong> &mdash; This reward triggers each time you approve a creator's review. Best for one-off events, pop-ups, and giveaways. Use the <strong>Reward Banner</strong> above for the image creators see on the reward card. If you're running a drawing or sweepstakes, explain the rules in the reward description.
           </div>
 
           <!-- Point Configuration (shown when Point-Based selected) -->
@@ -1162,11 +1176,48 @@
       var earningSection = document.getElementById('earningSection');
       if (earningSection) earningSection.style.display = isCashType(type) ? 'none' : 'block';
 
-      // Hide the program-level banner for Loyalty Points — each level has its own banner,
-      // which is a better UX than asking for banners twice. Cash + free-product + discount
-      // keep the program banner since they don't have per-level banners.
+      // Hide the program-level banner for Loyalty Points point-based rewards —
+      // each level has its own banner there, which is a better UX than asking
+      // for banners twice. Cash + free-product + discount + Per Approval (no
+      // matter the wrapping reward type) keep the program banner since they
+      // don't have per-level banners.
+      _updateProgramBannerVisibility();
+    }
+
+    // Visibility of the program banner depends on BOTH reward type and earning
+    // method. Centralized here so selectEarningMethod() can call it too.
+    function _updateProgramBannerVisibility() {
       var programBannerWrap = document.getElementById('programBannerWrap');
-      if (programBannerWrap) programBannerWrap.style.display = (type === 'points') ? 'none' : '';
+      if (!programBannerWrap) return;
+      var typeEl = document.querySelector('.offer-card.selected');
+      var type = typeEl ? typeEl.getAttribute('data-type') : null;
+      var isPointBasedPoints = (type === 'points') && (earningMethod !== 'per-approval');
+      programBannerWrap.style.display = isPointBasedPoints ? 'none' : '';
+    }
+
+    // Show the description textarea + relabel the Title field when the
+    // brand picks Per Approval under Loyalty Points. For point-based
+    // rewards, the per-level descriptions carry the load so this field
+    // stays hidden.
+    function _updatePerApprovalFieldVisibility() {
+      var typeEl = document.querySelector('.offer-card.selected');
+      var type = typeEl ? typeEl.getAttribute('data-type') : null;
+      if (type !== 'points') return; // only relevant for Loyalty Points type
+      var descGroup = document.getElementById('ptDescGroup');
+      var titleLabel = document.getElementById('ptTitleLabel');
+      var titleHelper = document.getElementById('ptTitleHelper');
+      var titleInput = document.getElementById('ptTitle');
+      if (earningMethod === 'per-approval') {
+        if (descGroup) descGroup.style.display = '';
+        if (titleLabel) titleLabel.textContent = 'Reward Title';
+        if (titleHelper) titleHelper.textContent = 'Short, punchy. 21 character max — e.g., "Win 2 FREE Tickets".';
+        if (titleInput) titleInput.placeholder = 'e.g., Win 2 FREE Tickets';
+      } else {
+        if (descGroup) descGroup.style.display = 'none';
+        if (titleLabel) titleLabel.textContent = 'Program Name';
+        if (titleHelper) titleHelper.textContent = 'What influencers see on your reward card (21 char max)';
+        if (titleInput) titleInput.placeholder = 'e.g., Gold Star Rewards';
+      }
     }
 
     /* ============ EARNING METHOD SELECTION ============ */
@@ -1185,6 +1236,14 @@
         pointConfigEl.classList.remove('active');
         perApprovalEl.style.display = 'block';
       }
+      // Per Approval rewards need a program banner (Point-Based rewards use
+      // per-level banners instead). Re-evaluate visibility every time the
+      // earning method changes.
+      _updateProgramBannerVisibility();
+      // Loyalty-Points form fields shift wording + reveal the description
+      // textarea when Per Approval is selected (since there's no level ladder
+      // to imply the rules of the offer).
+      _updatePerApprovalFieldVisibility();
       updateStepLabels();
       updateProgressDots(2); // Still on step 2 — earning section is part of step 2 now
       updatePreview();
@@ -1417,7 +1476,13 @@
           else if (ct === 'postd-pay') badgesHtml += '<span class="earning-badge point-based"><i class="ph ph-credit-card"></i> Postd Pay</span>';
         });
       } else {
-        badgesHtml += '<span class="type-badge non-cash">NON-CASH \u00B7 ' + (typeNames[selectedType] || '') + '</span>';
+        // For Per Approval rewards, lead with "PER APPROVAL REWARD" instead
+        // of the underlying reward type \u2014 creators and brand owners think of
+        // it as its own thing, not a Loyalty Points variant.
+        var nonCashLabel = (earningMethod === 'per-approval')
+          ? 'PER APPROVAL REWARD'
+          : 'NON-CASH \u00B7 ' + (typeNames[selectedType] || '');
+        badgesHtml += '<span class="type-badge non-cash">' + nonCashLabel + '</span>';
         if (earningMethod === 'point-based') {
           badgesHtml += '<span class="earning-badge point-based">\uD83C\uDFC6 Point-Based</span>';
           var config = readPointConfigFromDOM();
@@ -1467,12 +1532,19 @@
           }
         });
       } else {
-        // Non-cash review (unchanged)
-        rows.push({l:'Reward Type', v:typeNames[selectedType] || '\u2014'});
-        rows.push({l:'Earning Method', v: earningMethod === 'point-based' ? 'Point-Based' : 'Per Approval'});
+        // Non-cash review. Per Approval rewards show a unified label so
+        // brand owners don't see "Loyalty Points + Per Approval" (confusing \u2014
+        // they think of these as their own reward type for events / pop-ups).
+        if (earningMethod === 'per-approval') {
+          rows.push({l:'Reward Type', v:'Per Approval Reward'});
+          rows.push({l:'Triggers', v:'Instantly when you approve a creator\u2019s review'});
+        } else {
+          rows.push({l:'Reward Type', v:typeNames[selectedType] || '\u2014'});
+          rows.push({l:'Earning Method', v: 'Point-Based'});
+        }
 
         if (selectedType === 'points') {
-          rows.push({l:'Program Name', v:document.getElementById('ptTitle').value || '\u2014'});
+          rows.push({l:(earningMethod === 'per-approval' ? 'Reward Title' : 'Program Name'), v:document.getElementById('ptTitle').value || '\u2014'});
         } else if (selectedType === 'free-product') {
           rows.push({l:'Title', v:document.getElementById('fpTitle').value || '\u2014'});
           rows.push({l:'Description', v:document.getElementById('fpDesc').value || '\u2014'});
@@ -1751,12 +1823,17 @@
         var typeCard = document.querySelector('.offer-card[data-type="' + frontendType + '"]');
         if (typeCard) selectRewardType(typeCard);
 
-        // Set earning method
+        // Set earning method. The UI uses CARDS (.earning-method-card), not
+        // radio buttons — the prior radio-based code never matched anything,
+        // so the visual state of the form was wrong on edit (3-level config
+        // showed even for Per Approval rewards). Triggering selectEarningMethod
+        // ensures the cards, banner visibility, and conditional fields all
+        // sync to the saved state.
         if (r.earningMethod) {
           var methodReverseMap = { 'point_based':'point-based', 'per_approval':'per-approval' };
-          earningMethod = methodReverseMap[r.earningMethod] || r.earningMethod;
-          var methodRadio = document.querySelector('input[name="earningMethod"][value="' + earningMethod + '"]');
-          if (methodRadio) { methodRadio.checked = true; methodRadio.dispatchEvent(new Event('change')); }
+          var methodKey = methodReverseMap[r.earningMethod] || r.earningMethod;
+          var methodCard = document.querySelector('.earning-method-card[data-method="' + methodKey + '"]');
+          if (methodCard) selectEarningMethod(methodCard);
         }
 
         // Populate type-specific fields
