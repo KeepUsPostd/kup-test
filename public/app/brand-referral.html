@@ -1144,9 +1144,18 @@
         console.error('loadReferralData error:', e.message);
       }
     }
-    if (typeof auth !== 'undefined') {
-      auth.onAuthStateChanged(function(u) { if (u) loadReferralData(); });
-    }
+    // Firebase compat scripts load LATER on this page (see <script> tags
+    // at the bottom), so `auth` is still undefined at this point. Poll
+    // until it's available, then attach the listener. Without this poll
+    // the listener silently never attaches and the referral link stays
+    // stuck on "Loading…".
+    (function waitForAuth(attempts) {
+      if (typeof auth !== 'undefined' && auth.onAuthStateChanged) {
+        auth.onAuthStateChanged(function(u) { if (u) loadReferralData(); });
+        return;
+      }
+      if ((attempts || 0) < 50) setTimeout(function() { waitForAuth((attempts || 0) + 1); }, 100);
+    })();
 
     // ========== Copy Referral Link ==========
     document.getElementById('copyLinkBtn').addEventListener('click', function() {
