@@ -361,11 +361,7 @@
       </div>
       <div class="col-md-6">
         <div class="pps">
-          <p>Connect with PayPal to process your subscription.<span class="rq">*</span> <span class="un">Unsubscribe at any time.</span></p>
-          <div class="ppb">
-            <button class="bpp bpc" onclick="connectPaypal()">Connect to PayPal</button>
-            <button class="bpp bpd" id="btnDis" disabled>Disconnect</button>
-          </div>
+          <p>When you click <strong>Complete Payment</strong>, you'll be taken to PayPal to securely authorize your subscription — no card details are stored by KeepUsPostd.<span class="rq">*</span> <span class="un">Unsubscribe at any time.</span></p>
         </div>
         <div class="dcs">
           <h4>Discount Code</h4>
@@ -443,16 +439,6 @@ function setBilling(t) {
 function uT() {
   var p = cB === "monthly" ? mP : yP;
   document.getElementById("oTotal").textContent = p === 0 ? "Free" : "$" + Math.max(0, p - dA);
-}
-
-function connectPaypal() {
-  var b = document.querySelector(".bpc");
-  b.textContent = "Connected"; b.style.background = "#6c757d";
-  b.style.cursor = "not-allowed"; b.disabled = true;
-  var dd = document.getElementById("btnDis");
-  dd.disabled = false; dd.style.cursor = "pointer";
-  dd.style.background = "#dc3545"; dd.style.color = "#fff";
-  kupToast('PayPal connected successfully', 'success');
 }
 
 async function handlePayment() {
