@@ -60,6 +60,26 @@ router.post('/paypal', async (req, res) => {
           sub.currentPeriodStart = new Date(event.resource.start_time);
           sub.paypalPayerEmail = event.resource.subscriber?.email_address || sub.paypalPayerEmail;
           await sub.save();
+
+          // A paid plan supersedes the free trial. Reconcile the BrandProfile so
+          // the brand reflects the tier they actually paid for and the trial is
+          // ended — otherwise a paying customer keeps showing "(Trial)" and the
+          // plan tier never syncs to what they bought.
+          const bp = await BrandProfile.findById(sub.brandProfileId);
+          if (bp) {
+            // Respect admin plan-lock (partner deals where the subscription tier
+            // differs from the granted tier) — mirrors the /activate endpoint.
+            if (!bp.planTierLockedByAdmin) {
+              bp.planTier = sub.planTier;
+            }
+            bp.billingCycle = sub.billingCycle;
+            bp.paypalSubscriptionId = sub.paypalSubscriptionId;
+            bp.trialActive = false;
+            bp.trialExpired = false; // converted, not expired
+            if (!bp.paidPlanActivatedAt) bp.paidPlanActivatedAt = new Date();
+            await bp.save();
+            console.log(`✅ Brand ${bp._id} converted trial → paid ${sub.planTier} (via webhook)`);
+          }
           console.log(`✅ Subscription activated: ${subId}`);
         }
         break;
@@ -85,8 +105,13 @@ router.post('/paypal', async (req, res) => {
             bp.planTierLockedBy = null;
             await bp.save();
 
-            // 📧 Notify brand: subscription canceled
-            const brand = await Brand.findOne({ brandProfileId: bp._id });
+            // 📧 Notify brand: subscription canceled.
+            // Brands link to a profile via BrandProfile.ownedBrandIds — there is
+            // NO Brand.brandProfileId field, so the old findOne({ brandProfileId })
+            // always returned null and the notification never fired.
+            const brand = (bp.ownedBrandIds && bp.ownedBrandIds.length)
+              ? await Brand.findById(bp.ownedBrandIds[0])
+              : null;
             if (brand) {
               notify.subscriptionCanceled({ brand, planTier: oldTier }).catch(() => {});
             }
@@ -104,11 +129,15 @@ router.post('/paypal', async (req, res) => {
           sub.status = 'past_due';
           await sub.save();
 
-          // 📧 Notify brand: payment failed
+          // 📧 Notify brand: payment failed.
+          // Same brand-lookup fix as the CANCELLED handler — link via
+          // BrandProfile.ownedBrandIds, not a nonexistent Brand.brandProfileId.
           try {
             const bp = await BrandProfile.findById(sub.brandProfileId);
             if (bp) {
-              const brand = await Brand.findOne({ brandProfileId: bp._id });
+              const brand = (bp.ownedBrandIds && bp.ownedBrandIds.length)
+                ? await Brand.findById(bp.ownedBrandIds[0])
+                : null;
               if (brand) {
                 notify.subscriptionPaymentFailed({ brand, planTier: sub.planTier }).catch(() => {});
               }
