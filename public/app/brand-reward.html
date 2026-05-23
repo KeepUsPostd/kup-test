@@ -343,6 +343,21 @@
           </div>
         </div>
 
+        <!-- Inline payout-connect prompt — appears only when a CASH reward is
+             selected AND the brand's payout method isn't connected yet. This
+             defers the payout connection to the moment it's actually needed,
+             instead of nagging every brand up front. -->
+        <div id="cashPayoutConnect" style="display:none;background:rgba(46,165,221,0.06);border:1px solid rgba(46,165,221,0.25);border-radius:10px;padding:14px 18px;margin-top:18px">
+          <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+            <span style="font-size:1.1rem;margin-top:1px"><i class="ph ph-paypal-logo" style="color:#2EA5DD"></i></span>
+            <div style="flex:1;min-width:200px">
+              <strong style="font-size:0.88rem;color:#1a1a1a">One more step to pay creators cash</strong>
+              <p style="font-size:0.8rem;color:#666;margin:3px 0 0">Connect your PayPal payout method so we can fund this reward when you approve content. <span id="cashPayoutEmailHint"></span>You can finish this now or right after you save the reward.</p>
+            </div>
+            <button type="button" onclick="startCashPayoutConnect()" style="padding:8px 18px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;font-family:inherit;cursor:pointer;white-space:nowrap">Connect payout method</button>
+          </div>
+        </div>
+
         <div class="wizard-actions">
           <button class="btn-wizard secondary" onclick="window.location='brand-reward-settings.html'">Cancel</button>
           <button class="btn-wizard primary" onclick="goToStep(2)">Continue</button>
@@ -1136,9 +1151,48 @@
       document.querySelectorAll('.earning-method-card').forEach(function(c) { c.classList.remove('selected'); });
       document.getElementById('pointConfig').classList.remove('active');
       document.getElementById('perApprovalConfirm').style.display = 'none';
+      // Show/hide the inline payout-connect prompt based on cash selection
+      _refreshCashPayoutPrompt();
       updateStepLabels();
       updateProgressDots(1);
       updatePreview();
+    }
+
+    // Payout-connect prompt: only relevant when a CASH reward is selected and
+    // the brand hasn't connected a payout method. Deferred to point-of-need.
+    var _payoutConnected = null; // null = unknown yet, true/false once checked
+    var _planPaypalEmail = null; // pre-fill hint from the subscription PayPal
+
+    async function _refreshCashPayoutPrompt() {
+      var prompt = document.getElementById('cashPayoutConnect');
+      if (!prompt) return;
+      var anyCashSelected = document.querySelectorAll('.offer-card-upgrade.selected').length > 0;
+      if (!anyCashSelected) { prompt.style.display = 'none'; return; }
+      // A cash reward is selected — check payout connection (cache the result)
+      if (_payoutConnected === null) {
+        try {
+          var data = await kupApi.get('/api/billing/payment-method');
+          _payoutConnected = !!(data && data.connected);
+          _planPaypalEmail = (data && data.paypalEmail) || null;
+        } catch (e) {
+          _payoutConnected = false;
+        }
+      }
+      if (_payoutConnected) { prompt.style.display = 'none'; return; }
+      // Not connected → show the prompt, with the same-PayPal hint if we know it
+      var hint = document.getElementById('cashPayoutEmailHint');
+      if (hint) {
+        hint.textContent = _planPaypalEmail
+          ? 'Use the same PayPal on your plan (' + _planPaypalEmail + '). '
+          : 'Use the same PayPal account you pay your plan with. ';
+      }
+      prompt.style.display = 'block';
+    }
+
+    // Kick off the vault setup from the inline prompt. Reuses the owner-account
+    // vault flow by sending the brand there with a hint to start the connect.
+    function startCashPayoutConnect() {
+      window.location.href = 'owner-account.html?tab=billing&connect=payout';
     }
 
     /* Helper: get all selected cash types from DOM */

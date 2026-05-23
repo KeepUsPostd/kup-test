@@ -970,8 +970,8 @@
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span style="font-size:1.2rem"><i class="ph ph-warning-circle" style="color:#ED8444"></i></span>
           <div style="flex:1;min-width:200px">
-            <strong style="font-size:0.88rem;color:#1a1a1a">Payment method not connected</strong>
-            <p style="font-size:0.8rem;color:#666;margin:2px 0 0">Connect PayPal for one-click payments when you approve influencer content.</p>
+            <strong style="font-size:0.88rem;color:#1a1a1a">Connect your payout method to pay creators</strong>
+            <p style="font-size:0.8rem;color:#666;margin:2px 0 0">You have a cash reward set up. Connect PayPal so we can fund it when you approve content — use the same PayPal you pay your plan with.</p>
           </div>
           <button onclick="startSettingsVaultSetup()" style="padding:8px 18px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;font-family:inherit;cursor:pointer">Connect PayPal</button>
         </div>
@@ -1307,13 +1307,20 @@
               if (data && data.rewards) {
                 hydrateRewardStats(data.rewards);
                 renderRewardCards(data.rewards);
+                // Determine if any CASH reward exists — only cash rewards require
+                // a connected payout method, so the banner is gated on this.
+                var CASH_TYPES = ['cash_per_approval', 'bonus_cash', 'postd_pay'];
+                _hasCashReward = data.rewards.some(function(r) { return CASH_TYPES.indexOf(r.type) !== -1; });
               }
             }).catch(function(err) {
               console.warn('[brand-reward-settings] Could not load rewards:', err);
+            }).finally(function() {
+              // Re-evaluate the banner now that we know whether a cash reward exists
+              checkVaultBanner();
             });
           });
         }
-        // Check vault banner after rewards load
+        // Initial check (defaults to hidden until rewards load confirms a cash reward)
         checkVaultBanner();
       } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
     }
@@ -1336,15 +1343,25 @@
       }
     }
 
+    // Tracks whether the brand has any CASH reward configured. Only cash
+    // rewards need a connected payout method, so the "connect payout" banner
+    // is shown ONLY when a cash reward exists but the vault isn't connected —
+    // not as a default nag to every brand.
+    var _hasCashReward = false;
+
     // Check PayPal Vault status — called from loadRewardPage() after auth is ready
     async function checkVaultBanner() {
+      var banner = document.getElementById('vaultBanner');
+      if (!banner) return;
+      // No cash reward → never show the payout banner (free/points/discount
+      // rewards don't require a payout method).
+      if (!_hasCashReward) { banner.style.display = 'none'; return; }
       try {
         var data = await kupApi.get('/api/billing/payment-method');
-        var banner = document.getElementById('vaultBanner');
-        if (banner) banner.style.display = (data && data.connected) ? 'none' : 'block';
+        banner.style.display = (data && data.connected) ? 'none' : 'block';
       } catch(e) {
-        var banner = document.getElementById('vaultBanner');
-        if (banner) banner.style.display = 'block';
+        // On error, only show if we know a cash reward needs it
+        banner.style.display = 'block';
       }
     }
 

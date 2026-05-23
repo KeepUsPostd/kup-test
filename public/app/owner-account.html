@@ -1182,9 +1182,9 @@
          ============================================= -->
     <div id="tab-billing" class="tab-panel">
 
-      <!-- Current Plan Card -->
+      <!-- Plan Billing Card -->
       <div class="billing-card">
-        <div class="card-title">Current Plan</div>
+        <div class="card-title">Plan Billing</div>
         <div class="plan-detail-row">
           <div class="plan-info">
             <h3 id="billingPlanTitle">Loading...</h3>
@@ -1194,9 +1194,10 @@
         </div>
       </div>
 
-      <!-- Payment Method Card — Unified PayPal connection for subscriptions + influencer payments -->
+      <!-- Creator Payouts Card — the PayPal vault that funds cash rewards -->
       <div class="billing-card" id="vaultCard">
-        <div class="card-title">Payment Method</div>
+        <div class="card-title">Creator Payouts</div>
+        <p style="font-size:0.8rem;color:#888;margin:-6px 0 14px;line-height:1.5">Only needed if you pay creators <strong>cash</strong>. PayPal requires a separate authorization for payouts than for your plan — use the same PayPal account for both.</p>
         <div class="payment-method-row">
           <div class="payment-left">
             <div class="paypal-icon">
@@ -1677,6 +1678,10 @@
     }
 
     /* ============== BILLING DATA (Real API) ============== */
+    // Plan's PayPal email (from the subscription) — used to suggest the same
+    // account when prompting the separate Creator Payouts vault connection.
+    var _planPaypalEmail = null;
+
     async function loadBillingData() {
       try {
         var data = await kupApi.get('/api/billing/subscription');
@@ -1718,13 +1723,11 @@
           }
         }
 
-        // PayPal — only show Connected if subscription has a real PayPal payer email
-        // Subscription PayPal email display removed — unified under vault Payment Method
-        var paypalEmail = data.subscription && data.subscription.paypalPayerEmail;
-        if (paypalEmail) {
-        } else {
-          // No subscription PayPal connected
-        }
+        // Capture the plan's PayPal email so the Creator Payouts card can
+        // suggest the SAME account when prompting the (separate) payout connect.
+        _planPaypalEmail = (data.subscription && data.subscription.paypalPayerEmail) || null;
+        // Refresh the vault hint now that we know the plan email
+        if (typeof loadVaultStatus === 'function') loadVaultStatus();
 
         // Billing history
         loadBillingHistory();
@@ -1784,7 +1787,14 @@
           if (disconnectBtn) disconnectBtn.style.display = '';
         } else {
           if (statusEl) statusEl.style.display = 'none';
-          if (infoEl) { infoEl.textContent = 'Authorize PayPal to seamlessly pay influencers when you approve content.'; infoEl.style.color = '#999'; }
+          if (infoEl) {
+            // Pre-fill hint: surface the plan's PayPal email (captured in
+            // loadBillingData) so the brand uses the SAME account for payouts.
+            infoEl.textContent = _planPaypalEmail
+              ? 'Authorize PayPal to pay creators when you approve content. Tip: use ' + _planPaypalEmail + ' — the same PayPal on your plan.'
+              : 'Authorize PayPal to pay creators when you approve content — use the same PayPal account you pay your plan with.';
+            infoEl.style.color = '#999';
+          }
           if (connectBtn) connectBtn.style.display = '';
           if (disconnectBtn) disconnectBtn.style.display = 'none';
         }
@@ -1879,19 +1889,35 @@
       }
     }
 
-    // Check for vault return status in URL params
+    // Check for vault return status + deep-link to the billing tab in URL params
     (function checkVaultReturn() {
       var params = new URLSearchParams(window.location.search);
       var vault = params.get('vault');
-      if (vault === 'success') {
-        // Switch to billing tab and show success
+      var tab = params.get('tab');
+      var connect = params.get('connect');
+      // Switch to billing tab on vault success OR an explicit deep-link
+      // (?tab=billing&connect=payout from the reward-builder's inline prompt).
+      if (vault === 'success' || tab === 'billing' || connect === 'payout') {
         document.querySelectorAll('.owner-tab').forEach(function(t) { t.classList.remove('active'); });
         document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
         var billingTab = document.querySelector('[data-tab="tab-billing"]');
         if (billingTab) billingTab.classList.add('active');
         var billingPanel = document.getElementById('tab-billing');
         if (billingPanel) billingPanel.classList.add('active');
-        // Remove param from URL
+        // If they came specifically to connect payouts, scroll to + highlight the card,
+        // and auto-open the vault setup so it's one fewer click.
+        if (connect === 'payout') {
+          setTimeout(function() {
+            var card = document.getElementById('vaultCard');
+            if (card) {
+              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              card.style.transition = 'box-shadow .3s';
+              card.style.boxShadow = '0 0 0 3px rgba(46,165,221,0.4)';
+              setTimeout(function() { card.style.boxShadow = ''; }, 2000);
+            }
+            if (typeof startVaultSetup === 'function') startVaultSetup();
+          }, 600);
+        }
         window.history.replaceState({}, '', window.location.pathname);
       }
     })();
