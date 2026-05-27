@@ -652,7 +652,45 @@ router.get('/feed', optionalAuth, async (req, res) => {
       likedBy:       s.likedBy || [],
     }));
 
-    res.json({ feed, page, hasMore: submissions.length === limit });
+    // Reorder so the same brand never plays back-to-back when avoidable.
+    // This ONLY changes adjacency/order within the page — it does not change
+    // which items are included, the filters, or which items the page selected.
+    // Approach: group by brand (shuffling within each brand for a "more random"
+    // feel), then repeatedly place an item from the brand with the most
+    // remaining items that differs from the last-placed brand. If a single
+    // brand dominates a page, adjacency is unavoidable for the surplus and
+    // those items are simply spread as far apart as possible.
+    const interleaveByBrand = (items) => {
+      if (items.length <= 2) return items;
+      const buckets = new Map();
+      for (const it of items) {
+        const key = it.brandId || 'unknown';
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(it);
+      }
+      for (const arr of buckets.values()) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+      const result = [];
+      let lastBrand = null;
+      while (result.length < items.length) {
+        let candidates = [...buckets.entries()].filter(([k, v]) => v.length > 0 && k !== lastBrand);
+        if (candidates.length === 0) {
+          candidates = [...buckets.entries()].filter(([, v]) => v.length > 0);
+        }
+        const maxLen = Math.max(...candidates.map(([, v]) => v.length));
+        const top = candidates.filter(([, v]) => v.length === maxLen);
+        const [chosenKey, chosenArr] = top[Math.floor(Math.random() * top.length)];
+        result.push(chosenArr.shift());
+        lastBrand = chosenKey;
+      }
+      return result;
+    };
+
+    res.json({ feed: interleaveByBrand(feed), page, hasMore: submissions.length === limit });
   } catch (error) {
     console.error('[GET /content/feed]', error.message);
     res.status(500).json({ error: 'Could not load feed' });
