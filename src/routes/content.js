@@ -1729,3 +1729,7 @@ router.put('/:submissionId/metrics', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+// Exposed so the admin-panel approve route + backfill scripts can award points
+// (and fire the points-earned notification) the same way the brand-owner
+// approve endpoint does.
+module.exports.awardContentPoints = awardContentPoints;

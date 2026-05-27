@@ -854,6 +854,22 @@ router.put('/content/:id/moderate', async (req, res) => {
         console.error('Approval notification error (non-blocking):', notifyErr.message);
         // Non-fatal — submission is still approved
       }
+
+      // 🏆 Award "approved" content points for point-based brands — fires the
+      // points-earned notification (push + email + in-app). This mirrors the
+      // brand-owner approve endpoint; without it, creators reviewing admin
+      // brands got approved but never earned/saw their points.
+      try {
+        const { awardContentPoints } = require('./content');
+        awardContentPoints({
+          brandId: submission.brandId,
+          influencerProfileId: submission.influencerProfileId,
+          stage: 'approved',
+          partnershipId: submission.partnershipId?.toString(),
+        });
+      } catch (ptsErr) {
+        console.error('awardContentPoints error (non-blocking):', ptsErr.message);
+      }
     }
 
     if (action === 'reject') {
