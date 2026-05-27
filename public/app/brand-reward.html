@@ -1857,9 +1857,28 @@
       }
     }
 
+    // Returns true if saving this reward as a draft would leave the brand with
+    // zero active rewards (i.e. this is its only active reward) — which hides
+    // the brand from creators and blocks new submissions.
+    async function wouldHideBrandOnDraft() {
+      if (!editingRewardId) return false; // creating a new draft never removes an active reward
+      var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
+      var brandId = brand ? brand.mongoId : null;
+      if (!brandId) return false;
+      try {
+        var data = await kupApi.get('/api/rewards?brandId=' + brandId + '&status=active');
+        var active = (data && data.rewards) ? data.rewards : [];
+        var thisIsActive = active.some(function(r) { return r._id === editingRewardId; });
+        return thisIsActive && active.length <= 1;
+      } catch (e) { return false; }
+    }
+
     async function handleSaveDraft() {
       var payload = buildRewardPayload('draft');
       if (!payload) return;
+      if (await wouldHideBrandOnDraft()) {
+        if (!confirm('Saving this as a draft leaves your brand with no active reward, which hides it from creators and stops new submissions.\n\nSave as draft anyway?')) return;
+      }
       try {
         var endpoint = editingRewardId ? '/api/rewards/' + editingRewardId : '/api/rewards';
         var method = editingRewardId ? 'put' : 'post';

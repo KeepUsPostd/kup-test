@@ -977,6 +977,18 @@
         </div>
       </div>
 
+      <!-- Visibility Banner (shown when brand has 0 active rewards) -->
+      <div id="visibilityBanner" style="display:none;background:rgba(237,132,68,0.08);border:1px solid rgba(237,132,68,0.2);border-radius:10px;padding:14px 20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:1.2rem"><i class="ph ph-eye-slash" style="color:#ED8444"></i></span>
+          <div style="flex:1;min-width:200px">
+            <strong style="font-size:0.88rem;color:#1a1a1a">Your brand is hidden from creators</strong>
+            <p style="font-size:0.8rem;color:#666;margin:2px 0 0">You don't have an active reward right now, so your brand won't appear in search or discovery and creators can't submit content. Publish an active reward to go live.</p>
+          </div>
+          <a href="brand-reward.html" style="padding:8px 18px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;font-family:inherit;cursor:pointer;text-decoration:none">Create a Reward</a>
+        </div>
+      </div>
+
       <!-- Summary Stats -->
       <div class="reward-stats-row">
         <div class="reward-stat-card">
@@ -1325,6 +1337,17 @@
       } catch(e) { console.warn('[brand-reward-settings] Brand context not available:', e); }
     }
 
+    // Tracks how many rewards are currently active. Used by the visibility
+    // banner and the last-active-reward pause warning.
+    var _activeRewardCount = 0;
+
+    // Show/hide the "your brand is hidden" banner based on active reward count.
+    function checkVisibilityBanner() {
+      var banner = document.getElementById('visibilityBanner');
+      if (!banner) return;
+      banner.style.display = (_activeRewardCount === 0) ? 'block' : 'none';
+    }
+
     // Hydrate the summary stat cards from real reward data
     function hydrateRewardStats(rewards) {
       var activeCount = 0, draftCount = 0, totalRedeemed = 0, cashPaidOut = 0;
@@ -1341,6 +1364,8 @@
         statCards[2].textContent = totalRedeemed;
         statCards[3].textContent = '$' + cashPaidOut.toLocaleString();
       }
+      _activeRewardCount = activeCount;
+      checkVisibilityBanner();
     }
 
     // Tracks whether the brand has any CASH reward configured. Only cash
@@ -1487,6 +1512,11 @@
 
     // Toggle reward status (activate/pause)
     async function toggleRewardStatus(rewardId, newStatus) {
+      // Warn before pausing the brand's ONLY active reward — doing so hides the
+      // brand from creators in search/discovery and blocks new submissions.
+      if (newStatus !== 'active' && _activeRewardCount <= 1) {
+        if (!confirm('This is your only active reward. Pausing it will hide your brand from creators in search and discovery, and stop new content submissions until you reactivate a reward.\n\nContinue?')) return;
+      }
       try {
         await kupApi.put('/api/rewards/' + rewardId + '/status', { status: newStatus });
         kupToast('Reward ' + newStatus, 'success');

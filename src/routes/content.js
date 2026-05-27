@@ -317,6 +317,19 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    // RULE: Brand must have an active reward configured before content can be submitted.
+    // Mirrors the approval-time gate (see approve handler) so creators never do unpaid
+    // work for a brand that can't reward them. Same 402 'reward_required' shape for
+    // consistent handling in the app.
+    const submitReward = await Reward.findOne({ brandId, status: 'active' }).select('_id').lean();
+    if (!submitReward) {
+      return res.status(402).json({
+        error: 'reward_required',
+        message: "This brand isn't accepting reviews yet.",
+        detail: 'This brand hasn’t configured a reward yet. Check back soon — you’ll be able to submit once they set one up.',
+      });
+    }
+
     // Look up the influencer profile for this user — auto-create if brand account submitting as creator
     let influencerProfile = await InfluencerProfile.findOne({ userId: req.user._id });
     if (!influencerProfile) {

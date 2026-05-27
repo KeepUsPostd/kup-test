@@ -316,6 +316,7 @@ router.post('/scrape', requireAuth, scrapeLimiter, async (req, res) => {
 // MUST be before /:brandId to prevent "discover" being treated as a brandId
 router.get('/discover', requireAuth, async (req, res) => {
   try {
+    const { Reward } = require('../models');
     const { category, search, lat, lon, radiusMi, nearbyOnly } = req.query;
     const filter = { status: { $ne: 'deleted' } };
 
@@ -327,8 +328,18 @@ router.get('/discover', requireAuth, async (req, res) => {
       ];
     }
 
+    // RULE: Only surface brands that have at least one active reward configured.
+    // A rewardless brand isn't "open for business" — hiding it from discovery prevents
+    // creators from finding a brand they can't earn from. Mirrors the submission +
+    // approval gates in content.js.
+    const rewardedBrandIds = await Reward.distinct('brandId', { status: 'active' });
+    if (rewardedBrandIds.length === 0) {
+      return res.json({ brands: [] }); // nobody has an active reward yet
+    }
+    const rewardedIdSet = new Set(rewardedBrandIds.map(id => String(id)));
+
     // Geo filter — opt-in only via nearbyOnly=true.
-    // Default behavior: show every brand globally regardless of user location.
+    // Default behavior: show every (rewarded) brand globally regardless of user location.
     // Text search always bypasses geo so a US user can find a Lisbon brand by name.
     const useGeo = nearbyOnly === 'true' && !search && lat && lon;
     if (useGeo) {
@@ -345,13 +356,21 @@ router.get('/discover', requireAuth, async (req, res) => {
             },
           },
         }).select('_id').lean().catch(() => []);
-        if (nearbyBrands.length > 0) {
-          filter._id = { $in: nearbyBrands.map(b => b._id) };
+        // Intersect "nearby" with "has an active reward" — both must be true.
+        const nearbyRewarded = nearbyBrands.filter(b => rewardedIdSet.has(String(b._id)));
+        if (nearbyRewarded.length > 0) {
+          filter._id = { $in: nearbyRewarded.map(b => b._id) };
         } else {
-          // No brands nearby — return empty
+          // No rewarded brands nearby — return empty
           return res.json({ brands: [] });
         }
+      } else {
+        // Invalid coords — fall back to all rewarded brands
+        filter._id = { $in: rewardedBrandIds };
       }
+    } else {
+      // No geo filter — restrict to all rewarded brands
+      filter._id = { $in: rewardedBrandIds };
     }
 
     const brands = await Brand.find(filter)

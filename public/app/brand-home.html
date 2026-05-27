@@ -642,6 +642,17 @@
 
     <!-- RIGHT CONTENT -->
     <main class="brand-preview">
+      <!-- Visibility Banner (shown when brand has 0 active rewards) -->
+      <div id="visibilityBanner" style="display:none;background:rgba(237,132,68,0.08);border:1px solid rgba(237,132,68,0.2);border-radius:10px;padding:14px 20px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:1.2rem"><i class="ph ph-eye-slash" style="color:#ED8444"></i></span>
+          <div style="flex:1;min-width:200px">
+            <strong style="font-size:0.88rem;color:#1a1a1a">Your brand is hidden from creators</strong>
+            <p style="font-size:0.8rem;color:#666;margin:2px 0 0">You don't have an active reward yet, so your brand won't appear in search or discovery and creators can't submit content. Publish an active reward to go live.</p>
+          </div>
+          <a href="brand-reward-settings.html" style="padding:8px 18px;background:var(--kup-blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;font-family:inherit;cursor:pointer;text-decoration:none">Set Up a Reward</a>
+        </div>
+      </div>
       <div class="preview-area">
       <!-- Tips Column (left of phone) -->
       <div class="tips-column">
@@ -650,7 +661,7 @@
           Edit Brand
         </a>
         <div class="dashboard-tips">
-          <div class="step-tip"><span class="tip-icon">🚀</span><span><strong>You're Live!</strong>Your brand is live in the marketplace. Influencers can discover and partner with you right now.</span></div>
+          <div class="step-tip" id="liveTip"><span class="tip-icon">🚀</span><span><strong>You're Live!</strong>Your brand is live in the marketplace. Influencers can discover and partner with you right now.</span></div>
           <div class="step-tip"><span class="tip-icon">📷</span><span><strong>Update Your Look</strong>Need to change your logo or banner? Head to <a href="add-brand.html?edit=true">Edit Brand</a>.</span></div>
           <div class="step-tip"><span class="tip-icon">🏆</span><span><strong>Launch a Campaign</strong>Create your first campaign to start attracting influencer content submissions.</span></div>
         </div>
@@ -831,6 +842,20 @@
       } catch (err) {
         console.error('Failed to load brand:', err);
       }
+
+      // Check active-reward count → toggle the "hidden from creators" banner and
+      // keep the "You're Live!" tip honest. A brand with no active reward is
+      // hidden from discovery and can't receive submissions.
+      try {
+        const rdata = await kupApi.get('/api/rewards?brandId=' + brandId + '&status=active');
+        const activeCount = (rdata && rdata.rewards) ? rdata.rewards.length : 0;
+        const vb = document.getElementById('visibilityBanner');
+        if (vb) vb.style.display = (activeCount === 0) ? 'block' : 'none';
+        const liveTip = document.getElementById('liveTip');
+        if (liveTip && activeCount === 0) {
+          liveTip.innerHTML = '<span class="tip-icon">⚠️</span><span><strong>Not Live Yet</strong>Your brand is hidden from creators until you publish an active reward. <a href="brand-reward-settings.html">Set one up</a> to go live.</span>';
+        }
+      } catch (e) { /* non-blocking — banner stays hidden on error */ }
 
       // Wire logout
       const logoutLink = document.querySelector('.logout');
