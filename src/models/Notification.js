@@ -19,7 +19,9 @@ const notificationSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true,
-    maxlength: 500,
+    // Raised from 500 → 2000: detailed promo briefs (do's + don'ts + description)
+    // exceeded 500, which silently failed in-app notification creation.
+    maxlength: 2000,
   },
 
   // Category for filtering & preferences
