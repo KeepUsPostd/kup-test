@@ -329,6 +329,11 @@ async function contentApproved({ influencer, brand, submission, reward = null })
         thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
         rewardType: reward?.type || null,
         rewardTitle: reward?.title || null,
+        // Per-approval rewards have no points card, so the rate prompt would
+        // otherwise never appear. Surface "Rate Brand" on the approval card for
+        // them. Point-based rewards already get the rate prompt on the
+        // points-earned card, so we don't duplicate it here.
+        showRating: reward?.type === 'per_approval',
       },
     });
     push(influencer.userId, {
