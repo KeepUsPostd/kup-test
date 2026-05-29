@@ -329,11 +329,6 @@ async function contentApproved({ influencer, brand, submission, reward = null })
         thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
         rewardType: reward?.type || null,
         rewardTitle: reward?.title || null,
-        // Per-approval rewards have no points card, so the rate prompt would
-        // otherwise never appear. Surface "Rate Brand" on the approval card for
-        // them. Point-based rewards already get the rate prompt on the
-        // points-earned card, so we don't duplicate it here.
-        showRating: reward?.type === 'per_approval',
       },
     });
     push(influencer.userId, {
@@ -341,6 +336,29 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       body: msg,
       link: '/app/submissions.html',
     });
+
+    // Per-approval rewards have no points-earned card (awardContentPoints only
+    // runs for point_based), so the rate prompt never reaches the creator.
+    // The app only renders a "Rate Brand" button on a `rating_request`-type
+    // notification (or the points card) — NOT on the plain `approval` card — so
+    // fire a dedicated rating_request here. Scoped to per_approval to avoid
+    // duplicating the prompt for point-based rewards (they get it on the points card).
+    if (reward?.type === 'per_approval') {
+      await createInApp({
+        userId: influencer.userId,
+        title: `Rate your experience with ${brand.name}`,
+        message: `How was your experience with ${brand.name}? Rate it — it helps the community and the brand.`,
+        type: 'rating_request',
+        link: `/brands/${brand._id}`,
+        audience: 'influencer',
+        metadata: {
+          brandName: brand.name,
+          brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+          brandColor: brand.generatedColor || '',
+          partnershipId: submission.partnershipId?.toString() || null,
+        },
+      });
+    }
   }
 
   // Notify brand owner: content approved confirmation
