@@ -336,9 +336,25 @@
           heroBg.style.background = brandGradient;
         }
 
-        // Button matches brand colors
+        // Button matches brand colors — BUT the button text is white, so if the
+        // brand's primary color is light (e.g. Coach Ann = #ffffff), the button
+        // blends into the white page and becomes invisible. Guard with a luminance
+        // check: if the primary is too light, fall back to the KUP gradient so the
+        // CTA is ALWAYS visible regardless of the brand's colors.
         var joinBtn = document.getElementById('joinBtn');
-        if (joinBtn) joinBtn.style.background = brandGradient;
+        if (joinBtn) {
+          var lum = (function (hex) {
+            try {
+              var c = (hex || '').replace('#', '');
+              if (c.length === 3) c = c.split('').map(function (x) { return x + x; }).join('');
+              if (c.length !== 6) return null;
+              return (0.2126 * parseInt(c.substr(0, 2), 16) + 0.7152 * parseInt(c.substr(2, 2), 16) + 0.0722 * parseInt(c.substr(4, 2), 16)) / 255;
+            } catch (_) { return null; }
+          })(colorPrimary);
+          joinBtn.style.background = (lum === null || lum > 0.6)
+            ? 'linear-gradient(135deg, #2EA5DD, #6c7cbd)'
+            : brandGradient;
+        }
 
         // Avatar — circle with logo or initial
         var avatar = document.getElementById('brandAvatar');
