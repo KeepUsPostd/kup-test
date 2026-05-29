@@ -34,10 +34,11 @@ const notificationSchema = new mongoose.Schema({
       'campaign',    // Campaign invites, milestones
       'briefing',    // Campaign briefs sent to partnered influencers
       'bonus',       // Bonus alerts, time-limited offers
-      'partnership', // New partners, removals
-      'reward',      // Points, rewards unlocked
-      'account',     // Profile, security, settings
-      'system',      // Platform updates, maintenance
+      'partnership',    // New partners, removals
+      'reward',         // Points, rewards unlocked
+      'rating_request', // Prompt creator to rate a brand (renders the rate card)
+      'account',        // Profile, security, settings
+      'system',         // Platform updates, maintenance
     ],
     default: 'system',
   },
