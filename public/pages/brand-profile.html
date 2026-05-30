@@ -225,6 +225,17 @@
       color: #bbb;
     }
     .page-footer a { color: #bbb; }
+
+    /* ── DESKTOP: show the FULL brand banner (contained, no crop) ──
+       On wide screens a full-bleed cover-crop slices the top/bottom off
+       poster-style banners. Here we show the whole image centered on the
+       brand-color field. Web-only — the app uses the same heroImageUrl but
+       renders it separately, so it is unaffected. Mobile keeps the cover crop. */
+    @media (min-width: 700px){
+      .hero{ height:auto; min-height:220px; display:flex; align-items:center; justify-content:center; }
+      .hero-banner-img{ width:auto; max-width:1000px; height:auto; max-height:440px; object-fit:contain; margin-bottom:64px; border-radius:12px; }
+      .hero-overlay{ display:none; }
+    }
   </style>
 </head>
 <body>
