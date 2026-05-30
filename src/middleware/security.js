@@ -197,6 +197,11 @@ function getCorsOptions() {
     'https://keepuspostd.com',
     'https://www.keepuspostd.com',
     'https://app.keepuspostd.com',
+    // Partner brand sites embedding the public content feed (read-only)
+    'https://butterflyuprising.com',
+    'https://www.butterflyuprising.com',
+    // Local preview for building partner embeds
+    'http://localhost:3007',
     // Add your native app's origin if needed
   ].filter(Boolean);
 
