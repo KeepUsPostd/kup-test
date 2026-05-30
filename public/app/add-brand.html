@@ -1665,7 +1665,7 @@
     var allowed = ['name', 'category', 'subcategory', 'description',
       'websiteUrl', 'tags', 'logoUrl', 'heroImageUrl', 'location',
       'email', 'phone', 'address', 'city', 'state', 'zip', 'coordinates',
-      'socialLinks', 'brandColors'];
+      'socialLinks', 'brandColors', 'brandHandle'];
     var out = {};
     allowed.forEach(function(f) {
       if (payload[f] !== undefined && payload[f] !== null && payload[f] !== '') out[f] = payload[f];

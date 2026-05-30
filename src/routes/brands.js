@@ -644,6 +644,25 @@ router.put('/:brandId', requireAuth, requireBrandRole('admin'), async (req, res)
       }
     }
 
+    // Brand handle (@vanity URL) — handled separately from allowedFields because
+    // it's unique and must pass sanitize + reserved + uniqueness checks (excluding
+    // this brand itself). Without this, edits silently dropped the handle, so a
+    // brand created without a handle could never set one. Mirrors the create route.
+    if (req.body.brandHandle !== undefined && req.body.brandHandle !== null && String(req.body.brandHandle).trim() !== '') {
+      const handle = sanitizeHandle(req.body.brandHandle);
+      if (handle.length < 3) {
+        return res.status(400).json({ error: 'Handle must be at least 3 characters (letters, numbers, underscores only).' });
+      }
+      if (RESERVED_HANDLES.has(handle)) {
+        return res.status(400).json({ error: 'That handle is reserved. Please choose another.' });
+      }
+      const taken = await Brand.findOne({ brandHandle: handle, _id: { $ne: req.params.brandId } });
+      if (taken) {
+        return res.status(400).json({ error: 'That handle is already taken. Please choose another.' });
+      }
+      updates.brandHandle = handle;
+    }
+
     const brand = await Brand.findByIdAndUpdate(
       req.params.brandId,
       { $set: updates },
