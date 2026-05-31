@@ -337,14 +337,17 @@
         var colorSecondary = (brand.brandColors && brand.brandColors.secondary) || '#1a73b8';
         var brandGradient = 'linear-gradient(135deg, ' + colorPrimary + ', ' + colorSecondary + ')';
 
-        // Hero banner — uploaded image takes priority; otherwise use brand colors
+        // Hero banner — uploaded image takes priority; otherwise use brand colors.
+        // Always paint the hero field with the brand's gradient: on the WEB view a
+        // wide banner is shown contained, so this color shows around it (instead of
+        // the default KUP blue). On mobile the cover-cropped banner hides it, and the
+        // app renders the banner separately — so this only affects the web landing page.
         var heroLogo = document.getElementById('heroLogo');
+        heroBg.style.background = brandGradient;
         if (brand.heroImageUrl) {
           heroBanner.src = brand.heroImageUrl;
           heroBanner.style.display = 'block';
           if (heroLogo) heroLogo.style.display = 'none'; // hide KUP logo when brand has their own banner
-        } else {
-          heroBg.style.background = brandGradient;
         }
 
         // Button matches brand colors — BUT the button text is white, so if the
