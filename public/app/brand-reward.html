@@ -224,6 +224,12 @@
     body.reward-edit-mode .wizard-progress{display:none}
     body.reward-edit-mode #step1{display:none !important}
     body.reward-edit-mode #step2BackBtn{display:none}
+    /* Reward banner Replace/Remove overlay — mirrors the brand banner pattern (add-brand.html) */
+    #rewardBannerUploadBox.has-image{cursor:default;border-style:solid;border-color:#e6e9f0}
+    #rewardBannerUploadBox.has-image #rewardBannerOverlay{display:flex !important}
+    #rewardBannerUploadBox.has-image:hover #rewardBannerOverlay{opacity:1 !important}
+    /* Save Reward button disabled state (dirty-tracking on edit) */
+    #saveRewardBtn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
     @media(max-width:1024px){.wizard-layout{grid-template-columns:380px 1fr}}
     @media(max-width:768px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{display:none}}
@@ -473,8 +479,13 @@
         <div id="programBannerWrap" style="margin-top:24px;padding-top:20px;border-top:1px solid #eee">
           <h6 style="font-size:.92rem;font-weight:700;margin:0 0 4px;border:none;padding:0;text-transform:none;letter-spacing:0;color:#1a1a1a">Reward Banner <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional)</span></h6>
           <p style="font-size:.82rem;color:#888;margin-bottom:12px">Upload a banner image for this reward card. If none is uploaded, your brand's gradient colors will be used.</p>
-          <div class="upload-box" id="rewardBannerUploadBox" onclick="document.getElementById('rewardBannerFileInput').click()" style="padding:20px;text-align:center;border:2px dashed #ddd;border-radius:10px;cursor:pointer;transition:border-color .2s;background:#fafbfc">
+          <div class="upload-box" id="rewardBannerUploadBox" onclick="document.getElementById('rewardBannerFileInput').click()" style="position:relative;overflow:hidden;padding:20px;text-align:center;border:2px dashed #ddd;border-radius:10px;cursor:pointer;transition:border-color .2s;background:#fafbfc">
             <img id="rewardBannerPreviewImg" style="display:none;width:100%;max-height:120px;border-radius:8px;object-fit:cover;margin:0 auto 8px" alt="Reward banner preview">
+            <!-- Replace / Remove overlay — shown on hover when a banner is present (matches brand banner) -->
+            <div id="rewardBannerOverlay" style="display:none;position:absolute;inset:0;border-radius:8px;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;gap:10px;z-index:2;opacity:0;transition:opacity .15s">
+              <button type="button" id="rewardBannerReplaceBtn" onclick="event.stopPropagation();document.getElementById('rewardBannerFileInput').click()" style="background:rgba(255,255,255,0.95);color:#1a1a1a;border:none;padding:8px 14px;font-size:.78rem;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit">Replace</button>
+              <button type="button" id="rewardBannerRemoveBtn" onclick="event.stopPropagation();removeRewardBanner()" style="background:rgba(255,255,255,0.95);color:#d33;border:none;padding:8px 14px;font-size:.78rem;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit">Remove</button>
+            </div>
             <svg id="rewardBannerUploadIcon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <p id="rewardBannerUploadText" style="font-size:.82rem;color:#888;margin:6px 0 0">Upload reward banner</p>
             <p style="font-size:.72rem;color:#bbb;margin:4px 0 0">Recommended: 600 &times; 200 px (PNG, JPG) &bull; Max 2 MB</p>
@@ -737,7 +748,7 @@
 
         <div style="margin-bottom:16px"><button class="btn-wizard secondary" onclick="goBackFromReview()" style="font-size:.82rem;padding:8px 16px"><i class="ph ph-arrow-left"></i> Back</button></div>
         <div class="wizard-actions wizard-actions-publish">
-          <button class="btn-wizard success" style="padding:14px;font-size:.95rem" onclick="handleSaveReward()">Save Reward</button>
+          <button class="btn-wizard success" id="saveRewardBtn" style="padding:14px;font-size:.95rem" onclick="handleSaveReward()">Save Reward</button>
           <p style="font-size:.78rem;color:#999;margin:6px 0 16px">Your reward will be active and available to assign to influencers</p>
           <button class="btn-wizard secondary" style="width:100%" onclick="handleSaveDraft()">Save as Draft</button>
           <p style="font-size:.78rem;color:#999;margin:6px 0 0">Save for later, activate when ready</p>
@@ -1720,8 +1731,11 @@
           if (data.urls && data.urls.length > 0) {
             uploadedRewardBannerUrl = data.urls[0];
             if (uploadText) uploadText.textContent = 'Banner uploaded';
+            var rbBox = document.getElementById('rewardBannerUploadBox');
+            if (rbBox) rbBox.classList.add('has-image');
             kupToast('Reward banner uploaded', 'success');
             updatePreview(); // Refresh phone preview with banner image
+            if (typeof _updateSaveDirty === 'function') _updateSaveDirty();
             // Auto-save banner to reward if editing an existing one
             var rid = editingRewardId || new URLSearchParams(window.location.search).get('edit');
             if (rid) {
@@ -1741,6 +1755,32 @@
         }
       });
     })();
+
+    /* Remove the reward banner — clears the upload, restores the icon/prompt,
+       and lets the phone preview fall back to the brand gradient. Setting the
+       global to '' (not null) so buildRewardPayload sends an explicit clear. */
+    function removeRewardBanner() {
+      uploadedRewardBannerUrl = '';
+      var box = document.getElementById('rewardBannerUploadBox');
+      var previewImg = document.getElementById('rewardBannerPreviewImg');
+      var uploadIcon = document.getElementById('rewardBannerUploadIcon');
+      var uploadText = document.getElementById('rewardBannerUploadText');
+      var fileInput = document.getElementById('rewardBannerFileInput');
+      if (box) box.classList.remove('has-image');
+      if (previewImg) { previewImg.src = ''; previewImg.style.display = 'none'; }
+      if (uploadIcon) uploadIcon.style.display = '';
+      if (uploadText) uploadText.textContent = 'Upload reward banner';
+      if (fileInput) fileInput.value = '';
+      try { updatePreview(); } catch (e) {}
+      // If editing an existing reward, persist the removal immediately
+      var rid = editingRewardId || new URLSearchParams(window.location.search).get('edit');
+      if (rid) {
+        kupApi.put('/api/rewards/' + rid, { bannerImageUrl: '' })
+          .then(function() { kupToast('Banner removed', 'info'); })
+          .catch(function(e) { console.warn('Banner remove save failed:', e); });
+      }
+      if (typeof _updateSaveDirty === 'function') _updateSaveDirty();
+    }
 
     /* ============ PER-LEVEL BANNER UPLOADS ============ */
     (function() {
@@ -1894,8 +1934,9 @@
         };
       }
 
-      // Reward banner image (optional)
-      if (uploadedRewardBannerUrl) {
+      // Reward banner image (optional). Send the value whenever it's defined —
+      // including '' so an explicit removal clears the stored banner on save.
+      if (uploadedRewardBannerUrl !== null && uploadedRewardBannerUrl !== undefined) {
         payload.bannerImageUrl = uploadedRewardBannerUrl;
       }
 
@@ -2088,9 +2129,11 @@
         // Load existing reward banner if present
         if (r.bannerImageUrl) {
           uploadedRewardBannerUrl = r.bannerImageUrl;
+          var bannerBox = document.getElementById('rewardBannerUploadBox');
           var bannerPreview = document.getElementById('rewardBannerPreviewImg');
           var bannerIcon = document.getElementById('rewardBannerUploadIcon');
           var bannerText = document.getElementById('rewardBannerUploadText');
+          if (bannerBox) bannerBox.classList.add('has-image');
           if (bannerPreview) { bannerPreview.src = r.bannerImageUrl; bannerPreview.style.display = 'block'; }
           if (bannerIcon) bannerIcon.style.display = 'none';
           if (bannerText) bannerText.textContent = 'Banner uploaded';
@@ -2107,6 +2150,9 @@
         // Auto-advance to Step 2 so editing doesn't start over at Step 1 (defensive)
         try { goToStep(2); } catch (gsErr) { console.warn('[edit] goToStep failed (non-blocking):', gsErr); }
 
+        // Snapshot the fully-loaded form so Save stays disabled until a real edit.
+        try { _captureEditBaseline(); } catch (blErr) { console.warn('[edit] baseline capture failed (non-blocking):', blErr); }
+
       } catch (err) {
         console.error('Load reward error:', err);
         kupToast('Could not load reward for editing', 'error');
@@ -2119,6 +2165,51 @@
            'ptContentSubmit','ptContentApprove','ptContentPublish','ptContentBonus',
            'ptGratJoin','ptGratBday','ptGratAnniv'].indexOf(e.target.id) >= 0) { updatePreview(); }
     });
+
+    /* ============ DIRTY-SAVE TRACKING (edit mode only) ============
+       The Save Reward button stays disabled until the brand-user actually
+       changes something. We snapshot every field after the reward loads, then
+       compare a fresh signature on each input/change. Creating a NEW reward is
+       always enabled (no baseline). */
+    var _rewardBaseline = null;
+    function _rewardSignature() {
+      var parts = [];
+      var scope = document.getElementById('wizardLayout') || document;
+      var els = scope.querySelectorAll('input, select, textarea');
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        if (el.type === 'file') continue;
+        var key = el.id || el.name || ('idx' + i);
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          parts.push(key + '=' + (el.checked ? '1' : '0'));
+        } else {
+          parts.push(key + '=' + (el.value || ''));
+        }
+      }
+      // Include image state, which lives outside form fields
+      parts.push('__banner=' + (uploadedRewardBannerUrl == null ? '' : uploadedRewardBannerUrl));
+      parts.push('__lvlbanners=' + [levelBannerUrls[1], levelBannerUrls[2], levelBannerUrls[3]].join('|'));
+      return parts.join('&');
+    }
+    function _captureEditBaseline() {
+      _rewardBaseline = _rewardSignature();
+      _updateSaveDirty();
+    }
+    function _updateSaveDirty() {
+      var btn = document.getElementById('saveRewardBtn');
+      if (!btn) return;
+      // Only gate in edit mode; creating a new reward is always saveable.
+      if (!document.body.classList.contains('reward-edit-mode') || _rewardBaseline === null) {
+        btn.disabled = false;
+        btn.removeAttribute('title');
+        return;
+      }
+      var changed = _rewardSignature() !== _rewardBaseline;
+      btn.disabled = !changed;
+      btn.title = changed ? '' : 'Make a change to enable saving';
+    }
+    document.addEventListener('input', function() { _updateSaveDirty(); });
+    document.addEventListener('change', function() { _updateSaveDirty(); });
   </script>
   <!--
     KUP PLATFORM CONFIG — All platform rules defined in /js/platform-config.js
