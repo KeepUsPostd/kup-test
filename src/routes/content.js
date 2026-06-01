@@ -1179,12 +1179,22 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
               status: 'active',
             }).lean();
             if (perApp) {
+              // Resolve the deliverable (link/file/code/claim) so the platform can
+              // hand it to the creator in the approval notification — no brand PII.
+              let deliverable = null;
+              try {
+                const { resolveDeliverable } = require('../services/rewardFulfillment');
+                deliverable = await resolveDeliverable(perApp, submission.influencerProfileId);
+              } catch (delErr) {
+                console.warn('Deliverable resolve (non-blocking):', delErr.message);
+              }
               perApprovalReward = {
                 type: 'per_approval',
                 title: perApp.title || 'Reward',
                 description: perApp.description || '',
                 rewardId: perApp._id?.toString(),
                 bannerImageUrl: perApp.bannerImageUrl || null,
+                deliverable, // { method, url|fileUrl|code, instructions, claim }
               };
             }
           } catch (perAppErr) {

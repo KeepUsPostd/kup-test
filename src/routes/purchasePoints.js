@@ -857,15 +857,112 @@ router.post('/staff-lookup', async (req, res) => {
       });
     }
 
+    // Reward status — does this creator have a per-approval reward ready to claim
+    // in person from THIS brand? (an approved review + an active per_approval reward).
+    // Lets staff verify before handing over a physical/pickup reward — no new QR,
+    // this reuses the creator's existing profile QR they just scanned.
+    let rewardReady = null;
+    try {
+      const Reward = require('../models/Reward');
+      const ContentSubmission = require('../models/ContentSubmission');
+      const approvedCount = await ContentSubmission.countDocuments({
+        brandId,
+        influencerProfileId: influencer._id,
+        status: 'approved',
+      });
+      if (approvedCount > 0) {
+        const perApp = await Reward.findOne({
+          brandId, earningMethod: 'per_approval', status: 'active',
+        }).lean();
+        if (perApp) {
+          const RewardClaim = require('../models/RewardClaim');
+          const prior = await RewardClaim.findOne({
+            brandId, influencerProfileId: influencer._id, rewardId: perApp._id,
+          }).lean();
+          rewardReady = {
+            rewardId:        perApp._id,
+            title:           perApp.title || 'Reward',
+            description:     perApp.description || '',
+            method:          perApp.fulfillment?.method || 'pickup',
+            approvedReviews: approvedCount,
+            alreadyClaimed:  !!prior,
+            claimedAt:       prior ? prior.createdAt : null,
+          };
+        }
+      }
+    } catch (rwErr) {
+      console.warn('staff-lookup reward status (non-blocking):', rwErr.message);
+    }
+
     res.json({
       found:                 true,
       influencerProfileId:   influencer._id,
       displayName:           influencer.displayName,
       purchasePointsBalance: influencer.purchasePointsBalance || 0,
+      rewardReady,           // null or { title, description, method, approvedReviews }
     });
   } catch (err) {
     console.error('POST /purchase-points/staff-lookup error:', err.message);
     res.status(500).json({ error: 'Could not look up customer' });
+  }
+});
+
+// ── POST /api/purchase-points/staff-claim ─────────────────────────────────────
+// Marks a per-approval reward CLAIMED in person (after staff scans the creator's
+// existing profile QR via staff-lookup). PIN-authenticated. Idempotent — a second
+// call for the same brand+creator+reward returns alreadyClaimed instead of dupes.
+router.post('/staff-claim', async (req, res) => {
+  try {
+    const { brandId, pin, influencerProfileId, rewardId } = req.body;
+    if (!brandId || !pin || !influencerProfileId) {
+      return res.status(400).json({ error: 'brandId, pin, and influencerProfileId are required' });
+    }
+
+    // Verify PIN (same gate as staff-lookup)
+    const config = await PurchasePointsConfig.findOne({ brandId }).select('+staffPin');
+    if (!config?.staffPin) return res.status(400).json({ error: 'No staff PIN configured' });
+    const pinBuf = Buffer.from(String(pin));
+    const storedBuf = Buffer.from(config.staffPin);
+    const match = pinBuf.length === storedBuf.length && crypto.timingSafeEqual(pinBuf, storedBuf);
+    if (!match) return res.status(401).json({ error: 'Incorrect PIN' });
+
+    const Reward = require('../models/Reward');
+    const RewardClaim = require('../models/RewardClaim');
+    const ContentSubmission = require('../models/ContentSubmission');
+
+    // Must have an approved review for this brand to claim
+    const approvedCount = await ContentSubmission.countDocuments({
+      brandId, influencerProfileId, status: 'approved',
+    });
+    if (approvedCount === 0) {
+      return res.status(400).json({ error: 'No approved review for this brand — nothing to claim.' });
+    }
+
+    const reward = rewardId
+      ? await Reward.findById(rewardId).lean()
+      : await Reward.findOne({ brandId, earningMethod: 'per_approval', status: 'active' }).lean();
+
+    // Idempotent guard — block double handouts
+    const existing = await RewardClaim.findOne({
+      brandId, influencerProfileId, rewardId: reward?._id || null,
+    }).lean();
+    if (existing) {
+      return res.json({ claimed: true, alreadyClaimed: true, claimedAt: existing.createdAt });
+    }
+
+    const claim = await RewardClaim.create({
+      brandId,
+      influencerProfileId,
+      rewardId: reward?._id || null,
+      rewardTitle: reward?.title || null,
+      method: reward?.fulfillment?.method || 'pickup',
+      claimedVia: 'staff',
+    });
+
+    res.json({ claimed: true, alreadyClaimed: false, claimedAt: claim.createdAt });
+  } catch (err) {
+    console.error('POST /purchase-points/staff-claim error:', err.message);
+    res.status(500).json({ error: 'Could not record reward claim' });
   }
 });
 

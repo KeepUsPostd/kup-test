@@ -30,7 +30,7 @@ const NON_CASH_TYPES = ['points_store_credit', 'free_product', 'discount'];
 router.post('/', requireAuth, async (req, res) => {
   try {
     const { brandId, type, earningMethod, title, description,
-            pointConfig, cashConfig, discountConfig, productConfig,
+            pointConfig, cashConfig, discountConfig, productConfig, fulfillment,
             imageUrl, bannerImageUrl } = req.body;
 
     if (!brandId) {
@@ -146,6 +146,7 @@ router.post('/', requireAuth, async (req, res) => {
       cashConfig: CASH_TYPES.includes(type) ? (cashConfig || {}) : undefined,
       discountConfig: type === 'discount' ? (discountConfig || {}) : undefined,
       productConfig: type === 'free_product' ? (productConfig || {}) : undefined,
+      fulfillment: fulfillment || undefined, // how the creator receives it on approval
       status: req.body.status === 'active' ? 'active' : 'draft',
       createdBy: req.user._id,
     });
@@ -496,7 +497,7 @@ router.put('/:rewardId', requireAuth, async (req, res) => {
     }
 
     const allowedFields = ['title', 'description', 'imageUrl', 'bannerImageUrl',
-      'pointConfig', 'cashConfig', 'discountConfig', 'productConfig',
+      'pointConfig', 'cashConfig', 'discountConfig', 'productConfig', 'fulfillment',
       'status'];
 
     const updates = {};

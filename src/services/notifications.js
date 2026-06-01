@@ -289,6 +289,30 @@ async function contentApproved({ influencer, brand, submission, reward = null })
       const rDesc = reward.description || '';
       rewardLine = `<p>🎉 <strong>Reward unlocked:</strong> ${rTitle}${rDesc ? ` — ${rDesc}` : ''}</p>`;
       rewardShortMsg = ` ${rTitle} unlocked!`;
+
+      // Deliverable — the platform hands the reward to the creator here (no brand PII).
+      const d = reward.deliverable;
+      if (d) {
+        const btn = (label, href) => `<p style="margin:14px 0;"><a href="${href}" style="display:inline-block;background:#2EA5DD;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">${label} →</a></p>`;
+        const note = d.instructions ? `<p style="font-size:13px;color:#555;margin-top:6px;">${d.instructions}</p>` : '';
+        if (d.method === 'link' && d.url) {
+          rewardLine += btn('Get your reward', d.url) + note;
+          rewardShortMsg = ' Tap to claim your reward.';
+        } else if (d.method === 'file' && d.fileUrl) {
+          rewardLine += btn('Download your reward', d.fileUrl) + note;
+          rewardShortMsg = ' Tap to download your reward.';
+        } else if ((d.method === 'code' || d.method === 'code_pool') && d.code) {
+          rewardLine += `<p style="margin:12px 0;">Your code: <strong style="font-size:18px;letter-spacing:1px;background:#f3f0f7;padding:4px 10px;border-radius:6px;">${d.code}</strong></p>` + note;
+          rewardShortMsg = ` Your code: ${d.code}`;
+        } else if (d.method === 'code_pool' && d.exhausted) {
+          rewardLine += `<p style="color:#b45309;">This reward is fully claimed for now — the brand will follow up.</p>`;
+        } else if (d.method === 'pickup') {
+          rewardLine += `<p style="margin:12px 0;"><strong>Claim in person:</strong> show this at ${brand.name}'s station and they'll hand it to you.</p>` + note;
+          rewardShortMsg = ' Show this to claim in person.';
+        } else if (d.method === 'address') {
+          rewardLine += `<p style="margin:12px 0;"><strong>Shipping reward:</strong> confirm your mailing address so ${brand.name} can send it.</p>` + note;
+        }
+      }
     } else if (typeof reward.amount === 'number') {
       rewardLine = `<p>🎉 <strong>Reward earned:</strong> ${$(reward.amount)} has been added to your wallet!</p>`;
       rewardShortMsg = ` You earned ${$(reward.amount)}!`;
@@ -313,12 +337,17 @@ async function contentApproved({ influencer, brand, submission, reward = null })
   // In-app + push notification to influencer
   if (influencer.userId) {
     const msg = `${brand.name} approved your ${submission.contentType || 'content'}.${rewardShortMsg}`;
+    // If the reward has a tappable deliverable (download/redeem link), open it
+    // directly from the notification; otherwise fall back to submissions.
+    const dl = reward?.deliverable || null;
+    const deliverableLink = (dl && (dl.url || dl.fileUrl)) || null;
+    const notifLink = deliverableLink || '/app/submissions.html';
     await createInApp({
       userId: influencer.userId,
       title: 'Content Approved!',
       message: msg,
       type: 'approval',
-      link: '/app/submissions.html',
+      link: notifLink,
       audience: 'influencer',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
@@ -329,12 +358,16 @@ async function contentApproved({ influencer, brand, submission, reward = null })
         thumbnailUrl: submission.posterUrl || (submission.mediaUrls && submission.mediaUrls[0]) || '',
         rewardType: reward?.type || null,
         rewardTitle: reward?.title || null,
+        rewardMethod: dl?.method || null,
+        rewardLink: deliverableLink,
+        rewardCode: dl?.code || null,
+        rewardInstructions: dl?.instructions || null,
       },
     });
     push(influencer.userId, {
       title: '✅ Content Approved!',
       body: msg,
-      link: '/app/submissions.html',
+      link: notifLink,
     });
 
     // Per-approval rewards have no points-earned card (awardContentPoints only

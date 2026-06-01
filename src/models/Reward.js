@@ -105,6 +105,31 @@ const rewardSchema = new mongoose.Schema({
     },
   },
 
+  // Fulfillment — HOW the creator receives the reward on approval.
+  // Generic across reward types (free_product, discount, point levels). The
+  // PLATFORM delivers it via the approval notification (email + in-app + push),
+  // so the brand never needs the creator's email/PII. Ref: REWARD_DELIVERY.md
+  fulfillment: {
+    method: {
+      type: String,
+      // link: download/redeem URL (e.g. Gumroad 100%-off offer link)
+      // file: platform-hosted asset (R2)            code: single shared code
+      // code_pool: unique one-time codes (auto-assigned)   pickup: in-person claim (scan creator's existing profile QR)
+      // address: physical ship (creator confirms address)  none: no auto-deliverable
+      enum: ['link', 'file', 'code', 'code_pool', 'pickup', 'address', 'none'],
+      default: 'none',
+    },
+    url: { type: String, default: null },       // 'link'
+    fileUrl: { type: String, default: null },   // 'file'
+    code: { type: String, default: null },      // 'code'
+    codePool: [{                                 // 'code_pool'
+      code: { type: String },
+      usedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'InfluencerProfile', default: null },
+      usedAt: { type: Date, default: null },
+    }],
+    instructions: { type: String, maxlength: 200, default: null }, // shown to the creator
+  },
+
   // Status
   status: {
     type: String,

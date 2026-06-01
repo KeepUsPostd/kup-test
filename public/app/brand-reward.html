@@ -396,6 +396,23 @@
           <div class="form-group"><label>Estimated Value</label><input type="text" id="fpValue" placeholder="e.g., $25 value"><p class="helper">Approximate retail value shown to influencers</p></div>
           <h6>Shipping Method</h6>
           <div class="radio-group"><label><input type="radio" name="fpShipping" value="address"> Shipping via address</label><label><input type="radio" name="fpShipping" value="email" checked> Shipping via email</label><label><input type="radio" name="fpShipping" value="pickup"> In-store pickup</label></div>
+
+          <h6>How is this delivered?</h6>
+          <div class="form-group">
+            <select id="fpFulfillMethod" onchange="updateFulfillFields()">
+              <option value="none">No automatic delivery</option>
+              <option value="link">Link — a download / redeem URL (e.g. a free Gumroad offer link)</option>
+              <option value="code">Code — one shared code for everyone</option>
+              <option value="code_pool">Unique codes — one per person (paste a list)</option>
+              <option value="pickup">In-person pickup — claim at your station</option>
+              <option value="address">Ship to address</option>
+            </select>
+            <p class="helper">On approval, KeepUsPostd delivers this to the creator automatically — you never need their email.</p>
+          </div>
+          <div class="form-group fulfill-field" id="ff-link" style="display:none;"><label>Delivery link</label><input type="url" id="fpFulfillUrl" placeholder="https://yourstore.gumroad.com/l/book?offer_code=FREE"><p class="helper">Tip: a Gumroad 100%-off offer-code link makes a paid item free without changing your price.</p></div>
+          <div class="form-group fulfill-field" id="ff-code" style="display:none;"><label>Code</label><input type="text" id="fpFulfillCode" placeholder="e.g., FREEBOOK"></div>
+          <div class="form-group fulfill-field" id="ff-pool" style="display:none;"><label>Unique codes (one per line)</label><textarea id="fpFulfillPool" placeholder="CODE-001&#10;CODE-002&#10;CODE-003"></textarea><p class="helper">Each approved creator automatically gets the next unused code.</p></div>
+          <div class="form-group fulfill-field" id="ff-note" style="display:none;"><label>Instructions to the creator <span style="font-weight:400;color:#888;">(optional)</span></label><input type="text" id="fpFulfillNote" maxlength="200" placeholder="e.g., Show this at the table to claim your gift"></div>
         </div>
 
         <!-- Discount / Coupon -->
@@ -1743,6 +1760,30 @@
       }
     })();
 
+    /* ============ REWARD DELIVERY (fulfillment) ============ */
+    function updateFulfillFields() {
+      var m = (document.getElementById('fpFulfillMethod') || {}).value || 'none';
+      function show(id, on) { var el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; }
+      show('ff-link', m === 'link');
+      show('ff-code', m === 'code');
+      show('ff-pool', m === 'code_pool');
+      show('ff-note', m !== 'none' && m !== 'address'); // address collects its own info later
+    }
+    function buildFulfillment() {
+      var m = (document.getElementById('fpFulfillMethod') || {}).value || 'none';
+      if (m === 'none') return { method: 'none' };
+      var note = ((document.getElementById('fpFulfillNote') || {}).value || '').trim() || null;
+      var f = { method: m, instructions: note };
+      if (m === 'link') f.url = ((document.getElementById('fpFulfillUrl') || {}).value || '').trim() || null;
+      else if (m === 'code') f.code = ((document.getElementById('fpFulfillCode') || {}).value || '').trim() || null;
+      else if (m === 'code_pool') {
+        var lines = ((document.getElementById('fpFulfillPool') || {}).value || '')
+          .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+        f.codePool = lines.map(function (c) { return { code: c }; });
+      }
+      return f;
+    }
+
     function buildRewardPayload(status) {
       var brand = (typeof KUP_BRAND_CONTEXT !== 'undefined') ? KUP_BRAND_CONTEXT.getActiveBrand() : null;
       if (!brand || !brand.mongoId) { kupToast('No active brand found', 'error'); return null; }
@@ -1814,6 +1855,7 @@
           productValue: parseFloat((document.getElementById('fpValue') || {}).value) || null,
           shippingMethod: fpShipping ? fpShipping.value : 'email'
         };
+        payload.fulfillment = buildFulfillment();
       } else if (selectedType === 'discount') {
         payload.title = (document.getElementById('dcTitle') || {}).value || '';
         var dcType = document.querySelector('input[name="dcType"]:checked');
@@ -1977,6 +2019,17 @@
               var shipRadio = document.querySelector('input[name="fpShipping"][value="' + r.productConfig.shippingMethod + '"]');
               if (shipRadio) shipRadio.checked = true;
             }
+          }
+          if (r.fulfillment && r.fulfillment.method) {
+            var fm = document.getElementById('fpFulfillMethod');
+            if (fm) fm.value = r.fulfillment.method;
+            if (document.getElementById('fpFulfillUrl')) document.getElementById('fpFulfillUrl').value = r.fulfillment.url || '';
+            if (document.getElementById('fpFulfillCode')) document.getElementById('fpFulfillCode').value = r.fulfillment.code || '';
+            if (document.getElementById('fpFulfillNote')) document.getElementById('fpFulfillNote').value = r.fulfillment.instructions || '';
+            if (document.getElementById('fpFulfillPool') && r.fulfillment.codePool) {
+              document.getElementById('fpFulfillPool').value = r.fulfillment.codePool.map(function (c) { return c.code; }).join('\n');
+            }
+            if (typeof updateFulfillFields === 'function') updateFulfillFields();
           }
         } else if (frontendType === 'discount') {
           if (document.getElementById('dcTitle')) document.getElementById('dcTitle').value = r.title || '';
