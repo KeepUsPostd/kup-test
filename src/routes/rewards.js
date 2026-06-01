@@ -467,7 +467,12 @@ router.get('/:rewardId', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Reward not found' });
     }
 
-    res.json({ reward: _withDisplayType(reward) });
+    // Return the RAW reward (real `type`, e.g. "free_product") — do NOT apply
+    // _withDisplayType here. That swap rewrites type → "Per Approval Reward" for
+    // display in the LIST view, but the edit form (the only consumer of this
+    // endpoint) needs the real type to select the right card + populate fields.
+    // Applying it caused the reward edit form to load blank for per-approval rewards.
+    res.json({ reward });
   } catch (error) {
     console.error('Get reward error:', error.message);
     res.status(500).json({ error: 'Could not fetch reward' });
