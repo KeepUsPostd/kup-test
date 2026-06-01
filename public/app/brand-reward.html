@@ -1949,22 +1949,24 @@
         var typeReverseMap = { 'points_store_credit':'points', 'free_product':'free-product', 'discount':'discount', 'cash_per_approval':'cash-per-approval', 'bonus_cash':'bonus-cash', 'postd_pay':'postd-pay' };
         var frontendType = typeReverseMap[r.type] || r.type;
 
-        // Select the reward type card
-        var typeCard = document.querySelector('.offer-card[data-type="' + frontendType + '"]');
-        if (typeCard) selectRewardType(typeCard);
+        // Select the reward type card. DEFENSIVE: a throw in this helper must NOT
+        // abort the prefill — otherwise the field population below never runs and
+        // the whole form shows blank (the empty-fields-on-edit bug).
+        try {
+          var typeCard = document.querySelector('.offer-card[data-type="' + frontendType + '"]');
+          if (typeCard) selectRewardType(typeCard);
+        } catch (selErr) { console.warn('[edit] reward-type select failed (non-blocking):', selErr); }
 
-        // Set earning method. The UI uses CARDS (.earning-method-card), not
-        // radio buttons — the prior radio-based code never matched anything,
-        // so the visual state of the form was wrong on edit (3-level config
-        // showed even for Per Approval rewards). Triggering selectEarningMethod
-        // ensures the cards, banner visibility, and conditional fields all
-        // sync to the saved state.
-        if (r.earningMethod) {
-          var methodReverseMap = { 'point_based':'point-based', 'per_approval':'per-approval' };
-          var methodKey = methodReverseMap[r.earningMethod] || r.earningMethod;
-          var methodCard = document.querySelector('.earning-method-card[data-method="' + methodKey + '"]');
-          if (methodCard) selectEarningMethod(methodCard);
-        }
+        // Set earning method. The UI uses CARDS (.earning-method-card), not radio
+        // buttons. DEFENSIVE for the same reason as above.
+        try {
+          if (r.earningMethod) {
+            var methodReverseMap = { 'point_based':'point-based', 'per_approval':'per-approval' };
+            var methodKey = methodReverseMap[r.earningMethod] || r.earningMethod;
+            var methodCard = document.querySelector('.earning-method-card[data-method="' + methodKey + '"]');
+            if (methodCard) selectEarningMethod(methodCard);
+          }
+        } catch (emErr) { console.warn('[edit] earning-method select failed (non-blocking):', emErr); }
 
         // Populate type-specific fields
         if (frontendType === 'points') {
@@ -2066,12 +2068,12 @@
         var pageTitle = document.querySelector('h3') || document.querySelector('.wizard-content h3');
         if (pageTitle) pageTitle.textContent = 'Edit Reward';
 
-        // Update preview
-        updatePreview();
-        kupToast('Editing: ' + r.title, 'info');
+        // Update preview (defensive)
+        try { updatePreview(); } catch (pvErr) { console.warn('[edit] preview refresh failed (non-blocking):', pvErr); }
+        kupToast('Editing: ' + (r.title || 'reward'), 'info');
 
-        // Auto-advance to Step 2 so editing doesn't start over at Step 1
-        goToStep(2);
+        // Auto-advance to Step 2 so editing doesn't start over at Step 1 (defensive)
+        try { goToStep(2); } catch (gsErr) { console.warn('[edit] goToStep failed (non-blocking):', gsErr); }
 
       } catch (err) {
         console.error('Load reward error:', err);
