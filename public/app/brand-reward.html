@@ -214,6 +214,17 @@
     /* stage-pill removed — replaced by point-cat-tag + earning badges */
     .wizard-actions-publish{flex-direction:column;align-items:stretch;text-align:center;border-top:none;padding-top:0}
 
+    /* ===== EDIT MODE: locked reward-type chip ===== */
+    .edit-lock-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f5f7fa;border:1px solid #e6e9f0;border-radius:10px;padding:12px 16px;margin-bottom:20px}
+    .edit-lock-chip .elc-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.5px;color:#999;font-weight:700}
+    .edit-lock-chip .elc-type{font-size:1rem;font-weight:800;color:#1a1a1a;margin-top:2px}
+    .edit-lock-chip .elc-link{font-size:.75rem;color:var(--kup-blue);text-decoration:none;font-weight:600;white-space:nowrap}
+    .edit-lock-chip .elc-link:hover{text-decoration:underline}
+    /* Lock the type: hide the type-selection step, its progress dots, and the back-to-type button */
+    body.reward-edit-mode .wizard-progress{display:none}
+    body.reward-edit-mode #step1{display:none !important}
+    body.reward-edit-mode #step2BackBtn{display:none}
+
     @media(max-width:1024px){.wizard-layout{grid-template-columns:380px 1fr}}
     @media(max-width:768px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{display:none}}
   
@@ -263,6 +274,14 @@
   <div class="wizard-layout" id="wizardLayout" style="opacity:0;transition:opacity .25s ease">
     <div class="wizard-form">
       <h3>Create Reward <span class="back-link" onclick="window.location='brand-reward-settings.html'">&lt; Back to Rewards</span></h3>
+      <!-- Edit mode: reward type is locked (shown read-only); type-selection step is hidden -->
+      <div id="editLockChip" class="edit-lock-chip" style="display:none">
+        <div>
+          <div class="elc-label">Editing reward</div>
+          <div class="elc-type" id="editLockType">&mdash;</div>
+        </div>
+        <a class="elc-link" href="brand-reward.html">Need a different type? Create a new reward &rarr;</a>
+      </div>
       <div class="wizard-progress">
         <div class="progress-step active"></div>
         <div class="progress-step"></div>
@@ -697,7 +716,7 @@
         </div><!-- /earningSection -->
 
         <div class="wizard-actions">
-          <button class="btn-wizard secondary" onclick="goToStep(1)"><i class="ph ph-arrow-left"></i> Back</button>
+          <button class="btn-wizard secondary" id="step2BackBtn" onclick="goToStep(1)"><i class="ph ph-arrow-left"></i> Back</button>
           <button class="btn-wizard primary" onclick="proceedFromStep2()">Continue</button>
         </div>
       </div><!-- /step2 -->
@@ -1948,6 +1967,19 @@
         // Map backend type back to frontend type
         var typeReverseMap = { 'points_store_credit':'points', 'free_product':'free-product', 'discount':'discount', 'cash_per_approval':'cash-per-approval', 'bonus_cash':'bonus-cash', 'postd_pay':'postd-pay' };
         var frontendType = typeReverseMap[r.type] || r.type;
+
+        // EDIT MODE: lock the reward type (can't switch types in place) + show a
+        // read-only chip instead of the type-selection step.
+        document.body.classList.add('reward-edit-mode');
+        try {
+          var typeLabelMap = { 'points':'Loyalty Points', 'free-product':'Free Product or Service', 'discount':'Discount / Coupon', 'cash-per-approval':'Cash Per Approval', 'bonus-cash':'Bonus Cash', 'postd-pay':'Postd Pay' };
+          var methodLabel = r.earningMethod === 'per_approval' ? 'Per Approval' : (r.earningMethod === 'point_based' ? 'Point-Based' : '');
+          var chipText = (typeLabelMap[frontendType] || frontendType) + (methodLabel ? ' · ' + methodLabel : '');
+          var chipTypeEl = document.getElementById('editLockType');
+          var chipEl = document.getElementById('editLockChip');
+          if (chipTypeEl) chipTypeEl.textContent = chipText;
+          if (chipEl) chipEl.style.display = 'flex';
+        } catch (chipErr) { console.warn('[edit] type chip render failed (non-blocking):', chipErr); }
 
         // Select the reward type card. DEFENSIVE: a throw in this helper must NOT
         // abort the prefill — otherwise the field population below never runs and
