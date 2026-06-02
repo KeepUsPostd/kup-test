@@ -21,6 +21,14 @@ const promotionSchema = new mongoose.Schema({
   paidAt: { type: Date, default: null },
   paypalTransactionId: { type: String, default: null },
   createdBy: { type: String, default: 'admin' },
+
+  // ── Delivery + acknowledgment tracking ──────────────────────────────
+  pushDelivered: { type: Boolean, default: null }, // null=not attempted, true=≥1 device received, false=failed/no device
+  pushReason: { type: String, default: null },     // 'no_tokens' | 'token_expired' | error message | null when delivered
+  pushTokenCount: { type: Number, default: 0 },    // # of device tokens at last send
+  lastNotifiedAt: { type: Date, default: null },   // last time the briefing fired (initial send OR resend)
+  reminderCount: { type: Number, default: 0 },     // # of resends after the initial send
+  acknowledgedAt: { type: Date, default: null },   // when the creator first opened/read the in-app briefing
 }, { timestamps: true });
 
 promotionSchema.index({ influencerUserId: 1, status: 1 });

@@ -2459,6 +2459,49 @@ router.put('/promo-codes/:id', async (req, res) => {
 const Promotion = require('../models/Promotion');
 
 // POST /api/admin-panel/promotions — Create and send a promo offer
+// Builds + sends a promo briefing (in-app + push) for a given promo & brand.
+// Shared by the initial send AND the resend-reminder endpoint. Returns the raw
+// pushResult so the caller can persist delivery status. KeepUsPostd is always
+// the issuer (its branding), never the target brand's logo/color.
+async function _deliverPromo(promo, brand) {
+  const { createInApp } = require('../services/notifications');
+  const KUP_LOGO_URL = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
+  const KUP_BRAND_COLOR = '#2EA5DD';
+  const amount = promo.amount;
+  const uid = promo.influencerUserId.toString();
+
+  const sections = [`💰 Earn $${amount} for ${brand.name}`];
+  if (promo.videoDuration) sections.push(`⏱ Duration: ${promo.videoDuration}`);
+  if (promo.dos) sections.push(`✅ Do: ${promo.dos}`);
+  if (promo.donts) sections.push(`🚫 Don't: ${promo.donts}`);
+  if (promo.description) sections.push(promo.description);
+  if (promo.paypalReminder !== false) sections.push(`Before submitting, connect your PayPal in Profile → Payouts so we can pay you on approval.`);
+
+  await createInApp({
+    userId: uid,
+    title: `KeepUsPostd Bonus Opportunity`,
+    message: sections.join('\n\n'),
+    type: 'briefing',
+    link: `/brands/${promo.brandId}`,
+    metadata: {
+      brandName: 'KeepUsPostd',
+      brandLogoUrl: KUP_LOGO_URL,
+      brandColor: KUP_BRAND_COLOR,
+      targetBrandName: brand.name,
+      targetBrandId: promo.brandId.toString(),
+      promoId: promo._id.toString(),
+      amount,
+    },
+    audience: 'influencer',
+  });
+
+  return sendPushToUser(uid, {
+    title: `KeepUsPostd: Earn $${amount}`,
+    body: `New ${brand.name} brief inside — earn $${amount} on approval. Tap to view.`,
+    data: { type: 'briefing', brandId: promo.brandId.toString(), promoId: promo._id.toString() },
+  });
+}
+
 router.post('/promotions', async (req, res) => {
   try {
     const { influencerUserId, influencerHandle, brandId, brandName, amount, description, videoDuration, dos, donts, paypalReminder } = req.body;
@@ -2486,49 +2529,16 @@ router.post('/promotions', async (req, res) => {
       description: description || null,
     });
 
-    // Send push + in-app notification as a briefing
-    // KUP is always the issuer of promos (like Uber surge pay on top of the ride fare)
-    // — always show KUP branding, never the target brand's logo/color
-    const KUP_LOGO_URL = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
-    const KUP_BRAND_COLOR = '#2EA5DD';
-
-    // Short push body — just the hook (push notifications truncate at ~110 chars)
-    const pushBody = `New ${brand.name} brief inside — earn $${amount} on approval. Tap to view.`;
-
-    // Full in-app message — structured brief with all sections
-    const sections = [];
-    sections.push(`💰 Earn $${amount} for ${brand.name}`);
-    if (videoDuration) sections.push(`⏱ Duration: ${videoDuration}`);
-    if (dos) sections.push(`✅ Do: ${dos}`);
-    if (donts) sections.push(`🚫 Don't: ${donts}`);
-    if (description) sections.push(description);
-    if (paypalReminder !== false) sections.push(`Before submitting, connect your PayPal in Profile → Payouts so we can pay you on approval.`);
-    const inAppMessage = sections.join('\n\n');
-
+    // Send the briefing (push + in-app) and PERSIST the delivery result, so the
+    // admin can SEE whether the push actually reached a device vs silently
+    // failing (e.g. creator never opened the app → no device token registered).
     try {
-      const { createInApp } = require('../services/notifications');
-      await createInApp({
-        userId: influencerUserId,
-        title: `KeepUsPostd Bonus Opportunity`,
-        message: inAppMessage,
-        type: 'briefing',
-        link: `/brands/${brandId}`,
-        metadata: {
-          brandName: 'KeepUsPostd',
-          brandLogoUrl: KUP_LOGO_URL,
-          brandColor: KUP_BRAND_COLOR,
-          targetBrandName: brand.name,
-          targetBrandId: brandId.toString(),
-          promoId: promo._id.toString(),
-          amount,
-        },
-        audience: 'influencer',
-      });
-      const pushResult = await sendPushToUser(influencerUserId, {
-        title: `KeepUsPostd: Earn $${amount}`,
-        body: pushBody,
-        data: { type: 'briefing', brandId: brandId.toString(), promoId: promo._id.toString() },
-      });
+      const pushResult = await _deliverPromo(promo, brand);
+      promo.pushDelivered = !!pushResult.success;
+      promo.pushReason = pushResult.success ? null : (pushResult.reason || 'unknown');
+      promo.pushTokenCount = pushResult.total ?? pushResult.sent ?? 0;
+      promo.lastNotifiedAt = new Date();
+      await promo.save();
       if (!pushResult.success) {
         console.warn(`⚠️ Promo push not delivered to @${influencerHandle}: ${pushResult.reason} (tokens: ${pushResult.total ?? 0})`);
       }
@@ -2541,6 +2551,40 @@ router.post('/promotions', async (req, res) => {
   } catch (error) {
     console.error('Create promotion error:', error);
     res.status(500).json({ error: 'Failed to create promotion' });
+  }
+});
+
+// POST /api/admin-panel/promotions/:id/resend — Re-send the SAME briefing as a
+// reminder (fresh push + in-app). Increments reminderCount and refreshes the
+// delivery status so the admin sees whether the reminder actually landed.
+router.post('/promotions/:id/resend', async (req, res) => {
+  try {
+    const promo = await Promotion.findById(req.params.id);
+    if (!promo) return res.status(404).json({ error: 'Promotion not found' });
+    if (promo.status === 'paid') return res.status(400).json({ error: 'Already paid — no reminder needed' });
+
+    const brand = await Brand.findById(promo.brandId);
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    let pushResult = { success: false, reason: 'unknown' };
+    try {
+      pushResult = await _deliverPromo(promo, brand);
+    } catch (notifyErr) {
+      console.error('Promo resend notification failed:', notifyErr.message);
+    }
+
+    promo.pushDelivered = !!pushResult.success;
+    promo.pushReason = pushResult.success ? null : (pushResult.reason || 'unknown');
+    promo.pushTokenCount = pushResult.total ?? pushResult.sent ?? 0;
+    promo.lastNotifiedAt = new Date();
+    promo.reminderCount = (promo.reminderCount || 0) + 1;
+    await promo.save();
+
+    console.log(`🔁 Promo reminder #${promo.reminderCount} sent: $${promo.amount} to @${promo.influencerHandle} for ${brand.name}`);
+    res.json({ success: true, promo });
+  } catch (error) {
+    console.error('Resend promotion error:', error);
+    res.status(500).json({ error: 'Failed to resend promotion' });
   }
 });
 

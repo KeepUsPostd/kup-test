@@ -32,6 +32,14 @@
     .status-paid { background: #D1FAE5; color: #065F46; }
     .btn-mark-paid { background: #059669; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .btn-mark-paid:hover { background: #047857; }
+    .pill { padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; display: inline-block; white-space: nowrap; margin: 1px 0; }
+    .pill-ok { background: #D1FAE5; color: #065F46; }
+    .pill-warn { background: #FEF3C7; color: #92400E; }
+    .pill-err { background: #FEE2E2; color: #991B1B; }
+    .pill-muted { background: #F3F4F6; color: #9ca3af; }
+    .pill-info { background: #DBEAFE; color: #1E40AF; }
+    .btn-resend { background: #6366f1; color: #fff; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .btn-resend:hover { background: #4f46e5; }
     .checkbox-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#374151; }
     .checkbox-row input[type=checkbox] { width:16px; height:16px; accent-color:#2EA5DD; }
   </style>
@@ -110,10 +118,10 @@
         </div>
         <table class="promo-table">
           <thead>
-            <tr><th>Influencer</th><th>Brand</th><th>Amount</th><th>Description</th><th>Status</th><th>Sent</th><th>Action</th></tr>
+            <tr><th>Influencer</th><th>Brand</th><th>Amount</th><th>Description</th><th>Status</th><th>Delivery</th><th>Sent</th><th>Action</th></tr>
           </thead>
           <tbody id="promoBody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">Loading...</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -243,7 +251,7 @@
         const tbody = document.getElementById('promoBody');
 
         if (!promos.length) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">No promotions yet</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af">No promotions yet</td></tr>';
           return;
         }
 
@@ -261,18 +269,35 @@
             : p.status === 'sent' ? '<span style="color:#9ca3af;font-size:12px">Awaiting content</span>'
             : p.status === 'paid' ? '<span style="color:#059669;font-size:12px">✓ Paid</span>' : '';
 
+          // Delivery: did the push actually reach a device, and has she opened it?
+          let pushBadge;
+          if (p.pushDelivered === true) pushBadge = '<span class="pill pill-ok">Push delivered</span>';
+          else if (p.pushDelivered === false && (p.pushReason === 'no_tokens' || p.pushReason === 'no_token')) pushBadge = '<span class="pill pill-warn" title="Creator has no device registered — they will see it in-app next time they open the app">No device · in-app only</span>';
+          else if (p.pushDelivered === false) pushBadge = '<span class="pill pill-err" title="' + (p.pushReason || 'unknown') + '">Push failed</span>';
+          else pushBadge = '<span class="pill pill-muted">—</span>';
+          const ackBadge = p.acknowledgedAt
+            ? '<span class="pill pill-ok" title="Opened ' + new Date(p.acknowledgedAt).toLocaleString() + '">Seen ✓</span>'
+            : '<span class="pill pill-muted">Not seen yet</span>';
+          const reminderBadge = (p.reminderCount > 0) ? ' <span class="pill pill-info" title="Reminders resent">↻ ' + p.reminderCount + '</span>' : '';
+          const deliveryCell = pushBadge + '<br>' + ackBadge + reminderBadge;
+
+          const resendBtn = (p.status !== 'paid')
+            ? '<button class="btn-resend" onclick="resendPromo(\'' + p._id + '\')">Resend</button>'
+            : '';
+
           return '<tr>' +
             '<td><strong>@' + (p.influencerHandle || '') + '</strong>' + paypalDisplay + '</td>' +
             '<td>' + (p.brandName || '') + '</td>' +
             '<td><strong>$' + (p.amount || 0).toFixed(2) + '</strong></td>' +
             '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.description || '') + '</td>' +
             '<td><span class="status-pill status-' + p.status + '">' + (statusLabels[p.status] || p.status) + '</span></td>' +
+            '<td>' + deliveryCell + '</td>' +
             '<td>' + date + '</td>' +
-            '<td>' + actionBtn + '</td>' +
+            '<td>' + actionBtn + (resendBtn ? '<br>' + resendBtn : '') + '</td>' +
             '</tr>';
         }).join('');
       } catch (_) {
-        document.getElementById('promoBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:red">Failed to load</td></tr>';
+        document.getElementById('promoBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:red">Failed to load</td></tr>';
       }
     }
 
@@ -298,6 +323,24 @@
         }
       } catch (_) {
         alert('Error marking as paid');
+      }
+    }
+
+    async function resendPromo(promoId) {
+      if (!confirm('Resend this briefing as a reminder?\n\nThe creator gets a fresh push + in-app notification with the same offer.')) return;
+      try {
+        const data = await apiFetch('/promotions/' + promoId + '/resend', { method: 'POST' });
+        if (data.success) {
+          const delivered = data.promo && data.promo.pushDelivered;
+          alert(delivered
+            ? '✓ Reminder sent — push delivered to their device.'
+            : '✓ Reminder logged — but they have no device registered, so it\'s in-app only (they\'ll see it next time they open the app).');
+          loadPromotions();
+        } else {
+          alert(data.error || 'Failed to resend');
+        }
+      } catch (_) {
+        alert('Error resending reminder');
       }
     }
   </script>

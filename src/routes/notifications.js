@@ -100,6 +100,19 @@ router.put('/:id/read', async (req, res) => {
       return res.status(404).json({ error: 'Notification not found' });
     }
 
+    // If this is a promo briefing, record the FIRST read as the promo's
+    // acknowledgment — so the admin can see the creator actually opened it.
+    try {
+      const promoId = notification.metadata && notification.metadata.promoId;
+      if (promoId) {
+        const Promotion = require('../models/Promotion');
+        await Promotion.updateOne(
+          { _id: promoId, acknowledgedAt: null },
+          { $set: { acknowledgedAt: new Date() } }
+        );
+      }
+    } catch (ackErr) { console.warn('[notif] promo ack update failed (non-blocking):', ackErr.message); }
+
     res.json({ notification });
   } catch (error) {
     console.error('Error marking notification read:', error.message);
@@ -114,6 +127,24 @@ router.put('/read-all', async (req, res) => {
       { userId: req.user._id.toString(), read: false },
       { $set: { read: true, readAt: new Date() } }
     );
+
+    // Acknowledge any promo briefings the user just bulk-marked read
+    try {
+      const Promotion = require('../models/Promotion');
+      const promoNotifs = await Notification.find({
+        userId: req.user._id.toString(),
+        'metadata.promoId': { $exists: true, $ne: null },
+      }).select('metadata').lean();
+      const promoIds = promoNotifs
+        .map(n => n.metadata && n.metadata.promoId)
+        .filter(Boolean);
+      if (promoIds.length) {
+        await Promotion.updateMany(
+          { _id: { $in: promoIds }, acknowledgedAt: null },
+          { $set: { acknowledgedAt: new Date() } }
+        );
+      }
+    } catch (ackErr) { console.warn('[notif] promo ack bulk update failed (non-blocking):', ackErr.message); }
 
     res.json({ marked: result.modifiedCount });
   } catch (error) {
