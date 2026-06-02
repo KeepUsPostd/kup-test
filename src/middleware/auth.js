@@ -68,6 +68,43 @@ const requireAuth = async (req, res, next) => {
         user.activeProfile = 'brand';
         await user.save();
         console.log(`✅ Auto-created user + both profiles: ${decodedToken.email}`);
+
+        // ── Signup notifications (admin alert + welcome) ──────────────────
+        // App/web signups are auto-provisioned HERE, not via /api/auth/register,
+        // so the signup emails must also fire from this path. Fire-and-forget:
+        // never block or fail the request on a notification error. Runs exactly
+        // once — only the moment a brand-new account is created.
+        (function notifyNewAccount(newUser) {
+          // Welcome email to the new account (neutral template — this path can't
+          // tell creator vs brand, so we avoid the influencer-specific welcome).
+          try {
+            const notify = require('../services/notifications');
+            notify.accountCreated({ user: newUser, brandName: newUser.legalFirstName || 'there' })
+              .catch(e => console.error('[auth-mw] accountCreated error:', e.message));
+          } catch (e) { console.error('[auth-mw] welcome notify error:', e.message); }
+          // Admin alert
+          try {
+            const { sendEmail } = require('../config/email');
+            const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean);
+            for (const adminEmail of adminEmails) {
+              sendEmail({
+                to: adminEmail,
+                subject: `New account signed up — ${newUser.email}`,
+                headline: 'New Account',
+                preheader: `${newUser.email} just joined KUP`,
+                bodyHtml: `
+                  <p>A new account was just created on KUP (via the app or web sign-up).</p>
+                  <p><strong>Email:</strong> ${newUser.email}</p>
+                  <p><strong>Name:</strong> ${[newUser.legalFirstName, newUser.legalLastName].filter(Boolean).join(' ') || 'Not provided'}</p>
+                  <p><strong>Joined:</strong> ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })} CT</p>
+                `,
+                ctaText: 'View in Admin Panel',
+                ctaUrl: 'https://keepuspostd.com/pages/admin/users.html',
+                variant: 'brand',
+              }).catch(e => console.error('[auth-mw] admin notify error:', e.message));
+            }
+          } catch (e) { console.error('[auth-mw] admin notify error:', e.message); }
+        })(user);
       }
     }
 
