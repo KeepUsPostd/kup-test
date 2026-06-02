@@ -438,6 +438,14 @@
           <div class="form-group fulfill-field" id="ff-code" style="display:none;"><label>Code</label><input type="text" id="fpFulfillCode" placeholder="e.g., FREEBOOK"></div>
           <div class="form-group fulfill-field" id="ff-pool" style="display:none;"><label>Unique codes (one per line)</label><textarea id="fpFulfillPool" placeholder="CODE-001&#10;CODE-002&#10;CODE-003"></textarea><p class="helper">Each approved creator automatically gets the next unused code.</p></div>
           <div class="form-group fulfill-field" id="ff-note" style="display:none;"><label>Instructions to the creator <span style="font-weight:400;color:#888;">(optional)</span></label><input type="text" id="fpFulfillNote" maxlength="200" placeholder="e.g., Show this at the table to claim your gift"></div>
+          <div class="form-group fulfill-field" id="ff-test" style="display:none;border-top:1px dashed #e6e9f0;padding-top:14px;margin-top:8px;">
+            <label>Test this delivery <span style="font-weight:400;color:#888;">— sends the real reward email + in-app to a creator, no submission needed</span></label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="testDeliveryHandle" placeholder="creator @handle (e.g., aevaamina)" style="flex:1;min-width:180px;">
+              <button type="button" id="testDeliveryBtn" onclick="sendTestDelivery()" style="background:#2EA5DD;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Send test</button>
+            </div>
+            <p class="helper">Save the reward first, then send a test to confirm the creator actually receives the deliverable on approval.</p>
+          </div>
         </div>
 
         <!-- Discount / Coupon -->
@@ -1827,6 +1835,31 @@
       show('ff-code', m === 'code');
       show('ff-pool', m === 'code_pool');
       show('ff-note', m !== 'none' && m !== 'address'); // address collects its own info later
+      show('ff-test', m !== 'none'); // test-delivery tool available for any real method
+    }
+
+    // Fire a REAL approval-delivery notification to a creator to confirm the
+    // reward auto-delivers — no content submission/approval needed.
+    async function sendTestDelivery() {
+      var rid = editingRewardId || new URLSearchParams(window.location.search).get('edit');
+      if (!rid) { kupToast('Save the reward first, then send a test.', 'warning'); return; }
+      var handle = ((document.getElementById('testDeliveryHandle') || {}).value || '').trim();
+      if (!handle) { kupToast('Enter a creator @handle to test.', 'warning'); return; }
+      var btn = document.getElementById('testDeliveryBtn');
+      var orig = btn ? btn.textContent : 'Send test';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      try {
+        var data = await kupApi.post('/api/rewards/' + rid + '/test-delivery', { handle: handle });
+        if (data && data.success) {
+          kupToast('Test sent to @' + data.sentTo.handle + ' (' + data.sentTo.email + ') — check that account for the reward email + in-app notification.', 'success');
+        } else {
+          kupToast((data && data.error) || 'Test failed', 'error');
+        }
+      } catch (e) {
+        kupToast((e && e.message) || 'Test delivery failed', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = orig; }
+      }
     }
     function buildFulfillment() {
       var m = (document.getElementById('fpFulfillMethod') || {}).value || 'none';

@@ -923,4 +923,68 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/rewards/:rewardId/test-delivery — Fire a REAL approval-delivery
+// notification to a specified creator WITHOUT needing a content submission +
+// approval. Lets a brand (or admin) confirm the reward auto-delivers on approval.
+// Replicates exactly what content.js builds on approval (per_approval reward +
+// resolved deliverable). NOTE: for a code_pool reward this WILL consume one code
+// (resolveDeliverable claims atomically) — link/file/code methods are non-destructive.
+router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
+  try {
+    const { handle } = req.body;
+    if (!handle) return res.status(400).json({ error: 'A creator @handle is required' });
+
+    const reward = await Reward.findById(req.params.rewardId).lean();
+    if (!reward) return res.status(404).json({ error: 'Reward not found' });
+
+    // Auth: the reward's brand owner OR a platform admin
+    const isOwner = await BrandProfile.findOne({ ownedBrandIds: reward.brandId, userId: req.user._id });
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const isAdmin = req.user.email && adminEmails.includes(req.user.email.toLowerCase());
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Not allowed to test this reward' });
+
+    const Brand = require('../models/Brand');
+    const { User } = require('../models');
+    const brand = await Brand.findById(reward.brandId).lean();
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const cleanHandle = String(handle).replace(/^@/, '').trim().toLowerCase();
+    const profile = await InfluencerProfile.findOne({ handle: cleanHandle });
+    if (!profile) return res.status(404).json({ error: `Creator @${cleanHandle} not found` });
+    const user = await User.findById(profile.userId).lean();
+    if (!user || !user.email) return res.status(404).json({ error: `@${cleanHandle} has no email on file` });
+
+    // Resolve the deliverable exactly like the approval flow does.
+    let deliverable = null;
+    try {
+      const { resolveDeliverable } = require('../services/rewardFulfillment');
+      deliverable = await resolveDeliverable(reward, profile._id);
+    } catch (delErr) {
+      console.warn('[test-delivery] resolve (non-blocking):', delErr.message);
+    }
+
+    const testReward = {
+      type: 'per_approval',
+      title: reward.title || 'Reward',
+      description: reward.description || '',
+      rewardId: reward._id?.toString(),
+      bannerImageUrl: reward.bannerImageUrl || null,
+      deliverable,
+    };
+
+    await notify.contentApproved({
+      influencer: { email: user.email, userId: user._id.toString() },
+      brand,
+      submission: { contentType: 'test review', _id: null, partnershipId: null, posterUrl: '', mediaUrls: [] },
+      reward: testReward,
+    });
+
+    console.log(`🧪 Test reward delivery fired: "${reward.title}" → @${cleanHandle} (${user.email})`);
+    res.json({ success: true, sentTo: { handle: cleanHandle, email: user.email }, deliverable });
+  } catch (error) {
+    console.error('Test delivery error:', error.message);
+    res.status(500).json({ error: 'Failed to send test delivery' });
+  }
+});
+
 module.exports = router;
