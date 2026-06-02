@@ -1260,13 +1260,25 @@
 
   <!-- Auth gate + load rewards from API -->
   <script>
-    // Wait for auth then load rewards. Single attempt with 1s delay for brand context.
+    // Wait for auth then load rewards. Instead of a flat 1s delay, poll for the
+    // brand context and load the instant it's ready (usually within tens of ms,
+    // since brand-context.js reads from localStorage). Falls back after ~2s so a
+    // slow context never blocks the page. loadRewardPage's own token guard still
+    // protects API calls.
     var _rewardPageLoaded = false;
     auth.onAuthStateChanged(function(user) {
       if (_rewardPageLoaded) return;
       if (!user) return;
       _rewardPageLoaded = true;
-      setTimeout(loadRewardPage, 1000);
+      var _waited = 0;
+      (function waitForBrandContext() {
+        var ready = (typeof KUP_BRAND_CONTEXT !== 'undefined') &&
+                    KUP_BRAND_CONTEXT.getActiveBrand &&
+                    KUP_BRAND_CONTEXT.getActiveBrand();
+        if (ready || _waited >= 2000) { loadRewardPage(); return; }
+        _waited += 40;
+        setTimeout(waitForBrandContext, 40);
+      })();
     });
 
     async function loadRewardPage() {
