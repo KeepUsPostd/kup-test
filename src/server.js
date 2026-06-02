@@ -270,12 +270,21 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
 // --- API Routes ---
 
 // Health check (no auth required, no rate limit)
+// Captured once at module load = effectively the server's start time. Combined
+// with the Railway-injected git commit, this makes deploys verifiable: after a
+// push, poll /api/health until `commit` matches the new SHA and uptime resets.
+const SERVER_STARTED_AT = new Date().toISOString();
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     message: 'KUP Test Server is running!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'test',
+    // Railway auto-injects these git vars for GitHub-deployed services.
+    commit: (process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 7),
+    branch: process.env.RAILWAY_GIT_BRANCH || 'unknown',
+    startedAt: SERVER_STARTED_AT,
+    uptimeSeconds: Math.round(process.uptime()),
   });
 });
 
