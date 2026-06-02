@@ -676,6 +676,11 @@
           </div>
 
           <div class="form-group">
+            <label for="brandWebsite">Website <span style="font-weight:400;color:#bbb;font-size:.8rem">(optional — shown on your profile)</span></label>
+            <input type="text" id="brandWebsite" placeholder="yourbrand.com">
+          </div>
+
+          <div class="form-group">
             <label>Social Links</label>
             <div class="social-input"><span class="social-icon">ig</span><input type="text" id="socialIg" placeholder="Instagram handle"></div>
             <div class="social-input"><span class="social-icon">X</span><input type="text" id="socialX" placeholder="X handle"></div>
@@ -1640,7 +1645,7 @@
       state:    (document.getElementById('brandState')   ? document.getElementById('brandState').value   : '').trim().toUpperCase() || undefined,
       zip:      (document.getElementById('brandZip')     ? document.getElementById('brandZip').value     : '').trim() || undefined,
       contactName: (document.getElementById('contactName').value || '').trim(),
-      websiteUrl: (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : ''),
+      websiteUrl: ((document.getElementById('brandWebsite') && document.getElementById('brandWebsite').value.trim()) || (document.getElementById('brandUrl') ? document.getElementById('brandUrl').value.trim() : '')),
       socialLinks: {                                                        // ← was 'socials' (dropped silently)
         instagram: (document.getElementById('socialIg').value || '').trim(),
         twitter:   (document.getElementById('socialX').value || '').trim(),
@@ -1862,8 +1867,10 @@
       if (b.state)   document.getElementById('brandState').value   = b.state;
       if (b.zip)     document.getElementById('brandZip').value     = b.zip;
       var urlField = document.getElementById('brandUrl');
+      var webField = document.getElementById('brandWebsite');
       // Use the correct field name per the Brand model (was 'website', which is always undefined)
       if (urlField && b.websiteUrl) urlField.value = b.websiteUrl;
+      if (webField && b.websiteUrl) webField.value = b.websiteUrl;
 
       // Contact name isn't stored on Brand — derive from the logged-in user
       try {
@@ -1961,7 +1968,7 @@
     { id: 'brandCity',        api: 'city' },
     { id: 'brandState',       api: 'state' },
     { id: 'brandZip',         api: 'zip' },
-    { id: 'brandUrl',         api: 'websiteUrl' },
+    { id: 'brandWebsite',     api: 'websiteUrl' },
     { id: 'socialIg',         api: 'socialLinks.instagram' },
     { id: 'socialX',          api: 'socialLinks.twitter' },
     { id: 'socialTt',         api: 'socialLinks.tiktok' },
