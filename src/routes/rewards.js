@@ -929,10 +929,9 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
 // creator gets on approval, and RETURNS the email send result so failures are
 // visible (sendEmail swallows its own errors — historically these failed silently).
 //
-// Recipient rules (privacy-safe):
-//  - Regular brand-user → always sent to THEIR OWN email. The @handle is ignored
-//    and no creator PII is ever returned (upholds "brand never sees creator email").
-//  - Platform admin + an @handle → sent to that creator (true end-to-end test).
+// Recipient: the owner enters any email to send the preview to (or leaves it blank
+// to use their own account email). They type the address themselves, so no creator
+// PII is ever exposed — upholds "brand never sees creator email".
 router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
   try {
     const reward = await Reward.findById(req.params.rewardId).lean();
@@ -945,34 +944,29 @@ router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
     if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Not allowed to test this reward' });
 
     const Brand = require('../models/Brand');
-    const { User } = require('../models');
     const brand = await Brand.findById(reward.brandId).lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
-    // Decide recipient. Only an admin may target a creator @handle; everyone else
-    // (including brand owners) previews to their own inbox — never another's PII.
-    let recipientEmail, recipientLabel, influencerProfileId = null;
-    const handle = String(req.body.handle || '').replace(/^@/, '').trim().toLowerCase();
-    if (isAdmin && handle) {
-      const profile = await InfluencerProfile.findOne({ handle });
-      if (!profile) return res.status(404).json({ error: `Creator @${handle} not found` });
-      const creator = await User.findById(profile.userId, 'email').lean();
-      if (!creator || !creator.email) return res.status(404).json({ error: `@${handle} has no email on file` });
-      recipientEmail = creator.email;
-      recipientLabel = '@' + handle;
-      influencerProfileId = profile._id;
-    } else {
-      recipientEmail = req.user.email;
-      recipientLabel = 'your inbox';
-      if (!recipientEmail) return res.status(400).json({ error: 'Your account has no email on file' });
+    // Recipient: any email the owner chooses, or their own account email if blank.
+    // They type the address themselves, so there's no creator-PII exposure.
+    let recipientEmail = String(req.body.email || '').trim() || req.user.email;
+    if (!recipientEmail) return res.status(400).json({ error: 'Enter an email to send the preview to' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+      return res.status(400).json({ error: "That doesn't look like a valid email address" });
     }
 
-    // Resolve the deliverable exactly like the approval flow does.
+    // Build a NON-DESTRUCTIVE preview of the deliverable. link/file/code use the
+    // real resolver; code_pool shows a sample so a preview never burns a one-time code.
     let deliverable = null;
-    try {
-      const { resolveDeliverable } = require('../services/rewardFulfillment');
-      deliverable = await resolveDeliverable(reward, influencerProfileId);
-    } catch (delErr) { console.warn('[test-delivery] resolve:', delErr.message); }
+    const fm = (reward.fulfillment && reward.fulfillment.method) || 'none';
+    if (fm === 'code_pool') {
+      deliverable = { method: 'code_pool', code: '(a unique code is assigned per creator)', instructions: (reward.fulfillment && reward.fulfillment.instructions) || null };
+    } else if (fm !== 'none') {
+      try {
+        const { resolveDeliverable } = require('../services/rewardFulfillment');
+        deliverable = await resolveDeliverable(reward, null);
+      } catch (delErr) { console.warn('[test-delivery] resolve:', delErr.message); }
+    }
 
     // Render the reward line — mirrors notifications.contentApproved.
     const btn = (label, href) => `<p style="margin:14px 0;"><a href="${href}" style="display:inline-block;background:#2EA5DD;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">${label} →</a></p>`;
@@ -1000,10 +994,10 @@ router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
       variant: 'brand',
     });
 
-    console.log(`🧪 Test delivery: "${reward.title}" → ${recipientLabel} — email ${emailResult.success ? 'sent' : 'FAILED: ' + emailResult.error}`);
+    console.log(`🧪 Test delivery: "${reward.title}" → ${recipientEmail} — email ${emailResult.success ? 'sent' : 'FAILED: ' + emailResult.error}`);
     res.json({
       success: true,
-      sentTo: recipientLabel,
+      sentTo: recipientEmail,
       emailDelivered: !!emailResult.success,
       emailError: emailResult.success ? null : (emailResult.error || 'unknown'),
       deliverableResolved: !!deliverable,

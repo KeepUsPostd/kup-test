@@ -439,12 +439,12 @@
           <div class="form-group fulfill-field" id="ff-pool" style="display:none;"><label>Unique codes (one per line)</label><textarea id="fpFulfillPool" placeholder="CODE-001&#10;CODE-002&#10;CODE-003"></textarea><p class="helper">Each approved creator automatically gets the next unused code.</p></div>
           <div class="form-group fulfill-field" id="ff-note" style="display:none;"><label>Instructions to the creator <span style="font-weight:400;color:#888;">(optional)</span></label><input type="text" id="fpFulfillNote" maxlength="200" placeholder="e.g., Show this at the table to claim your gift"></div>
           <div class="form-group fulfill-field" id="ff-test" style="display:none;border-top:1px dashed #e6e9f0;padding-top:14px;margin-top:8px;">
-            <label>Send a delivery preview <span style="font-weight:400;color:#888;">— emails you the exact reward your creators receive on approval</span></label>
+            <label>Send a delivery preview <span style="font-weight:400;color:#888;">— emails the exact reward your creators receive on approval</span></label>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="testDeliveryHandle" placeholder="(optional — leave blank to preview to your own inbox)" style="flex:1;min-width:180px;">
+              <input type="email" id="testDeliveryEmail" placeholder="Send to… (blank = your account email)" style="flex:1;min-width:200px;">
               <button type="button" id="testDeliveryBtn" onclick="sendTestDelivery()" style="background:#2EA5DD;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Send preview</button>
             </div>
-            <p class="helper">Save the reward first. The preview goes to your own email so you can confirm the reward link works before going live.</p>
+            <p class="helper">Save the reward first. Leave blank to send to your own account email, or enter any address (e.g., a teammate's) to confirm the reward link works before going live.</p>
           </div>
         </div>
 
@@ -1843,13 +1843,12 @@
     async function sendTestDelivery() {
       var rid = editingRewardId || new URLSearchParams(window.location.search).get('edit');
       if (!rid) { kupToast('Save the reward first, then send a test.', 'warning'); return; }
-      var handle = ((document.getElementById('testDeliveryHandle') || {}).value || '').trim();
-      if (!handle) { kupToast('Enter a creator @handle to test.', 'warning'); return; }
+      var email = ((document.getElementById('testDeliveryEmail') || {}).value || '').trim();
       var btn = document.getElementById('testDeliveryBtn');
       var orig = btn ? btn.textContent : 'Send preview';
       if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
       try {
-        var data = await kupApi.post('/api/rewards/' + rid + '/test-delivery', { handle: handle });
+        var data = await kupApi.post('/api/rewards/' + rid + '/test-delivery', { email: email });
         if (data && data.success) {
           if (!data.deliverableResolved) {
             kupToast('No deliverable resolved — re-check "How is this delivered?" and re-save the reward, then try again.', 'error');
