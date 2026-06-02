@@ -439,12 +439,9 @@
           <div class="form-group fulfill-field" id="ff-pool" style="display:none;"><label>Unique codes (one per line)</label><textarea id="fpFulfillPool" placeholder="CODE-001&#10;CODE-002&#10;CODE-003"></textarea><p class="helper">Each approved creator automatically gets the next unused code.</p></div>
           <div class="form-group fulfill-field" id="ff-note" style="display:none;"><label>Instructions to the creator <span style="font-weight:400;color:#888;">(optional)</span></label><input type="text" id="fpFulfillNote" maxlength="200" placeholder="e.g., Show this at the table to claim your gift"></div>
           <div class="form-group fulfill-field" id="ff-test" style="display:none;border-top:1px dashed #e6e9f0;padding-top:14px;margin-top:8px;">
-            <label>Send a delivery preview <span style="font-weight:400;color:#888;">— emails the exact reward your creators receive on approval</span></label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="email" id="testDeliveryEmail" placeholder="Send to… (blank = your account email)" style="flex:1;min-width:200px;">
-              <button type="button" id="testDeliveryBtn" onclick="sendTestDelivery()" style="background:#2EA5DD;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Send preview</button>
-            </div>
-            <p class="helper">Save the reward first. Leave blank to send to your own account email, or enter any address (e.g., a teammate's) to confirm the reward link works before going live.</p>
+            <label>See what creators receive <span style="font-weight:400;color:#888;">— a live preview of this reward</span></label>
+            <button type="button" onclick="openRewardPreview()" style="background:#2EA5DD;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;">Preview reward</button>
+            <p class="helper">Opens exactly what a creator sees the moment you approve their content — instant, right here, no email needed.</p>
           </div>
         </div>
 
@@ -1838,34 +1835,50 @@
       show('ff-test', m !== 'none'); // test-delivery tool available for any real method
     }
 
-    // Fire a REAL approval-delivery notification to a creator to confirm the
-    // reward auto-delivers — no content submission/approval needed.
-    async function sendTestDelivery() {
-      var rid = editingRewardId || new URLSearchParams(window.location.search).get('edit');
-      if (!rid) { kupToast('Save the reward first, then send a test.', 'warning'); return; }
-      var email = ((document.getElementById('testDeliveryEmail') || {}).value || '').trim();
-      var btn = document.getElementById('testDeliveryBtn');
-      var orig = btn ? btn.textContent : 'Send preview';
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-      try {
-        var data = await kupApi.post('/api/rewards/' + rid + '/test-delivery', { email: email });
-        if (data && data.success) {
-          if (!data.deliverableResolved) {
-            kupToast('No deliverable resolved — re-check "How is this delivered?" and re-save the reward, then try again.', 'error');
-          } else if (data.emailDelivered) {
-            kupToast('Preview sent to ' + data.sentTo + ' — open it and confirm the reward link works.', 'success');
-          } else {
-            kupToast('Reward link is set, but the email FAILED to send: ' + (data.emailError || 'unknown') + (/invalid|recipient|address/i.test(data.emailError || '') ? ' (the recipient email looks invalid).' : '.'), 'error');
-          }
-        } else {
-          kupToast((data && data.error) || 'Test failed', 'error');
-        }
-      } catch (e) {
-        kupToast((e && e.message) || 'Preview failed', 'error');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = orig; }
+    // Instant on-screen preview of what the creator receives on approval.
+    // Reads the current reward fields and renders the deliverable card — no
+    // server call, no email, works immediately.
+    function openRewardPreview() {
+      function val(id) { var el = document.getElementById(id); return el ? (el.value || '').trim() : ''; }
+      var method = val('fpFulfillMethod') || 'none';
+      var title = val('fpTitle') || 'Your reward';
+      var desc = val('fpDesc');
+      var url = val('fpFulfillUrl');
+      var code = val('fpFulfillCode');
+      var note = val('fpFulfillNote');
+      var brandName = 'Your brand';
+      try { var b = (typeof KUP_BRAND_CONTEXT !== 'undefined') && KUP_BRAND_CONTEXT.getActiveBrand && KUP_BRAND_CONTEXT.getActiveBrand(); if (b && b.name) brandName = b.name; } catch (e) {}
+
+      var esc = function (s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+      var body = '';
+      if (method === 'link' && url) body = '<a href="' + esc(url) + '" target="_blank" rel="noopener" style="display:inline-block;background:#2EA5DD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin:14px 0;">Get your reward →</a>';
+      else if (method === 'file') body = '<a href="#" onclick="return false" style="display:inline-block;background:#2EA5DD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin:14px 0;">Download your reward →</a>';
+      else if (method === 'code' && code) body = '<p style="margin:12px 0;">Your code: <strong style="background:#f3f0f7;padding:4px 10px;border-radius:6px;font-size:18px;letter-spacing:1px;">' + esc(code) + '</strong></p>';
+      else if (method === 'code_pool') body = '<p style="margin:12px 0;">Your code: <strong style="background:#f3f0f7;padding:4px 10px;border-radius:6px;">(a unique code, assigned per creator)</strong></p>';
+      else if (method === 'pickup') body = '<p style="margin:12px 0;"><strong>Claim in person</strong> — show this at ' + esc(brandName) + '’s station.</p>';
+      else if (method === 'address') body = '<p style="margin:12px 0;"><strong>Shipping reward</strong> — confirm your mailing address.</p>';
+      else body = '<p style="color:#b45309;margin:12px 0;">Pick a delivery method (and add the link/code) above to see the reward button here.</p>';
+      var noteHtml = note ? '<p style="font-size:13px;color:#555;margin-top:4px;">' + esc(note) + '</p>' : '';
+
+      var modal = document.getElementById('rewardPreviewModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'rewardPreviewModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;';
+        modal.onclick = function (e) { if (e.target === modal) closeRewardPreview(); };
+        document.body.appendChild(modal);
       }
+      modal.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:inherit;">'
+        + '<div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#999;font-weight:700;margin-bottom:6px;">What your creator receives</div>'
+        + '<div style="font-size:13px;color:#888;margin-bottom:12px;">' + esc(brandName) + ' approved your content!</div>'
+        + '<p style="font-size:15px;color:#1a1a1a;margin:0 0 4px;line-height:1.5;">🎉 <strong>Reward unlocked:</strong> ' + esc(title) + (desc ? ' — ' + esc(desc) : '') + '</p>'
+        + body + noteHtml
+        + '<div style="border-top:1px solid #eee;margin-top:16px;padding-top:12px;font-size:12px;color:#999;">This is exactly what the creator sees on approval (email + in-app notification).</div>'
+        + '<button type="button" onclick="closeRewardPreview()" style="margin-top:16px;width:100%;background:#f3f4f6;color:#333;border:none;padding:10px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;">Close</button>'
+        + '</div>';
+      modal.style.display = 'flex';
     }
+    function closeRewardPreview() { var m = document.getElementById('rewardPreviewModal'); if (m) m.style.display = 'none'; }
     function buildFulfillment() {
       var m = (document.getElementById('fpFulfillMethod') || {}).value || 'none';
       if (m === 'none') return { method: 'none' };
