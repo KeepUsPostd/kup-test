@@ -69,11 +69,18 @@ const storage = multer.diskStorage({
   },
 });
 
+// Per-file upload ceiling. Overridable via the MAX_UPLOAD_MB env var so it can
+// be tuned on Railway WITHOUT a code deploy. Default 200MB — comfortably fits a
+// 1080p phone review clip of over a minute. Going much higher is discouraged:
+// temp disk usage scales with (limit × files-per-upload) and big files time out
+// on mobile networks — the durable fix for huge files is in-app compression.
+const MAX_UPLOAD_MB = parseInt(process.env.MAX_UPLOAD_MB, 10) || 200;
+
 // Set up multer with limits and file type filtering
 const upload = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB max per file (video needs room)
+    fileSize: MAX_UPLOAD_MB * 1024 * 1024, // per-file cap (env-tunable, default 200MB)
     files: 5,                    // Max 5 files per upload
   },
   fileFilter: (req, file, cb) => {
@@ -831,7 +838,7 @@ router.post('/render-with-overlays', requireAuth, async (req, res) => {
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(413).json({ error: 'File too large. Maximum size is 50MB.' });
+      return res.status(413).json({ error: `File too large. Maximum size is ${MAX_UPLOAD_MB}MB. Tip: record at 1080p (not 4K) to keep the file smaller.` });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({ error: 'Too many files. Maximum is 5 per upload.' });
