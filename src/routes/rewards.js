@@ -923,24 +923,25 @@ router.post('/distribute-level', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/rewards/:rewardId/test-delivery — Fire a REAL approval-delivery
-// notification to a specified creator WITHOUT needing a content submission +
-// approval. Lets a brand (or admin) confirm the reward auto-delivers on approval.
-// Replicates exactly what content.js builds on approval (per_approval reward +
-// resolved deliverable). NOTE: for a code_pool reward this WILL consume one code
-// (resolveDeliverable claims atomically) — link/file/code methods are non-destructive.
+// POST /api/rewards/:rewardId/test-delivery — Send a preview of the reward
+// deliverable email so the owner can confirm it works BEFORE going live, with no
+// content submission + approval needed. It renders the SAME deliverable button a
+// creator gets on approval, and RETURNS the email send result so failures are
+// visible (sendEmail swallows its own errors — historically these failed silently).
+//
+// Recipient rules (privacy-safe):
+//  - Regular brand-user → always sent to THEIR OWN email. The @handle is ignored
+//    and no creator PII is ever returned (upholds "brand never sees creator email").
+//  - Platform admin + an @handle → sent to that creator (true end-to-end test).
 router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
   try {
-    const { handle } = req.body;
-    if (!handle) return res.status(400).json({ error: 'A creator @handle is required' });
-
     const reward = await Reward.findById(req.params.rewardId).lean();
     if (!reward) return res.status(404).json({ error: 'Reward not found' });
 
     // Auth: the reward's brand owner OR a platform admin
     const isOwner = await BrandProfile.findOne({ ownedBrandIds: reward.brandId, userId: req.user._id });
     const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    const isAdmin = req.user.email && adminEmails.includes(req.user.email.toLowerCase());
+    const isAdmin = !!(req.user.email && adminEmails.includes(req.user.email.toLowerCase()));
     if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Not allowed to test this reward' });
 
     const Brand = require('../models/Brand');
@@ -948,39 +949,66 @@ router.post('/:rewardId/test-delivery', requireAuth, async (req, res) => {
     const brand = await Brand.findById(reward.brandId).lean();
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
-    const cleanHandle = String(handle).replace(/^@/, '').trim().toLowerCase();
-    const profile = await InfluencerProfile.findOne({ handle: cleanHandle });
-    if (!profile) return res.status(404).json({ error: `Creator @${cleanHandle} not found` });
-    const user = await User.findById(profile.userId).lean();
-    if (!user || !user.email) return res.status(404).json({ error: `@${cleanHandle} has no email on file` });
+    // Decide recipient. Only an admin may target a creator @handle; everyone else
+    // (including brand owners) previews to their own inbox — never another's PII.
+    let recipientEmail, recipientLabel, influencerProfileId = null;
+    const handle = String(req.body.handle || '').replace(/^@/, '').trim().toLowerCase();
+    if (isAdmin && handle) {
+      const profile = await InfluencerProfile.findOne({ handle });
+      if (!profile) return res.status(404).json({ error: `Creator @${handle} not found` });
+      const creator = await User.findById(profile.userId, 'email').lean();
+      if (!creator || !creator.email) return res.status(404).json({ error: `@${handle} has no email on file` });
+      recipientEmail = creator.email;
+      recipientLabel = '@' + handle;
+      influencerProfileId = profile._id;
+    } else {
+      recipientEmail = req.user.email;
+      recipientLabel = 'your inbox';
+      if (!recipientEmail) return res.status(400).json({ error: 'Your account has no email on file' });
+    }
 
     // Resolve the deliverable exactly like the approval flow does.
     let deliverable = null;
     try {
       const { resolveDeliverable } = require('../services/rewardFulfillment');
-      deliverable = await resolveDeliverable(reward, profile._id);
-    } catch (delErr) {
-      console.warn('[test-delivery] resolve (non-blocking):', delErr.message);
+      deliverable = await resolveDeliverable(reward, influencerProfileId);
+    } catch (delErr) { console.warn('[test-delivery] resolve:', delErr.message); }
+
+    // Render the reward line — mirrors notifications.contentApproved.
+    const btn = (label, href) => `<p style="margin:14px 0;"><a href="${href}" style="display:inline-block;background:#2EA5DD;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">${label} →</a></p>`;
+    let rewardLine = `<p>🎉 <strong>Reward unlocked:</strong> ${reward.title || 'Reward'}${reward.description ? ` — ${reward.description}` : ''}</p>`;
+    const d = deliverable;
+    if (d) {
+      const note = d.instructions ? `<p style="font-size:13px;color:#555;margin-top:6px;">${d.instructions}</p>` : '';
+      if (d.method === 'link' && d.url) rewardLine += btn('Get your reward', d.url) + note;
+      else if (d.method === 'file' && d.fileUrl) rewardLine += btn('Download your reward', d.fileUrl) + note;
+      else if ((d.method === 'code' || d.method === 'code_pool') && d.code) rewardLine += `<p style="margin:12px 0;">Your code: <strong style="font-size:18px;letter-spacing:1px;background:#f3f0f7;padding:4px 10px;border-radius:6px;">${d.code}</strong></p>` + note;
+      else if (d.method === 'pickup') rewardLine += `<p style="margin:12px 0;"><strong>Claim in person:</strong> show this at ${brand.name}'s station.</p>` + note;
+      else if (d.method === 'address') rewardLine += `<p style="margin:12px 0;"><strong>Shipping reward:</strong> confirm your mailing address.</p>` + note;
+      else rewardLine += `<p style="color:#b45309;">No deliverable payload for method "${d.method}".</p>`;
+    } else {
+      rewardLine += `<p style="color:#b45309;">⚠️ No deliverable resolved — re-check this reward's "How is this delivered?" settings and re-save.</p>`;
     }
 
-    const testReward = {
-      type: 'per_approval',
-      title: reward.title || 'Reward',
-      description: reward.description || '',
-      rewardId: reward._id?.toString(),
-      bannerImageUrl: reward.bannerImageUrl || null,
-      deliverable,
-    };
-
-    await notify.contentApproved({
-      influencer: { email: user.email, userId: user._id.toString() },
-      brand,
-      submission: { contentType: 'test review', _id: null, partnershipId: null, posterUrl: '', mediaUrls: [] },
-      reward: testReward,
+    const { sendEmail } = require('../config/email');
+    const emailResult = await sendEmail({
+      to: recipientEmail,
+      subject: `[Test] Your reward from ${brand.name}`,
+      headline: 'Reward Delivery Test',
+      preheader: `Preview of what creators receive when you approve their content`,
+      bodyHtml: `<p style="color:#555;"><em>This is a test preview — this is exactly what a creator receives when you approve their content.</em></p>${rewardLine}`,
+      variant: 'brand',
     });
 
-    console.log(`🧪 Test reward delivery fired: "${reward.title}" → @${cleanHandle} (${user.email})`);
-    res.json({ success: true, sentTo: { handle: cleanHandle, email: user.email }, deliverable });
+    console.log(`🧪 Test delivery: "${reward.title}" → ${recipientLabel} — email ${emailResult.success ? 'sent' : 'FAILED: ' + emailResult.error}`);
+    res.json({
+      success: true,
+      sentTo: recipientLabel,
+      emailDelivered: !!emailResult.success,
+      emailError: emailResult.success ? null : (emailResult.error || 'unknown'),
+      deliverableResolved: !!deliverable,
+      deliverableMethod: deliverable ? deliverable.method : null,
+    });
   } catch (error) {
     console.error('Test delivery error:', error.message);
     res.status(500).json({ error: 'Failed to send test delivery' });
