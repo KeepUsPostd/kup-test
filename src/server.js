@@ -162,6 +162,16 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
   }
 }));
 
+// Safety net for email CTA buttons: many notification emails link to /app/*.html
+// creator screens that live ONLY in the mobile app (no web page). express.static
+// above serves the ones that DO exist; any /app/*.html that doesn't resolve to a
+// real file falls through to here and redirects to the "open the app" page instead
+// of 404'ing. Keeps every email button working. (Runs after static, so real
+// brand pages like /app/content.html are unaffected.)
+app.get(/^\/app\/[\w-]+\.html$/, (req, res) => {
+  res.redirect(302, '/pages/download-app.html');
+});
+
 // --- Firebase Auth Action Redirect ---
 // Firebase sends users to /auth/action for password reset + email verification.
 // Redirect to our branded auth-action page.
