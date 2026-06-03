@@ -838,47 +838,84 @@ router.put('/content/:id/moderate', async (req, res) => {
           const KUP_LOGO = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
           const KUP_COLOR = '#2EA5DD';
 
-          // 1. Approval notification
-          await createInApp({
-            userId,
-            title: `${brandName} approved your content`,
-            message: `Your ${submission.contentType || 'video'} for ${brandName} was approved. Keep it up!`,
-            type: 'approval',
-            link: `/brands/${submission.brandId}`,
-            metadata: {
-              brandName,
-              brandLogoUrl: brand.logoUrl || KUP_LOGO,
-              brandColor: brand.generatedColor || KUP_COLOR,
-              partnershipId: submission.partnershipId?.toString() || null,
-            },
-            audience: 'influencer',
-          });
+          // If this brand has an active PER-APPROVAL reward (e.g. a free digital
+          // book), deliver it fully — email + in-app WITH the reward link + push +
+          // rating — exactly like a brand approving in its own portal. Without this,
+          // admin-panel approvals gave creators a bare "approved" ping and no reward.
+          let perApprovalReward = null;
+          try {
+            const Reward = require('../models/Reward');
+            const perApp = await Reward.findOne({ brandId: submission.brandId, earningMethod: 'per_approval', status: 'active' }).lean();
+            if (perApp) {
+              let deliverable = null;
+              try {
+                const { resolveDeliverable } = require('../services/rewardFulfillment');
+                deliverable = await resolveDeliverable(perApp, submission.influencerProfileId);
+              } catch (delErr) { console.warn('[admin-moderate] deliverable resolve:', delErr.message); }
+              perApprovalReward = {
+                type: 'per_approval',
+                title: perApp.title || 'Reward',
+                description: perApp.description || '',
+                rewardId: perApp._id?.toString(),
+                bannerImageUrl: perApp.bannerImageUrl || null,
+                deliverable,
+              };
+            }
+          } catch (rwErr) { console.warn('[admin-moderate] per-approval lookup:', rwErr.message); }
 
-          await sendPushToUser(userId, {
-            title: `${brandName} approved your content 🎉`,
-            body: `Your review was approved. Check your Activity tab.`,
-            data: { type: 'approval', brandId: submission.brandId.toString() },
-          });
-
-          // 2. Rating request — only send if there's a partnershipId to link back to
-          if (submission.partnershipId) {
+          if (perApprovalReward) {
+            // notify.contentApproved fires email + in-app (with reward link) + push + rating_request.
+            const creatorUser = await User.findById(profile.userId, 'email').lean();
+            await notify.contentApproved({
+              influencer: { email: creatorUser?.email, userId, displayName: profile.displayName, handle: profile.handle },
+              brand,
+              submission,
+              reward: perApprovalReward,
+            });
+            console.log(`📬 Full reward delivery (email + in-app + push) sent to @${profile.handle} for ${brandName}`);
+          } else {
+            // No per-approval reward — basic approval notification (in-app + push).
             await createInApp({
               userId,
-              title: `Rate your experience with ${brandName}`,
-              message: `How was your partnership with ${brandName}? Rate your experience — it helps improve the platform.`,
-              type: 'rating_request',
+              title: `${brandName} approved your content`,
+              message: `Your ${submission.contentType || 'video'} for ${brandName} was approved. Keep it up!`,
+              type: 'approval',
               link: `/brands/${submission.brandId}`,
               metadata: {
                 brandName,
                 brandLogoUrl: brand.logoUrl || KUP_LOGO,
                 brandColor: brand.generatedColor || KUP_COLOR,
-                partnershipId: submission.partnershipId.toString(),
+                partnershipId: submission.partnershipId?.toString() || null,
               },
               audience: 'influencer',
             });
-          }
 
-          console.log(`📬 Approval + rating notifications sent to userId ${userId} for ${brandName}`);
+            await sendPushToUser(userId, {
+              title: `${brandName} approved your content 🎉`,
+              body: `Your review was approved. Check your Activity tab.`,
+              data: { type: 'approval', brandId: submission.brandId.toString() },
+            });
+
+            // Rating request — only if there's a partnershipId to link back to
+            if (submission.partnershipId) {
+              await createInApp({
+                userId,
+                title: `Rate your experience with ${brandName}`,
+                message: `How was your partnership with ${brandName}? Rate your experience — it helps improve the platform.`,
+                type: 'rating_request',
+                link: `/brands/${submission.brandId}`,
+                metadata: {
+                  brandName,
+                  brandLogoUrl: brand.logoUrl || KUP_LOGO,
+                  brandColor: brand.generatedColor || KUP_COLOR,
+                  partnershipId: submission.partnershipId.toString(),
+                },
+                audience: 'influencer',
+              });
+            }
+
+            console.log(`📬 Approval + rating notifications sent to userId ${userId} for ${brandName}`);
+          }
         }
       } catch (notifyErr) {
         console.error('Approval notification error (non-blocking):', notifyErr.message);
