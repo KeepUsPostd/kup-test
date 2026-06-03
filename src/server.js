@@ -177,12 +177,17 @@ app.get(/^\/app\/[\w-]+\.html$/, (req, res) => {
 // Apple Team ID + Android SHA-256 are filled in (see public/.well-known/SETUP.md)
 // and the next app build ships, /app/* email links open the app directly.
 app.get('/.well-known/apple-app-site-association', (req, res) => {
-  res.type('application/json');
-  res.sendFile(path.join(__dirname, '..', 'public', '.well-known', 'apple-app-site-association'));
+  // Read + send (res.sendFile refuses paths inside a dotfile dir like .well-known)
+  try {
+    const body = require('fs').readFileSync(path.join(__dirname, '..', 'public', '.well-known', 'apple-app-site-association'), 'utf8');
+    res.type('application/json').send(body);
+  } catch (e) { res.status(404).end(); }
 });
 app.get('/.well-known/assetlinks.json', (req, res) => {
-  res.type('application/json');
-  res.sendFile(path.join(__dirname, '..', 'public', '.well-known', 'assetlinks.json'));
+  try {
+    const body = require('fs').readFileSync(path.join(__dirname, '..', 'public', '.well-known', 'assetlinks.json'), 'utf8');
+    res.type('application/json').send(body);
+  } catch (e) { res.status(404).end(); }
 });
 
 // --- Firebase Auth Action Redirect ---
