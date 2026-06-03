@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_APPLE_TEAM_ID.com.keepuspostd.reviews",
+        "paths": [ "/app/*" ]
+      }
+    ]
+  }
+}

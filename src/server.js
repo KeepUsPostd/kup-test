@@ -172,6 +172,19 @@ app.get(/^\/app\/[\w-]+\.html$/, (req, res) => {
   res.redirect(302, '/pages/download-app.html');
 });
 
+// Universal Links (iOS) / App Links (Android) association files. Served via
+// explicit routes because express.static ignores dotfiles (.well-known). Once the
+// Apple Team ID + Android SHA-256 are filled in (see public/.well-known/SETUP.md)
+// and the next app build ships, /app/* email links open the app directly.
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  res.type('application/json');
+  res.sendFile(path.join(__dirname, '..', 'public', '.well-known', 'apple-app-site-association'));
+});
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.type('application/json');
+  res.sendFile(path.join(__dirname, '..', 'public', '.well-known', 'assetlinks.json'));
+});
+
 // --- Firebase Auth Action Redirect ---
 // Firebase sends users to /auth/action for password reset + email verification.
 // Redirect to our branded auth-action page.
