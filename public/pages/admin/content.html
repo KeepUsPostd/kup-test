@@ -177,6 +177,17 @@
         <button class="btn btn-primary btn-sm" onclick="loadContent()">Refresh</button>
       </div>
 
+      <!-- Test-content cleanup (e.g. removing a test review after verifying reward delivery) -->
+      <div class="admin-panel-section" style="margin-bottom:16px;border:1px solid #fde2e2;background:#fff8f8">
+        <div class="section-header"><h3 style="color:#b91c1c">Remove a creator's test content</h3></div>
+        <p style="font-size:13px;color:#666;margin:0 0 10px">Deletes <strong>all</strong> content submissions for one creator (by their account email). Use to clean up test reviews. This can't be undone.</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="email" id="cleanupEmail" placeholder="creator account email (e.g., thebenjaimins@gmail.com)" style="flex:1;min-width:260px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <button class="btn btn-sm" onclick="deleteCreatorContent()" style="background:#dc2626;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer">Delete content</button>
+        </div>
+        <div id="cleanupResult" style="font-size:13px;margin-top:8px"></div>
+      </div>
+
       <div class="admin-panel-section">
         <div class="section-header">
           <h3>Content Queue <span id="contentCount" style="color:#999;font-weight:400"></span></h3>
@@ -304,6 +315,34 @@
         headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', ...(opts?.headers || {}) },
       });
       return res.json();
+    }
+
+    async function deleteCreatorContent() {
+      const email = (document.getElementById('cleanupEmail').value || '').trim();
+      if (!email) { alert('Enter the creator account email'); return; }
+      if (!confirm('Delete ALL content submissions for ' + email + '?\n\nThis cannot be undone.')) return;
+      const resEl = document.getElementById('cleanupResult');
+      resEl.textContent = 'Deleting…'; resEl.style.color = '#666';
+      try {
+        const res = await fetch('/api/admin/influencers/content', {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ influencerEmail: email }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resEl.style.color = '#059669';
+          resEl.textContent = '✓ ' + (data.message || ('Deleted ' + (data.deleted ?? 0) + ' submission(s)'));
+          document.getElementById('cleanupEmail').value = '';
+          loadContent(); loadStats();
+        } else {
+          resEl.style.color = '#dc2626';
+          resEl.textContent = '✗ ' + (data.error || 'Failed');
+        }
+      } catch (e) {
+        resEl.style.color = '#dc2626';
+        resEl.textContent = '✗ ' + (e.message || 'Request failed');
+      }
     }
 
     async function loadStats() {
