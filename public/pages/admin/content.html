@@ -188,6 +188,17 @@
         <div id="cleanupResult" style="font-size:13px;margin-top:8px"></div>
       </div>
 
+      <!-- Email system diagnostic -->
+      <div class="admin-panel-section" style="margin-bottom:16px;border:1px solid #dbeafe;background:#f8fbff">
+        <div class="section-header"><h3 style="color:#1e40af">Email system test</h3></div>
+        <p style="font-size:13px;color:#666;margin:0 0 10px">Sends a plain diagnostic email and shows the raw result + sender config — use to confirm whether transactional email is actually delivering.</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="email" id="emailTestTo" placeholder="send test to… (blank = your admin email)" style="flex:1;min-width:260px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <button class="btn btn-sm" onclick="runEmailTest()" style="background:#2563eb;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer">Send test email</button>
+        </div>
+        <div id="emailTestResult" style="font-size:13px;margin-top:8px"></div>
+      </div>
+
       <div class="admin-panel-section">
         <div class="section-header">
           <h3>Content Queue <span id="contentCount" style="color:#999;font-weight:400"></span></h3>
@@ -315,6 +326,31 @@
         headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', ...(opts?.headers || {}) },
       });
       return res.json();
+    }
+
+    async function runEmailTest() {
+      const to = (document.getElementById('emailTestTo').value || '').trim();
+      const resEl = document.getElementById('emailTestResult');
+      resEl.textContent = 'Sending…'; resEl.style.color = '#666';
+      try {
+        const res = await fetch('/api/admin-panel/email-test', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to }),
+        });
+        const data = await res.json();
+        const cfg = '<br><span style="color:#888">from: ' + (data.fromConfigured || '?') + ' · SendGrid key set: ' + data.sendgridKeySet + (data.devMode ? ' · ⚠️ DEV MODE — no SendGrid key, emails are log-only' : '') + '</span>';
+        if (data.success) {
+          resEl.style.color = '#059669';
+          resEl.innerHTML = '✓ Accepted by SendGrid for ' + data.to + ' — check that inbox (and spam).' + cfg;
+        } else {
+          resEl.style.color = '#dc2626';
+          resEl.innerHTML = '✗ FAILED: ' + (data.error || 'unknown') + cfg;
+        }
+      } catch (e) {
+        resEl.style.color = '#dc2626';
+        resEl.textContent = '✗ ' + (e.message || 'Request failed');
+      }
     }
 
     async function deleteCreatorContent() {

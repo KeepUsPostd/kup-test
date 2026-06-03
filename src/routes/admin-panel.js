@@ -41,6 +41,34 @@ function requireAdmin(req, res, next) {
 // Apply auth to all routes
 router.use(requireAuth, requireAdmin);
 
+// POST /api/admin-panel/email-test — Diagnostic: send a plain email and return
+// the RAW result. sendEmail swallows its errors, so this surfaces the actual
+// SendGrid reason + the sender config (the usual culprit for silent failures).
+router.post('/email-test', async (req, res) => {
+  try {
+    const to = String(req.body.to || req.user.email || '').trim();
+    if (!to) return res.status(400).json({ error: 'No recipient address' });
+    const result = await sendEmail({
+      to,
+      subject: 'KeepUsPostd email system test',
+      headline: 'Email System Test',
+      preheader: 'Confirming transactional email delivery.',
+      bodyHtml: '<p>This is a diagnostic test from KeepUsPostd. If you received this, transactional email delivery is working.</p>',
+      variant: 'brand',
+    });
+    res.json({
+      to,
+      success: !!result.success,
+      error: result.success ? null : (result.error || 'unknown'),
+      devMode: !!result.dev, // true when SENDGRID_API_KEY is unset (emails log-only)
+      fromConfigured: process.env.SENDGRID_FROM_EMAIL || '(unset → falls back to noreply@keepuspostd.com)',
+      sendgridKeySet: !!process.env.SENDGRID_API_KEY,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════
 // MODULE 1: SYSTEM DASHBOARD
 // ═══════════════════════════════════════════════════════════
