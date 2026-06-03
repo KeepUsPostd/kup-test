@@ -60,8 +60,10 @@ router.post('/email-test', async (req, res) => {
       to,
       success: !!result.success,
       error: result.success ? null : (result.error || 'unknown'),
-      devMode: !!result.dev, // true when SENDGRID_API_KEY is unset (emails log-only)
-      fromConfigured: process.env.SENDGRID_FROM_EMAIL || '(unset → falls back to noreply@keepuspostd.com)',
+      devMode: !!result.dev, // true when no provider key is set (emails log-only)
+      provider: process.env.RESEND_API_KEY ? 'Resend' : (process.env.SENDGRID_API_KEY ? 'SendGrid' : 'none (dev/log-only)'),
+      fromConfigured: process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || '(unset → falls back to noreply@keepuspostd.com)',
+      resendKeySet: !!process.env.RESEND_API_KEY,
       sendgridKeySet: !!process.env.SENDGRID_API_KEY,
     });
   } catch (error) {

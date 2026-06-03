@@ -339,7 +339,7 @@
           body: JSON.stringify({ to }),
         });
         const data = await res.json();
-        const cfg = '<br><span style="color:#888">from: ' + (data.fromConfigured || '?') + ' · SendGrid key set: ' + data.sendgridKeySet + (data.devMode ? ' · ⚠️ DEV MODE — no SendGrid key, emails are log-only' : '') + '</span>';
+        const cfg = '<br><span style="color:#888">provider: ' + (data.provider || '?') + ' · from: ' + (data.fromConfigured || '?') + (data.devMode ? ' · ⚠️ DEV MODE — no provider key, emails are log-only' : '') + '</span>';
         if (data.success) {
           resEl.style.color = '#059669';
           resEl.innerHTML = '✓ Accepted by SendGrid for ' + data.to + ' — check that inbox (and spam).' + cfg;

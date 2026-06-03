@@ -7,18 +7,37 @@
 //   await sendEmail({ to, subject, headline, body, ctaText, ctaUrl, variant: 'brand' });
 
 const sgMail = require('@sendgrid/mail');
+const { Resend } = require('resend');
 
-// Initialize SendGrid with API key (silent fail if not configured — local dev)
+// Provider selection — Resend preferred, SendGrid fallback, else dev (log-only).
+// All callers use sendEmail()/sendBatchEmails(); only the delivery line below
+// differs by provider, so swapping providers never touches any touchpoint.
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-if (SENDGRID_API_KEY) {
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+if (RESEND_API_KEY) {
+  console.log('📧 Email service: Resend');
+} else if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('📧 SendGrid email service initialized');
+  console.log('📧 Email service: SendGrid');
 } else {
-  console.log('📧 SendGrid not configured — emails will be logged to console only');
+  console.log('📧 Email not configured — emails will be logged to console only');
 }
+const EMAIL_ENABLED = !!(RESEND_API_KEY || SENDGRID_API_KEY);
 
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@keepuspostd.com';
+const FROM_EMAIL = process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'noreply@keepuspostd.com';
 const FROM_NAME = 'KeepUsPostd';
+
+// Deliver one already-rendered email through the active provider. Throws on
+// failure so the callers' existing try/catch reports it uniformly.
+async function _deliver({ to, subject, html }) {
+  if (resend) {
+    const { error } = await resend.emails.send({ from: `${FROM_NAME} <${FROM_EMAIL}>`, to, subject, html });
+    if (error) throw new Error(error.message || JSON.stringify(error));
+    return;
+  }
+  await sgMail.send({ to, from: { email: FROM_EMAIL, name: FROM_NAME }, subject, html });
+}
 
 // ── KUP Design System Colors ────────────────────────────
 const COLORS = {
@@ -193,7 +212,7 @@ async function sendEmail({
   const html = buildEmailHtml({ preheader, headline, bodyHtml, ctaText, ctaUrl, variant });
 
   // Dev mode — log instead of sending
-  if (!SENDGRID_API_KEY) {
+  if (!EMAIL_ENABLED) {
     console.log(`\n📧 [EMAIL - DEV MODE] Would send to: ${to}`);
     console.log(`   Subject: ${subject}`);
     console.log(`   Headline: ${headline}`);
@@ -203,12 +222,7 @@ async function sendEmail({
   }
 
   try {
-    await sgMail.send({
-      to,
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject,
-      html,
-    });
+    await _deliver({ to, subject, html });
     console.log(`📧 Email sent to ${to}: ${subject}`);
     return { success: true };
   } catch (error) {
@@ -221,7 +235,7 @@ async function sendEmail({
 // For notifications that go to multiple recipients (e.g., admin alerts)
 
 async function sendBatchEmails(messages) {
-  if (!SENDGRID_API_KEY) {
+  if (!EMAIL_ENABLED) {
     messages.forEach(msg => {
       console.log(`📧 [BATCH - DEV MODE] Would send to: ${msg.to} — ${msg.subject}`);
     });
@@ -229,13 +243,9 @@ async function sendBatchEmails(messages) {
   }
 
   try {
-    const formatted = messages.map(msg => ({
-      to: msg.to,
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject: msg.subject,
-      html: buildEmailHtml(msg),
-    }));
-    await sgMail.send(formatted);
+    for (const msg of messages) {
+      await _deliver({ to: msg.to, subject: msg.subject, html: buildEmailHtml(msg) });
+    }
     console.log(`📧 Batch sent: ${messages.length} emails`);
     return { success: true };
   } catch (error) {
