@@ -630,6 +630,11 @@ router.get('/feed', optionalAuth, async (req, res) => {
       .limit(limit)
       .lean();
 
+    // Compute likedByMe per item from req.user (optionalAuth — anonymous viewers
+    // get likedByMe=false everywhere). Never expose the raw likedBy[] array to
+    // viewers — it leaks which userIds liked which content. likedByMe is the
+    // single signal the client needs to fill / empty the heart on render.
+    const viewerId = req.user?._id?.toString() || null;
     const feed = submissions.map(s => ({
       _id:           s._id,
       displayName:   s.influencerProfileId?.displayName || 'Creator',
@@ -649,7 +654,7 @@ router.get('/feed', optionalAuth, async (req, res) => {
       likes:         s.metrics?.likes || 0,
       comments:      s.metrics?.comments || 0,
       shares:        s.metrics?.shares || 0,
-      likedBy:       s.likedBy || [],
+      likedByMe:     viewerId ? (s.likedBy || []).map(String).includes(viewerId) : false,
     }));
 
     // Reorder so the same brand never plays back-to-back when avoidable.
@@ -754,7 +759,10 @@ router.get('/mine', requireAuth, async (req, res) => {
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
       shares:      s.metrics?.shares || 0,
-      likedBy:     s.likedBy || [],
+      // /mine = the user's own content. likedByMe reflects whether they
+      // (oddly) liked their own review; mostly false. likedBy[] stripped for
+      // privacy parity with the public feed.
+      likedByMe:   (s.likedBy || []).map(String).includes(req.user._id.toString()),
       // Reward earned for this submission (if any)
       reward:      txMap[s._id.toString()] || null,
     }));
@@ -848,7 +856,7 @@ router.get('/brand/:brandId', requireAuth, async (req, res) => {
       likes:       s.metrics?.likes || 0,
       comments:    s.metrics?.comments || 0,
       shares:      s.metrics?.shares || 0,
-      likedBy:     s.likedBy || [],
+      likedByMe:   (s.likedBy || []).map(String).includes(req.user._id.toString()),
     }));
 
     res.json({ submissions: result });
