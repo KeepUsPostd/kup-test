@@ -1087,4 +1087,99 @@ router.post('/:partnershipId/award-gratitude', requireAuth, async (req, res) => 
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+// Build 146: feedback visibility surfaces
+//
+// The data has been there since the rating system shipped — Partnership
+// stores both brandRating.feedback (brand → creator) and
+// influencerRating.feedback (creator → brand) — but neither side could
+// READ the other's note anywhere in the UI. These two endpoints power the
+// display surfaces in the Flutter app + brand portal.
+// ─────────────────────────────────────────────────────────────────────────
+
+// GET /api/partnerships/feedback-for-me
+// Returns every non-null brandRating.feedback addressed to the current
+// creator. Private to that creator — never returns feedback for a
+// different user.
+router.get('/feedback-for-me', requireAuth, async (req, res) => {
+  try {
+    const profile = await InfluencerProfile.findOne({ userId: req.user._id }).lean();
+    if (!profile) return res.json({ feedback: [] });
+
+    const partnerships = await Partnership.find({
+      influencerProfileId: profile._id,
+      'brandRating.feedback': { $ne: null, $ne: '' },
+    })
+      .populate('brandId', 'name logoUrl generatedColor initials')
+      .select('brandId brandRating createdAt')
+      .sort({ 'brandRating.ratedAt': -1 })
+      .limit(50)
+      .lean();
+
+    const feedback = partnerships
+      .filter(p => p.brandId)
+      .map(p => ({
+        partnershipId: p._id,
+        brandName:     p.brandId.name,
+        brandLogoUrl:  p.brandId.logoUrl || null,
+        brandInitials: p.brandId.initials || (p.brandId.name || '?').charAt(0).toUpperCase(),
+        brandColor:    p.brandId.generatedColor || '#1A1A1A',
+        rating:        p.brandRating.overall,
+        contentQuality:    p.brandRating.contentQuality,
+        timeliness:        p.brandRating.timeliness,
+        communication:     p.brandRating.communication,
+        briefCompliance:   p.brandRating.briefCompliance,
+        feedback:      p.brandRating.feedback,
+        ratedAt:       p.brandRating.ratedAt,
+      }));
+
+    res.json({ feedback });
+  } catch (err) {
+    console.error('[GET /partnerships/feedback-for-me]', err.message);
+    res.status(500).json({ error: 'Could not load feedback' });
+  }
+});
+
+// GET /api/brands/:brandId/creator-feedback
+// Returns every non-null influencerRating.feedback for this brand. Public
+// (optional auth) so other creators can see prior creators' notes when
+// evaluating whether to partner with the brand. Display name only — no
+// handle, no email, no phone — so brands can't dox who said what without
+// going through their own portal.
+router.get('/brand/:brandId/creator-feedback', async (req, res) => {
+  try {
+    const partnerships = await Partnership.find({
+      brandId: req.params.brandId,
+      'influencerRating.feedback': { $ne: null, $ne: '' },
+    })
+      .populate('influencerProfileId', 'displayName avatarUrl influenceTier verificationStatus isVerified')
+      .select('influencerProfileId influencerRating createdAt')
+      .sort({ 'influencerRating.ratedAt': -1 })
+      .limit(50)
+      .lean();
+
+    const feedback = partnerships
+      .filter(p => p.influencerProfileId)
+      .map(p => ({
+        partnershipId:     p._id,
+        creatorDisplayName: p.influencerProfileId.displayName || 'Creator',
+        creatorAvatarUrl:   p.influencerProfileId.avatarUrl || null,
+        creatorTier:        p.influencerProfileId.influenceTier || null,
+        creatorVerified:    p.influencerProfileId.isVerified === true || p.influencerProfileId.verificationStatus === 'verified',
+        rating:             p.influencerRating.overall,
+        communication:      p.influencerRating.communication,
+        paymentTimeliness:  p.influencerRating.paymentTimeliness,
+        creativeFreedom:    p.influencerRating.creativeFreedom,
+        overallExperience:  p.influencerRating.overallExperience,
+        feedback:           p.influencerRating.feedback,
+        ratedAt:            p.influencerRating.ratedAt,
+      }));
+
+    res.json({ feedback });
+  } catch (err) {
+    console.error('[GET /partnerships/brand/:brandId/creator-feedback]', err.message);
+    res.status(500).json({ error: 'Could not load creator feedback' });
+  }
+});
+
 module.exports = router;

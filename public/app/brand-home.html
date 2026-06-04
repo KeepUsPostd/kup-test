@@ -731,6 +731,22 @@
         <p class="preview-hint"><em>This is how your brand will appear in the KeepUsPostd Marketplace.</em></p>
       </div>
       </div>
+
+      <!-- ── Build 146: Recent creator feedback card ───────────────────────
+           Reads /api/partnerships/brand/:brandId/creator-feedback and shows
+           the most recent creator notes about working with this brand.
+           Hidden by default; populated by JS only when there's data. -->
+      <div id="creatorFeedbackCard" style="display:none; margin-top:24px; background:#fff; border:1px solid #e7eaee; border-radius:14px; padding:18px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px;">💬</span>
+            <strong style="font-size:14px; color:#1a1a1a;">What creators say</strong>
+            <span id="creatorFeedbackCount" style="background:rgba(46,165,221,0.10); color:#2EA5DD; padding:2px 8px; border-radius:9999px; font-size:11px; font-weight:700;">0</span>
+          </div>
+          <span style="font-size:11px; color:#6c757d;">Most recent 5 — visible to other creators too</span>
+        </div>
+        <div id="creatorFeedbackList"></div>
+      </div>
     </main>
   </div>
 
@@ -814,7 +830,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js?v=1774619962"></script>
   <script src="/js/header-profile.js?v=1"></script>
-  <script src="/js/api.js?v=1780539500"></script>
+  <script src="/js/api.js?v=1780540000"></script>
 
   <script>
     // Auth gate + load brand data
@@ -889,6 +905,23 @@
         console.warn('[brand-home] reward count check failed; banner stays hidden', e);
       }
 
+      // ── Build 146: load recent creator feedback ──
+      // Public endpoint — same data the Flutter brand profile shows in the
+      // "Creator reviews" section. Renders inline below the preview area
+      // when at least one note exists. Stays hidden on empty / error so
+      // brands with no feedback yet aren't distracted by an empty card.
+      try {
+        const fdata = await kupApi.get('/api/partnerships/brand/' + brandId + '/creator-feedback');
+        if (fdata && Array.isArray(fdata.feedback) && fdata.feedback.length > 0) {
+          const items = fdata.feedback.slice(0, 5);
+          document.getElementById('creatorFeedbackCount').textContent = fdata.feedback.length;
+          document.getElementById('creatorFeedbackList').innerHTML = items.map(renderCreatorFeedbackItem).join('');
+          document.getElementById('creatorFeedbackCard').style.display = 'block';
+        }
+      } catch (e) {
+        console.warn('[brand-home] creator feedback fetch failed', e);
+      }
+
       // Wire logout
       const logoutLink = document.querySelector('.logout');
       if (logoutLink) {
@@ -898,6 +931,33 @@
         });
       }
     });
+
+    // Build 146 — Render one creator-feedback row for the dashboard card.
+    function renderCreatorFeedbackItem(f) {
+      const name = (f.creatorDisplayName || 'Creator').replace(/</g, '&lt;');
+      const text = (f.feedback || '').replace(/</g, '&lt;');
+      const rating = Math.round(f.rating || 0);
+      const stars = '★'.repeat(Math.max(0, Math.min(5, rating))) + '☆'.repeat(Math.max(0, 5 - rating));
+      let when = '';
+      if (f.ratedAt) {
+        const d = new Date(f.ratedAt);
+        const days = Math.max(0, Math.round((Date.now() - d.getTime()) / 86400000));
+        when = days >= 30 ? Math.floor(days / 30) + 'mo ago'
+             : days >= 7 ? Math.floor(days / 7) + 'w ago'
+             : days >= 1 ? days + 'd ago'
+             : 'today';
+      }
+      return '<div style="padding:12px 0; border-bottom:1px solid #f1f3f5;">' +
+        '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">' +
+          '<strong style="font-size:13px; color:#1a1a1a;">' + name + '</strong>' +
+          '<div style="display:flex; align-items:center; gap:8px;">' +
+            '<span style="color:#FFB800; font-size:12px;">' + stars + '</span>' +
+            '<span style="font-size:10px; color:#9aa0a6;">' + when + '</span>' +
+          '</div>' +
+        '</div>' +
+        (text ? '<p style="margin:0; font-size:12.5px; color:#3c4043; line-height:1.55;">' + text + '</p>' : '') +
+      '</div>';
+    }
 
     function populateBrandData(brand) {
       const words = brand.name.trim().split(/\s+/);
