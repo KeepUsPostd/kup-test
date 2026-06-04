@@ -755,7 +755,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="/js/firebase-client.js?v=1774619962"></script>
   <script src="/js/header-profile.js?v=1"></script>
-  <script src="/js/api.js?v=1780538000"></script>
+  <script src="/js/api.js?v=1780538500"></script>
 
   <script>
     // Auth gate + load brand data
@@ -765,13 +765,18 @@
         return;
       }
 
-      // Get brandId from URL or localStorage
+      // Get brandId from URL or localStorage. Prefer .mongoId — brand-context
+      // stores the 6-char display label in .id; the FULL ObjectId is in
+      // .mongoId. Falling back through ._id and .id covers historical writes.
       const params = new URLSearchParams(window.location.search);
       let brandId = params.get('brandId');
       if (!brandId) {
         try {
           const stored = localStorage.getItem('kup_active_brand');
-          if (stored) brandId = JSON.parse(stored).id;
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            brandId = parsed.mongoId || parsed._id || parsed.id;
+          }
         } catch(e) {}
       }
 
@@ -795,7 +800,7 @@
           }
           if (sidebarName) sidebarName.textContent = brand.name;
           document.title = brand.name + ' Catalog — KeepUsPostd';
-          localStorage.setItem('kup_active_brand', JSON.stringify({ id: brand._id, name: brand.name }));
+          localStorage.setItem('kup_active_brand', JSON.stringify({ id: brand._id, mongoId: brand._id, name: brand.name }));
         }
         // Load catalog items
         loadItems(brandId);

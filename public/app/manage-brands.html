@@ -1834,7 +1834,11 @@
       var activeBrandId = null;
       try {
         var stored = localStorage.getItem('kup_active_brand');
-        if (stored) activeBrandId = JSON.parse(stored).id;
+        if (stored) {
+          var parsed = JSON.parse(stored);
+          // data-brand-id holds the full ObjectId, so prefer .mongoId.
+          activeBrandId = parsed.mongoId || parsed._id || parsed.id;
+        }
       } catch(e) {}
       /* Default to KUP anchor if nothing in storage yet */
       if (!activeBrandId) activeBrandId = 'kup';
@@ -2110,11 +2114,15 @@
         return;
       }
 
-      // Get active brand from localStorage
+      // Get active brand from localStorage. Cards' data-brand-id holds the
+      // full ObjectId, so prefer .mongoId here too.
       let activeBrandId = null;
       try {
         const stored = localStorage.getItem('kup_active_brand');
-        if (stored) activeBrandId = JSON.parse(stored).id;
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          activeBrandId = parsed.mongoId || parsed._id || parsed.id;
+        }
       } catch(e) {}
       if (!activeBrandId && brands.length > 0) activeBrandId = brands[0]._id;
 
