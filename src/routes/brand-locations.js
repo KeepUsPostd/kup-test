@@ -28,10 +28,23 @@ const { requireAuth } = require('../middleware/auth');
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Verify the requester is an active member of the given brand. Returns the
- * BrandMember doc on success, sends 403 on failure (and returns null).
+ * KUP admins (ADMIN_EMAILS env) — bypass brand-membership checks so they can
+ * triage admin/admin_unclaimed brands. Same env var used by the admin-panel
+ * route mount.
+ */
+function isPlatformAdmin(req) {
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  return adminEmails.includes((req.user?.email || '').toLowerCase());
+}
+
+/**
+ * Verify the requester is either an active member of the given brand OR a
+ * platform admin. Returns truthy on success, sends 403 on failure (and
+ * returns null).
  */
 async function requireBrandMember(req, res, brandId) {
+  if (isPlatformAdmin(req)) return { role: 'admin', platformAdmin: true };
   const member = await BrandMember.findOne({
     brandId,
     userId: req.user._id,

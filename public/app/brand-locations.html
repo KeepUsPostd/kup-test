@@ -148,6 +148,33 @@
     <button class="btn-add" id="btnAddTop">+ Add Location</button>
   </div>
 
+  <!-- ── Available Everywhere card (FIRST) ─────────────────────────── -->
+  <!-- Right primitive for online-only / digital / global brands (SaaS,
+       DTC, KUP itself). When ON, the brand shows in every user's nearby
+       feed regardless of distance, and the locations + geo-verify UI
+       below grays out (they don't make sense for a no-physical-footprint
+       brand). -->
+  <div id="everywhereCard" style="background:#fff; border:1px solid #e7eaee; border-radius:14px; padding:16px 18px; margin-bottom:12px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:14px; color:#1a1a1a; margin-bottom:4px;">
+          🌐 Available everywhere
+        </div>
+        <div style="font-size:12px; color:#6c757d; line-height:1.4;">
+          Turn ON for online-only / digital brands without a physical store.
+          Reviews show in every user's "Near Me" feed regardless of distance,
+          and you don't need to add any addresses below. Turn OFF if you have
+          one or more brick-and-mortar locations.
+        </div>
+      </div>
+      <label style="position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0;">
+        <input type="checkbox" id="everywhereToggle" style="opacity:0; width:0; height:0;">
+        <span id="everywhereToggleTrack" style="position:absolute; cursor:pointer; inset:0; background:#cfd4da; border-radius:24px; transition:0.2s;"></span>
+        <span id="everywhereToggleThumb" style="position:absolute; height:20px; width:20px; left:2px; bottom:2px; background:#fff; border-radius:50%; transition:0.2s;"></span>
+      </label>
+    </div>
+  </div>
+
   <!-- ── Geo-verification card ─────────────────────────────────────── -->
   <div id="geoCard" style="background:#fff; border:1px solid #e7eaee; border-radius:14px; padding:16px 18px; margin-bottom:16px;">
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
@@ -512,20 +539,60 @@
     m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
   });
 
-  // ── Geo-verification toggle ────────────────────────────────────────────
-  // Reads + writes the brand's `requireGeoVerified` field. Uses the same
-  // brand-PUT endpoint that other brand settings hit. Defaults to OFF so
-  // unfamiliar brands can opt in deliberately.
-  async function loadGeoSetting() {
+  // ── Brand settings: Available Everywhere + Geo-verification ──────────
+  // Single load gets both. Each writes via PUT /api/brands/:id with only
+  // the changed field. When Available Everywhere is ON, geo-verify is
+  // disabled in the UI (turning it on is nonsensical with no locations).
+  async function loadBrandSettings() {
     const id = brandId();
     if (!id) return;
     try {
       const r = await kupApi.get('/api/brands/' + id);
       const brand = r && r.brand;
-      const required = !!(brand && brand.requireGeoVerified);
-      setGeoUi(required);
-    } catch (_) { /* silent — toggle stays OFF */ }
+      setEverywhereUi(!!(brand && brand.isAvailableEverywhere));
+      setGeoUi(!!(brand && brand.requireGeoVerified));
+    } catch (_) { /* silent — toggles stay OFF */ }
   }
+  // Backwards compat alias — older code referenced loadGeoSetting()
+  const loadGeoSetting = loadBrandSettings;
+
+  function setEverywhereUi(on) {
+    document.getElementById('everywhereToggle').checked = on;
+    document.getElementById('everywhereToggleTrack').style.background = on ? '#2EA5DD' : '#cfd4da';
+    document.getElementById('everywhereToggleThumb').style.left = on ? '20px' : '2px';
+    // Gray out everything that only makes sense for physical-location brands.
+    const dimTargets = ['geoCard', 'listRoot'];
+    dimTargets.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = on ? '0.45' : '1';
+        el.style.pointerEvents = on ? 'none' : 'auto';
+      }
+    });
+    // Hide the top "Add Location" button row when everywhere is on.
+    const addRow = document.querySelector('.add-btn-row');
+    if (addRow) addRow.style.display = on ? 'none' : 'flex';
+    // Force geo-verify OFF in the UI as well (server doesn't enforce a
+    // dependency, but the combo is meaningless; keep them mutually exclusive
+    // in display.)
+    if (on) setGeoUi(false);
+  }
+
+  async function onEverywhereToggle() {
+    const id = brandId();
+    if (!id) return;
+    const cb = document.getElementById('everywhereToggle');
+    const newVal = cb.checked;
+    setEverywhereUi(newVal);
+    try {
+      await kupApi.put('/api/brands/' + id, { isAvailableEverywhere: newVal });
+      toast(newVal ? 'Showing this brand everywhere' : 'Available Everywhere turned OFF');
+    } catch (err) {
+      setEverywhereUi(!newVal);
+      toast(err && err.message ? err.message : 'Could not update');
+    }
+  }
+  document.getElementById('everywhereToggle').addEventListener('change', onEverywhereToggle);
 
   function setGeoUi(on) {
     document.getElementById('geoRequireToggle').checked = on;

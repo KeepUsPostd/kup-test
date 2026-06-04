@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>Brand Location Triage — KeepUsPostd Admin</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
+    h1 { font-weight: 800; font-size: 26px; margin-bottom: 6px; }
+    .lede { color: #6c757d; font-size: 13px; margin-bottom: 24px; line-height: 1.5; }
+    .stats-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .stat-pill { background: #fff; border: 1px solid #e7eaee; padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #495057; }
+    .stat-pill strong { color: #1a1a1a; font-weight: 800; margin-right: 4px; }
+
+    .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .filter-row input { flex: 1; min-width: 220px; border: 1px solid #d8dde3; border-radius: 8px; padding: 9px 14px; font-size: 13px; font-family: inherit; }
+    .filter-row input:focus { outline: none; border-color: #2EA5DD; box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.15); }
+    .filter-row select { border: 1px solid #d8dde3; border-radius: 8px; padding: 9px 12px; font-size: 13px; background: #fff; font-family: inherit; }
+
+    .row-card {
+      background: #fff; border: 1px solid #e7eaee; border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 10px;
+      display: grid; grid-template-columns: 1.4fr 2.2fr auto; gap: 16px; align-items: start;
+    }
+    .row-card.everywhere { background: #f0fbff; border-color: #b8e1f3; }
+    .row-card .name { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+    .row-card .meta { font-size: 11px; color: #6c757d; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge-mini { display: inline-block; padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+    .badge-admin    { background: #fef0e8; color: #b3531b; }
+    .badge-user     { background: #e6f4ff; color: #1b6db3; }
+    .badge-reviews  { background: rgba(46, 165, 221, 0.10); color: #2EA5DD; }
+    .badge-claimed  { background: #e8f7ec; color: #1d8a3e; }
+
+    .field-grid { display: grid; grid-template-columns: 1.4fr 1fr 0.7fr 0.7fr; gap: 6px; }
+    .field-grid input { width: 100%; border: 1px solid #d8dde3; border-radius: 7px; padding: 7px 9px; font-size: 12px; font-family: inherit; }
+    .field-grid input:focus { outline: none; border-color: #2EA5DD; box-shadow: 0 0 0 2px rgba(46, 165, 221, 0.15); }
+
+    .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .save-btn, .ev-btn { padding: 6px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid transparent; cursor: pointer; white-space: nowrap; }
+    .save-btn { background: #2EA5DD; color: #fff; }
+    .save-btn:hover { background: #258ec0; }
+    .save-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .ev-btn { background: #fff; border-color: #d8dde3; color: #495057; }
+    .ev-btn:hover { background: #f0fbff; border-color: #b8e1f3; color: #1a85b8; }
+    .ev-btn.active { background: #2EA5DD; color: #fff; border-color: #2EA5DD; }
+
+    .row-status { font-size: 10px; color: #6c757d; margin-top: 2px; min-height: 14px; text-align: right; }
+    .row-status.success { color: #1d8a3e; font-weight: 700; }
+    .row-status.error { color: #c92a2a; font-weight: 700; }
+
+    .empty, .loading { text-align: center; padding: 60px 20px; color: #6c757d; }
+    .spinner-ring {
+      display: inline-block; width: 26px; height: 26px;
+      border: 3px solid #e7eaee; border-top-color: #2EA5DD;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast-mini {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; color: #fff; padding: 10px 18px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .toast-mini.show { opacity: 1; }
+
+    @media (max-width: 760px) {
+      .row-card { grid-template-columns: 1fr; }
+      .actions { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Brand Location Triage</h1>
+  <p class="lede">
+    Brands without coordinates and without "Available Everywhere" — invisible in
+    "Near Me" feeds. For each row: add a flagship address (auto-geocoded on
+    save) OR mark it Available Everywhere if it's online-only. Sorted by
+    review count so the highest-impact brands surface first.
+  </p>
+
+  <div class="stats-row" id="stats">
+    <span class="stat-pill"><strong id="statTotal">—</strong> brands need attention</span>
+    <span class="stat-pill"><strong id="statReviews">—</strong> approved reviews waiting for nearby visibility</span>
+  </div>
+
+  <div class="filter-row">
+    <input id="searchBox" placeholder="Filter by name…">
+    <select id="typeFilter">
+      <option value="all">All types</option>
+      <option value="admin">Admin-created only</option>
+      <option value="user">User-created only</option>
+    </select>
+    <select id="sortBy">
+      <option value="reviews">Sort: most reviews</option>
+      <option value="name">Sort: name A→Z</option>
+    </select>
+  </div>
+
+  <div id="list" class="loading">
+    <div class="spinner-ring"></div>
+    <div style="margin-top:10px; font-size:13px;">Loading…</div>
+  </div>
+</div>
+
+<div class="toast-mini" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="/js/firebase-client.js?v=1774619962"></script>
+<script src="/js/api.js?v=1774619962"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // ─────────────────────────────────────────────────────────────────────────
+  // admin-brand-locations.html — KUP-internal triage tool.
+  // GET /api/admin-panel/brand-locations/triage returns the candidate list.
+  // Per row, save via POST /api/brand-locations/brand/:brandId (admin gets
+  // through the BrandMember check via the platform-admin bypass) OR
+  // PUT /api/brands/:brandId { isAvailableEverywhere: true }.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  let RAW_BRANDS = [];
+  let FILTERED = [];
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  async function load() {
+    try {
+      const r = await kupApi.get('/api/admin-panel/brand-locations/triage');
+      RAW_BRANDS = (r && r.brands) || [];
+      applyFilters();
+    } catch (err) {
+      document.getElementById('list').innerHTML =
+        '<div class="empty">Could not load: ' + escapeHtml(err && err.message ? err.message : 'Auth required (must be a platform admin)') + '</div>';
+    }
+  }
+
+  function applyFilters() {
+    const q = (document.getElementById('searchBox').value || '').toLowerCase();
+    const type = document.getElementById('typeFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    FILTERED = RAW_BRANDS.filter(b => {
+      if (q && !(b.name || '').toLowerCase().includes(q)) return false;
+      if (type === 'admin' && !(b.brandType || '').startsWith('admin')) return false;
+      if (type === 'user' && (b.brandType || '').startsWith('admin')) return false;
+      return true;
+    });
+
+    if (sortBy === 'name') {
+      FILTERED.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      FILTERED.sort((a, b) => (b.reviewCount - a.reviewCount) || a.name.localeCompare(b.name));
+    }
+
+    // Stats
+    document.getElementById('statTotal').textContent = FILTERED.length;
+    document.getElementById('statReviews').textContent =
+      FILTERED.reduce((acc, b) => acc + (b.reviewCount || 0), 0);
+
+    render();
+  }
+
+  function render() {
+    const root = document.getElementById('list');
+    root.classList.remove('loading');
+    if (FILTERED.length === 0) {
+      root.innerHTML = '<div class="empty">Nothing to triage. 🎉</div>';
+      return;
+    }
+    root.innerHTML = FILTERED.map(renderRow).join('');
+  }
+
+  function renderRow(b) {
+    const isAdmin = (b.brandType || '').startsWith('admin');
+    return `
+      <div class="row-card" data-id="${b._id}">
+        <div>
+          <div class="name">${escapeHtml(b.name)}</div>
+          <div class="meta">
+            ${isAdmin ? '<span class="badge-mini badge-admin">ADMIN</span>' : '<span class="badge-mini badge-user">USER</span>'}
+            ${b.reviewCount > 0 ? '<span class="badge-mini badge-reviews">' + b.reviewCount + ' review' + (b.reviewCount === 1 ? '' : 's') + '</span>' : ''}
+            ${b.claimStatus === 'claimed' ? '<span class="badge-mini badge-claimed">CLAIMED</span>' : ''}
+            ${b.category ? '<span>' + escapeHtml(b.category) + '</span>' : ''}
+          </div>
+        </div>
+        <div class="field-grid">
+          <input data-field="address" data-id="${b._id}" placeholder="Street address" value="${escapeHtml(b.address || '')}">
+          <input data-field="city"    data-id="${b._id}" placeholder="City"           value="${escapeHtml(b.city || '')}">
+          <input data-field="state"   data-id="${b._id}" placeholder="State"          value="${escapeHtml(b.state || '')}">
+          <input data-field="zip"     data-id="${b._id}" placeholder="ZIP">
+        </div>
+        <div class="actions">
+          <button class="save-btn" onclick="saveLocation('${b._id}')">Save location</button>
+          <button class="ev-btn" onclick="markEverywhere('${b._id}')">🌐 Mark Everywhere</button>
+          <div class="row-status" id="status_${b._id}"></div>
+        </div>
+      </div>`;
+  }
+
+  async function saveLocation(brandId) {
+    const inputs = document.querySelectorAll('.row-card[data-id="' + brandId + '"] input');
+    const payload = {};
+    inputs.forEach(i => {
+      const f = i.getAttribute('data-field');
+      const v = i.value.trim();
+      if (v) payload[f] = v;
+    });
+    if (!payload.address && !payload.city) {
+      return setRowStatus(brandId, 'Need at least street or city', 'error');
+    }
+    const btn = document.querySelector('.row-card[data-id="' + brandId + '"] .save-btn');
+    btn.disabled = true;
+    setRowStatus(brandId, 'Geocoding…', '');
+    try {
+      await kupApi.post('/api/brand-locations/brand/' + brandId, payload);
+      setRowStatus(brandId, '✓ Saved', 'success');
+      // Drop the row out of the list after a beat — it's no longer a triage candidate.
+      setTimeout(() => {
+        RAW_BRANDS = RAW_BRANDS.filter(b => String(b._id) !== brandId);
+        applyFilters();
+      }, 700);
+    } catch (err) {
+      btn.disabled = false;
+      setRowStatus(brandId, err && err.message ? err.message : 'Save failed', 'error');
+    }
+  }
+
+  async function markEverywhere(brandId) {
+    setRowStatus(brandId, 'Saving…', '');
+    try {
+      await kupApi.put('/api/brands/' + brandId, { isAvailableEverywhere: true });
+      setRowStatus(brandId, '✓ Now available everywhere', 'success');
+      setTimeout(() => {
+        RAW_BRANDS = RAW_BRANDS.filter(b => String(b._id) !== brandId);
+        applyFilters();
+      }, 700);
+    } catch (err) {
+      setRowStatus(brandId, err && err.message ? err.message : 'Update failed', 'error');
+    }
+  }
+
+  function setRowStatus(brandId, msg, cls) {
+    const el = document.getElementById('status_' + brandId);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'row-status' + (cls ? ' ' + cls : '');
+  }
+
+  // Wire filters
+  document.getElementById('searchBox').addEventListener('input', applyFilters);
+  document.getElementById('typeFilter').addEventListener('change', applyFilters);
+  document.getElementById('sortBy').addEventListener('change', applyFilters);
+
+  // Initial load — wait briefly for firebase-client.js to finish setting up auth
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(load, 100));
+  } else {
+    setTimeout(load, 100);
+  }
+</script>
+</body>
+</html>

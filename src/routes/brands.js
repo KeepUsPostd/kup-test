@@ -348,24 +348,32 @@ router.get('/discover', requireAuth, async (req, res) => {
       const radius = Math.min(parseFloat(radiusMi) || 25, 100);
       const radiusMeters = radius * 1609.34;
       if (!isNaN(latitude) && !isNaN(longitude)) {
-        const nearbyBrands = await Brand.find({
-          coordinates: {
-            $near: {
-              $geometry: { type: 'Point', coordinates: [longitude, latitude] },
-              $maxDistance: radiusMeters,
+        // Build 146: brands flagged isAvailableEverywhere bypass the radius
+        // check and always show in nearby — same primitive as the content
+        // feed nearby query. Union the two result sets.
+        const [nearbyBrands, everywhereBrands] = await Promise.all([
+          Brand.find({
+            coordinates: {
+              $near: {
+                $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+                $maxDistance: radiusMeters,
+              },
             },
-          },
-        }).select('_id').lean().catch(() => []);
-        // Intersect "nearby" with "has an active reward" — both must be true.
-        const nearbyRewarded = nearbyBrands.filter(b => rewardedIdSet.has(String(b._id)));
-        if (nearbyRewarded.length > 0) {
-          filter._id = { $in: nearbyRewarded.map(b => b._id) };
+          }).select('_id').lean().catch(() => []),
+          Brand.find({ isAvailableEverywhere: true }).select('_id').lean().catch(() => []),
+        ]);
+        const unionIds = new Set([
+          ...nearbyBrands.map(b => String(b._id)),
+          ...everywhereBrands.map(b => String(b._id)),
+        ]);
+        // Intersect "nearby OR everywhere" with "has an active reward" — both must be true.
+        const matched = Array.from(unionIds).filter(id => rewardedIdSet.has(id));
+        if (matched.length > 0) {
+          filter._id = { $in: matched };
         } else {
-          // No rewarded brands nearby — return empty
           return res.json({ brands: [] });
         }
       } else {
-        // Invalid coords — fall back to all rewarded brands
         filter._id = { $in: rewardedBrandIds };
       }
     } else {
@@ -637,7 +645,9 @@ router.put('/:brandId', requireAuth, requireBrandRole('admin'), async (req, res)
       'email', 'phone', 'address', 'city', 'state', 'zip', 'coordinates',
       'socialLinks', 'brandColors',
       // Build 145: geo-verification settings
-      'requireGeoVerified', 'geoVerifyRadiusMi'];
+      'requireGeoVerified', 'geoVerifyRadiusMi',
+      // Build 146: online-only / global brand primitive
+      'isAvailableEverywhere'];
 
     const updates = {};
     for (const field of allowedFields) {

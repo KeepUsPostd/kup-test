@@ -99,6 +99,15 @@ const brandSchema = new mongoose.Schema({
   // based abuse. Brands can override per-brand if their footprint differs.
   geoVerifyRadiusMi: { type: Number, default: 0.5 },
 
+  // ── Build 146: online-only / global brands ──────────────────────────
+  // When TRUE the brand bypasses all geo filtering in discovery — it shows
+  // in every user's "Near Me" feed regardless of distance and doesn't
+  // require any physical address. Right primitive for SaaS, DTC, digital
+  // products, or any brand without a physical footprint (KUP itself is
+  // a textbook example). Geo-verification on submissions becomes nonsense
+  // when this is on; the portal also blocks the requireGeoVerified toggle.
+  isAvailableEverywhere: { type: Boolean, default: false },
+
   // Stats (denormalized, updated on events)
   totalReviews: { type: Number, default: 0 },
   totalContentPieces: { type: Number, default: 0 },
@@ -142,6 +151,8 @@ brandSchema.index({ brandType: 1 });
 brandSchema.index({ claimStatus: 1 });
 brandSchema.index({ category: 1 });
 brandSchema.index({ isFranchise: 1 });
+// Build 146: discovery uses this index path in the $or branch with $nearSphere
+brandSchema.index({ isAvailableEverywhere: 1, status: 1 });
 brandSchema.index({ parentBrandId: 1 }, { sparse: true });
 brandSchema.index({ status: 1 });
 brandSchema.index({ tags: 1 });

@@ -642,7 +642,10 @@ router.get('/feed', optionalAuth, async (req, res) => {
       } catch (_) {}
     }
 
-    // Geo filter — find brands near the user's coordinates
+    // Geo filter — find brands near the user's coordinates. Build 146:
+    // brands flagged isAvailableEverywhere bypass the radius check entirely
+    // and always appear in nearby feeds. Right primitive for online-only /
+    // digital brands (KUP, SaaS, DTC, etc.) — they have no physical anchor.
     if (lat && lon) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lon);
@@ -650,17 +653,29 @@ router.get('/feed', optionalAuth, async (req, res) => {
       const radiusMeters = radius * 1609.34;
 
       if (!isNaN(latitude) && !isNaN(longitude)) {
-        const nearbyBrands = await Brand.find({
-          coordinates: {
-            $nearSphere: {
-              $geometry: { type: 'Point', coordinates: [longitude, latitude] },
-              $maxDistance: radiusMeters,
+        // $nearSphere can't live inside $or, so run two queries in parallel
+        // and union the result set.
+        const [nearbyBrands, everywhereBrands] = await Promise.all([
+          Brand.find({
+            coordinates: {
+              $nearSphere: {
+                $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+                $maxDistance: radiusMeters,
+              },
             },
-          },
-          status: 'active',
-        }).select('_id').lean();
+            status: 'active',
+          }).select('_id').lean(),
+          Brand.find({
+            isAvailableEverywhere: true,
+            status: 'active',
+          }).select('_id').lean(),
+        ]);
 
-        contentFilter.brandId = { $in: nearbyBrands.map(b => b._id) };
+        const idSet = new Set([
+          ...nearbyBrands.map(b => String(b._id)),
+          ...everywhereBrands.map(b => String(b._id)),
+        ]);
+        contentFilter.brandId = { $in: Array.from(idSet) };
       }
     }
 

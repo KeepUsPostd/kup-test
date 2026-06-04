@@ -2760,4 +2760,65 @@ router.put('/promotions/:id/mark-paid', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+// Build 146: Brand-location triage for KUP-internal use.
+// Surfaces brands that have neither real coordinates NOR
+// isAvailableEverywhere set, sorted by impact (review count desc) so the
+// highest-value brands surface first. Used by /app/admin-brand-locations.html
+// to triage admin-created brands at scale.
+// ─────────────────────────────────────────────────────────────────────────
+router.get('/brand-locations/triage', async (req, res) => {
+  try {
+    const Brand = require('../models/Brand');
+    const BrandLocation = require('../models/BrandLocation');
+    const ContentSubmission = require('../models/ContentSubmission');
+
+    const candidates = await Brand.find({
+      status: { $ne: 'deleted' },
+      isAvailableEverywhere: { $ne: true },
+      $or: [
+        { coordinates: { $exists: false } },
+        { coordinates: null },
+        { 'coordinates.coordinates': { $size: 0 } },
+        { 'coordinates.coordinates': { $exists: false } },
+      ],
+    }, 'name category brandType claimStatus address city state coordinates createdAt')
+      .lean();
+
+    const ids = candidates.map(c => c._id);
+    const haveLocation = new Set(
+      (await BrandLocation.find({ brandId: { $in: ids }, isActive: true })
+        .select('brandId').lean())
+        .map(l => String(l.brandId))
+    );
+    const needLocation = candidates.filter(c => !haveLocation.has(String(c._id)));
+
+    const reviewCounts = await ContentSubmission.aggregate([
+      { $match: { brandId: { $in: needLocation.map(c => c._id) }, status: { $in: ['approved', 'postd'] } } },
+      { $group: { _id: '$brandId', count: { $sum: 1 } } },
+    ]);
+    const countByBrand = Object.fromEntries(reviewCounts.map(r => [String(r._id), r.count]));
+
+    const ranked = needLocation
+      .map(b => ({
+        _id:        b._id,
+        name:       b.name,
+        category:   b.category,
+        brandType:  b.brandType || 'user',
+        claimStatus: b.claimStatus || null,
+        address:    b.address || '',
+        city:       b.city || '',
+        state:      b.state || '',
+        reviewCount: countByBrand[String(b._id)] || 0,
+      }))
+      .sort((a, b) => (b.reviewCount - a.reviewCount) || a.name.localeCompare(b.name))
+      .slice(0, 500);
+
+    res.json({ brands: ranked, total: ranked.length });
+  } catch (err) {
+    console.error('[GET /admin-panel/brand-locations/triage]', err);
+    res.status(500).json({ error: 'Could not load triage list' });
+  }
+});
+
 module.exports = router;
