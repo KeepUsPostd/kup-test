@@ -916,6 +916,17 @@ router.post('/paypal-connect', requireAuth, async (req, res) => {
       maskedEmail,
     }).catch(() => {});
 
+    // Build 146: sweep any pending Transactions for this creator now that
+    // PayPal is connected. Confirms to the creator, alerts admin that they
+    // can process the payout immediately. Fire-and-forget so the response
+    // doesn't wait on the secondary notifications.
+    try {
+      const { sweepCreatorOnPayPalConnect } = require('../services/payoutReminders');
+      sweepCreatorOnPayPalConnect(req.user._id).catch(err =>
+        console.warn('[paypal-connect] sweep error:', err.message)
+      );
+    } catch (_) { /* service may not be loaded in tests — non-fatal */ }
+
     res.json({
       message: 'PayPal email connected successfully',
       paypalEmail: influencer.paypalEmail,

@@ -87,6 +87,10 @@ const influencerProfileSchema = new mongoose.Schema({
   // paypalMerchantId: PPCP merchant ID — enables direct brand → influencer routing
   paypalEmail: { type: String, default: null },
   paypalConnectedAt: { type: Date, default: null },
+  // Build 146: throttle for the "you have $X waiting — connect PayPal"
+  // reminder cron. Set every time the reminder service notifies this
+  // creator so we don't spam (cron skips creators reminded < 7 days ago).
+  lastPayoutReminderSentAt: { type: Date, default: null },
 
   // PPCP Merchant Onboarding (brand → influencer direct payments)
   paypalMerchantId: { type: String, default: null },          // Assigned by PayPal after PPCP onboarding

@@ -117,6 +117,7 @@
           <h3>Pending Payouts</h3>
           <div class="section-actions">
             <span id="pendingPayoutsTotal" style="font-size:12px;font-weight:600;color:#666">—</span>
+            <button onclick="runReminders()" style="padding:6px 12px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer">📨 Nudge unconnected</button>
             <button onclick="loadPendingPayouts()" style="padding:6px 12px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer">↻ Refresh</button>
           </div>
         </div>
@@ -246,6 +247,22 @@
     function esc(s) {
       if (s == null) return '';
       return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    async function runReminders() {
+      try {
+        const res = await fetch('/api/admin-panel/transactions/run-payout-reminders', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken },
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const r = await res.json();
+        alert('Reminders sent: ' + r.reminded +
+              '\nThrottled (already reminded < 7 days ago): ' + r.skippedThrottled +
+              '\nTotal $ unclaimed across all reminded creators: $' + (r.totalDollars || 0).toFixed(2));
+      } catch (err) {
+        alert('Could not run reminders: ' + err.message);
+      }
     }
 
     async function markPayoutPaid(id, amount, name) {

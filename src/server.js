@@ -622,7 +622,24 @@ const startServer = async () => {
       }
     }, { timezone: 'UTC' });
 
-    console.log('⏰ Cron: Reward distribution reminder scheduled daily at 10:00 AM UTC\n');
+    console.log('⏰ Cron: Reward distribution reminder scheduled daily at 10:00 AM UTC');
+
+    // ── Pending Payout Reminders — daily at 11:00 AM UTC (Build 146) ──
+    // Nudges creators who have at least one pending Transaction AND no
+    // PayPal email connected. Throttled to 7 days per creator (handled
+    // inside the service via InfluencerProfile.lastPayoutReminderSentAt).
+    // Sends in-app + push: "You have $X waiting on KUP".
+    cron.schedule('0 11 * * *', async () => {
+      console.log('⏰ [CRON] Running pending-payout reminder...');
+      try {
+        const { sendRemindersForUnclaimedPayouts } = require('./services/payoutReminders');
+        const report = await sendRemindersForUnclaimedPayouts();
+        console.log(`⏰ [CRON] Payout reminders → ${report.reminded} sent, ${report.skippedThrottled} throttled, $${report.totalDollars} unclaimed total`);
+      } catch (err) {
+        console.error('⏰ [CRON] Payout reminder failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: Pending-payout reminder scheduled daily at 11:00 AM UTC\n');
   });
 };
 

@@ -2759,6 +2759,20 @@ router.get('/transactions/pending-payouts', async (req, res) => {
   }
 });
 
+// POST /api/admin-panel/transactions/run-payout-reminders
+// Manual trigger for the cron job — useful for testing or for "I need to
+// nudge everyone now" moments. Same throttling as the scheduled run.
+router.post('/transactions/run-payout-reminders', async (req, res) => {
+  try {
+    const { sendRemindersForUnclaimedPayouts } = require('../services/payoutReminders');
+    const report = await sendRemindersForUnclaimedPayouts();
+    res.json({ ok: true, ...report });
+  } catch (err) {
+    console.error('[run-payout-reminders]', err);
+    res.status(500).json({ error: 'Could not run reminders' });
+  }
+});
+
 // PUT /api/admin-panel/transactions/:id/mark-paid
 // Marks a single Transaction as paid (after the operator sent the cash
 // via PayPal Business externally). Sets status='paid', stores the optional
