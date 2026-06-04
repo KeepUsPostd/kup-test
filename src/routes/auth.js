@@ -999,9 +999,20 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
       maskedEmail = `${visible}${'*'.repeat(Math.max(name.length - 2, 0))}@${domain}`;
     }
 
+    // Build 147: same honest-state shape as /api/wallet/balance.
+    //   emailConnected — paypalEmail saved
+    //   ppccReady      — full PPCP merchant onboarding done
+    //   connected      — LEGACY field. Now strictly equivalent to fully-
+    //                    ready (was historically just !!paypalEmail which
+    //                    is what created the silent-failure UX). Older app
+    //                    builds reading this still work but stop falsely
+    //                    showing "Connected" for email-only creators.
+    const ppccReady = influencer.paypalOnboardingStatus === 'completed' && !!influencer.paypalMerchantId;
+    const emailConnected = !!influencer.paypalEmail;
     res.json({
-      // Email connection (cashouts)
-      connected: !!influencer.paypalEmail,
+      connected: emailConnected && ppccReady,   // truthful — was just !!email
+      emailConnected,                            // explicit new field
+      ready: emailConnected && ppccReady,        // explicit new field
       email: maskedEmail,
       paypalEmail: maskedEmail,
       connectedAt: influencer.paypalConnectedAt || null,
@@ -1009,7 +1020,7 @@ router.get('/paypal-status', requireAuth, async (req, res) => {
       // PPCP merchant onboarding (direct payments)
       onboardingStatus: influencer.paypalOnboardingStatus,
       merchantId: influencer.paypalMerchantId || null,
-      ppccReady: influencer.paypalOnboardingStatus === 'completed' && !!influencer.paypalMerchantId,
+      ppccReady,
     });
   } catch (error) {
     console.error('PayPal status error:', error.message);
