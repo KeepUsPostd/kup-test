@@ -278,7 +278,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="/js/firebase-client.js?v=1774619962"></script>
-<script src="/js/api.js?v=1780537500"></script>
+<script src="/js/api.js?v=1780538000"></script>
 <script src="/js/brand-context.js?v=1774619962"></script>
 <!-- Bootstrap JS (for the modal dismiss-on-Escape behavior + general parity) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -297,8 +297,14 @@
   let BUSY = false;            // disables top-level Save while a request is in flight
 
   function brandId() {
+    // CRITICAL: prefer .mongoId — that's the FULL 24-char ObjectId.
+    // brand-context.js stores brands in localStorage with:
+    //   .id       = display label (first 6 chars of ObjectId — "69e659")
+    //   .mongoId  = the real full ObjectId, used for API calls
+    // Reading .id first sent truncated IDs to /api/brands/:brandId and the
+    // server crashed with "Cast to ObjectId failed" → 500 on every save.
     const b = (window.KUP_BRAND_CONTEXT && KUP_BRAND_CONTEXT.getActiveBrand()) || {};
-    return b.id || b._id || null;
+    return b.mongoId || b._id || b.id || null;
   }
 
   function toast(msg) {
