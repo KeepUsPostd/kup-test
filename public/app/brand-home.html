@@ -852,19 +852,34 @@
         console.error('Failed to load brand:', err);
       }
 
-      // Check active-reward count → toggle the "hidden from creators" banner and
-      // keep the "You're Live!" tip honest. A brand with no active reward is
-      // hidden from discovery and can't receive submissions.
+      // Check active-reward count → toggle the "hidden from creators" banner
+      // and keep the "You're Live!" tip honest. A brand with no active reward
+      // is hidden from discovery and can't receive submissions.
+      //
+      // DEFENSIVE: only flip the banner state when the API definitively says
+      // so. If kupApi.get returns undefined (silent 401 fallthrough, network
+      // blip, etc.), Array.isArray(rdata?.rewards) is false and we leave the
+      // banner in its default-hidden state instead of falsely flagging the
+      // brand as rewardless. Without this guard, a transient network hiccup
+      // makes a properly-rewarded brand look hidden on the dashboard.
       try {
         const rdata = await kupApi.get('/api/rewards?brandId=' + brandId + '&status=active');
-        const activeCount = (rdata && rdata.rewards) ? rdata.rewards.length : 0;
-        const vb = document.getElementById('visibilityBanner');
-        if (vb) vb.style.display = (activeCount === 0) ? 'block' : 'none';
-        const liveTip = document.getElementById('liveTip');
-        if (liveTip && activeCount === 0) {
-          liveTip.innerHTML = '<span class="tip-icon">⚠️</span><span><strong>Not Live Yet</strong>Your brand is hidden from creators until you publish an active reward. <a href="brand-reward-settings.html">Set one up</a> to go live.</span>';
+        if (rdata && Array.isArray(rdata.rewards)) {
+          const activeCount = rdata.rewards.length;
+          const vb = document.getElementById('visibilityBanner');
+          if (vb) vb.style.display = (activeCount === 0) ? 'block' : 'none';
+          const liveTip = document.getElementById('liveTip');
+          if (liveTip && activeCount === 0) {
+            liveTip.innerHTML = '<span class="tip-icon">⚠️</span><span><strong>Not Live Yet</strong>Your brand is hidden from creators until you publish an active reward. <a href="brand-reward-settings.html">Set one up</a> to go live.</span>';
+          }
+        } else {
+          // No definitive answer — keep the banner hidden and log so it's
+          // visible in dev tools if this becomes a pattern.
+          console.warn('[brand-home] /api/rewards returned no usable rewards array; leaving banner hidden', rdata);
         }
-      } catch (e) { /* non-blocking — banner stays hidden on error */ }
+      } catch (e) {
+        console.warn('[brand-home] reward count check failed; banner stays hidden', e);
+      }
 
       // Wire logout
       const logoutLink = document.querySelector('.logout');
