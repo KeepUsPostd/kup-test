@@ -110,6 +110,28 @@ const contentSubmissionSchema = new mongoose.Schema({
     views: { type: Number, default: 0 },
   },
   likedBy: [{ type: String }], // userIds who liked this content
+
+  // ── Build 145: location wiring ───────────────────────────────────────
+  // Optional FK to a BrandLocation. Null when the creator picked "General"
+  // or the brand has no locations configured. Lets brands see in moderation
+  // "this review was filmed at our Lincoln Park store" and lets future
+  // queries surface "all reviews of this location".
+  brandLocationId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandLocation', default: null, index: true },
+
+  // GPS captured at submit time (only when the user grants permission).
+  // Stored as plain numbers — not GeoJSON — so we never accidentally surface
+  // a creator's exact filming spot via a 2dsphere index. The server uses
+  // these to compute geoVerified vs. the brandLocation's coordinates, then
+  // forgets about them.
+  captureLat: { type: Number, default: null },
+  captureLon: { type: Number, default: null },
+
+  // Did the creator's submit-time GPS fall within the geo-fence radius
+  // (default 0.5 mi) of the picked brandLocation?
+  //   true   = filmed at the location (display the 📍 Verified badge)
+  //   false  = filmed away (display nothing publicly; flag for brand)
+  //   null   = couldn't verify (no GPS, no location picked, etc.)
+  geoVerified: { type: Boolean, default: null },
 }, {
   timestamps: true,
 });

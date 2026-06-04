@@ -284,10 +284,27 @@ async function awardContentPoints({ brandId, influencerProfileId, stage, partner
 
 // POST /api/content — Submit new content
 // Called by influencers when they submit content for a brand
+// ─────────────────────────────────────────────────────────────────────────
+// Build 145: haversine distance in miles for geo-verifying submissions.
+// Plain math (no $geoNear needed for a single point-to-point check) so we
+// can compute it inline without an extra DB roundtrip.
+// ─────────────────────────────────────────────────────────────────────────
+function distanceMiBetween(lat1, lon1, lat2, lon2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const R = 3958.8; // Earth radius in miles
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 router.post('/', requireAuth, async (req, res) => {
   try {
     const { brandId, campaignId, contentType, caption, mediaUrls, posterUrl,
-            platform, platformPostUrl, partnershipId } = req.body;
+            platform, platformPostUrl, partnershipId,
+            brandLocationId, captureLat, captureLon } = req.body;
 
     if (!brandId) {
       return res.status(400).json({ error: 'brandId is required' });
@@ -401,6 +418,54 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    // ── Build 145: resolve brandLocation + geo-verify ─────────────────────
+    // Validate the picked location belongs to the brand (defense in depth —
+    // a tampered client could otherwise submit a foreign location id). If
+    // valid + captureLat/Lon present, compute geoVerified via haversine vs
+    // the location's coordinates. When the brand has requireGeoVerified ON
+    // AND verification fails, reject with a friendly message instead of
+    // creating an "outside" submission.
+    let resolvedBrandLocationId = null;
+    let geoVerifiedFlag = null;
+    let pickedLocation = null;
+    if (brandLocationId) {
+      const BrandLocation = require('../models/BrandLocation');
+      const loc = await BrandLocation.findOne({
+        _id: brandLocationId,
+        brandId: brandId,
+        isActive: true,
+      });
+      if (loc) {
+        resolvedBrandLocationId = loc._id;
+        pickedLocation = loc;
+      }
+    }
+
+    if (
+      pickedLocation &&
+      typeof captureLat === 'number' && typeof captureLon === 'number' &&
+      pickedLocation.coordinates && Array.isArray(pickedLocation.coordinates.coordinates) &&
+      pickedLocation.coordinates.coordinates.length === 2
+    ) {
+      // Load just the geo-settings fields off the brand. Cheap, and avoids
+      // dependency on loadedBrand which is initialized further down for the
+      // notification path.
+      const geoCfg = await Brand.findById(brandId).select('requireGeoVerified geoVerifyRadiusMi').lean();
+      const [lonL, latL] = pickedLocation.coordinates.coordinates;
+      const radiusMi = geoCfg?.geoVerifyRadiusMi || 0.5;
+      const distMi = distanceMiBetween(captureLat, captureLon, latL, lonL);
+      geoVerifiedFlag = distMi <= radiusMi;
+
+      // Hard gate when the brand has opted in to geo-required submissions.
+      if (geoCfg?.requireGeoVerified && geoVerifiedFlag === false) {
+        return res.status(400).json({
+          error: 'geo_required',
+          message: 'Please film at the location',
+          detail: 'This brand only accepts reviews filmed at one of their locations. Try again from inside the location.',
+        });
+      }
+    }
+
     const submission = await ContentSubmission.create({
       influencerProfileId: influencerProfile._id,
       brandId,
@@ -414,6 +479,10 @@ router.post('/', requireAuth, async (req, res) => {
       platformPostUrl: platformPostUrl || null,
       status: 'submitted',
       submittedAt: new Date(),
+      brandLocationId: resolvedBrandLocationId,
+      captureLat: typeof captureLat === 'number' ? captureLat : null,
+      captureLon: typeof captureLon === 'number' ? captureLon : null,
+      geoVerified: geoVerifiedFlag,
     });
 
     // Increment campaign submission count
@@ -655,6 +724,10 @@ router.get('/feed', optionalAuth, async (req, res) => {
       comments:      s.metrics?.comments || 0,
       shares:        s.metrics?.shares || 0,
       likedByMe:     viewerId ? (s.likedBy || []).map(String).includes(viewerId) : false,
+      // Build 145 — surface the geo verification result to the client so
+      // the watch feed can render the 📍 Verified badge. brandLocationId
+      // omitted from the public feed (location detail is brand-scoped).
+      geoVerified:   s.geoVerified === true,
     }));
 
     // Reorder so the same brand never plays back-to-back when avoidable.
@@ -763,6 +836,9 @@ router.get('/mine', requireAuth, async (req, res) => {
       // (oddly) liked their own review; mostly false. likedBy[] stripped for
       // privacy parity with the public feed.
       likedByMe:   (s.likedBy || []).map(String).includes(req.user._id.toString()),
+      // Build 145 — geo-verification state for self-display.
+      geoVerified: s.geoVerified === true,
+      brandLocationId: s.brandLocationId || null,
       // Reward earned for this submission (if any)
       reward:      txMap[s._id.toString()] || null,
     }));

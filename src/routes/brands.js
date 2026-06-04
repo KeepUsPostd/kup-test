@@ -635,7 +635,9 @@ router.put('/:brandId', requireAuth, requireBrandRole('admin'), async (req, res)
     const allowedFields = ['name', 'category', 'subcategory', 'description',
       'websiteUrl', 'tags', 'logoUrl', 'heroImageUrl', 'location',
       'email', 'phone', 'address', 'city', 'state', 'zip', 'coordinates',
-      'socialLinks', 'brandColors'];
+      'socialLinks', 'brandColors',
+      // Build 145: geo-verification settings
+      'requireGeoVerified', 'geoVerifyRadiusMi'];
 
     const updates = {};
     for (const field of allowedFields) {

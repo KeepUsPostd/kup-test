@@ -87,6 +87,18 @@ const brandSchema = new mongoose.Schema({
     default: null,
   },
 
+  // ── Build 145: geo-fence settings ────────────────────────────────────
+  // When TRUE, submissions captured outside the chosen brandLocation's
+  // geo-fence radius are auto-rejected ("Please film at the location to
+  // submit a review"). Defaults FALSE so it's purely opt-in for brands
+  // that want it — no surprise rejections from a setting brands didn't
+  // turn on. The 📍 Verified badge displays regardless of this flag.
+  requireGeoVerified: { type: Boolean, default: false },
+  // Radius in miles within which a submission is considered "at the
+  // location." 0.5 mi covers a generous footprint without inviting drift-
+  // based abuse. Brands can override per-brand if their footprint differs.
+  geoVerifyRadiusMi: { type: Number, default: 0.5 },
+
   // Stats (denormalized, updated on events)
   totalReviews: { type: Number, default: 0 },
   totalContentPieces: { type: Number, default: 0 },
