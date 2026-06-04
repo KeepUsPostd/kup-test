@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>Locations — KeepUsPostd</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; }
+    .page-wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 120px; }
+    .page-title { font-weight: 800; font-size: 22px; margin-bottom: 4px; }
+    .page-sub { color: #6c757d; font-size: 13px; margin-bottom: 24px; }
+
+    .empty-card {
+      background: #fff; border: 1px dashed #cfd4da; border-radius: 14px;
+      padding: 36px 24px; text-align: center; margin-bottom: 24px;
+    }
+    .empty-card h3 { font-weight: 800; font-size: 17px; margin-bottom: 6px; }
+    .empty-card p { color: #6c757d; font-size: 13px; margin-bottom: 14px; }
+
+    .loc-card {
+      background: #fff; border: 1px solid #e7eaee; border-radius: 14px;
+      padding: 16px 18px; margin-bottom: 12px; transition: box-shadow 0.15s;
+    }
+    .loc-card.is-primary { border-color: #2EA5DD; }
+    .loc-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .loc-name { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+    .loc-addr { color: #6c757d; font-size: 13px; margin-top: 2px; line-height: 1.4; }
+    .loc-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 9999px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.2px;
+    }
+    .pill-primary { background: rgba(46, 165, 221, 0.12); color: #2EA5DD; }
+    .pill-warn    { background: rgba(255, 149, 0, 0.12); color: #cc7a00; }
+
+    .loc-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e7eaee;
+      background: #fff; color: #495057; display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .icon-btn:hover { background: #f1f3f5; color: #1a1a1a; }
+    .icon-btn.danger:hover { background: #fff5f5; color: #d63939; border-color: #ffd0d0; }
+
+    .edit-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;
+      padding-top: 12px; border-top: 1px solid #f1f3f5;
+    }
+    .edit-grid .full { grid-column: 1 / -1; }
+    .edit-grid label { display: block; font-size: 11px; color: #6c757d; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.2px; text-transform: uppercase; }
+    .edit-grid input {
+      width: 100%; border: 1px solid #d8dde3; border-radius: 8px;
+      padding: 9px 12px; font-size: 13px; font-family: inherit;
+    }
+    .edit-grid input:focus { outline: none; border-color: #2EA5DD; box-shadow: 0 0 0 3px rgba(46, 165, 221, 0.15); }
+
+    .save-bar {
+      position: sticky; bottom: 16px; margin-top: 14px;
+      background: #2EA5DD; color: #fff; padding: 11px 16px;
+      border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 14px rgba(46, 165, 221, 0.4);
+      transform: translateY(0); transition: opacity 0.15s, transform 0.15s;
+    }
+    .save-bar.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
+    .save-bar .changes { font-size: 12px; font-weight: 600; opacity: 0.9; }
+    .save-bar button {
+      background: rgba(255,255,255,0.18); border: none; color: #fff;
+      padding: 6px 14px; border-radius: 7px; font-weight: 700; font-size: 12px;
+      cursor: pointer;
+    }
+    .save-bar button:hover { background: rgba(255,255,255,0.28); }
+
+    .add-btn-row { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .btn-add {
+      background: #2EA5DD; color: #fff; border: none; padding: 9px 18px;
+      border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-add:hover { background: #258ec0; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      display: none; align-items: center; justify-content: center; z-index: 1050;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: #fff; border-radius: 16px; padding: 22px 22px 18px;
+      width: 100%; max-width: 460px; max-height: 90vh; overflow: auto;
+    }
+    .modal-card h4 { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+    .modal-card p.helper { color: #6c757d; font-size: 12px; margin-bottom: 14px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+    .modal-actions button {
+      padding: 9px 16px; border-radius: 8px; font-weight: 700; font-size: 13px;
+      border: 1px solid transparent; cursor: pointer;
+    }
+    .btn-secondary { background: #fff; border-color: #d8dde3; color: #495057; }
+    .btn-secondary:hover { background: #f1f3f5; }
+    .btn-primary { background: #2EA5DD; color: #fff; }
+    .btn-primary:hover { background: #258ec0; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-danger { background: #d63939; color: #fff; }
+    .btn-danger:hover { background: #b73030; }
+
+    .loading-state {
+      text-align: center; padding: 60px 0; color: #6c757d; font-size: 13px;
+    }
+    .spinner-ring {
+      display: inline-block; width: 28px; height: 28px;
+      border: 3px solid #e7eaee; border-top-color: #2EA5DD;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast-mini {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; color: #fff; padding: 10px 18px;
+      border-radius: 9999px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 2000;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .toast-mini.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <h1 class="page-title">Locations</h1>
+  <p class="page-sub">
+    Where can people review your brand? Add every physical location. Creators see
+    the closest one when they submit a review.
+  </p>
+
+  <div class="add-btn-row">
+    <button class="btn-add" id="btnAddTop">+ Add Location</button>
+  </div>
+
+  <div id="listRoot" class="loading-state">
+    <div class="spinner-ring"></div>
+    <div style="margin-top: 12px;">Loading locations…</div>
+  </div>
+</div>
+
+<!-- ── Add / edit modal ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalAdd">
+  <div class="modal-card">
+    <h4 id="modalTitle">Add a location</h4>
+    <p class="helper">
+      The address is geocoded automatically. If a location can't be found by
+      address, the listing still saves — but distance-sorted ordering needs
+      valid coordinates.
+    </p>
+    <div class="edit-grid">
+      <div class="full">
+        <label>Location name <span style="color:#aaa">(optional)</span></label>
+        <input id="addName" placeholder="e.g. Lincoln Park, Mall of America">
+      </div>
+      <div class="full">
+        <label>Street address</label>
+        <input id="addAddress" placeholder="123 Main St">
+      </div>
+      <div>
+        <label>City</label>
+        <input id="addCity" placeholder="Chicago">
+      </div>
+      <div>
+        <label>State</label>
+        <input id="addState" placeholder="IL">
+      </div>
+      <div>
+        <label>ZIP</label>
+        <input id="addZip" placeholder="60614">
+      </div>
+      <div>
+        <label>Country</label>
+        <input id="addCountry" value="US">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="addCancel">Cancel</button>
+      <button class="btn-primary" id="addSave">Save location</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm delete ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalDelete">
+  <div class="modal-card">
+    <h4>Remove this location?</h4>
+    <p class="helper" id="deleteHelper">
+      It will be hidden from the franchise locator immediately. Existing reviews
+      that referenced it stay intact.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="deleteCancel">Keep it</button>
+      <button class="btn-danger" id="deleteConfirm">Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-mini" id="toast"></div>
+
+<script src="/js/api.js?v=1774619962"></script>
+<script src="/js/brand-context.js?v=1774619962"></script>
+
+<script>
+  // ─────────────────────────────────────────────────────────────────────────
+  // brand-locations.html — Locations management for the active brand.
+  // Reads/writes /api/brand-locations. List, add (with auto-geocoding via
+  // backend), inline edit with the sticky-save-bar field-level pattern, soft
+  // delete with promote-next-primary handling on the server.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  let LOCATIONS = [];          // current list from the server
+  let DRAFTS = {};             // _id → pending changed fields, used by sticky save bars
+  let DELETE_TARGET = null;    // _id awaiting confirmation
+  let BUSY = false;            // disables top-level Save while a request is in flight
+
+  function brandId() {
+    const b = (window.KUP_BRAND_CONTEXT && KUP_BRAND_CONTEXT.getActiveBrand()) || {};
+    return b.id || b._id || null;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function fullAddress(loc) {
+    return [loc.address, loc.city, loc.state, loc.zip].filter(Boolean).join(', ');
+  }
+
+  // ── Load + render ──────────────────────────────────────────────────────
+  async function loadLocations() {
+    const id = brandId();
+    if (!id) {
+      document.getElementById('listRoot').innerHTML =
+        '<div class="empty-card"><h3>Pick a brand first</h3><p>Use the brand switcher in the header to select which brand to manage locations for.</p></div>';
+      return;
+    }
+    try {
+      const r = await kupApi.get('/api/brand-locations/brand/' + id);
+      LOCATIONS = (r && r.locations) || [];
+      DRAFTS = {};
+      render();
+    } catch (err) {
+      document.getElementById('listRoot').innerHTML =
+        '<div class="empty-card"><h3>Couldn\'t load locations</h3><p>' + (err && err.message ? err.message : 'Network error') + '</p></div>';
+    }
+  }
+
+  function render() {
+    const root = document.getElementById('listRoot');
+    root.classList.remove('loading-state');
+    if (LOCATIONS.length === 0) {
+      root.innerHTML = `
+        <div class="empty-card">
+          <h3>No locations yet</h3>
+          <p>Add your first location to enable the franchise locator. Single-brand or multi-location — start with where people can actually find you.</p>
+          <button class="btn-add" onclick="openAddModal()">+ Add your first location</button>
+        </div>`;
+      return;
+    }
+    const html = LOCATIONS.map(renderCard).join('');
+    root.innerHTML = html;
+  }
+
+  function renderCard(loc) {
+    const isPrimary = !!loc.isPrimary;
+    const hasCoords = loc.coordinates && Array.isArray(loc.coordinates.coordinates);
+    return `
+      <div class="loc-card ${isPrimary ? 'is-primary' : ''}" data-id="${loc._id}">
+        <div class="loc-header">
+          <div style="flex:1; min-width: 0;">
+            <div class="loc-name">${escapeHtml(loc.name || loc.city || 'Location')}</div>
+            <div class="loc-addr">${escapeHtml(fullAddress(loc) || 'No address yet')}</div>
+            <div class="loc-meta">
+              ${isPrimary ? '<span class="pill pill-primary">PRIMARY</span>' : ''}
+              ${!hasCoords ? '<span class="pill pill-warn">Needs geocoding</span>' : ''}
+            </div>
+          </div>
+          <div class="loc-actions">
+            ${!isPrimary ? `<button class="icon-btn" title="Make primary" onclick="makePrimary('${loc._id}')">★</button>` : ''}
+            <button class="icon-btn" title="Edit" onclick="toggleEdit('${loc._id}')">✎</button>
+            <button class="icon-btn danger" title="Remove" onclick="askDelete('${loc._id}')">✕</button>
+          </div>
+        </div>
+        <div class="edit-grid" id="edit_${loc._id}" style="display:none;">
+          <div class="full">
+            <label>Location name</label>
+            <input data-field="name" data-loc="${loc._id}" value="${escapeAttr(loc.name || '')}">
+          </div>
+          <div class="full">
+            <label>Street address</label>
+            <input data-field="address" data-loc="${loc._id}" value="${escapeAttr(loc.address || '')}">
+          </div>
+          <div>
+            <label>City</label>
+            <input data-field="city" data-loc="${loc._id}" value="${escapeAttr(loc.city || '')}">
+          </div>
+          <div>
+            <label>State</label>
+            <input data-field="state" data-loc="${loc._id}" value="${escapeAttr(loc.state || '')}">
+          </div>
+          <div>
+            <label>ZIP</label>
+            <input data-field="zip" data-loc="${loc._id}" value="${escapeAttr(loc.zip || '')}">
+          </div>
+          <div>
+            <label>Country</label>
+            <input data-field="country" data-loc="${loc._id}" value="${escapeAttr(loc.country || 'US')}">
+          </div>
+        </div>
+        <div class="save-bar hidden" id="save_${loc._id}">
+          <span class="changes" id="changes_${loc._id}">No changes</span>
+          <button onclick="saveDraft('${loc._id}')">Save</button>
+        </div>
+      </div>`;
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+
+  // ── Add modal ──────────────────────────────────────────────────────────
+  function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add a location';
+    ['addName','addAddress','addCity','addState','addZip'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('addCountry').value = 'US';
+    document.getElementById('modalAdd').classList.add('show');
+    setTimeout(() => document.getElementById('addAddress').focus(), 50);
+  }
+  function closeAddModal() {
+    document.getElementById('modalAdd').classList.remove('show');
+  }
+
+  async function submitAdd() {
+    const id = brandId();
+    if (!id) return toast('Pick a brand first');
+    const payload = {
+      name:    document.getElementById('addName').value.trim(),
+      address: document.getElementById('addAddress').value.trim(),
+      city:    document.getElementById('addCity').value.trim(),
+      state:   document.getElementById('addState').value.trim(),
+      zip:     document.getElementById('addZip').value.trim(),
+      country: document.getElementById('addCountry').value.trim() || 'US',
+    };
+    if (!payload.address && !payload.city) {
+      return toast('Add at least a street or city');
+    }
+    const btn = document.getElementById('addSave');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await kupApi.post('/api/brand-locations/brand/' + id, payload);
+      closeAddModal();
+      toast('Location added');
+      loadLocations();
+    } catch (err) {
+      toast(err && err.message ? err.message : 'Could not add');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save location';
+    }
+  }
+
+  // ── Inline edit + sticky save ──────────────────────────────────────────
+  function toggleEdit(id) {
+    const grid = document.getElementById('edit_' + id);
+    if (!grid) return;
+    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+  }
+
+  // Track changes per-row. The sticky save bar surfaces only when there's at
+  // least one changed field; on Save we PUT only the changed fields (mirrors
+  // add-brand.html field-level pattern).
+  document.addEventListener('input', (e) => {
+    const inp = e.target;
+    if (!(inp instanceof HTMLInputElement)) return;
+    const locId = inp.getAttribute('data-loc');
+    const field = inp.getAttribute('data-field');
+    if (!locId || !field) return;
+    const original = LOCATIONS.find(l => l._id === locId);
+    if (!original) return;
+
+    DRAFTS[locId] = DRAFTS[locId] || {};
+    if ((original[field] || '') === inp.value) {
+      delete DRAFTS[locId][field];
+    } else {
+      DRAFTS[locId][field] = inp.value;
+    }
+    const changedCount = Object.keys(DRAFTS[locId]).length;
+    const bar = document.getElementById('save_' + locId);
+    const label = document.getElementById('changes_' + locId);
+    if (changedCount === 0) {
+      bar.classList.add('hidden');
+      label.textContent = 'No changes';
+    } else {
+      bar.classList.remove('hidden');
+      label.textContent = changedCount + (changedCount === 1 ? ' field changed' : ' fields changed');
+    }
+  });
+
+  async function saveDraft(id) {
+    const changes = DRAFTS[id] || {};
+    if (Object.keys(changes).length === 0) return;
+    try {
+      await kupApi.put('/api/brand-locations/' + id, changes);
+      toast('Saved');
+      DRAFTS[id] = {};
+      document.getElementById('save_' + id).classList.add('hidden');
+      loadLocations();
+    } catch (err) {
+      toast(err && err.message ? err.message : 'Could not save');
+    }
+  }
+
+  async function makePrimary(id) {
+    try {
+      await kupApi.put('/api/brand-locations/' + id, { isPrimary: true });
+      toast('Primary location updated');
+      loadLocations();
+    } catch (err) {
+      toast(err && err.message ? err.message : 'Could not update');
+    }
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────────────
+  function askDelete(id) {
+    const loc = LOCATIONS.find(l => l._id === id);
+    if (!loc) return;
+    DELETE_TARGET = id;
+    document.getElementById('deleteHelper').textContent = LOCATIONS.length <= 1
+      ? "You can't remove the only location — a brand needs at least one. Add another before removing this."
+      : "It will be hidden from the franchise locator immediately. Existing reviews that referenced it stay intact.";
+    const btn = document.getElementById('deleteConfirm');
+    btn.disabled = LOCATIONS.length <= 1;
+    btn.style.opacity = LOCATIONS.length <= 1 ? '0.4' : '1';
+    document.getElementById('modalDelete').classList.add('show');
+  }
+  function closeDeleteModal() {
+    DELETE_TARGET = null;
+    document.getElementById('modalDelete').classList.remove('show');
+  }
+  async function confirmDelete() {
+    if (!DELETE_TARGET) return;
+    try {
+      await kupApi.delete('/api/brand-locations/' + DELETE_TARGET);
+      toast('Removed');
+      closeDeleteModal();
+      loadLocations();
+    } catch (err) {
+      toast(err && err.message ? err.message : 'Could not remove');
+    }
+  }
+
+  // ── Wire buttons ───────────────────────────────────────────────────────
+  document.getElementById('btnAddTop').addEventListener('click', openAddModal);
+  document.getElementById('addCancel').addEventListener('click', closeAddModal);
+  document.getElementById('addSave').addEventListener('click', submitAdd);
+  document.getElementById('deleteCancel').addEventListener('click', closeDeleteModal);
+  document.getElementById('deleteConfirm').addEventListener('click', confirmDelete);
+
+  // Click outside modal to dismiss
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
+  });
+
+  // Initial load — wait a tick so brand-context's localStorage is read first.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(loadLocations, 50));
+  } else {
+    setTimeout(loadLocations, 50);
+  }
+</script>
+</body>
+</html>
