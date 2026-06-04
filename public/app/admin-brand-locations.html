@@ -276,11 +276,25 @@
   document.getElementById('typeFilter').addEventListener('change', applyFilters);
   document.getElementById('sortBy').addEventListener('change', applyFilters);
 
-  // Initial load — wait briefly for firebase-client.js to finish setting up auth
+  // Auth-gated init. Without this, the first triage API call races Firebase
+  // session restore — it goes out anonymous, hits the requireAdmin middleware
+  // as no user, returns 401/403, and api.js error handler bounces to dashboard.
+  function bootWhenReady() {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      return setTimeout(bootWhenReady, 50);
+    }
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+      load();
+    });
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(load, 100));
+    document.addEventListener('DOMContentLoaded', bootWhenReady);
   } else {
-    setTimeout(load, 100);
+    bootWhenReady();
   }
 </script>
 </body>

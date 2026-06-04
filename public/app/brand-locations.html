@@ -618,11 +618,29 @@
   }
   document.getElementById('geoRequireToggle').addEventListener('change', onGeoToggle);
 
-  // Initial load — wait a tick so brand-context's localStorage is read first.
+  // Auth-gated init. Without this, the first API calls race Firebase's
+  // session restore — they go out anonymous, return 401, and the api.js
+  // error handler redirects to dashboard. brand-catalog.html does the same
+  // dance; matching it here.
+  function bootWhenReady() {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      // Firebase script still loading — try again next tick.
+      return setTimeout(bootWhenReady, 50);
+    }
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+      // Authenticated. Safe to call protected endpoints now.
+      loadLocations();
+      loadBrandSettings();
+    });
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(() => { loadLocations(); loadGeoSetting(); }, 50));
+    document.addEventListener('DOMContentLoaded', bootWhenReady);
   } else {
-    setTimeout(() => { loadLocations(); loadGeoSetting(); }, 50);
+    bootWhenReady();
   }
 </script>
 </body>
