@@ -338,10 +338,20 @@ router.get('/discover', requireAuth, async (req, res) => {
     }
     const rewardedIdSet = new Set(rewardedBrandIds.map(id => String(id)));
 
-    // Geo filter — opt-in only via nearbyOnly=true.
-    // Default behavior: show every (rewarded) brand globally regardless of user location.
-    // Text search always bypasses geo so a US user can find a Lisbon brand by name.
-    const useGeo = nearbyOnly === 'true' && !search && lat && lon;
+    // Geo filter — applied whenever the client explicitly signals it.
+    // Two equivalent triggers from the client:
+    //   1) nearbyOnly=true  — legacy "Near Me" pill / discover tab
+    //   2) radiusMi supplied — Build 147: search overlay's radius pills
+    //
+    // Build 147 fix: previously this required nearbyOnly=true AND !search,
+    // which meant the search overlay's radius pill silently did nothing
+    // (Flutter sent lat/lon/radiusMi without nearbyOnly, AND any text search
+    // bypassed geo). The right behavior: if the user picks a radius, they're
+    // explicitly asking for geo — search query or not.
+    //
+    // When neither trigger is present, geo stays off so a US user can still
+    // find a Lisbon brand by name (the "global text search" use case).
+    const useGeo = (nearbyOnly === 'true' || radiusMi != null) && lat && lon;
     if (useGeo) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lon);
