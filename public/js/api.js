@@ -29,20 +29,34 @@ const kupApi = {
     return headers;
   },
 
+  // Throw on non-2xx so callers' try/catch blocks actually fire. Without this,
+  // a 403 (e.g. user isn't a BrandMember for the brand they're trying to edit)
+  // returned the error body as if it were success — the UI flipped a toggle
+  // locally, the success toast popped, and the data never saved. Caller sees
+  // a successful round-trip; the data layer disagrees. Hours-of-debugging bug.
+  async _throwIfBad(response) {
+    if (response.ok) return;
+    let body = null;
+    try { body = await response.clone().json(); } catch (_) {}
+    const msg = (body && (body.message || body.error)) || `${response.status} ${response.statusText}`;
+    const err = new Error(msg);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  },
+
   // GET request
   // cache: 'no-store' so the browser never serves a stale response for an API
   // GET. Without this, toggling something on /app/brand-locations.html and
   // navigating back showed the old state because the browser cached the
-  // earlier GET /api/brands/:id response. Adding the header here is the right
-  // fix at the platform level instead of cache-busting every call site.
+  // earlier GET /api/brands/:id response.
   async get(path) {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.baseUrl}${path}`, { headers, cache: 'no-store' });
     if (response.status === 401) {
-      // If Firebase still has a user, the token may just need refreshing — retry once
       if (typeof auth !== 'undefined' && auth.currentUser) {
         try {
-          const freshToken = await auth.currentUser.getIdToken(true); // force refresh
+          const freshToken = await auth.currentUser.getIdToken(true);
           const retryHeaders = { ...headers, 'Authorization': `Bearer ${freshToken}` };
           const retry = await fetch(`${this.baseUrl}${path}`, { headers: retryHeaders, cache: 'no-store' });
           if (retry.ok) return await retry.json();
@@ -51,6 +65,7 @@ const kupApi = {
       window.location.href = '/pages/login.html';
       return;
     }
+    await this._throwIfBad(response);
     return await response.json();
   },
 
@@ -73,6 +88,7 @@ const kupApi = {
       window.location.href = '/pages/login.html';
       return;
     }
+    await this._throwIfBad(response);
     return await response.json();
   },
 
@@ -95,6 +111,7 @@ const kupApi = {
       window.location.href = '/pages/login.html';
       return;
     }
+    await this._throwIfBad(response);
     return await response.json();
   },
 
