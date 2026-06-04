@@ -6,6 +6,7 @@ module.exports = {
   InfluencerProfile: require('./InfluencerProfile'),
   BrandProfile: require('./BrandProfile'),
   Brand: require('./Brand'),
+  BrandLocation: require('./BrandLocation'),
   BrandMember: require('./BrandMember'),
   Campaign: require('./Campaign'),
   Reward: require('./Reward'),

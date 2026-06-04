@@ -344,6 +344,10 @@ app.use('/api/influencers', require('./routes/influencers'));
 // Deliberately not a follow system — see Build 143 strategy call.
 app.use('/api/creator-subscriptions', require('./routes/creator-subscriptions'));
 
+// Per-brand physical locations — public locator (used by the in-app
+// franchise picker) + brand-portal CRUD. See Build 145.
+app.use('/api/brand-locations', require('./routes/brand-locations'));
+
 // Referral routes — influencer referral program
 app.use('/api/referrals', require('./routes/referrals'));
 
