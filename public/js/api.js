@@ -30,16 +30,21 @@ const kupApi = {
   },
 
   // GET request
+  // cache: 'no-store' so the browser never serves a stale response for an API
+  // GET. Without this, toggling something on /app/brand-locations.html and
+  // navigating back showed the old state because the browser cached the
+  // earlier GET /api/brands/:id response. Adding the header here is the right
+  // fix at the platform level instead of cache-busting every call site.
   async get(path) {
     const headers = await this.getHeaders();
-    const response = await fetch(`${this.baseUrl}${path}`, { headers });
+    const response = await fetch(`${this.baseUrl}${path}`, { headers, cache: 'no-store' });
     if (response.status === 401) {
       // If Firebase still has a user, the token may just need refreshing — retry once
       if (typeof auth !== 'undefined' && auth.currentUser) {
         try {
           const freshToken = await auth.currentUser.getIdToken(true); // force refresh
           const retryHeaders = { ...headers, 'Authorization': `Bearer ${freshToken}` };
-          const retry = await fetch(`${this.baseUrl}${path}`, { headers: retryHeaders });
+          const retry = await fetch(`${this.baseUrl}${path}`, { headers: retryHeaders, cache: 'no-store' });
           if (retry.ok) return await retry.json();
         } catch(e) {}
       }
