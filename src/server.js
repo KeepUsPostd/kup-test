@@ -340,6 +340,10 @@ app.use('/api/partnerships', require('./routes/partnerships'));
 // Public influencer/creator profile read endpoints
 app.use('/api/influencers', require('./routes/influencers'));
 
+// Save + notify-me private utility for creators viewing other creators.
+// Deliberately not a follow system — see Build 143 strategy call.
+app.use('/api/creator-subscriptions', require('./routes/creator-subscriptions'));
+
 // Referral routes — influencer referral program
 app.use('/api/referrals', require('./routes/referrals'));
 

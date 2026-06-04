@@ -2460,9 +2460,62 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
   }
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// Creator-subscription "new review" fan-out — fires when a review is approved
+// for a creator that other viewers have opted in to be notified about (via
+// CreatorSubscription notify=true). Push + in-app only, no email. Errors are
+// non-blocking: a fan-out failure must NEVER hold up an approval.
+// ──────────────────────────────────────────────────────────────────────────
+async function notifyCreatorSubscribers({ creatorProfile, brand, submission }) {
+  try {
+    if (!creatorProfile?._id || !brand || !submission) return;
+    const { CreatorSubscription } = require('../models');
+    const subs = await CreatorSubscription.find({
+      creatorProfileId: creatorProfile._id,
+      notify: true,
+    }).select('userId').lean();
+    if (!subs.length) return;
+
+    const handle = creatorProfile.handle || 'creator';
+    const displayName = creatorProfile.displayName || ('@' + handle);
+    const title = '@' + handle + ' posted a new review';
+    const message = displayName + ' just shared a new review of ' + brand.name + '. Tap to watch.';
+    const link = '/discover'; // app routes the feed home; we could deep-link to the specific submission later
+    const meta = {
+      brandName: brand.name,
+      brandLogoUrl: brand.logoUrl || brand.avatarUrl || '',
+      creatorHandle: handle,
+      creatorProfileId: String(creatorProfile._id),
+      contentSubmissionId: String(submission._id),
+    };
+
+    // Sequential so a single bad token doesn't break the rest.
+    for (const s of subs) {
+      const userId = String(s.userId);
+      try {
+        await createInApp({
+          userId,
+          title,
+          message,
+          type: 'content',
+          link,
+          audience: 'influencer',
+          metadata: meta,
+        });
+      } catch (_) {}
+      try {
+        await push(userId, { title, body: message, link });
+      } catch (_) {}
+    }
+  } catch (err) {
+    console.error('[notifyCreatorSubscribers]', err.message);
+  }
+}
+
 module.exports = {
   // ── Internal helper (exported for admin-panel promo flow) ──
   createInApp,
+  notifyCreatorSubscribers,
 
   // ── Phase 1: Account (Critical) ──
   accountCreated,

@@ -18,6 +18,7 @@ module.exports = {
   Payout: require('./Payout'),
   Withdrawal: require('./Withdrawal'),
   Notification: require('./Notification'),
+  CreatorSubscription: require('./CreatorSubscription'),
   ClaimRequest: require('./ClaimRequest'),
   BrandScan: require('./BrandScan'),
   BrandInvite: require('./BrandInvite'),

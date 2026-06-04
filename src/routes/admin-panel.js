@@ -916,6 +916,11 @@ router.put('/content/:id/moderate', async (req, res) => {
 
             console.log(`📬 Approval + rating notifications sent to userId ${userId} for ${brandName}`);
           }
+
+          // Fan out "new review" push + in-app to viewers who opted in to be
+          // notified about this creator (CreatorSubscription notify=true).
+          // Non-blocking — never holds up the approval.
+          notify.notifyCreatorSubscribers({ creatorProfile: profile, brand, submission }).catch(() => {});
         }
       } catch (notifyErr) {
         console.error('Approval notification error (non-blocking):', notifyErr.message);

@@ -1211,6 +1211,9 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
         if (rewardTriggered) {
           notify.cashRewardEarned({ influencer: inf, brand, amount: rewardTriggered.amount, type: 'cash_per_approval', partnershipId: submission.partnershipId?.toString() }).catch(() => {});
         }
+        // Fan out "new review" push + in-app to viewers who opted in to be
+        // notified about this creator (CreatorSubscription notify=true).
+        notify.notifyCreatorSubscribers({ creatorProfile: inf, brand, submission }).catch(() => {});
       }
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);
