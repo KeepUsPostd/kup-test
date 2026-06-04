@@ -148,6 +148,20 @@
   <div style="width:120px;"></div>
 </div>
 
+<!-- ── Admin-mode banner (shown only when ?adminBrandId=X is in URL) ───── -->
+<!-- Brand name is hydrated by loadBrandSettings once the brand GET resolves. -->
+<div id="adminModeBanner" style="display:none; background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%); border-bottom:2px solid #fb923c; padding:10px 20px; font-size:13px;">
+  <div style="max-width:760px; margin:0 auto; display:flex; align-items:center; gap:10px;">
+    <span style="font-size:16px;">🔧</span>
+    <div style="flex:1;">
+      <strong style="color:#9a3412;">Admin mode</strong>
+      <span style="color:#7c2d12;"> — managing locations for </span>
+      <strong id="adminModeBrandName" style="color:#7c2d12;">…</strong>
+    </div>
+    <a href="admin-brand-locations.html" style="color:#9a3412; font-weight:700; text-decoration:none; font-size:12px;">← Back to triage</a>
+  </div>
+</div>
+
 <div class="page-wrap">
   <h1 class="page-title">Locations</h1>
   <p class="page-sub">
@@ -155,7 +169,9 @@
     the closest one when they submit a review.
   </p>
 
-  <div class="add-btn-row">
+  <div class="add-btn-row" style="gap:8px;">
+    <!-- Bulk paste is admin-mode only — surfaced only when ?adminBrandId is in URL -->
+    <button class="btn-add" id="btnBulkPaste" style="display:none; background:#7c2d12;">📋 Paste addresses</button>
     <button class="btn-add" id="btnAddTop">+ Add Location</button>
   </div>
 
@@ -270,6 +286,31 @@
   </div>
 </div>
 
+<!-- ── Bulk paste modal (admin mode only) ─────────────────────────────── -->
+<!-- Textarea accepts one address per line, comma-separated. On Save we POST
+     each row sequentially so Nominatim's polite rate limit isn't hammered.
+     Per-row errors don't kill the batch — bad rows are reported, good rows
+     still land. -->
+<div class="modal-overlay" id="modalBulk">
+  <div class="modal-card" style="max-width: 580px;">
+    <h4>Paste locations in bulk</h4>
+    <p class="helper">
+      One location per line. Format: <strong>Name, Street, City, State, ZIP</strong>.
+      Name is optional — leave blank and the city is used as the label.
+      Each row is geocoded server-side on save. Bad addresses still save
+      (just without coordinates) so you can fix them later inline.
+    </p>
+    <textarea id="bulkPasteText" rows="10" placeholder="Lincoln Park, 2256 N Clark St, Chicago, IL, 60614
+West Loop, 1132 W Madison St, Chicago, IL, 60607
+River North, 316 N Michigan Ave, Chicago, IL, 60601" style="width:100%; border:1px solid #d8dde3; border-radius:8px; padding:10px 12px; font-size:13px; font-family:'Courier New', monospace; resize:vertical;"></textarea>
+    <div id="bulkPasteProgress" style="margin-top:10px; font-size:12px; color:#6c757d; min-height:18px;"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="bulkCancel">Cancel</button>
+      <button class="btn-primary" id="bulkSave">Save all</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-mini" id="toast"></div>
 
 <!-- Firebase auth — required so api.js attaches an ID token to every request.
@@ -278,7 +319,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="/js/firebase-client.js?v=1774619962"></script>
-<script src="/js/api.js?v=1780538500"></script>
+<script src="/js/api.js?v=1780539000"></script>
 <script src="/js/brand-context.js?v=1774619962"></script>
 <!-- Bootstrap JS (for the modal dismiss-on-Escape behavior + general parity) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -296,7 +337,27 @@
   let DELETE_TARGET = null;    // _id awaiting confirmation
   let BUSY = false;            // disables top-level Save while a request is in flight
 
+  // ── ADMIN OVERRIDE MODE ─────────────────────────────────────────────────
+  // When the page is opened with ?adminBrandId=<X> in the URL, the active
+  // brand context is bypassed — the page loads, edits, and saves locations
+  // for that brand ID instead. Only useful for platform admins (ADMIN_EMAILS);
+  // for everyone else the server still 403's on POST/PUT/DELETE because the
+  // requireBrandMember check fails. Used by the admin triage page to deep-
+  // link into per-brand multi-location management for admin/unclaimed brands
+  // the operator doesn't actually own.
+  function adminBrandIdFromUrl() {
+    return new URLSearchParams(window.location.search).get('adminBrandId') || null;
+  }
+  function isAdminMode() {
+    return !!adminBrandIdFromUrl();
+  }
+
   function brandId() {
+    // Admin override URL param wins — used by the admin triage tool to
+    // jump straight into managing a brand the operator isn't a member of.
+    const adminId = adminBrandIdFromUrl();
+    if (adminId) return adminId;
+
     // CRITICAL: prefer .mongoId — that's the FULL 24-char ObjectId.
     // brand-context.js stores brands in localStorage with:
     //   .id       = display label (first 6 chars of ObjectId — "69e659")
@@ -568,7 +629,21 @@
       const brand = r && r.brand;
       setEverywhereUi(!!(brand && brand.isAvailableEverywhere));
       setGeoUi(!!(brand && brand.requireGeoVerified));
+      // Hydrate admin-mode banner with the actual brand name so the operator
+      // can confirm they're editing the right brand at a glance.
+      if (isAdminMode() && brand) {
+        const nameEl = document.getElementById('adminModeBrandName');
+        if (nameEl) nameEl.textContent = brand.name || '(unnamed brand)';
+        document.title = '🔧 ' + (brand.name || 'Brand') + ' Locations — Admin';
+      }
     } catch (_) { /* silent — toggles stay OFF */ }
+  }
+
+  // Show admin-mode chrome before the brand GET resolves so the operator
+  // sees the orange banner immediately (with "…" until the name lands).
+  if (isAdminMode()) {
+    document.getElementById('adminModeBanner').style.display = 'block';
+    document.getElementById('btnBulkPaste').style.display = 'inline-flex';
   }
   // Backwards compat alias — older code referenced loadGeoSetting()
   const loadGeoSetting = loadBrandSettings;
@@ -610,6 +685,78 @@
     }
   }
   document.getElementById('everywhereToggle').addEventListener('change', onEverywhereToggle);
+
+  // ── BULK PASTE (admin mode only) ─────────────────────────────────────
+  // Textarea → one location per line, comma-separated:
+  //   Name, Street, City, State, ZIP, Country?
+  // Name is optional (city used as fallback). Country defaults to US.
+  // Each row is POSTed sequentially (server geocodes) so Nominatim's polite
+  // rate limit isn't hammered. Throttle delay = 350ms between rows. Per-row
+  // failures are logged in the progress strip but don't halt the batch.
+  function openBulkModal() {
+    document.getElementById('bulkPasteText').value = '';
+    document.getElementById('bulkPasteProgress').textContent = '';
+    document.getElementById('bulkSave').disabled = false;
+    document.getElementById('bulkSave').textContent = 'Save all';
+    document.getElementById('modalBulk').classList.add('show');
+    setTimeout(() => document.getElementById('bulkPasteText').focus(), 50);
+  }
+  function closeBulkModal() {
+    document.getElementById('modalBulk').classList.remove('show');
+  }
+  function parseBulkRow(line) {
+    const parts = line.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length === 0) return null;
+    // Heuristic: if first segment doesn't look like a street number, treat
+    // as a location Name. "1234 Main St" → no name. "Lincoln Park, 1234..." → name.
+    const looksLikeStreet = /^\d/.test(parts[0]);
+    let name = '', rest = parts;
+    if (!looksLikeStreet && parts.length >= 2) {
+      name = parts[0];
+      rest = parts.slice(1);
+    }
+    const [address, city, state, zip, country] = [
+      rest[0] || '', rest[1] || '', rest[2] || '', rest[3] || '', rest[4] || 'US',
+    ];
+    return { name, address, city, state, zip, country };
+  }
+  async function submitBulk() {
+    const id = brandId();
+    if (!id) return toast('No brand selected');
+    const lines = (document.getElementById('bulkPasteText').value || '')
+      .split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return toast('Paste at least one row');
+    const rows = lines.map(parseBulkRow).filter(Boolean);
+    const btn = document.getElementById('bulkSave');
+    const progressEl = document.getElementById('bulkPasteProgress');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    let saved = 0, failed = 0;
+    for (let i = 0; i < rows.length; i++) {
+      progressEl.textContent = `Saving ${i + 1}/${rows.length} — ${rows[i].name || rows[i].city || '(row ' + (i + 1) + ')'}`;
+      try {
+        await kupApi.post('/api/brand-locations/brand/' + id, rows[i]);
+        saved += 1;
+      } catch (err) {
+        failed += 1;
+        progressEl.textContent = `Row ${i + 1} failed: ${err && err.message ? err.message : 'unknown error'}`;
+      }
+      // Nominatim-polite throttle. Drops if Google key is set later.
+      await new Promise(r => setTimeout(r, 350));
+    }
+    progressEl.textContent = `Done — ${saved} saved` + (failed > 0 ? `, ${failed} failed` : '');
+    btn.disabled = false;
+    btn.textContent = 'Save all';
+    toast(saved + ' locations added' + (failed > 0 ? ' (' + failed + ' failed)' : ''));
+    // Reload list + close after a beat so the operator sees the result strip.
+    setTimeout(() => {
+      closeBulkModal();
+      loadLocations();
+    }, 1200);
+  }
+  document.getElementById('btnBulkPaste').addEventListener('click', openBulkModal);
+  document.getElementById('bulkCancel').addEventListener('click', closeBulkModal);
+  document.getElementById('bulkSave').addEventListener('click', submitBulk);
 
   function setGeoUi(on) {
     document.getElementById('geoRequireToggle').checked = on;
