@@ -2701,6 +2701,120 @@ router.get('/promotions', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+// Build 146: pending-payout admin tooling.
+//
+// Background: automated PayPal Vault payouts are DISABLED until PayPal
+// enables platform vault for KUP. So cash_per_approval transactions get
+// stuck at status='pending' instead of auto-paying out. Until vault is
+// live, the operator must send the cash via PayPal Business externally,
+// then mark the transaction as paid in the DB so the creator's wallet
+// balance reflects it and they get a notification.
+// ─────────────────────────────────────────────────────────────────────────
+
+// GET /api/admin-panel/transactions/pending-payouts
+// Returns every pending/processing Transaction with creator + brand
+// context for the admin "Pending Payouts" table. Capped at 200.
+router.get('/transactions/pending-payouts', async (req, res) => {
+  try {
+    const Transaction = require('../models/Transaction');
+    const InfluencerProfile = require('../models/InfluencerProfile');
+    const Brand = require('../models/Brand');
+
+    const pending = await Transaction.find({
+      status: { $in: ['pending', 'processing'] },
+    }).sort({ createdAt: -1 }).limit(200).lean();
+
+    // Hydrate creator + brand lookups in parallel.
+    const profileIds = [...new Set(pending.map(t => String(t.payeeInfluencerId)).filter(Boolean))];
+    const brandIds = [...new Set(pending.map(t => String(t.brandId)).filter(Boolean))];
+    const [profiles, brands] = await Promise.all([
+      InfluencerProfile.find({ _id: { $in: profileIds } }, 'displayName handle paypalEmail').lean(),
+      Brand.find({ _id: { $in: brandIds } }, 'name').lean(),
+    ]);
+    const profileMap = Object.fromEntries(profiles.map(p => [String(p._id), p]));
+    const brandMap = Object.fromEntries(brands.map(b => [String(b._id), b]));
+
+    const items = pending.map(t => {
+      const p = profileMap[String(t.payeeInfluencerId)] || {};
+      const b = brandMap[String(t.brandId)] || {};
+      return {
+        _id:               t._id,
+        amount:            t.amount,
+        type:              t.type,
+        status:            t.status,
+        createdAt:         t.createdAt,
+        creatorDisplayName: p.displayName || '(unknown)',
+        creatorHandle:     p.handle || '',
+        creatorPayPalEmail: p.paypalEmail || null,
+        brandName:         b.name || '(unknown)',
+      };
+    });
+
+    const totalDollars = items.reduce((s, i) => s + (i.amount || 0), 0);
+    res.json({ items, count: items.length, totalDollars: Math.round(totalDollars * 100) / 100 });
+  } catch (err) {
+    console.error('[GET /admin-panel/transactions/pending-payouts]', err);
+    res.status(500).json({ error: 'Could not load pending payouts' });
+  }
+});
+
+// PUT /api/admin-panel/transactions/:id/mark-paid
+// Marks a single Transaction as paid (after the operator sent the cash
+// via PayPal Business externally). Sets status='paid', stores the optional
+// PayPal transaction ID for receipts, fires an in-app + push notification
+// to the creator, and updates the InfluencerProfile cashBalance fields if
+// the schema tracks them.
+router.put('/transactions/:id/mark-paid', async (req, res) => {
+  try {
+    const Transaction = require('../models/Transaction');
+    const InfluencerProfile = require('../models/InfluencerProfile');
+    const { paypalTransactionId, note } = req.body || {};
+
+    const tx = await Transaction.findById(req.params.id);
+    if (!tx) return res.status(404).json({ error: 'Transaction not found' });
+    if (tx.status === 'paid') {
+      return res.status(400).json({ error: 'Already marked paid', paidAt: tx.paidAt });
+    }
+
+    tx.status = 'paid';
+    tx.paidAt = new Date();
+    if (paypalTransactionId) tx.paypalTransactionId = paypalTransactionId;
+    if (note) tx.adminNote = note;
+    await tx.save();
+
+    // Notify the creator that the payout was sent. Lookup their user id to
+    // address the notification.
+    try {
+      const profile = await InfluencerProfile.findById(tx.payeeInfluencerId).lean();
+      if (profile && profile.userId) {
+        const { createInApp, sendPushToUser } = require('../services/notifications');
+        const title = `Payment sent — $${(tx.amount || 0).toFixed(2)}`;
+        const message = paypalTransactionId
+          ? `KeepUsPostd sent $${(tx.amount || 0).toFixed(2)} to your PayPal. Reference: ${paypalTransactionId}`
+          : `KeepUsPostd sent $${(tx.amount || 0).toFixed(2)} to your PayPal for your approved review.`;
+        await createInApp({
+          userId: profile.userId,
+          title,
+          message,
+          type: 'payment',
+          metadata: { transactionId: String(tx._id), amount: tx.amount },
+        });
+        if (sendPushToUser) {
+          await sendPushToUser(profile.userId, { title, body: message }).catch(() => {});
+        }
+      }
+    } catch (notifyErr) {
+      console.warn('[mark-paid] notification non-fatal failure', notifyErr.message);
+    }
+
+    res.json({ transaction: tx });
+  } catch (err) {
+    console.error('[PUT /admin-panel/transactions/:id/mark-paid]', err);
+    res.status(500).json({ error: 'Could not mark transaction paid' });
+  }
+});
+
 // PUT /api/admin-panel/promotions/:id/mark-paid — Mark a promo as paid
 router.put('/promotions/:id/mark-paid', async (req, res) => {
   try {
