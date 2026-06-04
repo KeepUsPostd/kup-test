@@ -41,6 +41,10 @@
 
     .paypal-yes { color: #0070e0; font-weight: 600; font-size: 12px; }
     .paypal-no  { color: #e53e3e; font-size: 12px; }
+    /* Build 147 — honest PayPal status badges */
+    .paypal-ready      { color: #16a34a; font-weight: 700; font-size: 11px; }
+    .paypal-email-only { color: #d97706; font-weight: 700; font-size: 11px; cursor: help; }
+    .paypal-missing    { color: #dc2626; font-size: 11px; }
     .verified-check { color: #2EA5DD; font-size: 14px; }
     .verified-pending { color: #f59e0b; font-size: 12px; }
     .verified-no { color: #d1d5db; font-size: 12px; }
@@ -207,8 +211,9 @@
         </select>
         <select id="paypalFilter" onchange="loadCreators()">
           <option value="">Any PayPal</option>
-          <option value="connected">PayPal Connected</option>
-          <option value="missing">No PayPal</option>
+          <option value="connected">🟢 Ready (PPCP complete)</option>
+          <option value="email_only">🟡 Email only — needs PPCP</option>
+          <option value="missing">🔴 No PayPal</option>
         </select>
         <select id="verifiedFilter" onchange="loadCreators()">
           <option value="">Any Verification</option>
@@ -378,9 +383,18 @@
           : c.verificationPending
             ? `<span class="verified-pending">&#8987; Pending</span>`
             : `<span class="verified-no">—</span>`;
-        const paypalHtml = c.paypalEmail
-          ? `<span class="paypal-yes">&#10004; Connected</span>`
-          : `<span class="paypal-no">&#10005; Missing</span>`;
+        // Build 147 — three honest states. "Connected" used to fire for
+        // any creator with paypalEmail, but the CPA approval flow in
+        // content.js gates on paypalMerchantId. Email-only creators look
+        // connected here but actually can't be auto-paid.
+        let paypalHtml;
+        if (c.paypalEmail && c.paypalMerchantId && c.paypalOnboardingStatus === 'completed') {
+          paypalHtml = `<span class="paypal-ready" title="Email + PPCP merchant onboarding complete">🟢 Ready</span>`;
+        } else if (c.paypalEmail) {
+          paypalHtml = `<span class="paypal-email-only" title="Has email but hasn't completed PPCP merchant onboarding — brand auto-pay can't fire for this creator yet">🟡 Email only</span>`;
+        } else {
+          paypalHtml = `<span class="paypal-missing">🔴 None</span>`;
+        }
         const reviews   = (c.totalReviews || 0);
         const adminRevs = (c.adminBrandReviews || 0);
         const rating    = c.averageRating ? c.averageRating.toFixed(1) + ' &#9733;' : '—';
@@ -539,11 +553,31 @@
               <label>PayPal Email</label>
               <span>${profile.paypalEmail
                 ? `<span class="paypal-yes">✔ ${escHtml(profile.paypalEmail)}</span>`
-                : `<span class="paypal-no">✗ Not connected</span>`}</span>
+                : `<span class="paypal-no">✗ Not entered</span>`}</span>
             </div>
             <div class="detail-item">
-              <label>Connected</label>
+              <label>PPCP Merchant ID</label>
+              <span>${profile.paypalMerchantId
+                ? `<span class="paypal-yes">✔ ${escHtml(profile.paypalMerchantId)}</span>`
+                : `<span class="paypal-no">✗ Not onboarded</span>`}</span>
+            </div>
+            <div class="detail-item">
+              <label>Onboarding Status</label>
+              <span>${escHtml(profile.paypalOnboardingStatus || 'not_started')}</span>
+            </div>
+            <div class="detail-item">
+              <label>Email connected on</label>
               <span>${profile.paypalConnectedAt ? new Date(profile.paypalConnectedAt).toLocaleDateString() : '—'}</span>
+            </div>
+            <div class="detail-item" style="grid-column:1/-1">
+              <label>Payment Ready Status</label>
+              <span>${
+                (profile.paypalEmail && profile.paypalMerchantId && profile.paypalOnboardingStatus === 'completed')
+                  ? `<span class="paypal-ready">🟢 Ready — brand auto-pay can fire on approval</span>`
+                  : profile.paypalEmail
+                    ? `<span class="paypal-email-only">🟡 Email only — CPA approvals stay in pending (content.js requires merchantId)</span>`
+                    : `<span class="paypal-missing">🔴 No PayPal — can't receive payment at all</span>`
+              }</span>
             </div>
           </div>
         </div>

@@ -582,8 +582,24 @@ router.get('/creators', async (req, res) => {
     if (tier)     match.influenceTier = tier;
     if (verified === 'true')  match.isVerified = true;
     if (verified === 'false') match.isVerified = false;
-    if (paypal === 'connected')    match.paypalEmail = { $ne: null };
-    if (paypal === 'missing')      match.paypalEmail = null;
+    // Build 147 — honest PayPal states. The legacy "connected" filter
+    // was just "has paypalEmail", which over-reports — creators in the
+    // silent-failure state (email saved, never finished PPCP) were
+    // mixed in. Now: connected = actually ready to receive auto-pay.
+    if (paypal === 'connected') {
+      match.paypalEmail = { $ne: null };
+      match.paypalMerchantId = { $ne: null };
+      match.paypalOnboardingStatus = 'completed';
+    }
+    if (paypal === 'email_only') {
+      match.paypalEmail = { $ne: null };
+      match.$or = [
+        { paypalMerchantId: null },
+        { paypalMerchantId: { $exists: false } },
+        { paypalOnboardingStatus: { $ne: 'completed' } },
+      ];
+    }
+    if (paypal === 'missing') match.paypalEmail = null;
 
     if (search) {
       match.$or = [
@@ -606,6 +622,9 @@ router.get('/creators', async (req, res) => {
         totalReviews: 1, adminBrandReviews: 1, totalBrandsPartnered: 1,
         totalCashEarned: 1, totalPointsEarned: 1,
         paypalEmail: 1, paypalConnectedAt: 1,
+        // Build 147 — include the fields needed to render honest PayPal
+        // status on the creators table (READY vs EMAIL ONLY vs MISSING).
+        paypalMerchantId: 1, paypalOnboardingStatus: 1,
         averageRating: 1, ratingCount: 1,
         realFollowerCount: 1, socialLinks: 1,
         isHidden: 1, createdAt: 1,
