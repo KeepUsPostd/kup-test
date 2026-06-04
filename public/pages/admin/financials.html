@@ -226,9 +226,29 @@
 
     function renderPendingPayoutRow(t) {
       const date = t.createdAt ? new Date(t.createdAt).toISOString().slice(0, 10) : '—';
-      const ppe = t.creatorPayPalEmail
-        ? '<span style="font-family:monospace;font-size:11px">' + esc(t.creatorPayPalEmail) + '</span>'
-        : '<span style="color:#c00;font-size:11px;font-weight:600">NOT CONNECTED</span>';
+      // Build 147 — three honest PayPal states. "email_only" is the silent-
+      // failure state where the creator entered an email but never finished
+      // PPCP merchant onboarding — code in content.js refuses to auto-pay
+      // them. We can still mark-paid manually (Payouts API to their email),
+      // but the recommended move is to nudge them to finish setup so the
+      // pipeline self-heals.
+      let ppe = '';
+      if (t.creatorPayState === 'ready') {
+        ppe = '<div><span style="font-family:monospace;font-size:11px">' + esc(t.creatorPayPalEmail) + '</span>'
+            + '<br><span style="background:#dcfce7;color:#166534;font-size:9px;font-weight:800;padding:1px 6px;border-radius:9999px">✅ READY</span></div>';
+      } else if (t.creatorPayState === 'email_only') {
+        ppe = '<div><span style="font-family:monospace;font-size:11px">' + esc(t.creatorPayPalEmail) + '</span>'
+            + '<br><span style="background:#fef3c7;color:#92400e;font-size:9px;font-weight:800;padding:1px 6px;border-radius:9999px" title="Has email but no PPCP merchant onboarding — code can\'t auto-pay">🟡 EMAIL ONLY · PPCP missing</span></div>';
+      } else {
+        ppe = '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:800;padding:2px 8px;border-radius:9999px">🔴 NO PAYPAL</span>';
+      }
+      // Action column: button depends on state
+      let action = '';
+      if (t.creatorPayState === 'ready' || t.creatorPayState === 'email_only') {
+        action = '<button onclick="markPayoutPaid(\'' + t._id + '\', ' + t.amount + ', \'' + esc(t.creatorDisplayName) + '\')" style="padding:5px 12px;background:#1d8a3e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit" title="Send PayPal manually then click here to mark paid">Mark Paid</button>';
+      } else {
+        action = '<span style="font-size:11px;color:#c00">No PayPal yet</span>';
+      }
       return '<tr>' +
         '<td>' + date + '</td>' +
         '<td>' + esc(t.creatorDisplayName) + (t.creatorHandle ? ' <span style="color:#999;font-size:11px">@' + esc(t.creatorHandle) + '</span>' : '') + '</td>' +
@@ -236,11 +256,7 @@
         '<td>' + esc(t.brandName) + '</td>' +
         '<td><span style="font-size:11px;background:#f0f4f8;color:#2EA5DD;padding:2px 7px;border-radius:9999px;font-weight:600">' + esc(t.type || '?') + '</span></td>' +
         '<td><strong>$' + (t.amount || 0).toFixed(2) + '</strong></td>' +
-        '<td>' +
-          (t.creatorPayPalEmail
-            ? '<button onclick="markPayoutPaid(\'' + t._id + '\', ' + t.amount + ', \'' + esc(t.creatorDisplayName) + '\')" style="padding:5px 12px;background:#1d8a3e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Mark Paid</button>'
-            : '<span style="font-size:11px;color:#c00">Connect PayPal first</span>') +
-        '</td>' +
+        '<td>' + action + '</td>' +
       '</tr>';
     }
 

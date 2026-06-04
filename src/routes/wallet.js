@@ -101,7 +101,27 @@ router.get('/balance', requireAuth, async (req, res) => {
       withdrawn: Math.round(withdrawn * 100) / 100,
 
       currency: 'USD',
-      paypalConnected: !!influencer.paypalEmail,
+      // Build 147 — three honest states. The legacy `paypalConnected` field
+      // was just `!!paypalEmail`, which lets the UI lie ("Connected") for
+      // creators who only entered an email but never finished PPCP merchant
+      // onboarding — and the CPA auto-capture in content.js requires
+      // merchantId to even attempt a vault charge. So an "email-only"
+      // creator gets stuck-pending transactions forever. New fields below
+      // distinguish state honestly; UI must check paypalReady (not the
+      // legacy paypalConnected) before claiming the creator can be paid.
+      paypalEmailConnected: !!influencer.paypalEmail,
+      paypalReady:
+        !!influencer.paypalEmail &&
+        !!influencer.paypalMerchantId &&
+        influencer.paypalOnboardingStatus === 'completed',
+      // Legacy alias — keep for older app builds in the wild. Will only
+      // return true for fully-ready creators going forward so existing UI
+      // checks no longer over-report. Older builds simply see fewer
+      // "Connected" creators, never falsely-positive.
+      paypalConnected:
+        !!influencer.paypalEmail &&
+        !!influencer.paypalMerchantId &&
+        influencer.paypalOnboardingStatus === 'completed',
     });
   } catch (error) {
     console.error('Wallet balance error:', error.message);

@@ -2727,9 +2727,9 @@ router.get('/transactions/pending-payouts', async (req, res) => {
 
     // Hydrate creator + brand lookups in parallel.
     const profileIds = [...new Set(pending.map(t => String(t.payeeInfluencerId)).filter(Boolean))];
-    const brandIds = [...new Set(pending.map(t => String(t.brandId)).filter(Boolean))];
+    const brandIds = [...new Set(pending.map(t => String(t.payerBrandId || t.brandId)).filter(Boolean))];
     const [profiles, brands] = await Promise.all([
-      InfluencerProfile.find({ _id: { $in: profileIds } }, 'displayName handle paypalEmail').lean(),
+      InfluencerProfile.find({ _id: { $in: profileIds } }, 'displayName handle paypalEmail paypalMerchantId paypalOnboardingStatus').lean(),
       Brand.find({ _id: { $in: brandIds } }, 'name').lean(),
     ]);
     const profileMap = Object.fromEntries(profiles.map(p => [String(p._id), p]));
@@ -2737,7 +2737,19 @@ router.get('/transactions/pending-payouts', async (req, res) => {
 
     const items = pending.map(t => {
       const p = profileMap[String(t.payeeInfluencerId)] || {};
-      const b = brandMap[String(t.brandId)] || {};
+      const b = brandMap[String(t.payerBrandId || t.brandId)] || {};
+      // Build 147 — three honest PayPal states. The Mark Paid button is
+      // only safely usable when the creator can actually receive money.
+      // For email-only, the right operator move is "nudge them to finish
+      // setup" — sending money to an email when they haven't really
+      // onboarded as a merchant works for Payouts API but skips the tax
+      // path the code expects.
+      let payState = 'none';
+      if (p.paypalEmail && p.paypalMerchantId && p.paypalOnboardingStatus === 'completed') {
+        payState = 'ready';        // ✅ green
+      } else if (p.paypalEmail) {
+        payState = 'email_only';   // 🟡 amber — needs PPCP finish
+      } // else: 'none' — no PayPal at all
       return {
         _id:               t._id,
         amount:            t.amount,
@@ -2747,6 +2759,7 @@ router.get('/transactions/pending-payouts', async (req, res) => {
         creatorDisplayName: p.displayName || '(unknown)',
         creatorHandle:     p.handle || '',
         creatorPayPalEmail: p.paypalEmail || null,
+        creatorPayState:   payState,
         brandName:         b.name || '(unknown)',
       };
     });
