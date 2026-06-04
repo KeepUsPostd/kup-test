@@ -109,8 +109,23 @@
     <span class="stat-pill"><strong id="statReviews">—</strong> approved reviews waiting for nearby visibility</span>
   </div>
 
+  <!-- ── Global brand finder ────────────────────────────────────────────
+       Searches ALL brands (not just triage candidates). Useful when a brand
+       has ANY existing data (legacy address, primary BrandLocation, or
+       Available Everywhere) — those brands drop out of triage but still
+       need to be managed. Type any name; hit Enter or wait. -->
+  <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <span style="font-size:14px;">🔎</span>
+      <strong style="font-size:13px; color:#7c2d12;">Find any brand</strong>
+      <span style="font-size:11px; color:#9a3412;">— search across the whole catalog (not just triage)</span>
+    </div>
+    <input id="globalFinderBox" placeholder='e.g. "moka" or "fenty"' style="width:100%; border:1px solid #fdba74; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; background:#fff;">
+    <div id="globalFinderResults" style="margin-top:10px;"></div>
+  </div>
+
   <div class="filter-row">
-    <input id="searchBox" placeholder="Filter by name…">
+    <input id="searchBox" placeholder="Filter triage list by name…">
     <select id="typeFilter">
       <option value="all">All types</option>
       <option value="admin">Admin-created only</option>
@@ -133,7 +148,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="/js/firebase-client.js?v=1774619962"></script>
-<script src="/js/api.js?v=1780539000"></script>
+<script src="/js/api.js?v=1780539500"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -288,6 +303,57 @@
   document.getElementById('searchBox').addEventListener('input', applyFilters);
   document.getElementById('typeFilter').addEventListener('change', applyFilters);
   document.getElementById('sortBy').addEventListener('change', applyFilters);
+
+  // ── GLOBAL BRAND FINDER ─────────────────────────────────────────────
+  // Debounced search across all brands (not just triage). Hits
+  // /api/admin-panel/brand-locations/search?q= and renders compact result
+  // rows with a direct "Manage locations →" deep-link in admin-override
+  // mode. Empty query clears results.
+  let _finderTimer = null;
+  async function runFinder(q) {
+    const resultsEl = document.getElementById('globalFinderResults');
+    if (!q || q.trim().length < 2) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+    resultsEl.innerHTML = '<div style="font-size:12px; color:#9a3412; padding:8px 4px;">Searching…</div>';
+    try {
+      const r = await kupApi.get('/api/admin-panel/brand-locations/search?q=' + encodeURIComponent(q.trim()));
+      const brands = (r && r.brands) || [];
+      if (brands.length === 0) {
+        resultsEl.innerHTML = '<div style="font-size:12px; color:#9a3412; padding:8px 4px;">No matches.</div>';
+        return;
+      }
+      resultsEl.innerHTML = brands.map(renderFinderRow).join('');
+    } catch (err) {
+      resultsEl.innerHTML = '<div style="font-size:12px; color:#c92a2a; padding:8px 4px;">' + escapeHtml(err && err.message ? err.message : 'Search failed') + '</div>';
+    }
+  }
+  function renderFinderRow(b) {
+    const isAdmin = (b.brandType || '').startsWith('admin');
+    const addr = [b.address, b.city, b.state].filter(Boolean).join(', ') || '(no address on Brand)';
+    const everywhere = b.isAvailableEverywhere
+      ? '<span style="background:#dbeafe; color:#1d4ed8; padding:2px 7px; border-radius:9999px; font-size:10px; font-weight:700;">🌐 EVERYWHERE</span>'
+      : '';
+    return `
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid #fed7aa;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:700; font-size:13px; color:#1a1a1a;">${escapeHtml(b.name)}</div>
+          <div style="font-size:11px; color:#7c2d12; margin-top:2px;">
+            ${isAdmin ? '<span style="background:#fef0e8; color:#b3531b; padding:2px 6px; border-radius:9999px; font-size:9px; font-weight:700; margin-right:6px;">ADMIN</span>' : '<span style="background:#e6f4ff; color:#1b6db3; padding:2px 6px; border-radius:9999px; font-size:9px; font-weight:700; margin-right:6px;">USER</span>'}
+            <span style="background:rgba(46,165,221,0.10); color:#2EA5DD; padding:2px 6px; border-radius:9999px; font-size:9px; font-weight:700; margin-right:6px;">${b.locationCount} location${b.locationCount === 1 ? '' : 's'}</span>
+            ${everywhere}
+            <span style="opacity:0.7;">— ${escapeHtml(addr)}</span>
+          </div>
+        </div>
+        <a href="brand-locations.html?adminBrandId=${b._id}" target="_blank" style="background:#7c2d12; color:#fff; padding:6px 12px; border-radius:7px; font-weight:700; font-size:11px; text-decoration:none; white-space:nowrap;">Manage locations →</a>
+      </div>`;
+  }
+  document.getElementById('globalFinderBox').addEventListener('input', (e) => {
+    clearTimeout(_finderTimer);
+    const q = e.target.value;
+    _finderTimer = setTimeout(() => runFinder(q), 250);
+  });
 
   // Auth-gated init. Without this, the first triage API call races Firebase
   // session restore — it goes out anonymous, hits the requireAdmin middleware

@@ -2821,4 +2821,69 @@ router.get('/brand-locations/triage', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+// Build 146 cont.: Global brand search for the admin triage page.
+// Returns ANY brand matching a name query (regardless of triage status) so
+// the operator can find brands that already have data (and therefore don't
+// appear in the triage list) — e.g. "Moka & Co" which has its primary
+// location already seeded.
+//
+// Each row includes: brand name, brandType, current active-location count,
+// isAvailableEverywhere status. Capped at 25 results. Empty query returns
+// empty list — call /triage for the curated triage view instead.
+// ─────────────────────────────────────────────────────────────────────────
+router.get('/brand-locations/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q) return res.json({ brands: [] });
+
+    const Brand = require('../models/Brand');
+    const BrandLocation = require('../models/BrandLocation');
+
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const brands = await Brand.find({
+      name: { $regex: escaped, $options: 'i' },
+      status: { $ne: 'deleted' },
+    }, 'name brandType claimStatus isAvailableEverywhere address city state coordinates')
+      .limit(25)
+      .lean();
+
+    if (brands.length === 0) return res.json({ brands: [] });
+
+    // Count active locations per match in a single query.
+    const locCounts = await BrandLocation.aggregate([
+      { $match: { brandId: { $in: brands.map(b => b._id) }, isActive: true } },
+      { $group: { _id: '$brandId', count: { $sum: 1 } } },
+    ]);
+    const countByBrand = Object.fromEntries(locCounts.map(r => [String(r._id), r.count]));
+
+    const results = brands.map(b => ({
+      _id:        b._id,
+      name:       b.name,
+      brandType:  b.brandType || 'user',
+      claimStatus: b.claimStatus || null,
+      isAvailableEverywhere: !!b.isAvailableEverywhere,
+      locationCount: countByBrand[String(b._id)] || 0,
+      // Surface address fields for quick eyeballing in the result row.
+      address: b.address || '',
+      city:    b.city || '',
+      state:   b.state || '',
+      hasBrandCoords: !!(b.coordinates && Array.isArray(b.coordinates.coordinates) && b.coordinates.coordinates.length === 2),
+    }));
+
+    // Stable sort: exact matches first (case-insensitive), then alphabetical.
+    const lowerQ = q.toLowerCase();
+    results.sort((a, b) => {
+      const aExact = a.name.toLowerCase() === lowerQ ? 0 : 1;
+      const bExact = b.name.toLowerCase() === lowerQ ? 0 : 1;
+      return aExact - bExact || a.name.localeCompare(b.name);
+    });
+
+    res.json({ brands: results });
+  } catch (err) {
+    console.error('[GET /admin-panel/brand-locations/search]', err);
+    res.status(500).json({ error: 'Could not search brands' });
+  }
+});
+
 module.exports = router;
