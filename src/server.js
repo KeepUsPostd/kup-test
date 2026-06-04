@@ -337,6 +337,9 @@ app.use('/api/upload', uploadLimiter, require('./routes/upload'));
 // Partnership routes (stub — Phase 4)
 app.use('/api/partnerships', require('./routes/partnerships'));
 
+// Public influencer/creator profile read endpoints
+app.use('/api/influencers', require('./routes/influencers'));
+
 // Referral routes — influencer referral program
 app.use('/api/referrals', require('./routes/referrals'));
 
