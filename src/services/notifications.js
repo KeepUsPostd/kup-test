@@ -2558,7 +2558,7 @@ async function lifecycleSocialVerifyReminder({ influencer }) {
   await createInApp({
     userId: influencer.userId,
     title: '🔓 Verify your social to unlock your full tier',
-    message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards. Open your profile to verify.',
+    message: '🔓 Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards. Open your profile to verify.',
     type: 'lifecycle_social_verify',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
@@ -2576,7 +2576,7 @@ async function lifecycleFirstReviewNudge({ influencer }) {
   await createInApp({
     userId: influencer.userId,
     title: '💸 See brands you love. Do your first review. Start earning.',
-    message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it. Head to Discover to find your first.',
+    message: '💸 Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it. Head to Discover to find your first.',
     type: 'lifecycle_first_review',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
@@ -2594,7 +2594,7 @@ async function lifecycleCoolingOff({ influencer }) {
   await createInApp({
     userId: influencer.userId,
     title: '✨ New brands you might love',
-    message: 'New brands joined this week. Check Discover to see which ones fit what you actually use — and keep your streak going.',
+    message: '✨ New brands joined this week. Check Discover to see which ones fit what you actually use — and keep your streak going.',
     type: 'lifecycle_cooling_off',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
@@ -2612,7 +2612,7 @@ async function lifecycleReferralNudge({ influencer }) {
   await createInApp({
     userId: influencer.userId,
     title: '🤝 Refer a friend, earn extra cash',
-    message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link from the Refer screen.',
+    message: '🤝 Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link from the Refer screen.',
     type: 'lifecycle_referral',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
