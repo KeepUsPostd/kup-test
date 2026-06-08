@@ -716,8 +716,24 @@ router.get('/brands', async (req, res) => {
       Brand.countDocuments(filter),
     ]);
 
+    // Live-compute totalInfluencersEngaged + totalContentPieces — denormalized
+    // fields on Brand are never written by any code path, so stored values are
+    // stuck at 0. Aggregate from Partnership + ContentSubmission instead.
+    // (totalReviews IS incremented in content.js so we leave it alone.)
+    const enrichedBrands = await Promise.all(brands.map(async (b) => {
+      const [partnerCount, contentCount] = await Promise.all([
+        Partnership.countDocuments({ brandId: b._id, status: 'active' }).catch(() => 0),
+        ContentSubmission.countDocuments({ brandId: b._id }).catch(() => 0),
+      ]);
+      return {
+        ...b,
+        totalInfluencersEngaged: partnerCount,
+        totalContentPieces: contentCount,
+      };
+    }));
+
     res.json({
-      brands,
+      brands: enrichedBrands,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
