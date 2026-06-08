@@ -2547,6 +2547,10 @@ async function lifecycleAlreadySent(userId, type, hoursWindow) {
 // informational reminder with no broken CTA. The PUSH notification (lock
 // screen / notification center) still carries the correct Flutter route, so
 // tapping the push opens the right page.
+//
+// The metadata.brandLogoUrl is set to the KUP logo so the inbox avatar
+// circle shows the KeepUsPostd mark instead of the default initial.
+const LIFECYCLE_AVATAR_URL = 'https://keepuspostd.com/images/favicon/apple-touch-icon.png';
 
 // LIFE-001: Verify social status (PayPal connected, social not verified)
 async function lifecycleSocialVerifyReminder({ influencer }) {
@@ -2556,6 +2560,7 @@ async function lifecycleSocialVerifyReminder({ influencer }) {
     title: 'Verify your social to unlock your full tier',
     message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards. Open your profile to verify.',
     type: 'lifecycle_social_verify',
+    metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
@@ -2573,6 +2578,7 @@ async function lifecycleFirstReviewNudge({ influencer }) {
     title: 'See brands you love. Do your first review. Start earning.',
     message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it. Head to Discover to find your first.',
     type: 'lifecycle_first_review',
+    metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
@@ -2590,6 +2596,7 @@ async function lifecycleCoolingOff({ influencer }) {
     title: 'New brands you might love',
     message: 'New brands joined this week. Check Discover to see which ones fit what you actually use — and keep your streak going.',
     type: 'lifecycle_cooling_off',
+    metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
@@ -2607,6 +2614,7 @@ async function lifecycleReferralNudge({ influencer }) {
     title: 'Refer a friend, earn extra cash',
     message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link from the Refer screen.',
     type: 'lifecycle_referral',
+    metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
