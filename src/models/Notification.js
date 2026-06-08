@@ -39,6 +39,11 @@ const notificationSchema = new mongoose.Schema({
       'rating_request', // Prompt creator to rate a brand (renders the rate card)
       'account',        // Profile, security, settings
       'system',         // Platform updates, maintenance
+      // ── Lifecycle re-engagement (added 2026-06-08) ──
+      'lifecycle_social_verify', // Link Instagram/TikTok to unlock tier
+      'lifecycle_first_review',  // Nudge to submit first review
+      'lifecycle_cooling_off',   // 7-14 days since last submission
+      'lifecycle_referral',      // Has earnings but zero referrals sent
     ],
     default: 'system',
   },
