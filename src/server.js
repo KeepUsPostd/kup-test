@@ -640,6 +640,174 @@ const startServer = async () => {
       }
     }, { timezone: 'UTC' });
     console.log('⏰ Cron: Pending-payout reminder scheduled daily at 11:00 AM UTC\n');
+
+    // ════════════════════════════════════════════════════════════
+    //  LIFECYCLE RE-ENGAGEMENT CRONS (added 2026-06-08)
+    // ════════════════════════════════════════════════════════════
+    // Frequency guardrails baked in: each cron checks lifecycleAlreadySent()
+    // before firing so a user never gets the same lifecycle push twice in a
+    // short window. Times are UTC; CT is UTC-5/6 (DST). 14:00 UTC ≈ 9am CT.
+
+    // ── LIFE-001: Verify social status — daily at 14:00 UTC (9am CT) ──
+    // PayPal connected, social NOT verified, no reminder in last 96h.
+    cron.schedule('0 14 * * *', async () => {
+      console.log('⏰ [CRON] Running daily social-verify reminder...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const notify            = require('./services/notifications');
+
+        const candidates = await InfluencerProfile.find({
+          paypalMerchantId: { $exists: true, $ne: null, $ne: '' },
+          isVerified: { $ne: true },
+        }).lean();
+
+        let sent = 0, skipped = 0, errors = 0;
+        for (const profile of candidates) {
+          try {
+            const already = await notify.lifecycleAlreadySent(
+              profile.userId,
+              'lifecycle_social_verify',
+              96
+            );
+            if (already) { skipped++; continue; }
+            await notify.lifecycleSocialVerifyReminder({ influencer: profile });
+            sent++;
+          } catch (innerErr) {
+            console.error(`[CRON social-verify] ${profile._id}:`, innerErr.message);
+            errors++;
+          }
+        }
+        console.log(`⏰ [CRON] Social-verify done — sent: ${sent}, skipped (recent): ${skipped}, errors: ${errors}`);
+      } catch (err) {
+        console.error('⏰ [CRON] Social-verify reminder failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: Social-verify reminder scheduled daily at 14:00 UTC');
+
+    // ── LIFE-002: First review nudge — daily at 14:30 UTC ──
+    // PayPal + social verified, totalReviews = 0, no reminder in last 120h.
+    cron.schedule('30 14 * * *', async () => {
+      console.log('⏰ [CRON] Running daily first-review nudge...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const notify            = require('./services/notifications');
+
+        const candidates = await InfluencerProfile.find({
+          paypalMerchantId: { $exists: true, $ne: null, $ne: '' },
+          isVerified: true,
+          totalReviews: { $lte: 0 },
+        }).lean();
+
+        let sent = 0, skipped = 0, errors = 0;
+        for (const profile of candidates) {
+          try {
+            const already = await notify.lifecycleAlreadySent(
+              profile.userId,
+              'lifecycle_first_review',
+              120
+            );
+            if (already) { skipped++; continue; }
+            await notify.lifecycleFirstReviewNudge({ influencer: profile });
+            sent++;
+          } catch (innerErr) {
+            console.error(`[CRON first-review] ${profile._id}:`, innerErr.message);
+            errors++;
+          }
+        }
+        console.log(`⏰ [CRON] First-review nudge done — sent: ${sent}, skipped (recent): ${skipped}, errors: ${errors}`);
+      } catch (err) {
+        console.error('⏰ [CRON] First-review nudge failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: First-review nudge scheduled daily at 14:30 UTC');
+
+    // ── LIFE-003: Cooling off — Tue & Thu at 15:00 UTC (10am CT) ──
+    // Has totalReviews > 0, last ContentSubmission 7-14 days ago,
+    // no cooling-off push in last 14 days.
+    cron.schedule('0 15 * * 2,4', async () => {
+      console.log('⏰ [CRON] Running cooling-off re-engagement...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const ContentSubmission = require('./models/ContentSubmission');
+        const notify            = require('./services/notifications');
+
+        const sevenDaysAgo  = new Date(Date.now() - 7  * 24 * 60 * 60 * 1000);
+        const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+        // Find profiles with last submission in the 7-14 day window.
+        const recentSubs = await ContentSubmission.aggregate([
+          { $match: { createdAt: { $gte: fourteenDaysAgo } } },
+          { $group: { _id: '$influencerProfileId', lastSubmittedAt: { $max: '$createdAt' } } },
+          { $match: { lastSubmittedAt: { $lt: sevenDaysAgo } } },
+        ]);
+
+        let sent = 0, skipped = 0, errors = 0;
+        for (const row of recentSubs) {
+          try {
+            const profile = await InfluencerProfile.findById(row._id).lean();
+            if (!profile?.userId) continue;
+            const already = await notify.lifecycleAlreadySent(
+              profile.userId,
+              'lifecycle_cooling_off',
+              14 * 24
+            );
+            if (already) { skipped++; continue; }
+            await notify.lifecycleCoolingOff({ influencer: profile });
+            sent++;
+          } catch (innerErr) {
+            console.error(`[CRON cooling-off] ${row._id}:`, innerErr.message);
+            errors++;
+          }
+        }
+        console.log(`⏰ [CRON] Cooling-off done — sent: ${sent}, skipped (recent): ${skipped}, errors: ${errors}`);
+      } catch (err) {
+        console.error('⏰ [CRON] Cooling-off failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: Cooling-off re-engagement scheduled Tue/Thu at 15:00 UTC');
+
+    // ── LIFE-004: Referral nudge — Tuesday at 15:30 UTC ──
+    // totalCashEarned > 0, no one references this user as referredBy,
+    // no referral push in last 30 days.
+    cron.schedule('30 15 * * 2', async () => {
+      console.log('⏰ [CRON] Running referral nudge...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const notify            = require('./services/notifications');
+
+        const earners = await InfluencerProfile.find({
+          totalCashEarned: { $gt: 0 },
+        }).lean();
+
+        let sent = 0, skipped = 0, errors = 0;
+        for (const profile of earners) {
+          try {
+            // Check if anyone has been referred by this user
+            const referralsSent = await InfluencerProfile.countDocuments({
+              referredBy: profile._id,
+            }).catch(() => 0);
+            if (referralsSent > 0) { skipped++; continue; }
+
+            const already = await notify.lifecycleAlreadySent(
+              profile.userId,
+              'lifecycle_referral',
+              30 * 24
+            );
+            if (already) { skipped++; continue; }
+
+            await notify.lifecycleReferralNudge({ influencer: profile });
+            sent++;
+          } catch (innerErr) {
+            console.error(`[CRON referral] ${profile._id}:`, innerErr.message);
+            errors++;
+          }
+        }
+        console.log(`⏰ [CRON] Referral nudge done — sent: ${sent}, skipped: ${skipped}, errors: ${errors}`);
+      } catch (err) {
+        console.error('⏰ [CRON] Referral nudge failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: Referral nudge scheduled Tuesday at 15:30 UTC\n');
   });
 };
 
