@@ -2540,6 +2540,7 @@ async function lifecycleAlreadySent(userId, type, hoursWindow) {
 }
 
 // LIFE-001: Verify social status (PayPal connected, social not verified)
+// Link: /profile/verify (Flutter Go Router path — NOT /app/profile.html)
 async function lifecycleSocialVerifyReminder({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
@@ -2547,16 +2548,17 @@ async function lifecycleSocialVerifyReminder({ influencer }) {
     title: 'Verify your social to unlock your full tier',
     message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards.',
     type: 'lifecycle_social_verify',
-    link: '/app/profile.html',
+    link: '/profile/verify',
   });
   await push(influencer.userId, {
     title: 'Verify your social to unlock your tier',
     body: 'Link Instagram or TikTok — higher tier earns more on every approved review.',
-    link: '/app/profile.html',
+    link: '/profile/verify',
   });
 }
 
 // LIFE-002: First review nudge (PayPal + social done, no submission yet)
+// Link: /discover (the brand-discovery page where they can pick what to review)
 async function lifecycleFirstReviewNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
@@ -2564,16 +2566,17 @@ async function lifecycleFirstReviewNudge({ influencer }) {
     title: 'See brands you love. Do your first review. Start earning.',
     message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it.',
     type: 'lifecycle_first_review',
-    link: '/app/brands.html',
+    link: '/discover',
   });
   await push(influencer.userId, {
     title: 'Your first review could pay you tonight',
     body: 'Pick a brand you use, snap a quick honest review, get paid on approval.',
-    link: '/app/brands.html',
+    link: '/discover',
   });
 }
 
 // LIFE-003: Cooling off (last submission 7-14 days ago)
+// Link: /discover/trending (shows brands actively being reviewed — re-ignites)
 async function lifecycleCoolingOff({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
@@ -2581,16 +2584,17 @@ async function lifecycleCoolingOff({ influencer }) {
     title: 'New brands you might love',
     message: 'New brands joined this week. Tap to see which ones fit what you actually use — and keep your streak going.',
     type: 'lifecycle_cooling_off',
-    link: '/app/brands.html',
+    link: '/discover/trending',
   });
   await push(influencer.userId, {
     title: 'New brands you might love',
     body: 'Don\'t break your streak — one approved review this week keeps you on the next tier track.',
-    link: '/app/brands.html',
+    link: '/discover/trending',
   });
 }
 
 // LIFE-004: Referral nudge (has earnings, no referrals sent yet)
+// Link: /earn/refer (Flutter Go Router path — NOT /app/refer.html)
 async function lifecycleReferralNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
@@ -2598,12 +2602,12 @@ async function lifecycleReferralNudge({ influencer }) {
     title: 'Refer a friend, earn extra cash',
     message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link in your profile.',
     type: 'lifecycle_referral',
-    link: '/app/refer.html',
+    link: '/earn/refer',
   });
   await push(influencer.userId, {
     title: 'Refer a friend, earn extra cash',
     body: 'Every friend you bring earns you cash when their first review is approved. Tap to grab your link.',
-    link: '/app/refer.html',
+    link: '/earn/refer',
   });
 }
 
