@@ -2539,16 +2539,24 @@ async function lifecycleAlreadySent(userId, type, hoursWindow) {
   }
 }
 
+// IMPORTANT — in-app inbox CTA workaround until Build 148 lands:
+// activity_screen.dart:1301 currently hardcodes "Tap to claim your reward →"
+// for EVERY in-app notification with a link. Until the Flutter widget is
+// fixed (queued as Build 148 Priority 8), we deliberately omit `link` from
+// the createInApp() calls below. The inbox card renders as a clean
+// informational reminder with no broken CTA. The PUSH notification (lock
+// screen / notification center) still carries the correct Flutter route, so
+// tapping the push opens the right page.
+
 // LIFE-001: Verify social status (PayPal connected, social not verified)
-// Link: /profile/verify (Flutter Go Router path — NOT /app/profile.html)
 async function lifecycleSocialVerifyReminder({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
     title: 'Verify your social to unlock your full tier',
-    message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards.',
+    message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards. Open your profile to verify.',
     type: 'lifecycle_social_verify',
-    link: '/profile/verify',
+    // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
     title: 'Verify your social to unlock your tier',
@@ -2558,15 +2566,14 @@ async function lifecycleSocialVerifyReminder({ influencer }) {
 }
 
 // LIFE-002: First review nudge (PayPal + social done, no submission yet)
-// Link: /discover (the brand-discovery page where they can pick what to review)
 async function lifecycleFirstReviewNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
     title: 'See brands you love. Do your first review. Start earning.',
-    message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it.',
+    message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it. Head to Discover to find your first.',
     type: 'lifecycle_first_review',
-    link: '/discover',
+    // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
     title: 'Your first review could pay you tonight',
@@ -2576,15 +2583,14 @@ async function lifecycleFirstReviewNudge({ influencer }) {
 }
 
 // LIFE-003: Cooling off (last submission 7-14 days ago)
-// Link: /discover/trending (shows brands actively being reviewed — re-ignites)
 async function lifecycleCoolingOff({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
     title: 'New brands you might love',
-    message: 'New brands joined this week. Tap to see which ones fit what you actually use — and keep your streak going.',
+    message: 'New brands joined this week. Check Discover to see which ones fit what you actually use — and keep your streak going.',
     type: 'lifecycle_cooling_off',
-    link: '/discover/trending',
+    // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
     title: 'New brands you might love',
@@ -2594,15 +2600,14 @@ async function lifecycleCoolingOff({ influencer }) {
 }
 
 // LIFE-004: Referral nudge (has earnings, no referrals sent yet)
-// Link: /earn/refer (Flutter Go Router path — NOT /app/refer.html)
 async function lifecycleReferralNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
     title: 'Refer a friend, earn extra cash',
-    message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link in your profile.',
+    message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link from the Refer screen.',
     type: 'lifecycle_referral',
-    link: '/earn/refer',
+    // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
     title: 'Refer a friend, earn extra cash',
