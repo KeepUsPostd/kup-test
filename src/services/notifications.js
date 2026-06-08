@@ -2557,14 +2557,14 @@ async function lifecycleSocialVerifyReminder({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
-    title: 'Verify your social to unlock your full tier',
+    title: '🔓 Verify your social to unlock your full tier',
     message: 'Link your Instagram or TikTok to bump your KeepUsPostd influence tier. Higher tier = higher rewards. Open your profile to verify.',
     type: 'lifecycle_social_verify',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
-    title: 'Verify your social to unlock your tier',
+    title: '🔓 Verify your social to unlock your tier',
     body: 'Link Instagram or TikTok — higher tier earns more on every approved review.',
     link: '/profile/verify',
   });
@@ -2575,14 +2575,14 @@ async function lifecycleFirstReviewNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
-    title: 'See brands you love. Do your first review. Start earning.',
+    title: '💸 See brands you love. Do your first review. Start earning.',
     message: 'Pick any brand you actually use. Snap a quick honest review. Get paid on approval. That\'s it. Head to Discover to find your first.',
     type: 'lifecycle_first_review',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
-    title: 'Your first review could pay you tonight',
+    title: '💸 Your first review could pay you tonight',
     body: 'Pick a brand you use, snap a quick honest review, get paid on approval.',
     link: '/discover',
   });
@@ -2593,14 +2593,14 @@ async function lifecycleCoolingOff({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
-    title: 'New brands you might love',
+    title: '✨ New brands you might love',
     message: 'New brands joined this week. Check Discover to see which ones fit what you actually use — and keep your streak going.',
     type: 'lifecycle_cooling_off',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
-    title: 'New brands you might love',
+    title: '✨ New brands you might love',
     body: 'Don\'t break your streak — one approved review this week keeps you on the next tier track.',
     link: '/discover/trending',
   });
@@ -2611,14 +2611,14 @@ async function lifecycleReferralNudge({ influencer }) {
   if (!influencer?.userId) return;
   await createInApp({
     userId: influencer.userId,
-    title: 'Refer a friend, earn extra cash',
+    title: '🤝 Refer a friend, earn extra cash',
     message: 'Every friend you bring to KeepUsPostd earns you cash when their first review is approved. Grab your link from the Refer screen.',
     type: 'lifecycle_referral',
     metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
     // link omitted intentionally — see note above
   });
   await push(influencer.userId, {
-    title: 'Refer a friend, earn extra cash',
+    title: '🤝 Refer a friend, earn extra cash',
     body: 'Every friend you bring earns you cash when their first review is approved. Tap to grab your link.',
     link: '/earn/refer',
   });
