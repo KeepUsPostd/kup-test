@@ -207,7 +207,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
       title: 'New Content Submitted',
       message: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
       type: 'content',
-      link: '/app/content.html',
+      link: '/activity',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
         brandName: brand.name,
@@ -219,7 +219,7 @@ async function contentSubmitted({ brand, influencer, submission }) {
     push(brandOwnerId, {
       title: 'New Content Submitted',
       body: `${influencer.displayName || 'An influencer'} submitted ${submission.contentType || 'content'} for review.`,
-      link: '/app/content.html',
+      link: '/activity',
     });
   }
 }
@@ -255,7 +255,7 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
         title: 'Content Submitted!',
         message: msg,
         type: 'content',
-        link: '/app/submissions.html',
+        link: '/activity',
         metadata: {
           contentSubmissionId: submission._id?.toString(),
           brandName: brand.name,
@@ -341,7 +341,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     // directly from the notification; otherwise fall back to submissions.
     const dl = reward?.deliverable || null;
     const deliverableLink = (dl && (dl.url || dl.fileUrl)) || null;
-    const notifLink = deliverableLink || '/app/submissions.html';
+    const notifLink = deliverableLink || '/activity';
     await createInApp({
       userId: influencer.userId,
       title: 'Content Approved!',
@@ -416,7 +416,7 @@ async function contentApproved({ influencer, brand, submission, reward = null })
         title: 'Content Approved',
         message: brandMsg,
         type: 'content',
-        link: '/app/content.html',
+        link: '/activity',
         audience: 'brand',
         metadata: {
           contentSubmissionId: submission._id?.toString(),
@@ -491,7 +491,7 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
       title: 'Content Not Approved',
       message: msg,
       type: 'content',
-      link: '/app/submissions.html',
+      link: '/activity',
       metadata: {
         contentSubmissionId: submission._id?.toString(),
         partnershipId: submission.partnershipId?.toString() || null,
@@ -504,7 +504,7 @@ async function contentRejected({ influencer, brand, submission, reason = '' }) {
     push(influencer.userId, {
       title: 'Content Update',
       body: msg,
-      link: '/app/submissions.html',
+      link: '/activity',
     });
   }
 }
@@ -649,12 +649,12 @@ async function paypalMoneyWaiting({ influencer, brand, amount, isWeeklyReminder 
         ? (hasPendingCash ? `You have ${$(amount)} in cash rewards waiting. Connect PayPal to claim it.` : 'Some brands on KUP pay cash. Connect PayPal so you never miss a payout.')
         : `${brand?.name || 'A brand'} approved your content. Connect PayPal to receive your payment.`,
       type: 'payment',
-      link: '/app/influencer-earn.html',
+      link: '/earn',
     });
     push(influencer.userId, {
       title: pushTitle,
       body: pushBody,
-      link: '/app/influencer-earn.html',
+      link: '/earn',
     });
   }
 }
@@ -753,7 +753,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
       title: `You earned ${$(amount)}!`,
       message: msg,
       type: 'payment',
-      link: '/app/influencer-earn.html',
+      link: '/earn',
       audience: 'influencer',
       metadata: {
         brandName: brand?.name || 'KeepUsPostd',
@@ -766,7 +766,7 @@ async function cashRewardEarned({ influencer, brand, amount, type = 'cash_per_ap
     push(influencer.userId, {
       title: `You earned ${$(amount)}!`,
       body: msg,
-      link: '/app/influencer-earn.html',
+      link: '/earn',
     });
   }
 }
@@ -1069,7 +1069,7 @@ async function brandVerificationChanged({ brand, status }) {
         ? `${brand.name} is now verified.`
         : `${brand.name} needs additional info for verification.`,
       type: 'account',
-      link: '/app/brand-profile.html',
+      link: '/discover',
     });
   }
 }
@@ -1104,12 +1104,12 @@ async function contentRevisionRequested({ influencer, brand, submission, feedbac
       title: 'Revision Requested',
       message: msg,
       type: 'content',
-      link: '/app/submissions.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: 'Revision Requested',
       body: msg,
-      link: '/app/submissions.html',
+      link: '/activity',
     });
   }
 }
@@ -1139,12 +1139,12 @@ async function contentResubmitted({ brand, influencer, submission }) {
       title: 'Revised Content Submitted',
       message: `${influencer.displayName || 'An influencer'} resubmitted revised content.`,
       type: 'content',
-      link: '/app/content.html',
+      link: '/activity',
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'Revised Content',
       body: `${influencer.displayName || 'An influencer'} resubmitted revised content for review.`,
-      link: '/app/content.html',
+      link: '/activity',
     });
   }
 }
@@ -1178,12 +1178,12 @@ async function contentAutoApproved({ influencer, brand, submission, reward = nul
       title: 'Content Auto-Approved',
       message: `Your content for ${brand.name} was auto-approved.${reward ? ` You earned ${$(reward.amount)}!` : ''}`,
       type: 'content',
-      link: '/app/submissions.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: '✅ Auto-Approved!',
       body: `Your content for ${brand.name} was approved automatically.`,
-      link: '/app/submissions.html',
+      link: '/activity',
     });
   }
 }
@@ -1217,7 +1217,7 @@ async function campaignLive({ brand, campaign }) {
       title: 'Campaign is Live!',
       message: `${campaign.name} is now active.`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1247,12 +1247,12 @@ async function campaignInvitation({ influencer, brand, campaign }) {
       title: 'Campaign Invitation!',
       message: `${brand.name} invited you to "${campaign.name}"`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: '🎯 Campaign Invitation',
       body: `${brand.name} invited you to "${campaign.name}"`,
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1282,12 +1282,12 @@ async function campaignApplication({ brand, influencer, campaign }) {
       title: 'New Campaign Application',
       message: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'New Application',
       body: `${influencer.displayName || 'An influencer'} applied to "${campaign.name}"`,
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1316,12 +1316,12 @@ async function campaignApplicationAccepted({ influencer, brand, campaign }) {
       title: 'Application Accepted!',
       message: `${brand.name} accepted you into "${campaign.name}"`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: '✅ You\'re In!',
       body: `${brand.name} accepted you into "${campaign.name}"`,
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1350,7 +1350,7 @@ async function campaignApplicationDeclined({ influencer, brand, campaign }) {
       title: 'Application Update',
       message: `${brand.name} did not accept your application to "${campaign.name}".`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1377,7 +1377,7 @@ async function campaignPaused({ influencer, brand, campaign }) {
       title: 'Campaign Paused',
       message: `"${campaign.name}" has been paused by ${brand.name}.`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1390,12 +1390,12 @@ async function campaignResumed({ influencer, brand, campaign }) {
       title: 'Campaign Resumed!',
       message: `"${campaign.name}" by ${brand.name} is active again.`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: '▶️ Campaign Resumed',
       body: `"${campaign.name}" by ${brand.name} is active again.`,
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1426,7 +1426,7 @@ async function campaignEnded({ brand, campaign, influencerIds = [] }) {
       title: 'Campaign Ended',
       message: `"${campaign.name}" by ${brand.name} has ended.`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1454,7 +1454,7 @@ async function campaignMilestone100({ brand, campaign }) {
     push((brand.ownerId || brand.createdBy), {
       title: '🎉 Goal Reached!',
       body: `"${campaign.name}" hit 100% of its target!`,
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1504,7 +1504,7 @@ async function campaignExpired({ brand, campaign, influencerIds = [] }) {
       title: 'Campaign Expired',
       message: `"${campaign.name}" by ${brand.name} has expired.`,
       type: 'campaign',
-      link: '/app/campaigns.html',
+      link: '/activity',
     });
   }
 }
@@ -1538,13 +1538,13 @@ async function newInfluencerPartner({ brand, influencer }) {
       title: 'New Partner!',
       message: `${influencer.displayName || 'An influencer'} partnered with ${brand.name}.`,
       type: 'partnership',
-      link: '/app/influencers.html',
+      link: '/discover',
       metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
     push((brand.ownerId || brand.createdBy), {
       title: 'New Partner!',
       body: `${influencer.displayName || 'An influencer'} wants to partner with ${brand.name}.`,
-      link: '/app/influencers.html',
+      link: '/discover',
     });
   }
 }
@@ -1578,13 +1578,13 @@ async function newBrandPartnership({ influencer, brand }) {
       title: 'Partnership Accepted!',
       message: `${brand.name} accepted your partnership.`,
       type: 'partnership',
-      link: '/app/brands.html',
+      link: '/discover/my-brands',
       metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
     push(influencer.userId, {
       title: '🤝 Partnership Accepted!',
       body: `${brand.name} accepted your partnership!`,
-      link: '/app/brands.html',
+      link: '/discover/my-brands',
     });
   }
 }
@@ -1614,7 +1614,7 @@ async function partnershipRemoved({ influencer, brand, reason = '' }) {
       title: 'Partnership Ended',
       message: `${brand.name} ended the partnership.`,
       type: 'partnership',
-      link: '/app/brands.html',
+      link: '/discover/my-brands',
       metadata: { brandName: brand.name, brandLogoUrl: brand.logoUrl || brand.avatarUrl || '' },
     });
   }
@@ -1644,12 +1644,12 @@ async function influencerInvite({ influencer, brand }) {
       title: 'Brand Invitation!',
       message: `${brand.name} wants to partner with you.`,
       type: 'partnership',
-      link: '/app/invitations.html',
+      link: '/activity',
     });
     push(influencer.userId, {
       title: '🎯 Brand Invitation',
       body: `${brand.name} wants to partner with you!`,
-      link: '/app/invitations.html',
+      link: '/activity',
     });
   }
 }
@@ -1681,7 +1681,7 @@ async function newInfluencerMessage({ brand, influencer }) {
     push((brand.ownerId || brand.createdBy), {
       title: 'New Message',
       body: `${influencer.displayName || 'An influencer'} sent you a message.`,
-      link: '/app/messages.html',
+      link: '/activity',
     });
   }
 }
@@ -1708,7 +1708,7 @@ async function newBrandMessage({ influencer, brand }) {
     push(influencer.userId, {
       title: 'New Message',
       body: `${brand.name} sent you a message.`,
-      link: '/app/messages.html',
+      link: '/activity',
     });
   }
 }
@@ -1763,7 +1763,7 @@ async function subscriptionUpgraded({ brand, oldTier, newTier }) {
       title: 'Plan Upgraded!',
       message: `Upgraded to ${newTier} plan.`,
       type: 'payment',
-      link: '/app/cash-account.html',
+      link: '/earn',
     });
   }
 }
@@ -1848,7 +1848,7 @@ async function cashoutRequested({ influencer, amount }) {
       title: 'Cash Out Processing',
       message: `${$(amount)} cash out is being processed.`,
       type: 'payment',
-      link: '/app/wallet.html',
+      link: '/earn',
       audience: 'influencer',
     });
   }
@@ -1877,7 +1877,7 @@ async function trialEndingSoon({ brand, trialEndDate }) {
     push((brand.ownerId || brand.createdBy), {
       title: '⏰ Trial Ending Soon',
       body: 'Your free trial ends in 3 days. Subscribe to keep your features.',
-      link: '/app/cash-account.html',
+      link: '/earn',
     });
   }
 }
@@ -1916,7 +1916,7 @@ async function trialStarted({ brand, trialEndsAt, trialTier = 'pro' }) {
     push((brand.ownerId || brand.createdBy), {
       title: '🎉 14-Day Free Trial Started',
       body: `You have full Pro access until ${endDate}. No credit card needed.`,
-      link: '/app/manage-brands.html',
+      link: '/discover/my-brands',
     });
   }
 }
@@ -1970,12 +1970,12 @@ async function referralSignup({ referrer, referredName }) {
       title: 'Referral Signed Up!',
       message: `${referredName || 'Someone'} joined using your referral link.`,
       type: 'account',
-      link: '/app/referrals.html',
+      link: '/earn/refer',
     });
     push(userId, {
       title: '🎉 Referral Signed Up!',
       body: `${referredName || 'Someone'} joined KeepUsPostd through your link.`,
-      link: '/app/referrals.html',
+      link: '/earn/refer',
     });
   }
 }
@@ -2002,7 +2002,7 @@ async function referralOnboarded({ referrer, referredName }) {
     push(referrer.firebaseUid || referrer._id?.toString(), {
       title: 'Referral Complete!',
       body: `${referredName || 'Your referral'} finished setup. Reward incoming!`,
-      link: '/app/referrals.html',
+      link: '/earn/refer',
     });
   }
 }
@@ -2032,12 +2032,12 @@ async function referralRewardEarned({ referrer, amount, referredName }) {
       title: `Referral Reward: ${$(amount)}`,
       message: `You earned ${$(amount)} for referring ${referredName || 'a new user'}.`,
       type: 'payment',
-      link: '/app/referrals.html',
+      link: '/earn/refer',
     });
     push(userId, {
       title: `💰 ${$(amount)} Referral Reward`,
       body: `You earned ${$(amount)} for referring ${referredName || 'a new user'}.`,
-      link: '/app/referrals.html',
+      link: '/earn/refer',
     });
   }
 }
@@ -2080,12 +2080,12 @@ async function socialInfluenceVerified({ influencer, tier }) {
       title: 'Social Influence Verified!',
       message: `You're verified at the ${tierDisplay} tier.`,
       type: 'account',
-      link: '/app/profile.html',
+      link: '/profile',
     });
     push(influencer.userId, {
       title: '✅ Verified!',
       body: `Your social influence is verified — ${tierDisplay} tier. Start earning!`,
-      link: '/app/profile.html',
+      link: '/profile',
     });
   }
 }
@@ -2115,7 +2115,7 @@ async function socialInfluenceNotMatched({ influencer, reason = '' }) {
       title: 'Verification Update',
       message: 'We couldn\'t verify your social influence. Check your profile settings.',
       type: 'account',
-      link: '/app/profile.html',
+      link: '/profile',
     });
   }
 }
@@ -2275,7 +2275,7 @@ async function payoutReceived({ influencer, brand, amount, partnershipId, conten
     title: `You got paid $${amount.toFixed(2)}!`,
     message: msg,
     type: 'rating_request',
-    link: '/app/rate-partnership.html',
+    link: '/activity',
     metadata: {
       partnershipId: partnershipId?.toString(),
       brandName: brand.name,
@@ -2287,7 +2287,7 @@ async function payoutReceived({ influencer, brand, amount, partnershipId, conten
   push(influencer.userId, {
     title: `You earned $${amount.toFixed(2)} from ${brand.name}!`,
     body: `Tap to rate your experience with ${brand.name}`,
-    link: '/app/rate-partnership.html',
+    link: '/activity',
     data: { type: 'rating_request', partnershipId: partnershipId?.toString() },
   });
 }
@@ -2314,7 +2314,7 @@ async function pointsEarned({ influencer, brand, rewardTitle, points, stage, tot
     title: `+${points} Points Earned!`,
     message: msg,
     type: 'reward',
-    link: '/app/rewards.html',
+    link: '/earn',
     audience: 'influencer',
     metadata: {
       brandName: brand?.name || '',
@@ -2364,7 +2364,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
       title: 'Reward Unlocked!',
       message: msg,
       type: 'reward',
-      link: '/app/rewards.html',
+      link: '/earn',
       audience: 'influencer',
       metadata: {
         brandName: brand?.name || '',
@@ -2419,7 +2419,7 @@ async function levelUnlocked({ influencer, brand, rewardValue, rewardType, thres
         title: 'Reward Ready to Distribute!',
         message: msg,
         type: 'reward',
-        link: '/app/cash-rewards.html',
+        link: '/earn',
         audience: 'brand',
         metadata: {
           influencerName: influencer?.displayName,
