@@ -725,6 +725,11 @@ router.get('/feed', optionalAuth, async (req, res) => {
     // single signal the client needs to fill / empty the heart on render.
     const viewerId = req.user?._id?.toString() || null;
     const feed = submissions.map(s => ({
+      // Internal — used by interleaveByBrand to bucket items by recency.
+      // Stripped before res.json() so it never leaks to the client.
+      __sortTs:      (s.reviewedAt && new Date(s.reviewedAt).getTime()) ||
+                     (s.submittedAt && new Date(s.submittedAt).getTime()) ||
+                     0,
       _id:           s._id,
       displayName:   s.influencerProfileId?.displayName || 'Creator',
       handle:        s.influencerProfileId?.handle || 'creator',
@@ -750,45 +755,89 @@ router.get('/feed', optionalAuth, async (req, res) => {
       geoVerified:   s.geoVerified === true,
     }));
 
-    // Spread brands without destroying newest-first order. Items arrive
-    // already sorted by reviewedAt DESC. We walk forward and, only when the
-    // current item shares a brand with the one just placed, look a few slots
-    // ahead for the next different-brand item to swap up. Everything else
-    // keeps its chronological position, so newly approved reviews surface
-    // at the top of the feed — which is the only behavior users expect.
+    // Recency-bucketed shuffle with brand spread.
+    //
+    // Goal (per Santana 2026-06-16): keep newest reviews on top, but allow
+    // some randomness so the feed doesn't feel deterministic on repeat
+    // opens. The compromise: bucket items by recency window, shuffle within
+    // each bucket (fresh feel), then concatenate buckets in age order
+    // (newer bucket always precedes older). An older bucket can never
+    // leapfrog a newer one — today's approvals always beat yesterday's.
+    //
+    // Within each bucket, also spread brands so the same brand doesn't
+    // play back-to-back when avoidable.
+    //
+    // Buckets (by reviewedAt → fallback submittedAt):
+    //   0: last 24h         (the "fresh" tier — what you just approved)
+    //   1: 24h-7d           (this week)
+    //   2: 7d-30d           (this month)
+    //   3: older            (catalog / Apple-reviewer safety net)
     //
     // Previous implementation randomly shuffled items within each brand
-    // bucket and randomly tie-broke between buckets, which buried freshly
-    // approved content under older items of the same brand. Reported by
-    // Santana 2026-06-16: "I just approved a video and many more recently
-    // approved reviews don't appear until the end."
+    // bucket and randomly tie-broke between brands, which buried freshly
+    // approved content. Replaced 2026-06-16.
     const interleaveByBrand = (items) => {
       if (items.length <= 2) return items;
-      const LOOK_AHEAD = 4; // how far ahead to search for a different brand
-      const result = [...items];
-      for (let i = 1; i < result.length; i++) {
-        const prevBrand = result[i - 1].brandId || 'unknown';
-        const curBrand = result[i].brandId || 'unknown';
-        if (curBrand !== prevBrand) continue;
-        // Find the next item within the look-ahead window whose brand differs
-        // from prevBrand. Swap it up. If none exists, leave the cluster — the
-        // overflow is unavoidable for a brand-dominant page.
-        const end = Math.min(result.length, i + 1 + LOOK_AHEAD);
-        let swapIdx = -1;
-        for (let j = i + 1; j < end; j++) {
-          const candBrand = result[j].brandId || 'unknown';
-          if (candBrand !== prevBrand) { swapIdx = j; break; }
-        }
-        if (swapIdx > -1) {
-          const tmp = result[i];
-          result[i] = result[swapIdx];
-          result[swapIdx] = tmp;
-        }
+
+      const now = Date.now();
+      const HOUR = 60 * 60 * 1000;
+      const DAY = 24 * HOUR;
+      const bucketOf = (s) => {
+        const ts = s.__sortTs || 0;
+        const ageMs = now - ts;
+        if (ageMs <= 1 * DAY) return 0;
+        if (ageMs <= 7 * DAY) return 1;
+        if (ageMs <= 30 * DAY) return 2;
+        return 3;
+      };
+
+      const buckets = [[], [], [], []];
+      for (const it of items) {
+        buckets[bucketOf(it)].push(it);
       }
-      return result;
+
+      const fisherYates = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      };
+
+      // Spread brands inside a single bucket via the forward-walking swap.
+      const spreadBrands = (arr) => {
+        if (arr.length <= 2) return arr;
+        const LOOK_AHEAD = 4;
+        for (let i = 1; i < arr.length; i++) {
+          const prevBrand = arr[i - 1].brandId || 'unknown';
+          const curBrand = arr[i].brandId || 'unknown';
+          if (curBrand !== prevBrand) continue;
+          const end = Math.min(arr.length, i + 1 + LOOK_AHEAD);
+          let swapIdx = -1;
+          for (let j = i + 1; j < end; j++) {
+            const candBrand = arr[j].brandId || 'unknown';
+            if (candBrand !== prevBrand) { swapIdx = j; break; }
+          }
+          if (swapIdx > -1) {
+            const tmp = arr[i];
+            arr[i] = arr[swapIdx];
+            arr[swapIdx] = tmp;
+          }
+        }
+        return arr;
+      };
+
+      const out = [];
+      for (const b of buckets) {
+        if (b.length === 0) continue;
+        fisherYates(b);
+        spreadBrands(b);
+        out.push(...b);
+      }
+      return out;
     };
 
-    res.json({ feed: interleaveByBrand(feed), page, hasMore: submissions.length === limit });
+    const ordered = interleaveByBrand(feed).map(({ __sortTs, ...rest }) => rest);
+    res.json({ feed: ordered, page, hasMore: submissions.length === limit });
   } catch (error) {
     console.error('[GET /content/feed]', error.message);
     res.status(500).json({ error: 'Could not load feed' });
