@@ -2467,6 +2467,11 @@ async function notifyCreatorSubscribers({ creatorProfile, brand, submission }) {
     };
 
     // Sequential so a single bad token doesn't break the rest.
+    // ⚠️ Build 148 workaround: link is OMITTED from createInApp() so the
+    // inbox card renders as a clean informational reminder without the
+    // hardcoded "Tap to claim your reward →" CTA in activity_screen.dart:1301.
+    // Push still carries the link so lock-screen tap deep-links into /discover.
+    // Revert (re-add link to createInApp) once Build 148 ships dynamic CTA copy.
     for (const s of subs) {
       const userId = String(s.userId);
       try {
@@ -2475,7 +2480,6 @@ async function notifyCreatorSubscribers({ creatorProfile, brand, submission }) {
           title,
           message,
           type: 'content',
-          link,
           audience: 'influencer',
           metadata: meta,
         });
