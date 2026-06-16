@@ -803,35 +803,51 @@ router.get('/feed', optionalAuth, async (req, res) => {
         }
       };
 
-      // Spread brands inside a single bucket via the forward-walking swap.
-      const spreadBrands = (arr) => {
-        if (arr.length <= 2) return arr;
-        const LOOK_AHEAD = 4;
-        for (let i = 1; i < arr.length; i++) {
-          const prevBrand = arr[i - 1].brandId || 'unknown';
-          const curBrand = arr[i].brandId || 'unknown';
-          if (curBrand !== prevBrand) continue;
-          const end = Math.min(arr.length, i + 1 + LOOK_AHEAD);
-          let swapIdx = -1;
-          for (let j = i + 1; j < end; j++) {
-            const candBrand = arr[j].brandId || 'unknown';
-            if (candBrand !== prevBrand) { swapIdx = j; break; }
-          }
-          if (swapIdx > -1) {
-            const tmp = arr[i];
-            arr[i] = arr[swapIdx];
-            arr[swapIdx] = tmp;
-          }
+      // Hard guarantee: same brand never plays back-to-back UNLESS only
+      // one brand has items remaining (true overflow — unavoidable).
+      // Algorithm: group items by brand, then at each slot pick the brand
+      // with the most remaining items whose key ≠ lastBrand. Ties broken
+      // randomly for variety. If the only available brand IS lastBrand
+      // (single-brand overflow), accept the adjacency rather than drop
+      // items. lastBrand is threaded in/out so the no-adjacency guarantee
+      // holds ACROSS bucket boundaries too — last item of fresh bucket
+      // won't collide with first item of this-week bucket.
+      const spreadBrands = (arr, startingLastBrand) => {
+        if (arr.length === 0) return { result: [], lastBrand: startingLastBrand };
+        if (arr.length === 1) {
+          return { result: [arr[0]], lastBrand: arr[0].brandId || 'unknown' };
         }
-        return arr;
+        const brandMap = new Map();
+        for (const it of arr) {
+          const key = it.brandId || 'unknown';
+          if (!brandMap.has(key)) brandMap.set(key, []);
+          brandMap.get(key).push(it);
+        }
+        const result = [];
+        let lastBrand = startingLastBrand;
+        while (result.length < arr.length) {
+          let pool = [...brandMap.entries()].filter(([k, v]) => v.length > 0 && k !== lastBrand);
+          if (pool.length === 0) {
+            // Single-brand overflow — adjacency is unavoidable.
+            pool = [...brandMap.entries()].filter(([, v]) => v.length > 0);
+          }
+          const maxLen = Math.max(...pool.map(([, v]) => v.length));
+          const top = pool.filter(([, v]) => v.length === maxLen);
+          const [chosenKey, chosenArr] = top[Math.floor(Math.random() * top.length)];
+          result.push(chosenArr.shift());
+          lastBrand = chosenKey;
+        }
+        return { result, lastBrand };
       };
 
       const out = [];
+      let carryLastBrand = null;
       for (const b of buckets) {
         if (b.length === 0) continue;
         fisherYates(b);
-        spreadBrands(b);
-        out.push(...b);
+        const { result, lastBrand } = spreadBrands(b, carryLastBrand);
+        out.push(...result);
+        carryLastBrand = lastBrand;
       }
       return out;
     };
