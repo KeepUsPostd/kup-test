@@ -66,7 +66,7 @@ router.get('/:profileId/content', optionalAuth, async (req, res) => {
     })
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
       .populate('brandId', 'name logoUrl generatedColor category city')
-      .sort({ approvedAt: -1, submittedAt: -1 })
+      .sort({ reviewedAt: -1, submittedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();

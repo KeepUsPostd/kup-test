@@ -709,7 +709,12 @@ router.get('/feed', optionalAuth, async (req, res) => {
     const submissions = await ContentSubmission.find(contentFilter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
       .populate('brandId', 'name logoUrl generatedColor category city')
-      .sort({ approvedAt: -1, submittedAt: -1 })
+      // Sort newest-approved first. Use reviewedAt (the field admin-panel and
+      // brand-side approval actually populate). Legacy sort used `approvedAt`
+      // which doesn't exist on the schema → recently-approved content landed
+      // at the END of the feed because new docs sorted null on the missing
+      // primary key. Fall back to submittedAt for any pre-review submissions.
+      .sort({ reviewedAt: -1, submittedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
