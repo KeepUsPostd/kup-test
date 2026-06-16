@@ -750,40 +750,40 @@ router.get('/feed', optionalAuth, async (req, res) => {
       geoVerified:   s.geoVerified === true,
     }));
 
-    // Reorder so the same brand never plays back-to-back when avoidable.
-    // This ONLY changes adjacency/order within the page — it does not change
-    // which items are included, the filters, or which items the page selected.
-    // Approach: group by brand (shuffling within each brand for a "more random"
-    // feel), then repeatedly place an item from the brand with the most
-    // remaining items that differs from the last-placed brand. If a single
-    // brand dominates a page, adjacency is unavoidable for the surplus and
-    // those items are simply spread as far apart as possible.
+    // Spread brands without destroying newest-first order. Items arrive
+    // already sorted by reviewedAt DESC. We walk forward and, only when the
+    // current item shares a brand with the one just placed, look a few slots
+    // ahead for the next different-brand item to swap up. Everything else
+    // keeps its chronological position, so newly approved reviews surface
+    // at the top of the feed — which is the only behavior users expect.
+    //
+    // Previous implementation randomly shuffled items within each brand
+    // bucket and randomly tie-broke between buckets, which buried freshly
+    // approved content under older items of the same brand. Reported by
+    // Santana 2026-06-16: "I just approved a video and many more recently
+    // approved reviews don't appear until the end."
     const interleaveByBrand = (items) => {
       if (items.length <= 2) return items;
-      const buckets = new Map();
-      for (const it of items) {
-        const key = it.brandId || 'unknown';
-        if (!buckets.has(key)) buckets.set(key, []);
-        buckets.get(key).push(it);
-      }
-      for (const arr of buckets.values()) {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
+      const LOOK_AHEAD = 4; // how far ahead to search for a different brand
+      const result = [...items];
+      for (let i = 1; i < result.length; i++) {
+        const prevBrand = result[i - 1].brandId || 'unknown';
+        const curBrand = result[i].brandId || 'unknown';
+        if (curBrand !== prevBrand) continue;
+        // Find the next item within the look-ahead window whose brand differs
+        // from prevBrand. Swap it up. If none exists, leave the cluster — the
+        // overflow is unavoidable for a brand-dominant page.
+        const end = Math.min(result.length, i + 1 + LOOK_AHEAD);
+        let swapIdx = -1;
+        for (let j = i + 1; j < end; j++) {
+          const candBrand = result[j].brandId || 'unknown';
+          if (candBrand !== prevBrand) { swapIdx = j; break; }
         }
-      }
-      const result = [];
-      let lastBrand = null;
-      while (result.length < items.length) {
-        let candidates = [...buckets.entries()].filter(([k, v]) => v.length > 0 && k !== lastBrand);
-        if (candidates.length === 0) {
-          candidates = [...buckets.entries()].filter(([, v]) => v.length > 0);
+        if (swapIdx > -1) {
+          const tmp = result[i];
+          result[i] = result[swapIdx];
+          result[swapIdx] = tmp;
         }
-        const maxLen = Math.max(...candidates.map(([, v]) => v.length));
-        const top = candidates.filter(([, v]) => v.length === maxLen);
-        const [chosenKey, chosenArr] = top[Math.floor(Math.random() * top.length)];
-        result.push(chosenArr.shift());
-        lastBrand = chosenKey;
       }
       return result;
     };
