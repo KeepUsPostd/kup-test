@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>Leave a Review — KeepUsPostd</title>
+<meta name="description" content="Record a quick video review and get paid on approval. No app required.">
+<link rel="icon" href="/images/favicon/favicon.ico">
+<link rel="apple-touch-icon" href="/images/favicon/apple-touch-icon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  main { flex: 1; display: flex; flex-direction: column; }
+  .screen { flex: 1; display: none; flex-direction: column; padding: 24px; }
+  .screen.active { display: flex; }
+
+  /* ── Landing screen ── */
+  .brand-header {
+    text-align: center; padding: 32px 24px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .brand-logo {
+    width: 80px; height: 80px; border-radius: 20px; object-fit: cover;
+    background: #1a1a1a; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 28px; color: #fff;
+  }
+  .brand-name { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .brand-category { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .stats-row { display: flex; gap: 24px; justify-content: center; padding: 8px 0 24px; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 20px; font-weight: 800; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 0.08em; margin-top: 2px; }
+
+  .reward-card {
+    background: linear-gradient(135deg, #1a1a1a, #262626);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px; margin: 8px 0 24px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .reward-icon {
+    width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .reward-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6c7cbd; font-weight: 700; margin-bottom: 4px; }
+  .reward-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .reward-desc { font-size: 13px; color: #999; line-height: 1.5; }
+
+  .cta-primary {
+    background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
+    color: #fff; border: none; padding: 16px 24px;
+    border-radius: 14px; font-size: 16px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    box-shadow: 0 8px 24px rgba(46, 165, 221, 0.25);
+    transition: transform 0.15s ease;
+  }
+  .cta-primary:active { transform: scale(0.98); }
+  .cta-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cta-secondary {
+    background: transparent; color: #999; border: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 24px; border-radius: 14px; font-size: 15px; font-weight: 600;
+    cursor: pointer; width: 100%;
+  }
+  .cta-secondary:active { background: rgba(255,255,255,0.04); }
+
+  .powered-by {
+    text-align: center; padding: 24px 0 32px;
+    font-size: 11px; color: #555; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .powered-by strong { color: #999; }
+
+  /* ── Form screen ── */
+  .form-header { margin-bottom: 24px; }
+  .form-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .form-subtitle { color: #999; font-size: 14px; line-height: 1.5; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 8px; }
+  .field input, .field textarea {
+    width: 100%; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08);
+    color: #fff; padding: 14px 16px; border-radius: 12px; font-size: 15px;
+    font-family: inherit;
+  }
+  .field input:focus, .field textarea:focus { outline: none; border-color: #2EA5DD; }
+  .checkbox-field { display: flex; gap: 12px; align-items: flex-start; margin: 16px 0 24px; }
+  .checkbox-field input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: #2EA5DD; flex-shrink: 0; }
+  .checkbox-field label { font-size: 13px; color: #999; line-height: 1.5; text-transform: none; letter-spacing: 0; margin: 0; }
+  .checkbox-field label a { color: #2EA5DD; text-decoration: none; }
+
+  /* ── Record screen ── */
+  .recorder-wrap {
+    position: relative; flex: 1;
+    display: flex; flex-direction: column;
+    background: #000; border-radius: 16px; overflow: hidden;
+    margin-bottom: 16px;
+  }
+  #videoPreview {
+    width: 100%; flex: 1; object-fit: cover; background: #000;
+    display: block;
+  }
+  .recorder-controls {
+    position: absolute; bottom: 24px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 16px;
+  }
+  .record-btn {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: #ff3b3b; border: 4px solid #fff;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    transition: transform 0.15s ease;
+  }
+  .record-btn:active { transform: scale(0.95); }
+  .record-btn.recording {
+    background: #fff; border-color: #ff3b3b;
+    border-radius: 12px; width: 40px; height: 40px; margin: 16px;
+  }
+  .timer-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+    padding: 8px 12px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rec-dot { width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  /* ── Confirmation screen ── */
+  .checkmark {
+    width: 96px; height: 96px; margin: 40px auto 24px;
+    border-radius: 50%; background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
+    display: flex; align-items: center; justify-content: center; font-size: 48px;
+  }
+  .confirm-title { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 12px; letter-spacing: -0.01em; }
+  .confirm-body { font-size: 15px; color: #ccc; text-align: center; line-height: 1.6; margin-bottom: 32px; }
+  .next-card {
+    background: #1a1a1a; border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 20px; margin-bottom: 12px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .next-icon { font-size: 24px; flex-shrink: 0; }
+  .next-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .next-desc { font-size: 13px; color: #999; line-height: 1.5; }
+
+  /* ── States ── */
+  .status-banner { padding: 12px; text-align: center; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+  .status-banner.error { background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.3); color: #ff8080; }
+  .status-banner.info { background: rgba(46,165,221,0.1); border: 1px solid rgba(46,165,221,0.3); color: #7dc4e6; }
+  .loading { text-align: center; padding: 80px 24px; color: #666; }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #2EA5DD; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 380px) {
+    .brand-name { font-size: 20px; }
+    .stat-value { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═════ LOADING ═════ -->
+<div id="screen-loading" class="screen active">
+  <div class="loading"><span class="spinner"></span></div>
+</div>
+
+<!-- ═════ ERROR (brand not found / widget disabled) ═════ -->
+<div id="screen-error" class="screen">
+  <div style="text-align:center; padding: 64px 24px;">
+    <div style="font-size:48px; margin-bottom: 16px;">🤷</div>
+    <div style="font-size:20px; font-weight:800; margin-bottom: 8px;" id="error-title">Not available</div>
+    <div style="color:#999; font-size:14px; line-height:1.6;" id="error-message"></div>
+    <div style="margin-top:32px;">
+      <a href="https://keepuspostd.com" style="color:#2EA5DD; font-size:14px; text-decoration:none;">← Back to KeepUsPostd</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═════ LANDING (brand + reward + start button) ═════ -->
+<div id="screen-landing" class="screen">
+  <div class="brand-header">
+    <div class="brand-logo" id="brand-logo"></div>
+    <div class="brand-name" id="brand-name"></div>
+    <div class="brand-category" id="brand-category"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-value" id="stat-reviews">—</div>
+      <div class="stat-label">Reviews</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">💰</div>
+      <div class="stat-label">Get Paid</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">⚡</div>
+      <div class="stat-label">3 Minutes</div>
+    </div>
+  </div>
+
+  <div id="reward-card" class="reward-card" style="display:none;">
+    <div class="reward-icon">🎁</div>
+    <div>
+      <div class="reward-eyebrow">You'll unlock</div>
+      <div class="reward-title" id="reward-title"></div>
+      <div class="reward-desc" id="reward-desc"></div>
+    </div>
+  </div>
+
+  <button class="cta-primary" onclick="showForm()">⭐ Leave a Video Review</button>
+
+  <div class="powered-by">Powered by <strong>KeepUsPostd</strong></div>
+</div>
+
+<!-- ═════ FORM (name + email + terms) ═════ -->
+<div id="screen-form" class="screen">
+  <div class="form-header">
+    <div class="form-title">Quick intro</div>
+    <div class="form-subtitle">Just your name + email to send you updates on approval and payout.</div>
+  </div>
+
+  <div class="field">
+    <label for="input-name">Full name</label>
+    <input type="text" id="input-name" autocomplete="name" placeholder="Your name" maxlength="60">
+  </div>
+  <div class="field">
+    <label for="input-email">Email</label>
+    <input type="email" id="input-email" autocomplete="email" inputmode="email" placeholder="you@example.com" maxlength="120">
+  </div>
+
+  <div class="checkbox-field">
+    <input type="checkbox" id="input-terms">
+    <label for="input-terms">
+      I agree to the <a href="/pages/terms.html" target="_blank">Terms</a> &amp; <a href="/pages/policy.html" target="_blank">Privacy Policy</a> and confirm this review is my honest opinion.
+    </label>
+  </div>
+
+  <div id="form-error" class="status-banner error" style="display:none;"></div>
+
+  <button class="cta-primary" onclick="startRecordingFlow()">Continue → Record Review</button>
+</div>
+
+<!-- ═════ RECORDER ═════ -->
+<div id="screen-recorder" class="screen">
+  <div class="form-header">
+    <div class="form-title" id="recorder-title">Record your review</div>
+    <div class="form-subtitle" id="recorder-subtitle">Keep it under 60 seconds. Speak honestly — the brand approves before you're paid.</div>
+  </div>
+
+  <div class="recorder-wrap">
+    <video id="videoPreview" autoplay muted playsinline></video>
+    <div class="timer-badge" id="timer-badge" style="display:none;">
+      <div class="rec-dot"></div>
+      <span id="timer-text">0:00</span>
+    </div>
+    <div class="recorder-controls">
+      <button id="record-btn" class="record-btn" aria-label="Start recording" onclick="toggleRecording()"></button>
+    </div>
+  </div>
+
+  <div id="record-error" class="status-banner error" style="display:none;"></div>
+  <div id="record-actions" style="display:none;">
+    <button class="cta-primary" onclick="submitReview()" style="margin-bottom:8px;">Submit Review</button>
+    <button class="cta-secondary" onclick="retakeVideo()">Retake</button>
+  </div>
+</div>
+
+<!-- ═════ UPLOADING ═════ -->
+<div id="screen-uploading" class="screen">
+  <div class="loading">
+    <span class="spinner"></span>
+    <div style="margin-top:24px; font-size:16px; color:#ccc;">Sending your review…</div>
+    <div style="margin-top:4px; font-size:12px; color:#666;" id="upload-status">Uploading video</div>
+  </div>
+</div>
+
+<!-- ═════ CONFIRMATION ═════ -->
+<div id="screen-done" class="screen">
+  <div class="checkmark">✓</div>
+  <div class="confirm-title">Review Submitted!</div>
+  <div class="confirm-body" id="confirm-body">
+    Your review is with the brand. They'll respond within 48 hours.<br>
+    Check your email for updates — including when your reward is ready.
+  </div>
+
+  <div class="next-card">
+    <div class="next-icon">📱</div>
+    <div>
+      <div class="next-title">Get the KeepUsPostd app</div>
+      <div class="next-desc">Discover 100+ more brands you already love. Every review can pay.</div>
+    </div>
+  </div>
+
+  <a href="https://keepuspostd.com/download" style="text-decoration:none; display:block;">
+    <button class="cta-primary" style="margin-top:12px;">Download the App →</button>
+  </a>
+
+  <div class="powered-by">Powered by <strong>KeepUsPostd</strong></div>
+</div>
+
+</main>
+
+<script>
+// ── State ──────────────────────────────────────────────
+const brandCode = (function() {
+  const path = window.location.pathname;
+  const match = path.match(/^\/(?:brand\/([^/]+)|@([^/]+))\/review/);
+  return match ? (match[1] || match[2]) : null;
+})();
+
+const state = {
+  brand: null,
+  reward: null,
+  stats: null,
+  fullName: '',
+  email: '',
+  mediaStream: null,
+  mediaRecorder: null,
+  recordedBlob: null,
+  recordedBlobUrl: null,
+  recordingStartTs: null,
+  timerInterval: null,
+  isRecording: false,
+  maxSeconds: 60,
+  uploadedUrl: null,
+};
+
+const API_BASE = window.location.origin + '/api/embed';
+
+// ── Screen switcher ───────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Load brand config ─────────────────────────────────
+async function loadBrandConfig() {
+  if (!brandCode) {
+    showError('No brand specified', 'This link is missing a brand code.');
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/${brandCode}/config`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showError(err.error === 'widget_disabled' ? 'Widget paused' : 'Brand not found', err.message || 'This brand isn\'t currently accepting reviews.');
+      return;
+    }
+    const data = await res.json();
+    state.brand = data.brand;
+    state.reward = data.reward;
+    state.stats = data.stats;
+    renderLanding();
+    showScreen('screen-landing');
+  } catch (err) {
+    showError('Network error', 'Please check your connection and refresh.');
+  }
+}
+
+function renderLanding() {
+  const { brand, reward, stats } = state;
+  document.title = `Leave a Review for ${brand.name} — KeepUsPostd`;
+
+  const logoEl = document.getElementById('brand-logo');
+  if (brand.logoUrl) {
+    logoEl.innerHTML = `<img src="${brand.logoUrl}" style="width:100%;height:100%;border-radius:20px;object-fit:cover;" alt="${brand.name}">`;
+  } else {
+    logoEl.style.background = brand.brandColor || '#2EA5DD';
+    logoEl.textContent = brand.initials || brand.name.slice(0, 2).toUpperCase();
+  }
+  document.getElementById('brand-name').textContent = brand.name;
+  document.getElementById('brand-category').textContent = brand.category || 'On KeepUsPostd';
+  document.getElementById('stat-reviews').textContent = String(stats.approvedReviews || 0);
+
+  if (reward && reward.title) {
+    document.getElementById('reward-card').style.display = 'flex';
+    document.getElementById('reward-title').textContent = reward.title;
+    document.getElementById('reward-desc').textContent = reward.description || '';
+  }
+}
+
+function showError(title, message) {
+  document.getElementById('error-title').textContent = title;
+  document.getElementById('error-message').textContent = message;
+  showScreen('screen-error');
+}
+
+// ── Form step ─────────────────────────────────────────
+function showForm() { showScreen('screen-form'); document.getElementById('input-name').focus(); }
+
+function validateForm() {
+  const name = document.getElementById('input-name').value.trim();
+  const email = document.getElementById('input-email').value.trim();
+  const terms = document.getElementById('input-terms').checked;
+  const errEl = document.getElementById('form-error');
+  errEl.style.display = 'none';
+
+  if (name.length < 2) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; errEl.style.display = 'block'; return false; }
+  if (!terms) { errEl.textContent = 'Please agree to the terms.'; errEl.style.display = 'block'; return false; }
+
+  state.fullName = name;
+  state.email = email;
+  return true;
+}
+
+// ── Recorder ──────────────────────────────────────────
+async function startRecordingFlow() {
+  if (!validateForm()) return;
+  showScreen('screen-recorder');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
+      audio: true,
+    });
+    state.mediaStream = stream;
+    const video = document.getElementById('videoPreview');
+    video.srcObject = stream;
+    video.muted = true;
+    await video.play();
+  } catch (err) {
+    document.getElementById('record-error').textContent = 'Camera access denied. Please allow camera + mic to record.';
+    document.getElementById('record-error').style.display = 'block';
+  }
+}
+
+function toggleRecording() {
+  if (!state.mediaStream) return;
+  if (state.isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+function startRecording() {
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+    ? 'video/webm;codecs=vp9,opus'
+    : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4');
+  const chunks = [];
+  const recorder = new MediaRecorder(state.mediaStream, { mimeType });
+  recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    state.recordedBlob = blob;
+    state.recordedBlobUrl = URL.createObjectURL(blob);
+    const video = document.getElementById('videoPreview');
+    video.srcObject = null;
+    video.src = state.recordedBlobUrl;
+    video.muted = false;
+    video.controls = true;
+    video.play().catch(() => {});
+    document.getElementById('record-btn').style.display = 'none';
+    document.getElementById('timer-badge').style.display = 'none';
+    document.getElementById('record-actions').style.display = 'block';
+  };
+  recorder.start();
+  state.mediaRecorder = recorder;
+  state.isRecording = true;
+  state.recordingStartTs = Date.now();
+
+  document.getElementById('record-btn').classList.add('recording');
+  document.getElementById('timer-badge').style.display = 'flex';
+  state.timerInterval = setInterval(() => {
+    const secs = Math.floor((Date.now() - state.recordingStartTs) / 1000);
+    const mm = Math.floor(secs / 60), ss = secs % 60;
+    document.getElementById('timer-text').textContent = `${mm}:${String(ss).padStart(2, '0')}`;
+    if (secs >= state.maxSeconds) stopRecording();
+  }, 250);
+}
+
+function stopRecording() {
+  if (!state.mediaRecorder || !state.isRecording) return;
+  state.mediaRecorder.stop();
+  state.isRecording = false;
+  clearInterval(state.timerInterval);
+  state.mediaStream.getTracks().forEach(t => t.stop());
+  state.mediaStream = null;
+}
+
+function retakeVideo() {
+  if (state.recordedBlobUrl) URL.revokeObjectURL(state.recordedBlobUrl);
+  state.recordedBlob = null;
+  state.recordedBlobUrl = null;
+  const video = document.getElementById('videoPreview');
+  video.pause(); video.removeAttribute('src'); video.load();
+  video.controls = false; video.muted = true;
+  document.getElementById('record-btn').style.display = 'block';
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('record-actions').style.display = 'none';
+  document.getElementById('record-error').style.display = 'none';
+  startRecordingFlow();
+}
+
+// ── Submit ────────────────────────────────────────────
+async function submitReview() {
+  if (!state.recordedBlob) return;
+  showScreen('screen-uploading');
+  document.getElementById('upload-status').textContent = 'Uploading video…';
+
+  try {
+    // Step 1: upload the video blob
+    const formData = new FormData();
+    const ext = state.recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+    formData.append('video', state.recordedBlob, `review-${Date.now()}.${ext}`);
+    const uploadRes = await fetch(`${API_BASE}/${brandCode}/upload`, { method: 'POST', body: formData });
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({}));
+      throw new Error(err.message || 'Upload failed. Please try again.');
+    }
+    const { mediaUrl } = await uploadRes.json();
+
+    // Step 2: submit the metadata
+    document.getElementById('upload-status').textContent = 'Finalizing…';
+    const submitRes = await fetch(`${API_BASE}/${brandCode}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: state.fullName,
+        email: state.email,
+        mediaUrls: [mediaUrl],
+        agreedToTerms: true,
+      }),
+    });
+    if (!submitRes.ok) {
+      const err = await submitRes.json().catch(() => ({}));
+      throw new Error(err.message || 'Submission failed. Please try again.');
+    }
+    const submitData = await submitRes.json();
+    renderConfirmation(submitData);
+    showScreen('screen-done');
+  } catch (err) {
+    document.getElementById('record-error').textContent = err.message || 'Something went wrong. Please try again.';
+    document.getElementById('record-error').style.display = 'block';
+    // Return to recorder screen with the video still there for retry
+    showScreen('screen-recorder');
+  }
+}
+
+function renderConfirmation(submitData) {
+  const brandName = state.brand.name;
+  document.getElementById('confirm-body').innerHTML =
+    `Your review is with the <strong>${brandName}</strong> team. They'll respond within 48 hours.<br>Check your email for updates — including when your reward is ready.`;
+}
+
+// ── Init ──────────────────────────────────────────────
+loadBrandConfig();
+</script>
+
+</body>
+</html>

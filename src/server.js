@@ -263,6 +263,20 @@ app.get('/@:handle', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'brand-profile.html'));
 });
 
+// Instant Review Widget — the zero-friction video-capture page embedded on
+// brand websites. Anyone can leave a review here without downloading the app.
+// URL patterns:
+//   /brand/KUP-XXXXXX/review
+//   /@handle/review
+// Both resolve to public/pages/instant-review.html which fetches the brand
+// config from /api/embed/:code/config and drives the record → submit flow.
+app.get('/brand/:code/review', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'instant-review.html'));
+});
+app.get('/@:handle/review', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'instant-review.html'));
+});
+
 // Deep link share page — shared from the KUP app (brand share button)
 // URL: keepuspostd.com/brands/:id — handles Universal Link handoff from iOS
 app.get('/brands/:id', (req, res) => {

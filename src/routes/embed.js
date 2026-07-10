@@ -22,6 +22,10 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const {
   Brand,
   BrandProfile,
@@ -33,6 +37,53 @@ const {
 } = require('../models');
 
 const APP_URL = process.env.APP_URL || 'https://keepuspostd.com';
+
+// ── R2 (Cloudflare) upload config — mirrors src/routes/upload.js so embed
+// uploads land in the same bucket as app-path uploads and get served from the
+// same CDN URL. If R2 isn't configured, we fall back to local disk so the
+// endpoint still works in development.
+const R2_CONFIGURED = !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_ENDPOINT);
+const r2Client = R2_CONFIGURED
+  ? new S3Client({
+      region: 'auto',
+      endpoint: process.env.R2_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      },
+    })
+  : null;
+const R2_BUCKET = process.env.R2_BUCKET || 'keepuspostd-uploads';
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || '';
+
+const embedUploadsDir = path.join(__dirname, '..', '..', 'uploads', 'embed');
+if (!fs.existsSync(embedUploadsDir)) fs.mkdirSync(embedUploadsDir, { recursive: true });
+
+const uploadStorage = multer.diskStorage({
+  destination: embedUploadsDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.mp4';
+    const uniqueName = `embed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    cb(null, uniqueName);
+  },
+});
+
+// Embed uploads capped smaller than app uploads. A 60-second phone recording
+// at 1080p 30fps is ~20-40MB, so 60MB gives ample headroom while keeping
+// abuse potential + Railway temp-disk usage bounded.
+const EMBED_MAX_UPLOAD_MB = parseInt(process.env.EMBED_MAX_UPLOAD_MB, 10) || 60;
+
+const embedUploader = multer({
+  storage: uploadStorage,
+  limits: {
+    fileSize: EMBED_MAX_UPLOAD_MB * 1024 * 1024,
+    files: 1,
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) cb(null, true);
+    else cb(new Error('Only video files are allowed'));
+  },
+});
 
 // ── Rate limiter — protect the public embed endpoints from abuse
 // Per IP: max 5 submissions per 15 minutes.
@@ -185,6 +236,82 @@ router.get('/:brandCode/config', async (req, res) => {
     return res.status(500).json({ error: 'server_error', message: 'Could not load brand.' });
   }
 });
+
+// ══════════════════════════════════════════════
+// POST /api/embed/:brandCode/upload
+// Public. Accepts a single video file (multipart/form-data field "video"),
+// uploads it to R2, returns { mediaUrl }. The client then includes that URL
+// in the follow-up POST /submit call. Split into two endpoints so the video
+// blob upload can be retried independently of the metadata submit.
+// Same 15-min window / 5 uploads per IP as the submit endpoint.
+// ══════════════════════════════════════════════
+const embedUploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    error: 'too_many_requests',
+    message: 'Please wait a few minutes before uploading another video.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post(
+  '/:brandCode/upload',
+  embedUploadLimiter,
+  (req, res, next) => {
+    embedUploader.single('video')(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(413).json({
+            error: 'file_too_large',
+            message: `Video is too large. Maximum size is ${EMBED_MAX_UPLOAD_MB}MB.`,
+          });
+        }
+        return res.status(400).json({ error: 'upload_failed', message: err.message });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'missing_file', message: 'No video file uploaded.' });
+      }
+
+      // Resolve brand — same validation as /submit so bad brandCodes reject early.
+      const brand = await resolveBrand(req.params.brandCode);
+      if (!brand) {
+        try { fs.unlinkSync(req.file.path); } catch (_) {}
+        return res.status(404).json({ error: 'brand_not_found', message: 'This brand does not exist on KeepUsPostd.' });
+      }
+
+      let mediaUrl;
+      if (r2Client) {
+        // Upload to R2 (same bucket + public URL as app-path uploads)
+        const buffer = fs.readFileSync(req.file.path);
+        await r2Client.send(new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: req.file.filename,
+          Body: buffer,
+          ContentType: req.file.mimetype || 'video/mp4',
+        }));
+        mediaUrl = R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${req.file.filename}` : `/uploads/embed/${req.file.filename}`;
+        try { fs.unlinkSync(req.file.path); } catch (_) {}
+      } else {
+        // Dev fallback — serve from local uploads dir. Not for production.
+        mediaUrl = `${APP_URL}/uploads/embed/${req.file.filename}`;
+      }
+
+      console.log(`📤 [embed] Video uploaded for brand ${brand._id}: ${mediaUrl}`);
+      return res.status(201).json({ ok: true, mediaUrl });
+    } catch (err) {
+      console.error('[POST /api/embed/:brandCode/upload]', err.message);
+      try { if (req.file?.path) fs.unlinkSync(req.file.path); } catch (_) {}
+      return res.status(500).json({ error: 'server_error', message: 'Could not upload video. Please try again.' });
+    }
+  }
+);
 
 // ══════════════════════════════════════════════
 // POST /api/embed/:brandCode/submit
