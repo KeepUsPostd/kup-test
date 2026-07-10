@@ -118,6 +118,19 @@ const contentSubmissionSchema = new mongoose.Schema({
   // queries surface "all reviews of this location".
   brandLocationId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandLocation', default: null, index: true },
 
+  // Submission origin — where the review was captured.
+  // - 'app'   : native mobile app (default, back-compat for existing records)
+  // - 'embed' : Instant Review Widget on brand's own website (no app required)
+  // - 'kiosk' : in-store kiosk mode
+  // Used by admin/brand moderation queues to filter, by analytics to measure
+  // widget adoption, and by monthly-approval-cap logic to attribute counts.
+  source: {
+    type: String,
+    enum: ['app', 'embed', 'kiosk'],
+    default: 'app',
+    index: true,
+  },
+
   // GPS captured at submit time (only when the user grants permission).
   // Stored as plain numbers — not GeoJSON — so we never accidentally surface
   // a creator's exact filming spot via a 2dsphere index. The server uses

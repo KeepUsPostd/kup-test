@@ -22,6 +22,21 @@ const userSchema = new mongoose.Schema({
   firebaseUid: { type: String, unique: true, sparse: true },
   twoFactorEnabled: { type: Boolean, default: false },
 
+  // Signup origin — how this user first landed on KeepUsPostd.
+  // - 'app'    : native mobile app or brand-portal signup (default, existing users)
+  // - 'embed'  : auto-created via the Instant Review Widget on a brand's website.
+  //              These users have NO password + NO firebaseUid until they later
+  //              claim the account by downloading the app and going through auth.
+  //              Used by the claim-account flow to detect a warmup account and
+  //              merge existing embed submissions/partnerships on real signup.
+  // - 'kiosk'  : reserved for future kiosk-mode auto-registration.
+  authMethod: {
+    type: String,
+    enum: ['app', 'embed', 'kiosk'],
+    default: 'app',
+    index: true,
+  },
+
   // Profile flags (dual-profile system)
   hasInfluencerProfile: { type: Boolean, default: false },
   hasBrandProfile: { type: Boolean, default: false },

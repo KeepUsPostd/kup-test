@@ -88,6 +88,20 @@ const brandProfileSchema = new mongoose.Schema({
 
   // Whether this brand received the referred-brand 10% discount on first subscription.
   referralDiscountApplied: { type: Boolean, default: false },
+
+  // Instant Review Widget — the brand's website-embed review capture feature.
+  // When true, /brand/:brandCode/review is publicly accessible for anyone to
+  // record a review directly from the brand's website (no app required).
+  // When false, the widget page returns a "not available" state and the brand
+  // portal hides the widget config panel. Defaults ON at launch — this feature
+  // ships to all brands day 1, but the flag preserves the ability to disable
+  // per-brand if a brand ever asks for privacy (e.g. content-sensitive vertical).
+  embedWidgetEnabled: { type: Boolean, default: true, index: true },
+
+  // Tracks lifetime approved reviews collected via the Instant Review Widget.
+  // Denormalized rollup — recomputed on approval. Read by portal analytics
+  // and by the free-plan monthly-approval cap enforcement.
+  embedApprovalsLifetime: { type: Number, default: 0 },
 }, {
   timestamps: true,
 });
