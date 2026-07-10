@@ -102,6 +102,15 @@ const brandProfileSchema = new mongoose.Schema({
   // Denormalized rollup — recomputed on approval. Read by portal analytics
   // and by the free-plan monthly-approval cap enforcement.
   embedApprovalsLifetime: { type: Number, default: 0 },
+
+  // Brand-authored review guidance shown on the Instant Review Widget page
+  // just below the reward card. Renders as a dashed-border "note pinned by
+  // the brand" — signals what makes a great review for THIS brand
+  // specifically. When empty/null the widget shows a KUP-authored default
+  // that gives universal guidance ("Share your honest experience — a quick
+  // intro, what stood out, and why it mattered"). Editable from the brand
+  // portal's Instant Review panel (Phase 4).
+  reviewBriefing: { type: String, default: null, maxlength: 1000 },
 }, {
   timestamps: true,
 });

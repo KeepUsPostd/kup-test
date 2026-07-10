@@ -62,20 +62,46 @@
   }
   .review-count strong { color: #fff; font-weight: 800; }
 
+  /* Reward — horizontal card. Two layouts:
+     (a) With image: image fills a wide banner, copy sits below.
+     (b) No image: gradient banner with reward eyebrow + title + description
+         layered inside (space is reused as a first-class element rather than
+         a small gradient square).
+     Aspect ratio ~ 21:9 chosen to match how uploaded reward images typically
+     compose (product/service banners tend to be wide). */
   .reward-card {
-    background: linear-gradient(135deg, #1a1a1a, #262626);
+    background: #1a1a1a;
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
-    padding: 20px; margin: 8px 0 20px;
-    display: flex; gap: 16px; align-items: flex-start;
-  }
-  .reward-icon {
-    width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
-    background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
     overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
+    margin: 8px 0 20px;
   }
-  .reward-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .reward-banner {
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    background: linear-gradient(135deg, #2EA5DD 0%, #6c7cbd 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .reward-banner img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .reward-banner-overlay {
+    /* Shown only when there's NO image — reward info sits inside the gradient. */
+    position: relative; z-index: 1;
+    padding: 18px 22px;
+    width: 100%;
+    color: #fff;
+  }
+  .reward-banner-overlay .reward-eyebrow { color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+  .reward-banner-overlay .reward-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; }
+  .reward-banner-overlay .reward-desc { color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.45; }
+  .reward-body {
+    /* Shown ONLY when there IS an image — copy below the image banner. */
+    padding: 16px 20px 18px;
+  }
   .reward-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6c7cbd; font-weight: 700; margin-bottom: 4px; }
   .reward-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
   .reward-desc { font-size: 13px; color: #999; line-height: 1.5; }
@@ -114,8 +140,10 @@
   .powered-by {
     text-align: center; padding: 24px 0 32px;
     font-size: 11px; color: #555; letter-spacing: 0.08em; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .powered-by strong { color: #999; }
+  .powered-by img { width: 20px; height: 20px; border-radius: 5px; display: block; }
+  .powered-by strong { color: #ccc; text-transform: none; letter-spacing: normal; font-size: 12px; font-weight: 700; }
 
   /* ── Form screen ── */
   .form-header { margin-bottom: 24px; }
@@ -232,8 +260,10 @@
   <div class="review-count" id="review-count-line" style="display:none;"></div>
 
   <div id="reward-card" class="reward-card" style="display:none;">
-    <div class="reward-icon" id="reward-icon"></div>
-    <div>
+    <div class="reward-banner" id="reward-banner">
+      <!-- image OR overlay copy — populated in JS -->
+    </div>
+    <div class="reward-body" id="reward-body" style="display:none;">
       <div class="reward-eyebrow">You'll unlock</div>
       <div class="reward-title" id="reward-title"></div>
       <div class="reward-desc" id="reward-desc"></div>
@@ -249,7 +279,7 @@
 
   <button class="cta-primary" onclick="showForm()">Leave a Video Review</button>
 
-  <div class="powered-by">Powered by <strong>KeepUsPostd</strong></div>
+  <div class="powered-by">Powered by <img src="/images/favicon/apple-touch-icon.png" alt=""><strong>KeepUsPostd</strong></div>
 </div>
 
 <!-- ═════ FORM (name + email + terms) ═════ -->
@@ -319,15 +349,14 @@
   <div class="checkmark">✓</div>
   <div class="confirm-title">Review Submitted!</div>
   <div class="confirm-body" id="confirm-body">
-    Your review is with the brand. They'll respond within 48 hours.<br>
-    Check your email for updates — including when your reward is ready.
+    Your review is with the brand for review. Once it's approved, your reward is ready to claim.
   </div>
 
   <div class="next-card">
     <div class="next-icon">📱</div>
     <div>
-      <div class="next-title">Get the KeepUsPostd app</div>
-      <div class="next-desc">Discover 100+ more brands you already love. Every review can pay.</div>
+      <div class="next-title">Track your reward on KeepUsPostd</div>
+      <div class="next-desc">Download the app to see when your review is approved, claim your reward, and discover more brands to review.</div>
     </div>
   </div>
 
@@ -335,7 +364,7 @@
     <button class="cta-primary" style="margin-top:12px;">Download the App →</button>
   </a>
 
-  <div class="powered-by">Powered by <strong>KeepUsPostd</strong></div>
+  <div class="powered-by">Powered by <img src="/images/favicon/apple-touch-icon.png" alt=""><strong>KeepUsPostd</strong></div>
 </div>
 
 </main>
@@ -371,6 +400,10 @@ const API_BASE = window.location.origin + '/api/embed';
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
 // ── Load brand config ─────────────────────────────────
@@ -423,18 +456,30 @@ function renderLanding() {
     el.style.display = 'block';
   }
 
-  // Reward — prefer uploaded image, fall back to gradient-only (no emoji).
+  // Reward — two layouts:
+  //   With image: image fills the banner, copy renders below it.
+  //   No image:   reward copy is overlaid inside the gradient banner as a
+  //               first-class element (no small square + no emoji).
   if (reward && reward.title) {
-    document.getElementById('reward-card').style.display = 'flex';
-    const iconEl = document.getElementById('reward-icon');
+    document.getElementById('reward-card').style.display = 'block';
+    const banner = document.getElementById('reward-banner');
+    const body = document.getElementById('reward-body');
+    const safeTitle = escapeHtml(reward.title);
+    const safeDesc = escapeHtml(reward.description || '');
     if (reward.imageUrl) {
-      iconEl.innerHTML = `<img src="${reward.imageUrl}" alt="${reward.title}">`;
+      banner.innerHTML = `<img src="${reward.imageUrl}" alt="${safeTitle}">`;
+      body.style.display = 'block';
+      document.getElementById('reward-title').textContent = reward.title;
+      document.getElementById('reward-desc').textContent = reward.description || '';
     } else {
-      // Leave the gradient background; no emoji fallback per Santana's feedback.
-      iconEl.innerHTML = '';
+      banner.innerHTML =
+        `<div class="reward-banner-overlay">
+           <div class="reward-eyebrow">You'll unlock</div>
+           <div class="reward-title">${safeTitle}</div>
+           ${safeDesc ? `<div class="reward-desc">${safeDesc}</div>` : ''}
+         </div>`;
+      body.style.display = 'none';
     }
-    document.getElementById('reward-title').textContent = reward.title;
-    document.getElementById('reward-desc').textContent = reward.description || '';
   }
 
   // Review briefing (brand-authored guidance).

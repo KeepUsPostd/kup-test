@@ -182,17 +182,15 @@ router.get('/:brandCode/config', async (req, res) => {
       return res.status(404).json({ error: 'brand_inactive', message: 'This brand is not currently accepting reviews.' });
     }
 
-    // Check widget-enabled flag on the brand's profile
-    let widgetEnabled = true;
+    // Load the brand's profile once — used for widget-enabled check AND
+    // for reading brand-authored review briefing further down.
+    let brandProfile = null;
     if (brand.ownerId) {
-      const profile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-        .select('embedWidgetEnabled')
+      brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
+        .select('embedWidgetEnabled reviewBriefing')
         .lean();
-      if (profile && profile.embedWidgetEnabled === false) {
-        widgetEnabled = false;
-      }
     }
-    if (!widgetEnabled) {
+    if (brandProfile && brandProfile.embedWidgetEnabled === false) {
       return res.status(403).json({
         error: 'widget_disabled',
         message: 'This brand has not enabled instant reviews.',
@@ -234,14 +232,25 @@ router.get('/:brandCode/config', async (req, res) => {
       },
       // Widget-specific configuration (Phase 3.1):
       //   maxDurationSeconds — hard cap on video length. Uniform across all
-      //     brands for now (3 minutes) but exposed here so we can vary by
-      //     brand later if needed without a re-deploy of the web page.
-      //   reviewBriefing — optional brand-authored guidance shown right below
-      //     the reward. Sourced from Brand.description as a sensible default;
-      //     later phases can promote this to a dedicated BrandProfile field.
+      //     brands for now (3 minutes) but exposed here so we can vary per
+      //     brand later without a re-deploy of the web page.
+      //   reviewBriefing — brand-authored guidance shown right below the
+      //     reward. When a brand hasn't authored a custom brief we DO NOT
+      //     fall back to Brand.description (that's marketing copy, not
+      //     review guidance). Instead we return a KUP-authored default that
+      //     tells the reviewer HOW to make a good review. Phase 4 adds a
+      //     dedicated BrandProfile.reviewBriefing field editable from the
+      //     brand portal so brands can override this default with their own.
+      //   reviewBriefingIsDefault — true when we're returning the KUP
+      //     default; false when a brand has authored their own. Lets the
+      //     client render slightly different treatment (e.g. more subdued
+      //     for the default).
       widget: {
         maxDurationSeconds: 180,
-        reviewBriefing: brand.description || null,
+        reviewBriefing: (brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim())
+          ? brandProfile.reviewBriefing.trim()
+          : 'Share your honest experience — a quick intro, what stood out, and why it mattered. Real reactions perform best.',
+        reviewBriefingIsDefault: !(brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim()),
       },
     });
   } catch (err) {
