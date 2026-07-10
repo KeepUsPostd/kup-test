@@ -366,14 +366,15 @@
   <div class="checkmark">✓</div>
   <div class="confirm-title">Review Submitted!</div>
   <div class="confirm-body" id="confirm-body">
-    Your review is with the brand for review. Once it's approved, your reward is ready to claim.
+    Your review is with the brand's team.<br>
+    They'll respond within 48 hours.
   </div>
 
   <div class="next-card">
     <div class="next-icon">📱</div>
     <div>
       <div class="next-title">Track your reward on KeepUsPostd</div>
-      <div class="next-desc">Download the app to see when your review is approved, claim your reward, and discover more brands to review.</div>
+      <div class="next-desc">Download the free app to see when your review is approved, claim your reward, and discover more brands to review.</div>
     </div>
   </div>
 
@@ -421,6 +422,23 @@ function showScreen(id) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// Swap the browser-tab favicon (and Apple touch icon) to the brand's own
+// logo when it exists. Falls back silently to the KUP defaults set in the
+// document <head> when the brand has no logoUrl — never breaks the tab
+// icon. Same swap covers both regular favicons and iOS home-screen icons
+// (in case a reviewer 'Add to Home Screen's the widget page).
+function updateFaviconToBrand(brand) {
+  if (!brand || !brand.logoUrl) return;
+  const url = brand.logoUrl;
+  document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(link => {
+    link.setAttribute('href', url);
+    // If the tag pinned a type/sizes for the old asset, drop them so the
+    // browser doesn't reject the swap for shape/size mismatches.
+    link.removeAttribute('type');
+    link.removeAttribute('sizes');
+  });
 }
 
 // Convert a #hex color into { r, g, b }. Returns null on unparseable input.
@@ -522,6 +540,12 @@ async function loadBrandConfig() {
       state.maxSeconds = Math.max(15, Math.min(600, data.widget.maxDurationSeconds));
     }
     state.reviewBriefing = data.widget && data.widget.reviewBriefing;
+    // Swap the browser-tab favicon to the brand's logo when available so
+    // the widget reads as belonging to the brand's site, not to KUP. Keeps
+    // KUP as a subtle 'powered by' at the bottom rather than dominating
+    // the tab strip. Silent fallback to the KUP favicon if the brand has
+    // no logo.
+    updateFaviconToBrand(state.brand);
     renderLanding();
     showScreen('screen-landing');
   } catch (err) {
@@ -761,9 +785,13 @@ async function submitReview() {
 }
 
 function renderConfirmation(submitData) {
-  const brandName = state.brand.name;
+  const brandName = escapeHtml(state.brand.name);
+  // Two-line layout — brand-name sentence on top, response-time sentence
+  // under it. Cleaner reading rhythm than a single wrapped paragraph.
+  // No mention of email (Phase 5 wires that up) — the app-download card
+  // below is the primary action.
   document.getElementById('confirm-body').innerHTML =
-    `Your review is with the <strong>${brandName}</strong> team. They'll respond within 48 hours.<br>Check your email for updates — including when your reward is ready.`;
+    `Your review is with the <strong>${brandName}</strong> team.<br>They'll respond within 48 hours.`;
 }
 
 // ── Init ──────────────────────────────────────────────
