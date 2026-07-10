@@ -76,30 +76,42 @@
     overflow: hidden;
     margin: 8px 0 20px;
   }
+  /* Reward banner has two size modes:
+     - Default (no image): content-driven height. Compact — sits at roughly
+       the same visual weight as the guidance card below.
+     - With image (.has-image class): fixed 21:9 aspect ratio so uploaded
+       images render at consistent proportions across brands.
+     Both modes share the same brand-color gradient (set inline in JS). */
   .reward-banner {
     width: 100%;
-    aspect-ratio: 21 / 9;
-    /* Default KUP gradient — JS overrides with brand colors via inline style
-       when the brand has generatedColor OR brandColors.primary/secondary. */
     background: linear-gradient(135deg, #2EA5DD 0%, #6c7cbd 100%);
     position: relative;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
+  }
+  .reward-banner.has-image {
+    aspect-ratio: 21 / 9;
   }
   .reward-banner img {
     position: absolute; inset: 0;
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .reward-banner-overlay {
-    /* Shown only when there's NO image — reward info sits inside the gradient. */
+    /* Shown only when there's NO image — reward info sits inside the gradient.
+       Padding sized so the compact-mode banner sits at roughly the same
+       visual weight as the guidance card below. Text uses a subtle drop
+       shadow so it stays readable across ANY portion of a two-stop brand
+       gradient (Powerplay's gold→black was losing black text on the black
+       half; the shadow fixes that regardless of brand palette). */
     position: relative; z-index: 1;
-    padding: 18px 22px;
+    padding: 20px 22px;
     width: 100%;
-    color: #fff;
   }
-  .reward-banner-overlay .reward-eyebrow { color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+  .reward-banner-overlay .reward-eyebrow { margin-bottom: 6px; opacity: 0.85; }
   .reward-banner-overlay .reward-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; }
-  .reward-banner-overlay .reward-desc { color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.45; }
+  .reward-banner-overlay .reward-desc { font-size: 13px; line-height: 1.45; opacity: 0.92; }
+  .reward-banner-overlay.text-white { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.55); }
+  .reward-banner-overlay.text-black { color: #0a0a0a; text-shadow: 0 1px 2px rgba(255,255,255,0.55); }
   .reward-body {
     /* Shown ONLY when there IS an image — copy below the image banner. */
     padding: 16px 20px 18px;
@@ -472,12 +484,21 @@ function buildBrandGradient(brandColors) {
   return `linear-gradient(135deg, ${primary} 0%, ${shadeColor(primary, shift)} 100%)`;
 }
 
-// Pick white or black text based on which contrasts best with the given
-// background color. Threshold ~140 mid-luminance works well across the
-// most common brand palettes we see on KUP.
-function pickReadableTextColor(bgHex) {
-  const l = luminance(bgHex);
-  return l > 140 ? '#0a0a0a' : '#ffffff';
+// Pick text-color CLASS (.text-white | .text-black) based on the AVERAGE
+// luminance of the two gradient stops. This handles brand palettes where
+// primary and secondary sit at opposite ends of the luminance range —
+// e.g. Powerplay's gold → black. Picking against a single stop (primary
+// alone) buried black text on the black half.
+//
+// The CSS class adds a subtle text-shadow in the opposite direction so
+// text stays readable even on the far end of the gradient.
+function pickReadableTextClass(brandColors) {
+  const primary = (brandColors && brandColors.primary) || '#2EA5DD';
+  const secondary = (brandColors && brandColors.secondary) || primary;
+  const avg = (luminance(primary) + luminance(secondary)) / 2;
+  // Threshold slightly favors white text — darker text-shadow reads more
+  // reliably against most brand palettes than the reverse.
+  return avg > 155 ? 'text-black' : 'text-white';
 }
 
 // ── Load brand config ─────────────────────────────────
@@ -544,6 +565,7 @@ function renderLanding() {
 
     // Build the banner gradient from brand colors.
     banner.style.background = buildBrandGradient(brand.brandColors);
+    banner.classList.toggle('has-image', !!reward.imageUrl);
 
     if (reward.imageUrl) {
       banner.innerHTML = `<img src="${reward.imageUrl}" alt="${safeTitle}">`;
@@ -551,14 +573,18 @@ function renderLanding() {
       document.getElementById('reward-title').textContent = reward.title;
       document.getElementById('reward-desc').textContent = reward.description || '';
     } else {
-      // Text overlay inside the gradient — pick white/black text based on
-      // contrast against the primary color for legibility across brands.
-      const textColor = pickReadableTextColor(brand.brandColors && brand.brandColors.primary);
+      // Contrast pick: average luminance of the two gradient stops. When
+      // brands have two very-different colors (e.g. Powerplay's gold →
+      // black), picking against a single color leaves text lost on the
+      // other half. Averaging + a subtle text-shadow (set in CSS via the
+      // .text-white / .text-black classes) makes text readable across
+      // ANY brand palette.
+      const textClass = pickReadableTextClass(brand.brandColors);
       banner.innerHTML =
-        `<div class="reward-banner-overlay" style="color:${textColor};">
-           <div class="reward-eyebrow" style="color:${textColor}; opacity:0.85;">You'll unlock</div>
+        `<div class="reward-banner-overlay ${textClass}">
+           <div class="reward-eyebrow">You'll unlock</div>
            <div class="reward-title">${safeTitle}</div>
-           ${safeDesc ? `<div class="reward-desc" style="color:${textColor}; opacity:0.9;">${safeDesc}</div>` : ''}
+           ${safeDesc ? `<div class="reward-desc">${safeDesc}</div>` : ''}
          </div>`;
       body.style.display = 'none';
     }

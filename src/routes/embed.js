@@ -74,15 +74,31 @@ const uploadStorage = multer.diskStorage({
 // disk usage bounded. Env-tunable so we can dial down if needed.
 const EMBED_MAX_UPLOAD_MB = parseInt(process.env.EMBED_MAX_UPLOAD_MB, 10) || 200;
 
+// Set of file extensions we accept for embed video uploads. Kept in sync
+// with what MediaRecorder can produce across the major browsers.
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.webm', '.mkv', '.ogg', '.ogv']);
+
 const embedUploader = multer({
   storage: uploadStorage,
   limits: {
     fileSize: EMBED_MAX_UPLOAD_MB * 1024 * 1024,
     files: 1,
   },
+  // Accept the upload when EITHER the browser sends a proper video/* mimetype
+  // OR the filename has a known video extension. Rationale:
+  //   * Chrome/Firefox on desktop → mimetype "video/webm;codecs=vp9,opus" ✓
+  //   * iOS Safari → MediaRecorder-produced blobs sometimes come through with
+  //     an empty or 'application/octet-stream' mimetype even when the payload
+  //     is genuine video. The client always names the file with a video
+  //     extension though, so extension-based acceptance is the safety net.
+  //   * Non-video uploads (e.g. someone hitting the endpoint with a JPEG)
+  //     still get rejected because neither branch passes.
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) cb(null, true);
-    else cb(new Error('Only video files are allowed'));
+    const mimeOK = file.mimetype && file.mimetype.startsWith('video/');
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const extOK = VIDEO_EXTENSIONS.has(ext);
+    if (mimeOK || extOK) return cb(null, true);
+    return cb(new Error('Only video files are allowed'));
   },
 });
 
