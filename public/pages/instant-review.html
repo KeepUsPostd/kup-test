@@ -19,7 +19,22 @@
     overflow-x: hidden;
   }
   body { min-height: 100vh; display: flex; flex-direction: column; }
-  main { flex: 1; display: flex; flex-direction: column; }
+  /* Main container — mobile-first, capped on desktop so the widget always
+     reads as an intentional form flow rather than an over-stretched hero. */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  @media (min-width: 720px) {
+    main {
+      max-width: 520px;
+      padding: 32px 0;
+    }
+  }
   .screen { flex: 1; display: none; flex-direction: column; padding: 24px; }
   .screen.active { display: flex; }
 
@@ -35,26 +50,49 @@
   }
   .brand-name { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
   .brand-category { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
-  .stats-row { display: flex; gap: 24px; justify-content: center; padding: 8px 0 24px; }
-  .stat { text-align: center; }
-  .stat-value { font-size: 20px; font-weight: 800; }
-  .stat-label { font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 0.08em; margin-top: 2px; }
+  /* Single-line factual stat — replaces the old 3-column stats row that
+     over-promised "GET PAID" + "3 MINUTES" (neither of which we can
+     guarantee across every brand). */
+  .review-count {
+    text-align: center;
+    padding: 8px 0 20px;
+    font-size: 13px;
+    color: #888;
+    letter-spacing: 0.04em;
+  }
+  .review-count strong { color: #fff; font-weight: 800; }
 
   .reward-card {
     background: linear-gradient(135deg, #1a1a1a, #262626);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
-    padding: 20px; margin: 8px 0 24px;
+    padding: 20px; margin: 8px 0 20px;
     display: flex; gap: 16px; align-items: flex-start;
   }
   .reward-icon {
-    width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+    width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
     background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
-    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
   }
+  .reward-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .reward-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6c7cbd; font-weight: 700; margin-bottom: 4px; }
   .reward-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
   .reward-desc { font-size: 13px; color: #999; line-height: 1.5; }
+
+  /* Optional brand-authored review briefing — shown BELOW the reward.
+     Empty when brand hasn't provided guidance. Uses a subtle dashed
+     border to feel like a note pinned by the brand, not a design element. */
+  .briefing-card {
+    background: rgba(46,165,221,0.06);
+    border: 1px dashed rgba(46,165,221,0.35);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+  }
+  .briefing-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #7dc4e6; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .briefing-body { font-size: 13px; color: #cbd8e0; line-height: 1.55; }
+  .duration-note { text-align: center; font-size: 12px; color: #666; margin: -8px 0 20px; letter-spacing: 0.04em; }
 
   .cta-primary {
     background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
@@ -191,23 +229,10 @@
     <div class="brand-category" id="brand-category"></div>
   </div>
 
-  <div class="stats-row">
-    <div class="stat">
-      <div class="stat-value" id="stat-reviews">—</div>
-      <div class="stat-label">Reviews</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">💰</div>
-      <div class="stat-label">Get Paid</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">⚡</div>
-      <div class="stat-label">3 Minutes</div>
-    </div>
-  </div>
+  <div class="review-count" id="review-count-line" style="display:none;"></div>
 
   <div id="reward-card" class="reward-card" style="display:none;">
-    <div class="reward-icon">🎁</div>
+    <div class="reward-icon" id="reward-icon"></div>
     <div>
       <div class="reward-eyebrow">You'll unlock</div>
       <div class="reward-title" id="reward-title"></div>
@@ -215,7 +240,14 @@
     </div>
   </div>
 
-  <button class="cta-primary" onclick="showForm()">⭐ Leave a Video Review</button>
+  <div id="briefing-card" class="briefing-card" style="display:none;">
+    <div class="briefing-eyebrow">Review Guidance</div>
+    <div class="briefing-body" id="briefing-body"></div>
+  </div>
+
+  <div class="duration-note">Keep it under <span id="landing-max-duration">3 minutes</span></div>
+
+  <button class="cta-primary" onclick="showForm()">Leave a Video Review</button>
 
   <div class="powered-by">Powered by <strong>KeepUsPostd</strong></div>
 </div>
@@ -252,7 +284,7 @@
 <div id="screen-recorder" class="screen">
   <div class="form-header">
     <div class="form-title" id="recorder-title">Record your review</div>
-    <div class="form-subtitle" id="recorder-subtitle">Keep it under 60 seconds. Speak honestly — the brand approves before you're paid.</div>
+    <div class="form-subtitle" id="recorder-subtitle">Keep it under 3 minutes. Speak honestly — the brand reviews before any reward is unlocked.</div>
   </div>
 
   <div class="recorder-wrap">
@@ -329,7 +361,7 @@ const state = {
   recordingStartTs: null,
   timerInterval: null,
   isRecording: false,
-  maxSeconds: 60,
+  maxSeconds: 180, // 3 minutes — server can override via /config → widget.maxDurationSeconds
   uploadedUrl: null,
 };
 
@@ -358,6 +390,10 @@ async function loadBrandConfig() {
     state.brand = data.brand;
     state.reward = data.reward;
     state.stats = data.stats;
+    if (data.widget && typeof data.widget.maxDurationSeconds === 'number') {
+      state.maxSeconds = Math.max(15, Math.min(600, data.widget.maxDurationSeconds));
+    }
+    state.reviewBriefing = data.widget && data.widget.reviewBriefing;
     renderLanding();
     showScreen('screen-landing');
   } catch (err) {
@@ -366,7 +402,7 @@ async function loadBrandConfig() {
 }
 
 function renderLanding() {
-  const { brand, reward, stats } = state;
+  const { brand, reward, stats, reviewBriefing, maxSeconds } = state;
   document.title = `Leave a Review for ${brand.name} — KeepUsPostd`;
 
   const logoEl = document.getElementById('brand-logo');
@@ -378,13 +414,39 @@ function renderLanding() {
   }
   document.getElementById('brand-name').textContent = brand.name;
   document.getElementById('brand-category').textContent = brand.category || 'On KeepUsPostd';
-  document.getElementById('stat-reviews').textContent = String(stats.approvedReviews || 0);
 
+  // Review count — factual, only show if at least 1 review exists.
+  const rc = stats.approvedReviews || 0;
+  if (rc > 0) {
+    const el = document.getElementById('review-count-line');
+    el.innerHTML = `<strong>${rc}</strong> approved review${rc === 1 ? '' : 's'} on KeepUsPostd`;
+    el.style.display = 'block';
+  }
+
+  // Reward — prefer uploaded image, fall back to gradient-only (no emoji).
   if (reward && reward.title) {
     document.getElementById('reward-card').style.display = 'flex';
+    const iconEl = document.getElementById('reward-icon');
+    if (reward.imageUrl) {
+      iconEl.innerHTML = `<img src="${reward.imageUrl}" alt="${reward.title}">`;
+    } else {
+      // Leave the gradient background; no emoji fallback per Santana's feedback.
+      iconEl.innerHTML = '';
+    }
     document.getElementById('reward-title').textContent = reward.title;
     document.getElementById('reward-desc').textContent = reward.description || '';
   }
+
+  // Review briefing (brand-authored guidance).
+  if (reviewBriefing && reviewBriefing.trim().length > 0) {
+    document.getElementById('briefing-card').style.display = 'block';
+    document.getElementById('briefing-body').textContent = reviewBriefing.trim();
+  }
+
+  // Duration hint on landing — mirrors the recorder cap.
+  const mins = Math.round(maxSeconds / 60);
+  document.getElementById('landing-max-duration').textContent =
+    maxSeconds >= 60 ? `${mins} minute${mins === 1 ? '' : 's'}` : `${maxSeconds} seconds`;
 }
 
 function showError(title, message) {

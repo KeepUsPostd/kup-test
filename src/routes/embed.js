@@ -68,10 +68,11 @@ const uploadStorage = multer.diskStorage({
   },
 });
 
-// Embed uploads capped smaller than app uploads. A 60-second phone recording
-// at 1080p 30fps is ~20-40MB, so 60MB gives ample headroom while keeping
-// abuse potential + Railway temp-disk usage bounded.
-const EMBED_MAX_UPLOAD_MB = parseInt(process.env.EMBED_MAX_UPLOAD_MB, 10) || 60;
+// Embed uploads capped smaller than app uploads. A 3-minute phone recording
+// at 720p 30fps is ~60-120MB (VP9 webm) or ~90-180MB (H.264 mp4), so 200MB
+// gives ample headroom for 3-min clips while keeping abuse + Railway temp-
+// disk usage bounded. Env-tunable so we can dial down if needed.
+const EMBED_MAX_UPLOAD_MB = parseInt(process.env.EMBED_MAX_UPLOAD_MB, 10) || 200;
 
 const embedUploader = multer({
   storage: uploadStorage,
@@ -139,7 +140,7 @@ async function getFeaturedReward(brandId) {
     status: 'active',
   })
     .sort({ createdAt: -1 })
-    .select('rewardType title description value pointsRequired')
+    .select('rewardType title description value pointsRequired imageUrl')
     .lean();
 }
 
@@ -225,10 +226,22 @@ router.get('/:brandCode/config', async (req, res) => {
             description: reward.description,
             value: reward.value,
             pointsRequired: reward.pointsRequired,
+            imageUrl: reward.imageUrl,
           }
         : null,
       stats: {
         approvedReviews: reviewCount,
+      },
+      // Widget-specific configuration (Phase 3.1):
+      //   maxDurationSeconds — hard cap on video length. Uniform across all
+      //     brands for now (3 minutes) but exposed here so we can vary by
+      //     brand later if needed without a re-deploy of the web page.
+      //   reviewBriefing — optional brand-authored guidance shown right below
+      //     the reward. Sourced from Brand.description as a sensible default;
+      //     later phases can promote this to a dedicated BrandProfile field.
+      widget: {
+        maxDurationSeconds: 180,
+        reviewBriefing: brand.description || null,
       },
     });
   } catch (err) {
