@@ -79,6 +79,8 @@
   .reward-banner {
     width: 100%;
     aspect-ratio: 21 / 9;
+    /* Default KUP gradient — JS overrides with brand colors via inline style
+       when the brand has generatedColor OR brandColors.primary/secondary. */
     background: linear-gradient(135deg, #2EA5DD 0%, #6c7cbd 100%);
     position: relative;
     display: flex; align-items: center; justify-content: center;
@@ -139,11 +141,14 @@
 
   .powered-by {
     text-align: center; padding: 24px 0 32px;
-    font-size: 11px; color: #555; letter-spacing: 0.08em; text-transform: uppercase;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 11px; color: #666; letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
   }
-  .powered-by img { width: 20px; height: 20px; border-radius: 5px; display: block; }
-  .powered-by strong { color: #ccc; text-transform: none; letter-spacing: normal; font-size: 12px; font-weight: 700; }
+  .powered-by img {
+    height: 22px; width: auto; display: block;
+    /* wordmark PNG has whitespace baked in — align optically. */
+    margin-top: -2px;
+  }
 
   /* ── Form screen ── */
   .form-header { margin-bottom: 24px; }
@@ -279,7 +284,7 @@
 
   <button class="cta-primary" onclick="showForm()">Leave a Video Review</button>
 
-  <div class="powered-by">Powered by <img src="/images/favicon/apple-touch-icon.png" alt=""><strong>KeepUsPostd</strong></div>
+  <div class="powered-by">Powered by <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd"></div>
 </div>
 
 <!-- ═════ FORM (name + email + terms) ═════ -->
@@ -364,7 +369,7 @@
     <button class="cta-primary" style="margin-top:12px;">Download the App →</button>
   </a>
 
-  <div class="powered-by">Powered by <img src="/images/favicon/apple-touch-icon.png" alt=""><strong>KeepUsPostd</strong></div>
+  <div class="powered-by">Powered by <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd"></div>
 </div>
 
 </main>
@@ -404,6 +409,75 @@ function showScreen(id) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// Convert a #hex color into { r, g, b }. Returns null on unparseable input.
+function hexToRgb(hex) {
+  if (!hex || typeof hex !== 'string') return null;
+  const h = hex.replace('#', '');
+  if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h)) return null;
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  return {
+    r: parseInt(full.substring(0, 2), 16),
+    g: parseInt(full.substring(2, 4), 16),
+    b: parseInt(full.substring(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+// Shift a color toward black or white. amount is -1..1 (negative = darker,
+// positive = lighter). Used to derive a gradient endpoint when a brand
+// only has a primary color set.
+function shadeColor(hex, amount) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const t = amount < 0 ? 0 : 255;
+  const p = Math.abs(amount);
+  return rgbToHex(
+    (t - rgb.r) * p + rgb.r,
+    (t - rgb.g) * p + rgb.g,
+    (t - rgb.b) * p + rgb.b,
+  );
+}
+
+// Perceptual luminance (0..255). Used to pick readable text color against
+// a background. Weights per Rec. 601.
+function luminance(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 128;
+  return 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b;
+}
+
+// Build a two-stop 135deg gradient from a brand's colors:
+//   - Both primary + secondary set → primary → secondary
+//   - Only primary set → primary → 20%-shifted variant of primary
+//   - Neither set → KUP fallback (blue → purple)
+// Also collapses to a single-stop when the two colors are basically the
+// same, so we don't render a "gradient" that visually reads as a solid.
+function buildBrandGradient(brandColors) {
+  const primary = brandColors && brandColors.primary;
+  const secondary = brandColors && brandColors.secondary;
+  if (!primary) return 'linear-gradient(135deg, #2EA5DD 0%, #6c7cbd 100%)';
+  if (secondary && secondary.toLowerCase() !== primary.toLowerCase()) {
+    return `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+  }
+  // Derive an endpoint by shifting primary toward black or white based on
+  // its luminance — dark colors lighten, light colors darken. Gives a
+  // visible gradient even with only one brand color set.
+  const shift = luminance(primary) < 128 ? 0.35 : -0.25;
+  return `linear-gradient(135deg, ${primary} 0%, ${shadeColor(primary, shift)} 100%)`;
+}
+
+// Pick white or black text based on which contrasts best with the given
+// background color. Threshold ~140 mid-luminance works well across the
+// most common brand palettes we see on KUP.
+function pickReadableTextColor(bgHex) {
+  const l = luminance(bgHex);
+  return l > 140 ? '#0a0a0a' : '#ffffff';
 }
 
 // ── Load brand config ─────────────────────────────────
@@ -460,23 +534,31 @@ function renderLanding() {
   //   With image: image fills the banner, copy renders below it.
   //   No image:   reward copy is overlaid inside the gradient banner as a
   //               first-class element (no small square + no emoji).
+  // Banner gradient uses the brand's own palette when available.
   if (reward && reward.title) {
     document.getElementById('reward-card').style.display = 'block';
     const banner = document.getElementById('reward-banner');
     const body = document.getElementById('reward-body');
     const safeTitle = escapeHtml(reward.title);
     const safeDesc = escapeHtml(reward.description || '');
+
+    // Build the banner gradient from brand colors.
+    banner.style.background = buildBrandGradient(brand.brandColors);
+
     if (reward.imageUrl) {
       banner.innerHTML = `<img src="${reward.imageUrl}" alt="${safeTitle}">`;
       body.style.display = 'block';
       document.getElementById('reward-title').textContent = reward.title;
       document.getElementById('reward-desc').textContent = reward.description || '';
     } else {
+      // Text overlay inside the gradient — pick white/black text based on
+      // contrast against the primary color for legibility across brands.
+      const textColor = pickReadableTextColor(brand.brandColors && brand.brandColors.primary);
       banner.innerHTML =
-        `<div class="reward-banner-overlay">
-           <div class="reward-eyebrow">You'll unlock</div>
+        `<div class="reward-banner-overlay" style="color:${textColor};">
+           <div class="reward-eyebrow" style="color:${textColor}; opacity:0.85;">You'll unlock</div>
            <div class="reward-title">${safeTitle}</div>
-           ${safeDesc ? `<div class="reward-desc">${safeDesc}</div>` : ''}
+           ${safeDesc ? `<div class="reward-desc" style="color:${textColor}; opacity:0.9;">${safeDesc}</div>` : ''}
          </div>`;
       body.style.display = 'none';
     }

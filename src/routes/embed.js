@@ -100,6 +100,8 @@ const embedSubmitLimiter = rateLimit({
 });
 
 // ── Helper: resolve a brandCode (KUP-XXXXXX) OR @handle to a Brand doc
+// Selects every field the widget config endpoint AND the submit endpoint
+// need, so callers don't have to re-query for brandColors etc.
 async function resolveBrand(brandCode) {
   if (!brandCode) return null;
   const code = brandCode.replace(/^@/, '').trim();
@@ -203,12 +205,27 @@ router.get('/:brandCode/config', async (req, res) => {
       getFeaturedReward(brand._id),
     ]);
 
+    // Prefer explicit brandColors.primary; fall back to generatedColor;
+    // fall back to KUP default blue. Same for secondary — used to build
+    // a two-stop gradient on the reward banner client-side.
+    const primaryColor =
+      (brand.brandColors && brand.brandColors.primary) ||
+      brand.generatedColor ||
+      '#2EA5DD';
+    const secondaryColor =
+      (brand.brandColors && brand.brandColors.secondary) ||
+      null; // client picks a sensible complement when null
+
     return res.json({
       brand: {
         id: brand._id,
         name: brand.name,
         initials: brand.initials,
-        brandColor: brand.generatedColor || (brand.brandColors && brand.brandColors.primary) || '#2EA5DD',
+        brandColor: primaryColor, // legacy — same as brandColors.primary
+        brandColors: {
+          primary: primaryColor,
+          secondary: secondaryColor,
+        },
         logoUrl: brand.logoUrl,
         heroImageUrl: brand.heroImageUrl,
         description: brand.description,
@@ -247,9 +264,14 @@ router.get('/:brandCode/config', async (req, res) => {
       //     for the default).
       widget: {
         maxDurationSeconds: 180,
+        // Brand-authored briefing takes precedence. When absent we return
+        // a KUP-authored default that INCLUDES the brand's name — makes the
+        // guidance feel written for this brand specifically rather than
+        // generic UGC advice. Brands can override this entirely from the
+        // portal (Phase 4).
         reviewBriefing: (brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim())
           ? brandProfile.reviewBriefing.trim()
-          : 'Share your honest experience — a quick intro, what stood out, and why it mattered. Real reactions perform best.',
+          : `Share your honest experience about ${brand.name} — a quick intro, what stood out, and why it mattered. Real reactions perform best.`,
         reviewBriefingIsDefault: !(brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim()),
       },
     });
