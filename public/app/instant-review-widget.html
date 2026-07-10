@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>Instant Review Widget — KeepUsPostd</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/mobile-inner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --kup-orange:#ED8444; --kup-blue:#2EA5DD; --kup-black:#000; --kup-body-bg:#F5F6FA; --kup-gradient:linear-gradient(135deg,#2EA5DD 0%,#707BBB 100%); --kup-white:#FFF; --kup-font:'Montserrat',sans-serif; --radius-sm:6px; --radius-md:12px; }
+    *,*::before,*::after { box-sizing:border-box; }
+    body { font-family:var(--kup-font); background:var(--kup-body-bg); color:#1a1a1a; line-height:1.6; margin:0; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; min-height:100vh; }
+    a { text-decoration:none; color:inherit; transition:all .2s; }
+
+    /* Auth header — mirrors market-code.html */
+    .auth-header { background:var(--kup-white); border-bottom:1px solid #eee; position:sticky; top:0; z-index:100; }
+    .auth-header-inner { display:flex; align-items:center; justify-content:space-between; padding:0 32px; height:64px; max-width:1400px; margin:0 auto; }
+    .auth-logo img { height:32px; }
+    .auth-nav { display:flex; gap:0; margin:0; padding:0; list-style:none; height:64px; }
+    .auth-nav li a { display:flex; align-items:center; padding:0 24px; height:64px; font-size:.9rem; font-weight:500; color:#666; border-bottom:3px solid transparent; transition:all .2s; }
+    .auth-nav li a:hover { color:var(--kup-blue); background:rgba(46,165,221,.04); }
+    .auth-right { display:flex; align-items:center; gap:20px; }
+    .profile-trigger { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 12px; border-radius:var(--radius-md); border:none; background:none; transition:background .2s; }
+    .profile-trigger:hover { background:#f0f0f0; }
+    .profile-avatar { width:36px; height:36px; border-radius:50%; background:var(--kup-gradient); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.8rem; }
+    .profile-info { text-align:left; }
+    .profile-info .name { font-weight:600; font-size:.85rem; color:#1a1a1a; line-height:1.2; }
+    .profile-info .brand { font-size:.72rem; color:#888; line-height:1.2; }
+
+    /* Two-column layout */
+    .wizard-layout { display:grid; grid-template-columns:400px 1fr; flex:1; }
+    .wizard-sidebar { background:var(--kup-white); border-right:1px solid #eee; padding:32px 28px; display:flex; flex-direction:column; }
+    .sidebar-heading { display:flex; align-items:baseline; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .sidebar-heading h3 { font-size:1.15rem; font-weight:700; margin:0; }
+    .back-link { font-size:.82rem; font-weight:500; color:#888; transition:color .2s; white-space:nowrap; }
+    .back-link:hover { color:var(--kup-blue); }
+    .brand-identity { display:flex; align-items:center; gap:14px; padding:18px 16px; background:#f8f9fa; border-radius:var(--radius-md); margin-bottom:24px; }
+    .brand-identity .logo-circle { width:52px; height:52px; border-radius:50%; background:var(--kup-gradient); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1rem; flex-shrink:0; overflow:hidden; }
+    .brand-identity .logo-circle img { width:100%; height:100%; object-fit:cover; }
+    .brand-identity .brand-name { font-weight:700; font-size:.95rem; color:#1a1a1a; }
+    .brand-identity .brand-handle { font-size:.78rem; color:#888; margin-top:2px; }
+    .helper-text { font-size:.82rem; color:#888; line-height:1.6; margin-top:auto; padding-top:20px; border-top:1px solid #eee; }
+    .usage-card { padding:16px 18px; background:#f8f9fa; border-radius:var(--radius-md); margin-bottom:20px; }
+    .usage-card .label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:#888; margin-bottom:8px; font-weight:700; }
+    .usage-card .value { font-size:1.3rem; font-weight:800; color:#1a1a1a; }
+    .usage-card .plan-line { font-size:.78rem; color:#666; margin-top:6px; }
+    .usage-bar { height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin-top:8px; }
+    .usage-bar-fill { height:100%; background:var(--kup-gradient); border-radius:99px; transition:width .3s ease; }
+
+    /* Right content */
+    .wizard-content { padding:36px 40px; overflow-y:auto; }
+    .section-card { background:#fff; border:1px solid #eee; border-radius:var(--radius-md); padding:24px 28px; margin-bottom:20px; }
+    .section-card h2 { font-size:1.15rem; font-weight:800; margin:0 0 4px; color:#1a1a1a; }
+    .section-card .section-subtitle { font-size:.85rem; color:#666; margin-bottom:20px; }
+    .section-card .label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:#666; font-weight:700; margin-bottom:8px; display:block; }
+
+    /* URL box + copy button */
+    .copyable-row { display:flex; align-items:stretch; gap:8px; margin-bottom:14px; }
+    .copyable-input { flex:1; min-width:0; padding:12px 14px; border:1px solid #ddd; border-radius:var(--radius-sm); background:#f8f9fa; font-family:ui-monospace,Menlo,Monaco,monospace; font-size:.82rem; color:#1a1a1a; user-select:all; overflow-x:auto; white-space:nowrap; }
+    .btn-copy { padding:0 18px; background:var(--kup-blue); color:#fff; border:none; border-radius:var(--radius-sm); font-family:var(--kup-font); font-weight:600; font-size:.82rem; cursor:pointer; transition:background .2s; flex-shrink:0; display:flex; align-items:center; gap:6px; }
+    .btn-copy:hover { background:#258fc4; }
+    .btn-copy.copied { background:#16a34a; }
+
+    /* Snippet block */
+    .snippet-block { background:#f8f9fa; border:1px solid #e5e7eb; border-radius:var(--radius-sm); padding:16px; font-family:ui-monospace,Menlo,Monaco,monospace; font-size:.78rem; color:#1a1a1a; overflow-x:auto; white-space:pre; margin-bottom:12px; }
+
+    /* Toggle */
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #eee; }
+    .toggle-row:last-child { border-bottom:none; padding-bottom:0; }
+    .toggle-row .toggle-label { font-weight:600; font-size:.9rem; color:#1a1a1a; }
+    .toggle-row .toggle-hint { font-size:.78rem; color:#888; margin-top:2px; }
+    .toggle { position:relative; width:44px; height:24px; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle .slider { position:absolute; inset:0; background:#ccc; border-radius:99px; cursor:pointer; transition:background .2s; }
+    .toggle .slider::before { content:''; position:absolute; height:20px; width:20px; left:2px; top:2px; background:#fff; border-radius:50%; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+    .toggle input:checked + .slider { background:var(--kup-blue); }
+    .toggle input:checked + .slider::before { transform:translateX(20px); }
+
+    /* Textarea */
+    textarea.briefing-editor { width:100%; padding:14px; border:1px solid #ddd; border-radius:var(--radius-sm); background:#fff; font-family:var(--kup-font); font-size:.9rem; line-height:1.55; color:#1a1a1a; resize:vertical; min-height:120px; }
+    textarea.briefing-editor:focus { outline:none; border-color:var(--kup-blue); }
+    .briefing-meta { display:flex; justify-content:space-between; align-items:center; font-size:.75rem; color:#888; margin-top:8px; margin-bottom:16px; }
+    .btn-primary { padding:11px 22px; background:var(--kup-blue); color:#fff; border:none; border-radius:var(--radius-sm); font-family:var(--kup-font); font-weight:600; font-size:.88rem; cursor:pointer; transition:background .2s; }
+    .btn-primary:hover { background:#258fc4; }
+    .btn-primary.saved { background:#16a34a; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* QR code */
+    .qr-wrapper { display:flex; align-items:center; gap:24px; padding:20px; background:#f8f9fa; border-radius:var(--radius-md); }
+    .qr-wrapper canvas { width:180px; height:180px; background:#fff; padding:8px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    .qr-actions { display:flex; flex-direction:column; gap:10px; }
+    .btn-secondary { padding:10px 18px; background:#fff; color:var(--kup-blue); border:1px solid var(--kup-blue); border-radius:var(--radius-sm); font-family:var(--kup-font); font-weight:600; font-size:.82rem; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+    .btn-secondary:hover { background:rgba(46,165,221,.06); }
+
+    /* Preview iframe */
+    .preview-frame { width:100%; height:640px; border:1px solid #eee; border-radius:var(--radius-md); background:#0a0a0a; }
+    .preview-actions { display:flex; gap:10px; margin-top:12px; }
+
+    /* Auth footer */
+    .auth-footer { padding:14px 20px; text-align:center; font-size:.78rem; color:#888; border-top:1px solid #eee; background:#fff; }
+
+    /* Loading + toast */
+    .loading-overlay { position:fixed; inset:0; background:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .spinner { width:32px; height:32px; border:3px solid #e5e7eb; border-top-color:var(--kup-blue); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1a1a1a; color:#fff; padding:12px 20px; border-radius:8px; font-size:.85rem; font-weight:600; opacity:0; transition:opacity .2s; pointer-events:none; z-index:1000; }
+    .toast.show { opacity:1; }
+
+    @media (max-width:900px) {
+      .wizard-layout { grid-template-columns:1fr; }
+      .wizard-sidebar { border-right:none; border-bottom:1px solid #eee; }
+      .qr-wrapper { flex-direction:column; align-items:stretch; text-align:center; }
+      .qr-wrapper canvas { margin:0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth header (same pattern as market-code.html) -->
+  <header class="auth-header">
+    <div class="auth-header-inner">
+      <a href="activity.html" class="auth-logo"><img src="/images/kup_black_new_logo_2.png" alt="KeepUsPostd"></a>
+      <ul class="auth-nav">
+        <li><a href="activity.html">Activity</a></li>
+        <li><a href="campaigns.html">Campaigns</a></li>
+        <li><a href="content.html">Content</a></li>
+        <li><a href="influencers.html">Influencers</a></li>
+        <li><a href="cash-rewards.html">Cash &amp; Rewards</a></li>
+      </ul>
+      <div class="auth-right">
+        <div class="profile-menu">
+          <button class="profile-trigger" id="profileTrigger" aria-label="Account menu">
+            <div class="profile-avatar" id="headerProfileAvatar"></div>
+            <div class="profile-info"><div class="name" id="headerProfileName"></div><div class="brand" id="headerBrandName"></div></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wizard-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="wizard-sidebar">
+      <div class="sidebar-heading">
+        <h3>Instant Review</h3>
+        <a href="brand-home.html" class="back-link">&lt; Back to Home</a>
+      </div>
+
+      <div class="brand-identity">
+        <div class="logo-circle" id="sidebarBrandLogo">B</div>
+        <div>
+          <div class="brand-name" id="sidebarBrandName">Loading…</div>
+          <div class="brand-handle" id="sidebarBrandHandle"></div>
+        </div>
+      </div>
+
+      <div class="usage-card">
+        <div class="label">This Month</div>
+        <div class="value" id="usageValue">— / —</div>
+        <div class="usage-bar"><div class="usage-bar-fill" id="usageBar" style="width:0%"></div></div>
+        <div class="plan-line" id="usagePlanLine">—</div>
+      </div>
+
+      <div class="usage-card">
+        <div class="label">Lifetime via Widget</div>
+        <div class="value" id="usageLifetime">0</div>
+        <div class="plan-line">Approved reviews from your website</div>
+      </div>
+
+      <p class="helper-text">The Instant Review Widget lets anyone leave a video review from your website — no app download required. Every review auto-registers the reviewer on KeepUsPostd and starts a partnership with you.</p>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="wizard-content">
+
+      <!-- Widget URL -->
+      <div class="section-card">
+        <h2>1. Your widget URL</h2>
+        <p class="section-subtitle">Share this URL anywhere. Every visit opens the Instant Review page branded to you.</p>
+        <span class="label">Public URL</span>
+        <div class="copyable-row">
+          <input class="copyable-input" id="widgetUrl" readonly value="Loading…">
+          <button class="btn-copy" id="btnCopyUrl" onclick="copyToClipboard('widgetUrl', 'btnCopyUrl')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+        <div class="preview-actions">
+          <a class="btn-secondary" id="btnOpenPreview" target="_blank" rel="noopener">Preview widget ↗</a>
+        </div>
+      </div>
+
+      <!-- QR Code -->
+      <div class="section-card">
+        <h2>2. QR code</h2>
+        <p class="section-subtitle">Perfect for print — flyers, table tents, business cards, in-store displays.</p>
+        <div class="qr-wrapper">
+          <canvas id="qrCanvas"></canvas>
+          <div class="qr-actions">
+            <button class="btn-secondary" onclick="downloadQR()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PNG (600px)
+            </button>
+            <button class="btn-secondary" onclick="downloadQR(1200)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PNG (1200px)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Button snippet -->
+      <div class="section-card">
+        <h2>3. Add a button to your website</h2>
+        <p class="section-subtitle">Paste this HTML into Squarespace, Wix, Shopify, WordPress — anywhere you can add custom HTML.</p>
+        <span class="label">Button HTML</span>
+        <div class="snippet-block" id="snippetBlock">Loading…</div>
+        <button class="btn-copy" id="btnCopySnippet" onclick="copyToClipboard('snippetBlock', 'btnCopySnippet', true)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy HTML
+        </button>
+      </div>
+
+      <!-- Enabled toggle + Briefing -->
+      <div class="section-card">
+        <h2>4. Widget settings</h2>
+        <p class="section-subtitle">Control what reviewers see and whether the widget accepts new reviews.</p>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Instant Review Widget enabled</div>
+            <div class="toggle-hint">Turn off to pause new submissions. Existing reviews stay intact.</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="enabledToggle" onchange="markDirty()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div style="margin-top:24px;">
+          <span class="label">Review guidance (optional)</span>
+          <textarea class="briefing-editor" id="briefingEditor" oninput="markDirty(); updateBriefingCounter();" placeholder="Leave blank to use the default KUP guidance." maxlength="1000"></textarea>
+          <div class="briefing-meta">
+            <span id="briefingHint">Shown between the reward and the record button on your widget page.</span>
+            <span id="briefingCounter">0 / 1000</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btnSave" onclick="saveConfig()" disabled>Save changes</button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="auth-footer">Copyright &copy;2026. All Rights Reserved by <a href="/pages/home.html">KeepUsPostd</a></footer>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase auth + KUP infrastructure -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="/js/header-profile.js?v=1"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/vendor-qrcode.min.js"></script>
+  <script src="/js/brand-context.js"></script>
+
+  <script>
+    // ── State + auth gate ──────────────────────────────────────────────
+    let currentBrandId = null;
+    let originalConfig = null;
+    let widgetUrl = '';
+    let dirty = false;
+
+    if (typeof auth !== 'undefined') {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) { window.location.href = '/pages/login.html'; return; }
+        boot();
+      });
+    } else {
+      boot();
+    }
+
+    // ── Boot: pick the active brand and load its config ───────────────
+    async function boot() {
+      try {
+        const brand = KUP_BRAND_CONTEXT && KUP_BRAND_CONTEXT.getActiveBrand
+          ? KUP_BRAND_CONTEXT.getActiveBrand()
+          : null;
+        if (!brand || !brand.id) {
+          showToast('No active brand — pick one from Manage Brands.', 6000);
+          return;
+        }
+        currentBrandId = brand.id;
+        document.getElementById('headerBrandName').textContent = brand.name || '';
+        await loadConfig();
+      } catch (err) {
+        console.error('boot error', err);
+        showToast('Something went wrong loading the widget config.', 6000);
+      }
+    }
+
+    async function loadConfig() {
+      const res = await kupApi.get('/api/embed/admin/config?brandId=' + encodeURIComponent(currentBrandId));
+      if (!res || res.error) {
+        showToast(res && res.message ? res.message : 'Could not load widget config.', 6000);
+        return;
+      }
+      originalConfig = res;
+      renderConfig(res);
+    }
+
+    // ── Render config into all sections ───────────────────────────────
+    function renderConfig(cfg) {
+      // Sidebar
+      document.getElementById('sidebarBrandName').textContent = cfg.brand.name;
+      document.getElementById('sidebarBrandHandle').textContent =
+        cfg.brand.brandHandle ? '@' + cfg.brand.brandHandle : (cfg.brand.kioskBrandCode || '');
+      const initials = (cfg.brand.name || 'B').split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      document.getElementById('sidebarBrandLogo').textContent = initials;
+
+      // Usage
+      const usedText = cfg.usage.monthApprovalsCap === null || cfg.usage.monthApprovalsCap === Infinity || cfg.usage.monthApprovalsCap > 100000
+        ? String(cfg.usage.monthApprovalsUsed)
+        : `${cfg.usage.monthApprovalsUsed} / ${cfg.usage.monthApprovalsCap}`;
+      document.getElementById('usageValue').textContent = usedText;
+      document.getElementById('usagePlanLine').textContent =
+        `${(cfg.usage.planTier || 'starter').replace(/^./, c => c.toUpperCase())} plan · resets on the 1st`;
+      const pct = cfg.usage.monthApprovalsCap > 0 && cfg.usage.monthApprovalsCap !== null
+        ? Math.min(100, (cfg.usage.monthApprovalsUsed / cfg.usage.monthApprovalsCap) * 100)
+        : 0;
+      document.getElementById('usageBar').style.width = pct + '%';
+      document.getElementById('usageLifetime').textContent = String(cfg.usage.lifetimeApprovals || 0);
+
+      // URL + snippet
+      widgetUrl = cfg.widget.url;
+      document.getElementById('widgetUrl').value = widgetUrl;
+      document.getElementById('btnOpenPreview').href = widgetUrl;
+      const brandLabel = (cfg.brand.name || 'this brand').replace(/</g, '&lt;');
+      document.getElementById('snippetBlock').textContent =
+`<a href="${widgetUrl}"
+   target="_blank"
+   style="display:inline-block;padding:14px 28px;background:#2EA5DD;color:#fff;
+   text-decoration:none;border-radius:8px;font-weight:700;font-family:sans-serif;">
+   ⭐ Leave a Video Review
+</a>`;
+
+      // Settings
+      document.getElementById('enabledToggle').checked = cfg.widget.enabled !== false;
+      document.getElementById('briefingEditor').value = cfg.widget.reviewBriefing || '';
+      updateBriefingCounter();
+
+      // QR
+      drawQR(widgetUrl);
+
+      // Reset dirty flag
+      dirty = false;
+      document.getElementById('btnSave').disabled = true;
+    }
+
+    // ── QR generation via qrcode library ─────────────────────────────
+    function drawQR(url, size) {
+      size = size || 240;
+      const canvas = document.getElementById('qrCanvas');
+      if (!window.QRCode) return;
+      QRCode.toCanvas(canvas, url, {
+        width: size,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#0a0a0a', light: '#ffffff' },
+      }, function(err) { if (err) console.error('QR error', err); });
+    }
+
+    function downloadQR(size) {
+      size = size || 600;
+      if (!window.QRCode) { showToast('QR library not loaded'); return; }
+      const off = document.createElement('canvas');
+      QRCode.toCanvas(off, widgetUrl, {
+        width: size,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#0a0a0a', light: '#ffffff' },
+      }, function(err) {
+        if (err) { showToast('QR generation failed'); return; }
+        const link = document.createElement('a');
+        const safe = (originalConfig?.brand?.name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        link.download = `instant-review-${safe}-${size}px.png`;
+        link.href = off.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    // ── Copy helpers ────────────────────────────────────────────────
+    async function copyToClipboard(sourceId, buttonId, isTextContent) {
+      try {
+        const source = document.getElementById(sourceId);
+        const value = isTextContent ? source.textContent : source.value;
+        await navigator.clipboard.writeText(value);
+        const btn = document.getElementById(buttonId);
+        const original = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '✓ Copied';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1400);
+      } catch (err) {
+        showToast('Copy failed — copy manually.');
+      }
+    }
+
+    // ── Save flow ───────────────────────────────────────────────────
+    function markDirty() {
+      dirty = true;
+      document.getElementById('btnSave').disabled = false;
+      document.getElementById('btnSave').classList.remove('saved');
+      document.getElementById('btnSave').textContent = 'Save changes';
+    }
+
+    function updateBriefingCounter() {
+      const val = document.getElementById('briefingEditor').value || '';
+      document.getElementById('briefingCounter').textContent = `${val.length} / 1000`;
+    }
+
+    async function saveConfig() {
+      if (!currentBrandId) return;
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      const payload = {
+        brandId: currentBrandId,
+        enabled: document.getElementById('enabledToggle').checked,
+        reviewBriefing: document.getElementById('briefingEditor').value,
+      };
+      const res = await kupApi.put('/api/embed/admin/config', payload);
+      if (!res || res.error) {
+        showToast(res && res.message ? res.message : 'Save failed. Try again.', 6000);
+        btn.textContent = 'Save changes';
+        btn.disabled = false;
+        return;
+      }
+      dirty = false;
+      btn.classList.add('saved');
+      btn.textContent = '✓ Saved';
+      showToast('Widget settings saved.');
+      // Refresh so the sidebar usage counter reflects any effect.
+      loadConfig();
+    }
+
+    // ── Toast ───────────────────────────────────────────────────────
+    function showToast(msg, ms) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), ms || 2400);
+    }
+
+    // Warn if navigating away with unsaved changes.
+    window.addEventListener('beforeunload', (e) => {
+      if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+  </script>
+</body>
+</html>
