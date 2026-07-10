@@ -218,6 +218,128 @@ async function generateUniqueHandle(seed) {
   return handle;
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// BRAND-AUTHED CONFIG ENDPOINTS
+// MUST be declared BEFORE the /:brandCode/... routes below — Express
+// matches routes in registration order and /:brandCode/config would
+// otherwise swallow /admin/config (with brandCode = 'admin').
+//
+// The brand-portal Instant Review Widget page reads + edits these fields
+// on BrandProfile:
+//   - embedWidgetEnabled  (Boolean, on/off toggle)
+//   - reviewBriefing      (String, brand-authored guidance shown on the
+//                          widget between the reward and the CTA)
+// Payload also returns the widget's public URL + monthly-approval usage
+// so the panel can render a copy-paste button, a QR code target, and a
+// live usage counter without extra requests.
+// ══════════════════════════════════════════════════════════════════════
+
+// GET /api/embed/admin/config?brandId=<id>
+router.get('/admin/config', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
+
+    const brand = await Brand.findById(brandId).select('name kioskBrandCode brandHandle ownerId').lean();
+    if (!brand) return res.status(404).json({ error: 'brand_not_found', message: 'Brand not found.' });
+
+    const member = await requireBrandMember(req, res, brand._id);
+    if (!member) return; // 403 already sent
+
+    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
+      .select('embedWidgetEnabled reviewBriefing embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
+      .lean();
+
+    // Effective monthly cap (Phase 2 shipped this — reuse the shared service).
+    const { PLAN_LIMITS, currentMonthApprovalCount } = require('../services/planLimits');
+    const { checkTrialStatus } = require('../services/trial');
+    const effectiveTier = brandProfile ? checkTrialStatus(brandProfile).effectiveTier : 'starter';
+    const monthlyCap = (PLAN_LIMITS[effectiveTier] || PLAN_LIMITS.starter).monthlyApprovals;
+    const monthlyUsed = await currentMonthApprovalCount(brand._id);
+
+    // Public widget URL — prefer the vanity handle when set, fall back to
+    // the kiosk brand code so every brand always has a usable URL.
+    const widgetPath = brand.brandHandle ? `/@${brand.brandHandle}/review` : `/brand/${brand.kioskBrandCode}/review`;
+    const widgetUrl = `${APP_URL}${widgetPath}`;
+
+    return res.json({
+      brand: {
+        id: brand._id,
+        name: brand.name,
+        kioskBrandCode: brand.kioskBrandCode,
+        brandHandle: brand.brandHandle,
+      },
+      widget: {
+        enabled: brandProfile ? brandProfile.embedWidgetEnabled !== false : true,
+        reviewBriefing: (brandProfile && brandProfile.reviewBriefing) || '',
+        url: widgetUrl,
+      },
+      usage: {
+        lifetimeApprovals: (brandProfile && brandProfile.embedApprovalsLifetime) || 0,
+        monthApprovalsUsed: monthlyUsed,
+        monthApprovalsCap: monthlyCap,
+        planTier: effectiveTier,
+      },
+    });
+  } catch (err) {
+    console.error('[GET /api/embed/admin/config]', err.message);
+    return res.status(500).json({ error: 'server_error', message: 'Could not load widget config.' });
+  }
+});
+
+// PUT /api/embed/admin/config
+// Body: { brandId, enabled?, reviewBriefing? }
+// Only the fields supplied are updated. Payload validated to prevent
+// accidental clears (e.g. undefined vs empty string is meaningful).
+router.put('/admin/config', requireAuth, async (req, res) => {
+  try {
+    const { brandId, enabled, reviewBriefing } = req.body || {};
+    if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
+
+    const brand = await Brand.findById(brandId).select('_id').lean();
+    if (!brand) return res.status(404).json({ error: 'brand_not_found', message: 'Brand not found.' });
+
+    const member = await requireBrandMember(req, res, brand._id);
+    if (!member) return; // 403 already sent
+
+    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id });
+    if (!brandProfile) {
+      return res.status(404).json({ error: 'brand_profile_not_found', message: 'This brand does not have a profile record.' });
+    }
+
+    // Coalesce updates — only touch what was actually sent.
+    const update = {};
+    if (typeof enabled === 'boolean') {
+      update.embedWidgetEnabled = enabled;
+    }
+    if (typeof reviewBriefing === 'string') {
+      // Truncate to schema cap (maxlength 1000). Empty string is allowed
+      // — brands may want to clear a briefing back to the KUP default.
+      update.reviewBriefing = reviewBriefing.slice(0, 1000);
+    }
+
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: 'no_updates', message: 'Nothing to update. Send enabled or reviewBriefing.' });
+    }
+
+    Object.assign(brandProfile, update);
+    await brandProfile.save();
+
+    console.log(`⚙️ [embed admin] Widget config updated for brand ${brand._id} by user ${req.user._id}`);
+
+    return res.json({
+      ok: true,
+      widget: {
+        enabled: brandProfile.embedWidgetEnabled !== false,
+        reviewBriefing: brandProfile.reviewBriefing || '',
+      },
+    });
+  } catch (err) {
+    console.error('[PUT /api/embed/admin/config]', err.message);
+    return res.status(500).json({ error: 'server_error', message: 'Could not save widget config.' });
+  }
+});
+
 // ══════════════════════════════════════════════
 // GET /api/embed/:brandCode/config
 // Public. Returns the brand info + reward + stats needed to render the
@@ -644,124 +766,6 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
   } catch (err) {
     console.error('[POST /api/embed/:brandCode/submit]', err.message, err.stack);
     return res.status(500).json({ error: 'server_error', message: 'Something went wrong. Please try again.' });
-  }
-});
-
-// ══════════════════════════════════════════════════════════════════════
-// BRAND-AUTHED CONFIG ENDPOINTS
-// The brand-portal Instant Review Widget page reads + edits these fields
-// on BrandProfile:
-//   - embedWidgetEnabled  (Boolean, on/off toggle)
-//   - reviewBriefing      (String, brand-authored guidance shown on the
-//                          widget between the reward and the CTA)
-// Payload also returns the widget's public URL + monthly-approval usage
-// so the panel can render a copy-paste button, a QR code target, and a
-// live usage counter without extra requests.
-// ══════════════════════════════════════════════════════════════════════
-
-// GET /api/embed/admin/config?brandId=<id>
-router.get('/admin/config', requireAuth, async (req, res) => {
-  try {
-    const { brandId } = req.query;
-    if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
-
-    const brand = await Brand.findById(brandId).select('name kioskBrandCode brandHandle ownerId').lean();
-    if (!brand) return res.status(404).json({ error: 'brand_not_found', message: 'Brand not found.' });
-
-    const member = await requireBrandMember(req, res, brand._id);
-    if (!member) return; // 403 already sent
-
-    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-      .select('embedWidgetEnabled reviewBriefing embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
-      .lean();
-
-    // Effective monthly cap (Phase 2 shipped this — reuse the shared service).
-    const { PLAN_LIMITS, currentMonthApprovalCount } = require('../services/planLimits');
-    const { checkTrialStatus } = require('../services/trial');
-    const effectiveTier = brandProfile ? checkTrialStatus(brandProfile).effectiveTier : 'starter';
-    const monthlyCap = (PLAN_LIMITS[effectiveTier] || PLAN_LIMITS.starter).monthlyApprovals;
-    const monthlyUsed = await currentMonthApprovalCount(brand._id);
-
-    // Public widget URL — prefer the vanity handle when set, fall back to
-    // the kiosk brand code so every brand always has a usable URL.
-    const widgetPath = brand.brandHandle ? `/@${brand.brandHandle}/review` : `/brand/${brand.kioskBrandCode}/review`;
-    const widgetUrl = `${APP_URL}${widgetPath}`;
-
-    return res.json({
-      brand: {
-        id: brand._id,
-        name: brand.name,
-        kioskBrandCode: brand.kioskBrandCode,
-        brandHandle: brand.brandHandle,
-      },
-      widget: {
-        enabled: brandProfile ? brandProfile.embedWidgetEnabled !== false : true,
-        reviewBriefing: (brandProfile && brandProfile.reviewBriefing) || '',
-        url: widgetUrl,
-      },
-      usage: {
-        lifetimeApprovals: (brandProfile && brandProfile.embedApprovalsLifetime) || 0,
-        monthApprovalsUsed: monthlyUsed,
-        monthApprovalsCap: monthlyCap,
-        planTier: effectiveTier,
-      },
-    });
-  } catch (err) {
-    console.error('[GET /api/embed/admin/config]', err.message);
-    return res.status(500).json({ error: 'server_error', message: 'Could not load widget config.' });
-  }
-});
-
-// PUT /api/embed/admin/config
-// Body: { brandId, enabled?, reviewBriefing? }
-// Only the fields supplied are updated. Payload validated to prevent
-// accidental clears (e.g. undefined vs empty string is meaningful).
-router.put('/admin/config', requireAuth, async (req, res) => {
-  try {
-    const { brandId, enabled, reviewBriefing } = req.body || {};
-    if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
-
-    const brand = await Brand.findById(brandId).select('_id').lean();
-    if (!brand) return res.status(404).json({ error: 'brand_not_found', message: 'Brand not found.' });
-
-    const member = await requireBrandMember(req, res, brand._id);
-    if (!member) return; // 403 already sent
-
-    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id });
-    if (!brandProfile) {
-      return res.status(404).json({ error: 'brand_profile_not_found', message: 'This brand does not have a profile record.' });
-    }
-
-    // Coalesce updates — only touch what was actually sent.
-    const update = {};
-    if (typeof enabled === 'boolean') {
-      update.embedWidgetEnabled = enabled;
-    }
-    if (typeof reviewBriefing === 'string') {
-      // Truncate to schema cap (maxlength 1000). Empty string is allowed
-      // — brands may want to clear a briefing back to the KUP default.
-      update.reviewBriefing = reviewBriefing.slice(0, 1000);
-    }
-
-    if (Object.keys(update).length === 0) {
-      return res.status(400).json({ error: 'no_updates', message: 'Nothing to update. Send enabled or reviewBriefing.' });
-    }
-
-    Object.assign(brandProfile, update);
-    await brandProfile.save();
-
-    console.log(`⚙️ [embed admin] Widget config updated for brand ${brand._id} by user ${req.user._id}`);
-
-    return res.json({
-      ok: true,
-      widget: {
-        enabled: brandProfile.embedWidgetEnabled !== false,
-        reviewBriefing: brandProfile.reviewBriefing || '',
-      },
-    });
-  } catch (err) {
-    console.error('[PUT /api/embed/admin/config]', err.message);
-    return res.status(500).json({ error: 'server_error', message: 'Could not save widget config.' });
   }
 });
 
