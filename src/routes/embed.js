@@ -422,6 +422,10 @@ router.get('/:brandCode/config', async (req, res) => {
             // is non-null; if both are null the widget shows the gradient
             // overlay layout.
             imageUrl: reward.bannerImageUrl || reward.imageUrl || null,
+            _debug: process.env.NODE_ENV === 'production' ? {
+              bannerImageUrl: reward.bannerImageUrl,
+              imageUrl: reward.imageUrl,
+            } : undefined,
           }
         : null,
       stats: {
