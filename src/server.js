@@ -354,6 +354,11 @@ app.use('/api/referrals', require('./routes/referrals'));
 // Kiosk routes (Phase 5 — guest reviews + instant rewards)
 app.use('/api/kiosk', require('./routes/kiosk'));
 
+// Embed routes — Instant Review Widget (public, no auth).
+// Powers the zero-friction review capture flow embedded on brand websites.
+// Ref: memory/project_kup_instant_review_widget.md
+app.use('/api/embed', require('./routes/embed'));
+
 // Billing routes (Phase 6 — subscriptions + PayPal)
 app.use('/api/billing', require('./routes/billing'));
 
