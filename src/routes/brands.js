@@ -54,14 +54,10 @@ function computeInitials(name) {
     : words.map(w => w.charAt(0)).join('').toUpperCase().substring(0, 3);
 }
 
-// Plan limits from PLATFORM_ARCHITECTURE.md
-const PLAN_LIMITS = {
-  starter: { brands: 1, campaignsPerBrand: 1, influencers: 10, adminSeats: 1 },
-  growth: { brands: 3, campaignsPerBrand: 5, influencers: 100, adminSeats: 3 },
-  pro: { brands: 10, campaignsPerBrand: 20, influencers: 500, adminSeats: 10 },
-  agency: { brands: 25, campaignsPerBrand: 50, influencers: 2000, adminSeats: 25 },
-  enterprise: { brands: Infinity, campaignsPerBrand: Infinity, influencers: Infinity, adminSeats: Infinity },
-};
+// Plan limits — imported from the shared source of truth in
+// src/services/planLimits.js. The old `influencers` field was retired
+// 2026-07-08 in favor of `monthlyApprovals` (see planLimits.js top comment).
+const { PLAN_LIMITS } = require('../services/planLimits');
 
 // POST /api/brands — Create a new brand
 // Reserved handles that can't be used as brand handles

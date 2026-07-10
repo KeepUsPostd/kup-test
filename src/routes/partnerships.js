@@ -10,14 +10,18 @@ const Reward = require('../models/Reward');
 const { checkTrialStatus } = require('../services/trial');
 const notify = require('../services/notifications');
 
-// Influencer slot limits per plan tier
-const INFLUENCER_SLOT_LIMITS = {
-  starter: 10,
-  growth: 100,
-  pro: 500,
-  agency: 2000,
-  enterprise: Infinity,
-};
+// NOTE: Influencer slot limits were RETIRED 2026-07-08 as part of the switch
+// to usage-based (monthly approvals) plan structure. Partnership creation is
+// now unrestricted — any creator can partner with any brand at any time.
+// The real capacity constraint moved to content approval (see
+// src/services/planLimits.js → checkMonthlyApprovalCap).
+//
+// Why the switch:
+//   - Old model punished brands with inactive partnerships (paid for slots
+//     even when creators never returned)
+//   - New model bills for delivered value (approved reviews), aligns with
+//     monthly marketing budget rhythm, and unlocks the Instant Review Widget
+//   - Zero migration risk: no paying brands existed at switch time
 
 // GET /api/partnerships/discover — Browse influencers for brand discovery tab
 // Query params: q (search), niche, tier, sort, page, limit
@@ -95,30 +99,13 @@ router.post('/', requireAuth, async (req, res) => {
     }
     const influencerProfileId = influencer._id;
 
-    // Enforce influencer slot limit based on brand owner's plan tier
+    // Partnership creation is unrestricted since 2026-07-08. See top-of-file
+    // comment. Still fetch brandDoc + brandProfile below because reward-gate
+    // and trial-status checks use them.
     const brandDoc = await Brand.findById(brandId).lean();
     let brandProfile = null;
     if (brandDoc) {
       brandProfile = await BrandProfile.findOne({ ownedBrandIds: brandDoc._id });
-      if (brandProfile) {
-        const { effectiveTier } = checkTrialStatus(brandProfile);
-        const slotLimit = INFLUENCER_SLOT_LIMITS[effectiveTier] ?? 10;
-        if (slotLimit !== Infinity) {
-          const activeCount = await Partnership.countDocuments({
-            brandId,
-            status: { $in: ['active', 'paused'] },
-          });
-          if (activeCount >= slotLimit) {
-            return res.status(403).json({
-              error: 'Partnership limit reached',
-              message: `This brand has reached its ${slotLimit}-influencer limit on the ${effectiveTier} plan. Upgrade to add more partners.`,
-              currentPlan: effectiveTier,
-              limit: slotLimit,
-              current: activeCount,
-            });
-          }
-        }
-      }
     }
 
     // Check if partnership already exists

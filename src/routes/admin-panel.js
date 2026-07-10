@@ -13,7 +13,8 @@ const {
 const notify = require('../services/notifications');
 const { sendEmail } = require('../config/email');
 const { sendPushToUser } = require('../config/push');
-const { startTrial } = require('../services/trial');
+const { startTrial, checkTrialStatus } = require('../services/trial');
+const { checkMonthlyApprovalCap, capExceededPayload } = require('../services/planLimits');
 
 // ── Tier Thresholds (copied from auth.js) ─────────────────
 const TIER_THRESHOLDS = [
@@ -807,7 +808,33 @@ router.put('/content/:id/moderate', async (req, res) => {
     const submission = await ContentSubmission.findById(req.params.id);
     if (!submission) return res.status(404).json({ error: 'Content not found' });
 
+    // Monthly approval cap (Phase 2 — 2026-07-08).
+    // Admin can override with ?force=true (documented safety valve, e.g. WELLS
+    // moment-in-time push). Without force, admin approvals count against the
+    // brand's plan just like brand-side approvals — otherwise brands could
+    // request admin approvals to bypass their tier.
     if (action === 'approve') {
+      const force = req.query.force === 'true';
+      if (!force) {
+        try {
+          const brandDoc = await Brand.findById(submission.brandId).select('_id').lean();
+          const brandProfile = brandDoc
+            ? await BrandProfile.findOne({ ownedBrandIds: brandDoc._id }).select('planTier trialActive trialTier trialEndsAt').lean()
+            : null;
+          if (brandProfile) {
+            const { effectiveTier } = checkTrialStatus(brandProfile);
+            const check = await checkMonthlyApprovalCap(submission.brandId, effectiveTier);
+            if (!check.allowed) {
+              return res.status(402).json({
+                ...capExceededPayload(check),
+                overrideHint: 'Add ?force=true to bypass this cap (admin-only override).',
+              });
+            }
+          }
+        } catch (capErr) {
+          console.error('[admin moderate] cap check error (fail-open):', capErr.message);
+        }
+      }
       submission.status = 'approved';
       submission.reviewedAt = new Date();
       submission.reviewedBy = req.user._id;

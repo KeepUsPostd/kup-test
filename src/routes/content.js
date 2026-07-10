@@ -9,6 +9,8 @@ const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction
 const notify = require('../services/notifications');
 const paypal = require('../config/paypal');
 const { sendEmail } = require('../config/email');
+const { checkMonthlyApprovalCap, capExceededPayload } = require('../services/planLimits');
+const { checkTrialStatus } = require('../services/trial');
 
 // ── Fee Structure & Tier Rates (mirrored from payouts.js) ─────
 // Rule G7: Brands cannot override — rates come from influencer tier.
@@ -1098,6 +1100,28 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
     const rewardGateNote = !hasCashReward
       ? 'No cash_per_approval reward active — no automatic transaction created. Distribute reward manually if needed.'
       : null;
+
+    // Monthly approval cap (Phase 2 — 2026-07-08).
+    // Enforces the plan-tier ceiling: starter=10/mo, growth=100/mo, pro=500/mo,
+    // agency=2000/mo, enterprise=unlimited. Approvals reset on the 1st of each
+    // month. Returns 402 upgrade_required when exceeded so the client can prompt
+    // an upgrade. Trial-effective tier honors any active pro trial.
+    try {
+      const brandDoc = await Brand.findById(submission.brandId).select('_id').lean();
+      const brandProfile = brandDoc
+        ? await BrandProfile.findOne({ ownedBrandIds: brandDoc._id }).select('planTier trialActive trialTier trialEndsAt').lean()
+        : null;
+      if (brandProfile) {
+        const { effectiveTier } = checkTrialStatus(brandProfile);
+        const check = await checkMonthlyApprovalCap(submission.brandId, effectiveTier);
+        if (!check.allowed) {
+          return res.status(402).json(capExceededPayload(check));
+        }
+      }
+    } catch (capErr) {
+      // Fail-open: don't block approvals on a lookup error. Log for visibility.
+      console.error('[approve] monthly cap check error (fail-open):', capErr.message);
+    }
 
     submission.status = 'approved';
     submission.reviewedAt = new Date();
