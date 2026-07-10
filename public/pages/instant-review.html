@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a0a0a">
-<title>Leave a Review — KeepUsPostd</title>
+<title>Review — KeepUsPostd</title>
 <meta name="description" content="Record a quick video review and get paid on approval. No app required.">
 <link rel="icon" href="/images/favicon/favicon.ico">
 <link rel="apple-touch-icon" href="/images/favicon/apple-touch-icon.png">
@@ -555,7 +555,10 @@ async function loadBrandConfig() {
 
 function renderLanding() {
   const { brand, reward, stats, reviewBriefing, maxSeconds } = state;
-  document.title = `Leave a Review for ${brand.name} — KeepUsPostd`;
+  // Short title so the brand name stays visible in the browser tab strip.
+  // ('Leave a Review for Powerplay Sports Group — KeepUsPostd' truncated
+  // Powerplay's name in most tab widths.)
+  document.title = `Review ${brand.name}`;
 
   const logoEl = document.getElementById('brand-logo');
   if (brand.logoUrl) {

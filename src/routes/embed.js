@@ -471,6 +471,7 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       brandId: brand._id,
       influencerProfileId: influencerProfile._id,
     });
+    let partnershipWasCreated = false;
     if (!partnership) {
       partnership = await Partnership.create({
         brandId: brand._id,
@@ -478,12 +479,14 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
         status: 'active',
         startedAt: new Date(),
       });
+      partnershipWasCreated = true;
     } else if (partnership.status === 'ended') {
       partnership.status = 'active';
       partnership.startedAt = new Date();
       partnership.endedAt = null;
       partnership.endedBy = null;
       await partnership.save();
+      partnershipWasCreated = true; // reactivation counts as a new partnership event
     }
 
     // ── Create the ContentSubmission with source:'embed'
@@ -510,15 +513,81 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
     console.log(`📸 [embed] Content submitted for brand ${brand._id} — user ${user._id} (${userWasCreated ? 'NEW' : 'existing'})`);
 
     // ── Notifications
-    // Reuses the same notification helpers as the app submission flow. Wrapped
-    // in try/catch — a notification failure must NEVER hold up the submission.
-    try {
-      const notify = require('../services/notifications');
-      if (typeof notify.contentSubmittedToBrand === 'function') {
-        notify.contentSubmittedToBrand({ influencer: influencerProfile, brand, submission }).catch(() => {});
+    // Reuses the same notification helpers as the app-path signup + submission
+    // flows. All wrapped in try/catch — a notification failure must NEVER
+    // hold up the submission. Fires (in order):
+    //   1. New-user welcome email (only when the User was just created)
+    //   2. Admin new-signup email to every ADMIN_EMAILS entry (only new users)
+    //   3. New-brand-partnership email + in-app + push to the reviewer
+    //      (only when the Partnership was just created)
+    //   4. Content-submitted email + in-app + push to the brand owner
+    const notify = require('../services/notifications');
+    const { sendEmail } = require('../config/email');
+
+    // 1 + 2 — welcome + admin new-signup notifications (only for new users)
+    if (userWasCreated) {
+      try {
+        notify.influencerWelcome({ user }).catch(e => console.error('[embed] influencerWelcome error:', e.message));
+      } catch (e) {
+        console.error('[embed submit] welcome notify error:', e.message);
       }
+
+      try {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        if (adminEmails.length > 0) {
+          for (const adminEmail of adminEmails) {
+            sendEmail({
+              to: adminEmail,
+              subject: `New Creator (via Instant Review) — ${user.email}`,
+              headline: `New Creator Account`,
+              preheader: `${user.email} just joined KUP via the Instant Review Widget on ${brand.name}`,
+              bodyHtml: `
+                <p>A new creator just joined KeepUsPostd by leaving a review through the <strong>Instant Review Widget</strong>.</p>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Name:</strong> ${[user.legalFirstName, user.legalLastName].filter(Boolean).join(' ') || 'Not provided'}</p>
+                <p><strong>Handle:</strong> @${influencerProfile.handle}</p>
+                <p><strong>Partnered brand:</strong> ${brand.name}</p>
+                <p><strong>Signup source:</strong> embed (Instant Review Widget)</p>
+                <p><strong>Auth status:</strong> not yet claimed (no password / no PayPal — Phase 5 flow will handle claim on app download)</p>
+                <p><strong>Joined:</strong> ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })} CT</p>
+              `,
+              ctaText: 'View in Admin Panel',
+              ctaUrl: 'https://keepuspostd.com/pages/admin/creators.html',
+              variant: 'brand',
+            }).catch(e => console.error(`[embed] admin notify error: ${e.message}`));
+          }
+        }
+      } catch (e) {
+        console.error('[embed submit] admin notify error:', e.message);
+      }
+    }
+
+    // 3 — new brand partnership notification (only when partnership was
+    // just created — skip on re-submissions from an existing partner)
+    if (partnershipWasCreated) {
+      try {
+        notify.newBrandPartnership({
+          influencer: {
+            email: user.email,
+            userId: user._id,
+            displayName: influencerProfile.displayName,
+          },
+          brand: { name: brand.name, logoUrl: brand.logoUrl || null },
+        }).catch(e => console.error('[embed] newBrandPartnership error:', e.message));
+      } catch (e) {
+        console.error('[embed submit] partnership notify error:', e.message);
+      }
+    }
+
+    // 4 — content-submitted notification to the brand
+    try {
+      notify.contentSubmitted({
+        brand: { ...brand, ownerEmail: brand.ownerEmail, email: brand.email },
+        influencer: influencerProfile,
+        submission,
+      }).catch(e => console.error('[embed] contentSubmitted error:', e.message));
     } catch (e) {
-      console.error('[embed submit] notify error (non-fatal):', e.message);
+      console.error('[embed submit] content notify error:', e.message);
     }
 
     return res.status(201).json({
