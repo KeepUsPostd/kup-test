@@ -99,19 +99,17 @@
   .reward-banner-overlay {
     /* Shown only when there's NO image — reward info sits inside the gradient.
        Padding sized so the compact-mode banner sits at roughly the same
-       visual weight as the guidance card below. Text uses a subtle drop
-       shadow so it stays readable across ANY portion of a two-stop brand
-       gradient (Powerplay's gold→black was losing black text on the black
-       half; the shadow fixes that regardless of brand palette). */
+       visual weight as the guidance card below. Text is always white and
+       flat (no drop shadow) per Santana's preference — reads cleanest on
+       the brand gradients we ship. */
     position: relative; z-index: 1;
     padding: 20px 22px;
     width: 100%;
+    color: #fff;
   }
-  .reward-banner-overlay .reward-eyebrow { margin-bottom: 6px; opacity: 0.85; }
-  .reward-banner-overlay .reward-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; }
-  .reward-banner-overlay .reward-desc { font-size: 13px; line-height: 1.45; opacity: 0.92; }
-  .reward-banner-overlay.text-white { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.55); }
-  .reward-banner-overlay.text-black { color: #0a0a0a; text-shadow: 0 1px 2px rgba(255,255,255,0.55); }
+  .reward-banner-overlay .reward-eyebrow { margin-bottom: 6px; color: #fff; opacity: 0.85; }
+  .reward-banner-overlay .reward-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; color: #fff; }
+  .reward-banner-overlay .reward-desc { font-size: 13px; line-height: 1.45; color: #fff; opacity: 0.92; }
   .reward-body {
     /* Shown ONLY when there IS an image — copy below the image banner. */
     padding: 16px 20px 18px;
@@ -502,22 +500,9 @@ function buildBrandGradient(brandColors) {
   return `linear-gradient(135deg, ${primary} 0%, ${shadeColor(primary, shift)} 100%)`;
 }
 
-// Pick text-color CLASS (.text-white | .text-black) based on the AVERAGE
-// luminance of the two gradient stops. This handles brand palettes where
-// primary and secondary sit at opposite ends of the luminance range —
-// e.g. Powerplay's gold → black. Picking against a single stop (primary
-// alone) buried black text on the black half.
-//
-// The CSS class adds a subtle text-shadow in the opposite direction so
-// text stays readable even on the far end of the gradient.
-function pickReadableTextClass(brandColors) {
-  const primary = (brandColors && brandColors.primary) || '#2EA5DD';
-  const secondary = (brandColors && brandColors.secondary) || primary;
-  const avg = (luminance(primary) + luminance(secondary)) / 2;
-  // Threshold slightly favors white text — darker text-shadow reads more
-  // reliably against most brand palettes than the reverse.
-  return avg > 155 ? 'text-black' : 'text-white';
-}
+// (Retired 2026-07-08: text-color pick helper.) Widget now always renders
+// white text on brand-color gradients — per Santana's preference for a
+// flatter, cleaner look without conditional drop-shadow logic.
 
 // ── Load brand config ─────────────────────────────────
 async function loadBrandConfig() {
@@ -600,15 +585,12 @@ function renderLanding() {
       document.getElementById('reward-title').textContent = reward.title;
       document.getElementById('reward-desc').textContent = reward.description || '';
     } else {
-      // Contrast pick: average luminance of the two gradient stops. When
-      // brands have two very-different colors (e.g. Powerplay's gold →
-      // black), picking against a single color leaves text lost on the
-      // other half. Averaging + a subtle text-shadow (set in CSS via the
-      // .text-white / .text-black classes) makes text readable across
-      // ANY brand palette.
-      const textClass = pickReadableTextClass(brand.brandColors);
+      // Text overlay inside the gradient. Always white, no drop shadow —
+      // per Santana's preference. Reads clean on the brand palettes we
+      // ship; brands with light-on-light palettes are rare, and if it
+      // ever becomes a problem we can revisit with a per-brand override.
       banner.innerHTML =
-        `<div class="reward-banner-overlay ${textClass}">
+        `<div class="reward-banner-overlay">
            <div class="reward-eyebrow">You'll unlock</div>
            <div class="reward-title">${safeTitle}</div>
            ${safeDesc ? `<div class="reward-desc">${safeDesc}</div>` : ''}
