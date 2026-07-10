@@ -185,13 +185,16 @@ async function getCurrentMonthApprovals(brandId) {
 }
 
 // ── Helper: pull the primary active reward for a brand (for widget preview)
+// Includes BOTH image fields: bannerImageUrl (the wide reward-card banner
+// uploaded via brand-reward.html — what we want most of the time) AND
+// imageUrl (legacy/small icon field, kept as fallback).
 async function getFeaturedReward(brandId) {
   return Reward.findOne({
     brandId,
     status: 'active',
   })
     .sort({ createdAt: -1 })
-    .select('rewardType title description value pointsRequired imageUrl')
+    .select('rewardType title description value pointsRequired imageUrl bannerImageUrl')
     .lean();
 }
 
@@ -412,7 +415,13 @@ router.get('/:brandCode/config', async (req, res) => {
             description: reward.description,
             value: reward.value,
             pointsRequired: reward.pointsRequired,
-            imageUrl: reward.imageUrl,
+            // Prefer bannerImageUrl (what brand-reward.html actually saves
+            // when a brand uploads a reward image via the portal — the wide
+            // banner asset). Fall back to imageUrl for legacy rewards that
+            // used the older single-image field. Client renders whichever
+            // is non-null; if both are null the widget shows the gradient
+            // overlay layout.
+            imageUrl: reward.bannerImageUrl || reward.imageUrl || null,
           }
         : null,
       stats: {
