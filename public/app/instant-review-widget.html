@@ -295,11 +295,17 @@
         const brand = KUP_BRAND_CONTEXT && KUP_BRAND_CONTEXT.getActiveBrand
           ? KUP_BRAND_CONTEXT.getActiveBrand()
           : null;
-        if (!brand || !brand.id) {
+        // Brand context exposes BOTH a short display `.id` and a full
+        // `.mongoId` ObjectId. Backend endpoints need the ObjectId. Prefer
+        // mongoId; fall back to id for brand-context entries that never
+        // got the mongoId field enriched (older localStorage records).
+        // Documented in reference_kup_portal_patterns.md.
+        const brandId = brand && (brand.mongoId || brand.id);
+        if (!brand || !brandId) {
           showToast('No active brand — pick one from Manage Brands.', 6000);
           return;
         }
-        currentBrandId = brand.id;
+        currentBrandId = brandId;
         document.getElementById('headerBrandName').textContent = brand.name || '';
         await loadConfig();
       } catch (err) {
