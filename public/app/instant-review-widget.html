@@ -388,20 +388,79 @@
     function downloadQR(size) {
       size = size || 600;
       if (!window.QRCode) { showToast('QR library not loaded'); return; }
-      const off = document.createElement('canvas');
-      QRCode.toCanvas(off, widgetUrl, {
+      // Render the raw QR on an offscreen canvas, then composite it onto a
+      // larger canvas with a "Leave a Review" badge below. This tags the
+      // print download so brands can visually tell it apart from the
+      // Market Code QR (which points to the brand profile, not the widget).
+      const qrCanvas = document.createElement('canvas');
+      QRCode.toCanvas(qrCanvas, widgetUrl, {
         width: size,
         margin: 2,
         errorCorrectionLevel: 'H',
         color: { dark: '#0a0a0a', light: '#ffffff' },
       }, function(err) {
         if (err) { showToast('QR generation failed'); return; }
+
+        // Composite: white padding all around + a badge strip below.
+        const pad = Math.round(size * 0.06);
+        const badgeH = Math.round(size * 0.14);
+        const badgeGap = Math.round(size * 0.03);
+        const out = document.createElement('canvas');
+        out.width = size + pad * 2;
+        out.height = size + pad * 2 + badgeGap + badgeH;
+        const ctx = out.getContext('2d');
+
+        // White page background.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, out.width, out.height);
+
+        // Drop the QR into the top area.
+        ctx.drawImage(qrCanvas, pad, pad, size, size);
+
+        // Badge: rounded rectangle, KUP blue, white uppercase text.
+        const bx = pad;
+        const by = pad + size + badgeGap;
+        const bw = size;
+        const bh = badgeH;
+        const radius = Math.round(bh * 0.28);
+        ctx.fillStyle = '#2EA5DD';
+        roundRect(ctx, bx, by, bw, bh, radius);
+        ctx.fill();
+
+        // Badge label.
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const fontPx = Math.round(bh * 0.42);
+        ctx.font = `800 ${fontPx}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif`;
+        // Letter-spacing simulated via wide characters — canvas has no
+        // native letter-spacing, so we render a tracked string manually.
+        const label = 'SCAN  TO  LEAVE  A  REVIEW';
+        ctx.fillText(label, bx + bw / 2, by + bh / 2 + Math.round(fontPx * 0.03));
+
         const link = document.createElement('a');
         const safe = (originalConfig?.brand?.name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
         link.download = `instant-review-${safe}-${size}px.png`;
-        link.href = off.toDataURL('image/png');
+        link.href = out.toDataURL('image/png');
         link.click();
       });
+    }
+
+    // Helper: canvas rounded-rectangle path. Widely-supported roundRect exists
+    // on modern canvases (Chrome 99+/Safari 16+) but we polyfill for safety.
+    function roundRect(ctx, x, y, w, h, r) {
+      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     }
 
     // ── Copy helpers ────────────────────────────────────────────────
