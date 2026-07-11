@@ -185,17 +185,39 @@ async function getCurrentMonthApprovals(brandId) {
 }
 
 // ── Helper: pull the primary active reward for a brand (for widget preview)
-// Includes BOTH image fields: bannerImageUrl (the wide reward-card banner
-// uploaded via brand-reward.html — what we want most of the time) AND
-// imageUrl (legacy/small icon field, kept as fallback).
+// Includes the two top-level image fields AND the point-based levels array.
+// Point-based rewards (like KUP's "Creator Circle") store their images on
+// each individual level (levels[0].imageUrl, levels[1].imageUrl, etc.)
+// rather than on the top-level reward doc. The consumer coalesces in this
+// order:
+//   1. reward.bannerImageUrl  — brand-uploaded wide banner
+//   2. reward.imageUrl        — legacy single-image field
+//   3. reward.pointConfig.levels[0].imageUrl — first-tier image on
+//      point-based rewards (matches the pattern used by
+//      brand-reward-settings.html for its card-banner fallback).
 async function getFeaturedReward(brandId) {
   return Reward.findOne({
     brandId,
     status: 'active',
   })
     .sort({ createdAt: -1 })
-    .select('rewardType title description value pointsRequired imageUrl bannerImageUrl')
+    .select('rewardType title description value pointsRequired imageUrl bannerImageUrl pointConfig.levels')
     .lean();
+}
+
+// Resolve the single image URL to show on the widget banner given the
+// three possible sources on a reward doc. Returns null when nothing set.
+function pickRewardImageUrl(reward) {
+  if (!reward) return null;
+  if (reward.bannerImageUrl) return reward.bannerImageUrl;
+  if (reward.imageUrl) return reward.imageUrl;
+  const levels = reward.pointConfig && reward.pointConfig.levels;
+  if (levels && levels.length) {
+    for (const lvl of levels) {
+      if (lvl && lvl.imageUrl) return lvl.imageUrl;
+    }
+  }
+  return null;
 }
 
 // ── Helper: generate a unique handle from name+email
@@ -415,13 +437,14 @@ router.get('/:brandCode/config', async (req, res) => {
             description: reward.description,
             value: reward.value,
             pointsRequired: reward.pointsRequired,
-            // Prefer bannerImageUrl (what brand-reward.html actually saves
-            // when a brand uploads a reward image via the portal — the wide
-            // banner asset). Fall back to imageUrl for legacy rewards that
-            // used the older single-image field. Client renders whichever
-            // is non-null; if both are null the widget shows the gradient
-            // overlay layout.
-            imageUrl: reward.bannerImageUrl || reward.imageUrl || null,
+            // Resolves to a single image URL from three possible sources:
+            // bannerImageUrl → imageUrl → first level's imageUrl.
+            // See pickRewardImageUrl() for the full coalesce logic. Point-
+            // based rewards like KUP's "Creator Circle" store their images
+            // on each level, not on the top-level reward doc — this helper
+            // pulls the first level's image so those rewards still get a
+            // banner on the widget.
+            imageUrl: pickRewardImageUrl(reward),
           }
         : null,
       stats: {
