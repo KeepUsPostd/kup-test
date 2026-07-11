@@ -2639,10 +2639,11 @@ async function embedReviewSubmitted({ user, brand, submission }) {
       <p><strong>What's next:</strong></p>
       <ul>
         <li>✅ You're now partnered with ${brandName} as one of their creators</li>
-        <li>💸 When they approve your review, any reward they offered unlocks — cash, points, or perks</li>
-        <li>📱 Download the free app to track your review, claim your reward, and discover 100+ more brands you can review as a creator</li>
+        <li>💸 When they approve your review, any reward they offered — cash, points, or perks — is credited to your creator account</li>
+        <li>🔐 <strong>Claim your free creator account now</strong> so any pending cash or rewards route straight to you the moment ${brandName} approves. Otherwise those rewards sit unclaimed until you finish setting up.</li>
+        <li>📱 Download the free app to track your review, claim your rewards, and discover 100+ more brands to review</li>
       </ul>
-      <p>You'll get one more email once your review is approved.</p>
+      <p>You'll get one more email once ${brandName} approves your review.</p>
     `,
     ctaText: 'Download the Free App',
     ctaUrl: downloadUrl,
