@@ -1238,6 +1238,13 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
 
             if (!freshInfluencer?.paypalMerchantId) {
               // No PPCP — can't route payment. Notify influencer to connect.
+              // The embed-user variant of this ('your review is approved,
+              // claim your free creator account') fires from the shared
+              // notify.contentApproved block below via embedReviewApproved.
+              // paypalMoneyWaiting stays here for already-claimed creators
+              // who just haven't finished PPCP onboarding — its email
+              // routing already gracefully no-ops for unclaimed embed
+              // users because their paypalEmail is empty.
               console.log(`ℹ️ No PPCP merchant ID for influencer ${submission.influencerProfileId} — transaction logged as pending`);
               try {
                 const pendingBrand = await Brand.findById(submission.brandId);
@@ -1407,6 +1414,33 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
         // Fan out "new review" push + in-app to viewers who opted in to be
         // notified about this creator (CreatorSubscription notify=true).
         notify.notifyCreatorSubscribers({ creatorProfile: inf, brand, submission }).catch(() => {});
+
+        // Phase 5.3: unclaimed-embed-creator approval email.
+        // The standard contentApproved above sends to the InfluencerProfile
+        // + fires push. Embed creators who haven't claimed yet:
+        //   - Have no fcmTokens (push does nothing)
+        //   - Get contentApproved's email but it doesn't tell them how to
+        //     actually claim the reward (they can't sign in yet)
+        // embedReviewApproved fills that gap: 'your review is approved,
+        // claim your free creator account to grab your reward'. Sent to
+        // User.email with a pre-filled /claim-account link.
+        try {
+          if (inf && inf.userId) {
+            const submitter = await User.findById(inf.userId)
+              .select('email authMethod legalFirstName')
+              .lean();
+            if (submitter && submitter.authMethod === 'embed') {
+              notify.embedReviewApproved({
+                user: submitter,
+                brand,
+                amount: rewardTriggered ? rewardTriggered.amount : null,
+                hasCashReward: !!rewardTriggered,
+              }).catch(e => console.error('[content/approve] embedReviewApproved failed:', e.message));
+            }
+          }
+        } catch (embedNotifyErr) {
+          console.error('[content/approve] embed approval notify lookup failed:', embedNotifyErr.message);
+        }
       }
     } catch (notifyErr) {
       console.error('Notification error (non-blocking):', notifyErr.message);

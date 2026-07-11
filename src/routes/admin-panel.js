@@ -983,6 +983,32 @@ router.put('/content/:id/moderate', async (req, res) => {
           // notified about this creator (CreatorSubscription notify=true).
           // Non-blocking — never holds up the approval.
           notify.notifyCreatorSubscribers({ creatorProfile: profile, brand, submission }).catch(() => {});
+
+          // Phase 5.3: unclaimed-embed-creator approval email. Same logic
+          // as the brand-approval path in content.js — reviewer needs to
+          // hear 'your review is approved, claim your free creator account
+          // to grab your reward' with a pre-filled /claim-account link.
+          // Admin approvals typically don't carry a cash rewardTriggered
+          // in this codepath, so hasCashReward defaults to false; if the
+          // brand has a cash_per_approval reward, the reviewer will still
+          // see 'your reward from [brand] is ready to claim' framing.
+          try {
+            if (profile && profile.userId) {
+              const submitter = await User.findById(profile.userId)
+                .select('email authMethod legalFirstName')
+                .lean();
+              if (submitter && submitter.authMethod === 'embed') {
+                notify.embedReviewApproved({
+                  user: submitter,
+                  brand,
+                  amount: null,
+                  hasCashReward: false,
+                }).catch(e => console.error('[admin-moderate] embedReviewApproved failed:', e.message));
+              }
+            }
+          } catch (embedNotifyErr) {
+            console.error('[admin-moderate] embed approval notify lookup failed:', embedNotifyErr.message);
+          }
         }
       } catch (notifyErr) {
         console.error('Approval notification error (non-blocking):', notifyErr.message);

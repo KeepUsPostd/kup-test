@@ -2653,11 +2653,62 @@ async function embedReviewSubmitted({ user, brand, submission }) {
   });
 }
 
+// Fires when an embed reviewer's submission is approved BUT they haven't
+// claimed their creator account yet (User.authMethod === 'embed'). The
+// generic paypalMoneyWaiting notification isn't right for them because:
+//   1. They don't have a PayPal email set (nothing to send it to via that
+//      notification's own paypalEmail-based routing)
+//   2. Their real blocker isn't 'connect PayPal' — it's 'claim your creator
+//      account first', THEN connect PayPal
+//   3. The event they should hear about is the approval itself — good news
+//      framed as "your reward is unlocked, here's how to grab it"
+// Sends to User.email (from the embed submission) and links to the
+// /claim-account page pre-filled with their email.
+async function embedReviewApproved({ user, brand, amount, hasCashReward }) {
+  if (!user || !user.email) return;
+  const displayName = user.legalFirstName || user.email.split('@')[0] || 'there';
+  const brandName = brand?.name || 'the brand';
+  const claimUrl = `${APP_URL}/claim-account?email=${encodeURIComponent(user.email)}`;
+  const downloadUrl = `${APP_URL}/download`;
+
+  // Amount line varies with reward type — cash gets a dollar figure,
+  // non-cash rewards get "your reward is ready to claim".
+  const rewardLine = hasCashReward && typeof amount === 'number' && amount > 0
+    ? `You've earned <strong>$${amount.toFixed(2)}</strong> from ${brandName}.`
+    : `Your reward from <strong>${brandName}</strong> is ready to claim.`;
+
+  await sendEmail({
+    to: user.email,
+    subject: `Your review of ${brandName} was approved 🎉`,
+    headline: 'Review approved',
+    preheader: hasCashReward && amount > 0
+      ? `You've earned $${amount.toFixed(2)} — claim your free creator account to grab it.`
+      : `Your reward is ready — claim your free creator account to grab it.`,
+    bodyHtml: `
+      <p>Hey ${displayName},</p>
+      <p>Good news — <strong>${brandName}</strong> just approved your review on KeepUsPostd. ${rewardLine}</p>
+      <p>To claim it, finish setting up your <strong>free creator account</strong>. This is your <em>creator side</em> — not a brand account — and it stays free forever.</p>
+      <p><strong>Two quick steps:</strong></p>
+      <ol>
+        <li>Claim your creator account (set a password) — 30 seconds</li>
+        <li>Connect PayPal inside the app so we can send your reward</li>
+      </ol>
+      <p>Once your PayPal is connected, any pending rewards from ${brandName} route automatically. Same for future brands you review.</p>
+    `,
+    ctaText: 'Claim my free creator account',
+    ctaUrl: claimUrl,
+    secondaryCtaText: 'Download the free app',
+    secondaryCtaUrl: downloadUrl,
+    variant: 'brand',
+  });
+}
+
 module.exports = {
   // ── Internal helper (exported for admin-panel promo flow) ──
   createInApp,
   notifyCreatorSubscribers,
   embedReviewSubmitted,
+  embedReviewApproved,
 
   // ── Lifecycle re-engagement (cron-triggered) ──
   lifecycleAlreadySent,
