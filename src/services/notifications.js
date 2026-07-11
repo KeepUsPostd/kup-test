@@ -2624,7 +2624,7 @@ async function embedReviewSubmitted({ user, brand, submission }) {
   if (!user || !user.email) return;
   const displayName = (user.legalFirstName || user.email.split('@')[0] || 'there');
   const brandName = brand?.name || 'the brand';
-  const claimUrl = `${APP_URL}/claim?email=${encodeURIComponent(user.email)}`;
+  const claimUrl = `${APP_URL}/claim-account?email=${encodeURIComponent(user.email)}`;
   const downloadUrl = `${APP_URL}/download`;
 
   await sendEmail({

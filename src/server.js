@@ -277,6 +277,18 @@ app.get('/@:handle/review', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'instant-review.html'));
 });
 
+// Instant Review — claim-account flow (Phase 5.2).
+// After an embed reviewer submits, their confirmation email points here so
+// they can finish setting up their KeepUsPostd account (set a password,
+// unlock payouts, download the app). Serves public/pages/claim-account.html
+// which reads ?email=X from the URL, creates a Firebase auth user
+// client-side, then calls POST /api/auth/claim-embed to link the new
+// firebaseUid to the existing MongoDB User created during embed submit.
+// Distinct from /pages/claim.html which is the brand-ownership claim flow.
+app.get('/claim-account', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'claim-account.html'));
+});
+
 // Deep link share page — shared from the KUP app (brand share button)
 // URL: keepuspostd.com/brands/:id — handles Universal Link handoff from iOS
 app.get('/brands/:id', (req, res) => {

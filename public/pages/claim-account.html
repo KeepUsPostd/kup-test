@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#2EA5DD">
+<title>Set up your KeepUsPostd account</title>
+<meta name="description" content="Finish setting up your KeepUsPostd account so you can track your reviews and claim your rewards.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #0a0a0a; color: #fff; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 100%; max-width: 440px;
+    background: #141414; border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px; padding: 32px 28px 28px;
+  }
+  .brand-mark {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .brand-mark img { height: 24px; opacity: 0.9; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .lede { color: #999; font-size: 14px; line-height: 1.55; margin-bottom: 22px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 8px; font-weight: 700; }
+  .field input {
+    width: 100%; padding: 14px 16px; font-size: 15px;
+    background: #1e1e1e; border: 1px solid rgba(255,255,255,0.08); color: #fff;
+    border-radius: 12px; font-family: inherit;
+  }
+  .field input:focus { outline: none; border-color: #2EA5DD; }
+  .field input:disabled { color: #999; background: #181818; }
+  .field .hint { font-size: 12px; color: #666; margin-top: 6px; }
+  .pw-strength {
+    display: flex; gap: 4px; margin-top: 8px;
+  }
+  .pw-strength .bar { flex: 1; height: 3px; background: #2a2a2a; border-radius: 99px; transition: background 0.2s; }
+  .pw-strength .bar.on-1 { background: #ff6b6b; }
+  .pw-strength .bar.on-2 { background: #ffb700; }
+  .pw-strength .bar.on-3 { background: #16a34a; }
+  .pw-strength .bar.on-4 { background: #16a34a; }
+  .cta {
+    width: 100%; padding: 15px 24px;
+    background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
+    color: #fff; border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: transform 0.15s ease;
+    box-shadow: 0 8px 24px rgba(46,165,221,0.25); margin-top: 8px;
+  }
+  .cta:active { transform: scale(0.98); }
+  .cta:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+  .footer-links {
+    margin-top: 20px; text-align: center; font-size: 12px; color: #666;
+  }
+  .footer-links a { color: #2EA5DD; text-decoration: none; }
+  .status {
+    padding: 12px 14px; border-radius: 10px; margin-bottom: 16px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .status.error { background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.3); color: #ff8080; }
+  .status.info { background: rgba(46,165,221,0.08); border: 1px solid rgba(46,165,221,0.25); color: #7dc4e6; }
+  .status.success { background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); color: #86efac; }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand-mark">
+    <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd">
+  </div>
+
+  <h1 id="titleEl">Set up your account</h1>
+  <p class="lede" id="ledeEl">You already left a review, so we've reserved your KeepUsPostd account. Set a password to finish claiming it — takes 30 seconds.</p>
+
+  <div id="statusEl" class="status" style="display:none;"></div>
+
+  <form id="claimForm" novalidate>
+    <div class="field">
+      <label for="emailInput">Email</label>
+      <input id="emailInput" type="email" autocomplete="email" disabled value="">
+    </div>
+
+    <div class="field">
+      <label for="pwInput">Create a password</label>
+      <input id="pwInput" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8">
+      <div class="pw-strength" id="pwStrength">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="hint">Mix letters + numbers for a stronger password.</div>
+    </div>
+
+    <div class="field">
+      <label for="pwConfirmInput">Confirm password</label>
+      <input id="pwConfirmInput" type="password" autocomplete="new-password" placeholder="Type it again">
+    </div>
+
+    <button type="submit" class="cta" id="submitBtn">Claim my account</button>
+  </form>
+
+  <div class="footer-links">
+    Already have an account? <a href="/pages/login.html">Log in</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="/js/firebase-client.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const emailFromUrl = (params.get('email') || '').trim().toLowerCase();
+
+  const emailInput = document.getElementById('emailInput');
+  const pwInput = document.getElementById('pwInput');
+  const pwConfirmInput = document.getElementById('pwConfirmInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('statusEl');
+  const strengthBars = document.querySelectorAll('#pwStrength .bar');
+
+  if (emailFromUrl) {
+    emailInput.value = emailFromUrl;
+  } else {
+    emailInput.disabled = false;
+    emailInput.placeholder = 'you@example.com';
+  }
+
+  function showStatus(kind, msg) {
+    statusEl.className = 'status ' + kind;
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
+  }
+  function clearStatus() { statusEl.style.display = 'none'; }
+
+  function passwordScore(pw) {
+    if (!pw) return 0;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return score;
+  }
+
+  pwInput.addEventListener('input', () => {
+    const s = passwordScore(pwInput.value);
+    strengthBars.forEach((bar, i) => {
+      bar.className = 'bar' + (i < s ? ' on-' + s : '');
+    });
+  });
+
+  document.getElementById('claimForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearStatus();
+
+    const email = (emailInput.value || '').trim().toLowerCase();
+    const password = pwInput.value;
+    const confirm = pwConfirmInput.value;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showStatus('error', 'Please enter a valid email.');
+      return;
+    }
+    if (!password || password.length < 8) {
+      showStatus('error', 'Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      showStatus('error', 'The two passwords don\'t match.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> Creating your account…';
+
+    try {
+      // Step 1: create the Firebase auth user with the chosen password.
+      // This is what actually binds the password. Our backend never sees it.
+      let cred;
+      try {
+        cred = await auth.createUserWithEmailAndPassword(email, password);
+      } catch (fbErr) {
+        if (fbErr.code === 'auth/email-already-in-use') {
+          // The user already has a Firebase account. Try signing them in
+          // instead — this is the "I set a password before" case.
+          submitBtn.innerHTML = '<span class="spinner"></span> Signing you in…';
+          cred = await auth.signInWithEmailAndPassword(email, password);
+        } else if (fbErr.code === 'auth/weak-password') {
+          showStatus('error', 'That password is too weak. Try something longer or with more variety.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Claim my account';
+          return;
+        } else if (fbErr.code === 'auth/invalid-email') {
+          showStatus('error', 'That email doesn\'t look right.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Claim my account';
+          return;
+        } else {
+          throw fbErr;
+        }
+      }
+
+      // Step 2: hit our backend to link the Firebase UID to the existing
+      // embed User record. The Firebase ID token is required (requireAuth).
+      submitBtn.innerHTML = '<span class="spinner"></span> Linking your reviews…';
+      const token = await cred.user.getIdToken();
+      const res = await fetch('/api/auth/claim-embed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Common case: this email was never used for an embed submission
+        // (or was already claimed under a different flow). Nudge them to
+        // sign up normally.
+        showStatus('error', data.message || 'Could not finish claiming your account. Try signing up normally.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Claim my account';
+        return;
+      }
+
+      // Success — bounce to the download page with a friendly hint.
+      showStatus('success', 'All set! Redirecting to the app download…');
+      setTimeout(() => {
+        window.location.href = '/pages/download-app.html?claimed=1';
+      }, 1200);
+    } catch (err) {
+      console.error('claim error', err);
+      showStatus('error', (err && err.message) ? err.message : 'Something went wrong. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Claim my account';
+    }
+  });
+</script>
+</body>
+</html>

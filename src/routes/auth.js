@@ -320,6 +320,100 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// POST /api/auth/claim-embed
+// Phase 5.2: links a freshly-created Firebase account to the existing
+// MongoDB User record that was created for an Instant Review Widget
+// submission. Before claim, the embed User has:
+//   - email        : populated
+//   - authMethod   : 'embed'
+//   - firebaseUid  : null (no auth binding)
+//   - passwordHash : null (never had a password)
+// After a successful claim, the user is fully upgraded:
+//   - firebaseUid  : bound to the client's newly-created Firebase auth user
+//   - authMethod   : 'app' (they've now claimed the account)
+//   - All their embed-era submissions, partnerships, and rewards carry over
+//     intact because they were always linked to this same _id.
+//
+// The client is expected to have just called firebase.auth()
+// .createUserWithEmailAndPassword(email, password) and successfully gotten
+// a firebaseUid + verified ID token. That's what makes this safe — we
+// never accept a password here, only proof that Firebase already accepted
+// one and bound it to this specific email.
+router.post('/claim-embed', requireAuth, async (req, res) => {
+  try {
+    // req.user came from requireAuth — it's already the User linked to the
+    // Firebase UID that made this request. If there's a mismatch between the
+    // authed user's email and the email we're trying to claim, that's an
+    // attacker trying to bind someone else's embed account. Reject.
+    const { email } = req.body || {};
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'missing_email', message: 'Email is required.' });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    if (req.user.email?.toLowerCase() !== normalizedEmail) {
+      return res.status(403).json({
+        error: 'email_mismatch',
+        message: 'The authenticated email does not match the account being claimed.',
+      });
+    }
+
+    // requireAuth already linked the Firebase UID to the existing MongoDB
+    // user via the middleware's email-match fallback (see middleware/auth.js
+    // where it does User.findOne({ email }) when firebaseUid doesn't match).
+    // At this point req.user IS the embed user, now with firebaseUid set.
+    // We just need to flip authMethod so downstream logic (Phase 5.3 payout
+    // gate, etc.) knows this account is fully claimed.
+    if (req.user.authMethod !== 'embed') {
+      // Idempotent — already a claimed account, no-op success.
+      return res.json({
+        ok: true,
+        alreadyClaimed: true,
+        user: {
+          _id: req.user._id,
+          email: req.user.email,
+          authMethod: req.user.authMethod,
+          hasInfluencerProfile: req.user.hasInfluencerProfile,
+        },
+      });
+    }
+
+    req.user.authMethod = 'app';
+    // Track the claim moment so we can measure conversion later if useful.
+    req.user.lastLoginAt = new Date();
+    req.user.loginCount = (req.user.loginCount || 0) + 1;
+    await req.user.save();
+
+    // Make sure the InfluencerProfile flag is set. It should already exist
+    // (created during embed submit) but the hasInfluencerProfile boolean
+    // on User was never flipped in that flow. Set it now so the app UI
+    // renders the influencer surfaces immediately on first login.
+    if (!req.user.hasInfluencerProfile) {
+      const inf = await InfluencerProfile.findOne({ userId: req.user._id }).select('_id').lean();
+      if (inf) {
+        req.user.hasInfluencerProfile = true;
+        if (!req.user.activeProfile) req.user.activeProfile = 'influencer';
+        await req.user.save();
+      }
+    }
+
+    console.log(`🔓 [claim] embed → app upgrade for ${req.user.email} (${req.user._id})`);
+
+    return res.json({
+      ok: true,
+      alreadyClaimed: false,
+      user: {
+        _id: req.user._id,
+        email: req.user.email,
+        authMethod: req.user.authMethod,
+        hasInfluencerProfile: req.user.hasInfluencerProfile,
+      },
+    });
+  } catch (err) {
+    console.error('[POST /api/auth/claim-embed]', err.message);
+    return res.status(500).json({ error: 'server_error', message: 'Could not claim account.' });
+  }
+});
+
 // POST /api/auth/login
 // Called on each Firebase login to update tracking
 router.post('/login', requireAuth, async (req, res) => {

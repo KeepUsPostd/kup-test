@@ -812,7 +812,7 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
         // show a "check your email" hint on the confirmation screen.
         confirmationEmailSent: true,
         downloadAppUrl: `${APP_URL}/download`,
-        claimAccountUrl: `${APP_URL}/claim?email=${encodeURIComponent(user.email)}`,
+        claimAccountUrl: `${APP_URL}/claim-account?email=${encodeURIComponent(user.email)}`,
       },
     });
   } catch (err) {
