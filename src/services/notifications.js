@@ -2635,19 +2635,19 @@ async function embedReviewSubmitted({ user, brand, submission }) {
     bodyHtml: `
       <p>Hey ${displayName},</p>
       <p>Thanks for leaving a review of <strong>${brandName}</strong> on KeepUsPostd. Their team will take a look within <strong>48 hours</strong> and approve, edit, or reject it.</p>
-      <p>Your review also just registered you on <strong>KeepUsPostd</strong> — the platform where regular people get paid for honest brand reviews.</p>
+      <p>Your review also created a <strong>free creator account</strong> for you on KeepUsPostd — the platform where regular people get paid for honest reviews of brands they actually use. This is your <em>creator side</em> — not a brand account — and it stays free forever.</p>
       <p><strong>What's next:</strong></p>
       <ul>
-        <li>✅ You're now partnered with ${brandName} on KeepUsPostd</li>
-        <li>💸 When they approve your review, any reward they offered unlocks</li>
-        <li>📱 Download the free app to track your review, claim rewards, and discover 100+ more brands you can review</li>
+        <li>✅ You're now partnered with ${brandName} as one of their creators</li>
+        <li>💸 When they approve your review, any reward they offered unlocks — cash, points, or perks</li>
+        <li>📱 Download the free app to track your review, claim your reward, and discover 100+ more brands you can review as a creator</li>
       </ul>
       <p>You'll get one more email once your review is approved.</p>
     `,
-    ctaText: 'Download the App',
+    ctaText: 'Download the Free App',
     ctaUrl: downloadUrl,
     // Secondary link surfaced by the email template renderer if it supports it.
-    secondaryCtaText: 'Set up my account',
+    secondaryCtaText: 'Claim my free creator account',
     secondaryCtaUrl: claimUrl,
     variant: 'brand',
   });

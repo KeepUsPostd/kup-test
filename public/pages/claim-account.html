@@ -9,8 +9,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#2EA5DD">
-<title>Set up your KeepUsPostd account</title>
-<meta name="description" content="Finish setting up your KeepUsPostd account so you can track your reviews and claim your rewards.">
+<title>Claim your free creator account — KeepUsPostd</title>
+<meta name="description" content="Finish setting up your free creator account on KeepUsPostd so you can track your reviews and claim your rewards.">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -86,8 +86,8 @@
     <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd">
   </div>
 
-  <h1 id="titleEl">Set up your account</h1>
-  <p class="lede" id="ledeEl">You already left a review, so we've reserved your KeepUsPostd account. Set a password to finish claiming it — takes 30 seconds.</p>
+  <h1 id="titleEl">Claim your free creator account</h1>
+  <p class="lede" id="ledeEl">Your review just reserved you a <strong>free creator account</strong> on KeepUsPostd — this is your <em>creator side</em>, not a brand account. Set a password to claim it and start tracking your rewards. Takes 30 seconds and stays free forever.</p>
 
   <div id="statusEl" class="status" style="display:none;"></div>
 
@@ -111,11 +111,11 @@
       <input id="pwConfirmInput" type="password" autocomplete="new-password" placeholder="Type it again">
     </div>
 
-    <button type="submit" class="cta" id="submitBtn">Claim my account</button>
+    <button type="submit" class="cta" id="submitBtn">Claim my free creator account</button>
   </form>
 
   <div class="footer-links">
-    Already have an account? <a href="/pages/login.html">Log in</a>
+    Already have a KeepUsPostd creator account? <a href="/pages/login.html">Log in</a>
   </div>
 </div>
 
@@ -186,7 +186,7 @@
     }
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner"></span> Creating your account…';
+    submitBtn.innerHTML = '<span class="spinner"></span> Creating your creator account…';
 
     try {
       // Step 1: create the Firebase auth user with the chosen password.
@@ -203,12 +203,12 @@
         } else if (fbErr.code === 'auth/weak-password') {
           showStatus('error', 'That password is too weak. Try something longer or with more variety.');
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Claim my account';
+          submitBtn.textContent = 'Claim my free creator account';
           return;
         } else if (fbErr.code === 'auth/invalid-email') {
           showStatus('error', 'That email doesn\'t look right.');
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Claim my account';
+          submitBtn.textContent = 'Claim my free creator account';
           return;
         } else {
           throw fbErr;
@@ -217,7 +217,7 @@
 
       // Step 2: hit our backend to link the Firebase UID to the existing
       // embed User record. The Firebase ID token is required (requireAuth).
-      submitBtn.innerHTML = '<span class="spinner"></span> Linking your reviews…';
+      submitBtn.innerHTML = '<span class="spinner"></span> Linking your reviews to your creator account…';
       const token = await cred.user.getIdToken();
       const res = await fetch('/api/auth/claim-embed', {
         method: 'POST',
@@ -233,14 +233,14 @@
         // Common case: this email was never used for an embed submission
         // (or was already claimed under a different flow). Nudge them to
         // sign up normally.
-        showStatus('error', data.message || 'Could not finish claiming your account. Try signing up normally.');
+        showStatus('error', data.message || 'Could not finish claiming your creator account. Try signing up normally.');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Claim my account';
+        submitBtn.textContent = 'Claim my free creator account';
         return;
       }
 
       // Success — bounce to the download page with a friendly hint.
-      showStatus('success', 'All set! Redirecting to the app download…');
+      showStatus('success', 'Your free creator account is live! Redirecting to the app…');
       setTimeout(() => {
         window.location.href = '/pages/download-app.html?claimed=1';
       }, 1200);
@@ -248,7 +248,7 @@
       console.error('claim error', err);
       showStatus('error', (err && err.message) ? err.message : 'Something went wrong. Please try again.');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Claim my account';
+      submitBtn.textContent = 'Claim my free creator account';
     }
   });
 </script>
