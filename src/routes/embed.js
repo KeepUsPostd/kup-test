@@ -777,6 +777,22 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       console.error('[embed submit] content notify error:', e.message);
     }
 
+    // 5 — Phase 5.1: reviewer confirmation email. Fires on EVERY submission
+    // (even repeat-submitters from the same partnership), so a reviewer who
+    // circles back to a brand always gets acknowledged. Distinct from the
+    // welcome email (only new users) because the confirmation carries the
+    // "your review is with [Brand], response within 48h" message. Wrapped
+    // in try/catch — a failed email must never fail the submission.
+    try {
+      notify.embedReviewSubmitted({
+        user,
+        brand,
+        submission,
+      }).catch(e => console.error('[embed] embedReviewSubmitted error:', e.message));
+    } catch (e) {
+      console.error('[embed submit] reviewer confirm error:', e.message);
+    }
+
     return res.status(201).json({
       ok: true,
       submissionId: submission._id,
@@ -790,7 +806,11 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
         needsClaim: user.authMethod === 'embed' && !user.passwordHash && !user.firebaseUid,
       },
       nextSteps: {
-        confirmationEmailSent: false, // Phase 5 will wire this up
+        // Phase 5.1: reviewer confirmation email now fires (best-effort,
+        // wrapped in try/catch upstream — failures never fail the
+        // submission response). Client can use this flag if it wants to
+        // show a "check your email" hint on the confirmation screen.
+        confirmationEmailSent: true,
         downloadAppUrl: `${APP_URL}/download`,
         claimAccountUrl: `${APP_URL}/claim?email=${encodeURIComponent(user.email)}`,
       },

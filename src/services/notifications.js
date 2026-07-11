@@ -2605,10 +2605,59 @@ async function lifecycleReferralNudge({ influencer }) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+// INSTANT REVIEW WIDGET (embed submissions)
+// ═══════════════════════════════════════════════════════════
+
+// Confirmation email for embed reviewers. Fires once, right after their
+// submission is persisted. Distinct from the standard content-submitted
+// notifications because embed users:
+//   - Don't have a KUP app yet (haven't downloaded it)
+//   - Don't have a password (User.authMethod === 'embed', no passwordHash,
+//     no firebaseUid until they claim)
+//   - Won't receive push (no fcmTokens registered yet)
+//
+// So this email is their ONLY confirmation surface, plus their onboarding
+// path (claim their account by downloading the app + setting a password).
+// Includes brand name, review confirmation, and next-step CTAs.
+async function embedReviewSubmitted({ user, brand, submission }) {
+  if (!user || !user.email) return;
+  const displayName = (user.legalFirstName || user.email.split('@')[0] || 'there');
+  const brandName = brand?.name || 'the brand';
+  const claimUrl = `${APP_URL}/claim?email=${encodeURIComponent(user.email)}`;
+  const downloadUrl = `${APP_URL}/download`;
+
+  await sendEmail({
+    to: user.email,
+    subject: `Your review is on its way, ${displayName}`,
+    headline: 'Review received',
+    preheader: `${brandName} will respond within 48 hours.`,
+    bodyHtml: `
+      <p>Hey ${displayName},</p>
+      <p>Thanks for leaving a review of <strong>${brandName}</strong> on KeepUsPostd. Their team will take a look within <strong>48 hours</strong> and approve, edit, or reject it.</p>
+      <p>Your review also just registered you on <strong>KeepUsPostd</strong> — the platform where regular people get paid for honest brand reviews.</p>
+      <p><strong>What's next:</strong></p>
+      <ul>
+        <li>✅ You're now partnered with ${brandName} on KeepUsPostd</li>
+        <li>💸 When they approve your review, any reward they offered unlocks</li>
+        <li>📱 Download the free app to track your review, claim rewards, and discover 100+ more brands you can review</li>
+      </ul>
+      <p>You'll get one more email once your review is approved.</p>
+    `,
+    ctaText: 'Download the App',
+    ctaUrl: downloadUrl,
+    // Secondary link surfaced by the email template renderer if it supports it.
+    secondaryCtaText: 'Set up my account',
+    secondaryCtaUrl: claimUrl,
+    variant: 'brand',
+  });
+}
+
 module.exports = {
   // ── Internal helper (exported for admin-panel promo flow) ──
   createInApp,
   notifyCreatorSubscribers,
+  embedReviewSubmitted,
 
   // ── Lifecycle re-engagement (cron-triggered) ──
   lifecycleAlreadySent,
