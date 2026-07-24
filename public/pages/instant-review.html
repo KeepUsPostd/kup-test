@@ -177,12 +177,49 @@
   .checkbox-field label { font-size: 13px; color: #999; line-height: 1.5; text-transform: none; letter-spacing: 0; margin: 0; }
   .checkbox-field label a { color: #2EA5DD; text-decoration: none; }
 
-  /* ── Record screen ── */
+  /* ── Record screen ──
+     The recorder is the only screen that needs to fit the viewport exactly —
+     scrolling here would push the record button off-screen or force the user
+     to scroll between the guidance and the camera. Everywhere else, natural
+     document scroll is fine. */
+  #screen-recorder.active {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 12px;
+    gap: 10px;
+  }
+  #screen-recorder .form-header { padding: 4px 2px 6px; }
+  #screen-recorder .form-title { font-size: 15px; margin-bottom: 2px; }
+  #screen-recorder .form-subtitle { font-size: 12px; color: #9aa3a8; line-height: 1.35; }
+  #screen-recorder .recorder-context {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    font-size: 12px; color: #cbd8e0;
+  }
+  #screen-recorder .recorder-context .rc-eyebrow {
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 9px; font-weight: 700; color: #7dc4e6;
+    white-space: nowrap;
+  }
+  #screen-recorder .recorder-context .rc-body { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #screen-recorder .upload-alt {
+    display: flex; justify-content: center; align-items: center; gap: 6px;
+    font-size: 12px; color: #7dc4e6;
+    padding: 8px 4px 0;
+  }
+  #screen-recorder .upload-alt button {
+    background: none; border: none; color: #7dc4e6;
+    font-size: 12px; font-weight: 600; padding: 0;
+    text-decoration: underline; cursor: pointer;
+  }
+  #screen-recorder .upload-alt button:disabled { opacity: 0.5; cursor: not-allowed; }
   .recorder-wrap {
-    position: relative; flex: 1;
+    position: relative; flex: 1; min-height: 0;
     display: flex; flex-direction: column;
     background: #000; border-radius: 16px; overflow: hidden;
-    margin-bottom: 16px;
   }
   #videoPreview {
     width: 100%; flex: 1; object-fit: cover; background: #000;
@@ -301,7 +338,7 @@
 <div id="screen-form" class="screen">
   <div class="form-header">
     <div class="form-title">Quick intro</div>
-    <div class="form-subtitle">Just your name + email to send you updates on approval and payout.</div>
+    <div class="form-subtitle">Just your name + email to send you updates on approvals and payouts when applicable.</div>
   </div>
 
   <div class="field">
@@ -316,7 +353,7 @@
   <div class="checkbox-field">
     <input type="checkbox" id="input-terms">
     <label for="input-terms">
-      I agree to the <a href="/pages/terms.html" target="_blank">Terms</a> &amp; <a href="/pages/policy.html" target="_blank">Privacy Policy</a> and confirm this review is my honest opinion.
+      Sharing my honest take. I agree to KUP's <a href="/pages/terms.html" target="_blank">Terms</a> &amp; <a href="/pages/policy.html" target="_blank">Privacy</a>.
     </label>
   </div>
 
@@ -329,7 +366,14 @@
 <div id="screen-recorder" class="screen">
   <div class="form-header">
     <div class="form-title" id="recorder-title">Record your review</div>
-    <div class="form-subtitle" id="recorder-subtitle">Keep it under 3 minutes. Speak honestly — the brand reviews before any reward is unlocked.</div>
+    <div class="form-subtitle" id="recorder-subtitle">Keep it under 3 minutes.</div>
+  </div>
+
+  <!-- Compact reward/guidance strip — reward title if present, else briefing —
+       stays visible during recording so the reviewer never loses context. -->
+  <div class="recorder-context" id="recorder-context" style="display:none;">
+    <div class="rc-eyebrow" id="rc-eyebrow">You'll unlock</div>
+    <div class="rc-body" id="rc-body"></div>
   </div>
 
   <div class="recorder-wrap">
@@ -341,6 +385,15 @@
     <div class="recorder-controls">
       <button id="record-btn" class="record-btn" aria-label="Start recording" onclick="toggleRecording()"></button>
     </div>
+  </div>
+
+  <!-- Upload existing video as an alternative to live recording.
+       Hidden while recording is in progress; also hidden after a video is
+       captured/selected (submit/retake owns the flow at that point). -->
+  <div class="upload-alt" id="upload-alt">
+    <span>Prefer to upload existing?</span>
+    <input type="file" id="input-video-file" accept="video/*" style="display:none;" onchange="handleUploadFromDevice(event)">
+    <button type="button" onclick="document.getElementById('input-video-file').click()">Upload from device</button>
   </div>
 
   <div id="record-error" class="status-banner error" style="display:none;"></div>
@@ -605,6 +658,22 @@ function renderLanding() {
     document.getElementById('briefing-body').textContent = reviewBriefing.trim();
   }
 
+  // Compact recorder-context strip — visible during recording so the
+  // reviewer never loses sight of what they're recording for. Reward takes
+  // precedence; briefing fills in when there's no reward configured.
+  const rcEl = document.getElementById('recorder-context');
+  const rcEyebrow = document.getElementById('rc-eyebrow');
+  const rcBody = document.getElementById('rc-body');
+  if (reward && reward.title) {
+    rcEyebrow.textContent = "You'll unlock";
+    rcBody.textContent = reward.title;
+    rcEl.style.display = 'flex';
+  } else if (reviewBriefing && reviewBriefing.trim().length > 0) {
+    rcEyebrow.textContent = 'Guidance';
+    rcBody.textContent = reviewBriefing.trim();
+    rcEl.style.display = 'flex';
+  }
+
   // Duration hint on landing — mirrors the recorder cap.
   const mins = Math.round(maxSeconds / 60);
   document.getElementById('landing-max-duration').textContent =
@@ -693,6 +762,10 @@ function startRecording() {
 
   document.getElementById('record-btn').classList.add('recording');
   document.getElementById('timer-badge').style.display = 'flex';
+  // Hide the upload-from-device option once live recording begins — mixing
+  // the two mid-flow would be confusing (which video wins?).
+  const uaEl = document.getElementById('upload-alt');
+  if (uaEl) uaEl.style.display = 'none';
   state.timerInterval = setInterval(() => {
     const secs = Math.floor((Date.now() - state.recordingStartTs) / 1000);
     const mm = Math.floor(secs / 60), ss = secs % 60;
@@ -721,7 +794,69 @@ function retakeVideo() {
   document.getElementById('record-btn').classList.remove('recording');
   document.getElementById('record-actions').style.display = 'none';
   document.getElementById('record-error').style.display = 'none';
+  // Restore the upload-from-device option and reset the file input so the
+  // same file can be re-picked if the user really means it (browsers ignore
+  // change events for the same file otherwise).
+  const uaEl = document.getElementById('upload-alt');
+  if (uaEl) uaEl.style.display = '';
+  const fileInput = document.getElementById('input-video-file');
+  if (fileInput) fileInput.value = '';
   startRecordingFlow();
+}
+
+// ── Upload from device ────────────────────────────────
+// Alternative to live recording — user picks a video from their device and
+// we feed it through the same submit flow used for MediaRecorder blobs.
+// Backend already accepts video/* mimetypes and any extension in
+// VIDEO_EXTENSIONS at the /upload endpoint, so nothing new is needed there.
+const MAX_UPLOAD_BYTES = 200 * 1024 * 1024; // mirrors EMBED_MAX_UPLOAD_MB
+function handleUploadFromDevice(event) {
+  const file = event.target && event.target.files && event.target.files[0];
+  if (!file) return;
+  const errEl = document.getElementById('record-error');
+  errEl.style.display = 'none';
+
+  // Frontend guard rails — backend validates too, but a friendly local
+  // rejection saves the round-trip.
+  const looksVideo =
+    (file.type && file.type.startsWith('video/')) ||
+    /\.(mp4|m4v|mov|webm|mkv|ogg|ogv)$/i.test(file.name || '');
+  if (!looksVideo) {
+    errEl.textContent = 'Please choose a video file.';
+    errEl.style.display = 'block';
+    event.target.value = '';
+    return;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    errEl.textContent = 'Video is too large (200MB max). Try trimming it first.';
+    errEl.style.display = 'block';
+    event.target.value = '';
+    return;
+  }
+
+  // Tear down the live camera stream — the uploaded file replaces it.
+  if (state.mediaStream) {
+    state.mediaStream.getTracks().forEach(t => t.stop());
+    state.mediaStream = null;
+  }
+  if (state.recordedBlobUrl) URL.revokeObjectURL(state.recordedBlobUrl);
+
+  state.recordedBlob = file;
+  state.recordedBlobUrl = URL.createObjectURL(file);
+
+  const video = document.getElementById('videoPreview');
+  video.srcObject = null;
+  video.src = state.recordedBlobUrl;
+  video.muted = false;
+  video.controls = true;
+  video.play().catch(() => {});
+
+  document.getElementById('record-btn').style.display = 'none';
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('timer-badge').style.display = 'none';
+  document.getElementById('record-actions').style.display = 'block';
+  const uaEl = document.getElementById('upload-alt');
+  if (uaEl) uaEl.style.display = 'none';
 }
 
 // ── Submit ────────────────────────────────────────────
@@ -733,7 +868,17 @@ async function submitReview() {
   try {
     // Step 1: upload the video blob
     const formData = new FormData();
-    const ext = state.recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+    // Prefer the source file's own extension when the reviewer uploaded from
+    // device (File objects carry `.name`); MediaRecorder blobs don't, so we
+    // fall back to mimetype sniffing then a safe default.
+    const originalName = state.recordedBlob.name || '';
+    const originalExt = (originalName.match(/\.(mp4|m4v|mov|webm|mkv|ogg|ogv)$/i) || [])[1];
+    const mimeType = state.recordedBlob.type || '';
+    const ext = originalExt
+      ? originalExt.toLowerCase()
+      : mimeType.includes('mp4') ? 'mp4'
+      : mimeType.includes('quicktime') ? 'mov'
+      : 'webm';
     formData.append('video', state.recordedBlob, `review-${Date.now()}.${ext}`);
     const uploadRes = await fetch(`${API_BASE}/${brandCode}/upload`, { method: 'POST', body: formData });
     if (!uploadRes.ok) {

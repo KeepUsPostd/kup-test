@@ -472,9 +472,16 @@ router.get('/:brandCode/config', async (req, res) => {
         // guidance feel written for this brand specifically rather than
         // generic UGC advice. Brands can override this entirely from the
         // portal (Phase 4).
+        // When a brand has an active reward AND no custom briefing, suppress
+        // the KUP-authored default — the reward card already gives the reviewer
+        // enough context about what they're doing and what they get for it.
+        // Only fall back to the default when there's no reward to anchor the
+        // ask (unconfigured brands still get baseline guidance).
         reviewBriefing: (brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim())
           ? brandProfile.reviewBriefing.trim()
-          : `Share your honest experience about ${brand.name} — a quick intro, what stood out, and why it mattered. Real reactions perform best.`,
+          : reward
+            ? ''
+            : `Share your honest experience about ${brand.name} — a quick intro, what stood out, and why it mattered. Real reactions perform best.`,
         reviewBriefingIsDefault: !(brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim()),
       },
     });
