@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Favicon / app icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2EA5DD">
+  <title>A Review For Your Brand — KeepUsPostd</title>
+  <meta name="description" content="A real video review of your business, made for you on KeepUsPostd." />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kup-blue: #2ea5dd;
+      --kup-gradient: linear-gradient(135deg, #2ea5dd, #6c7cbd);
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* HERO */
+    .hero {
+      width: 100%;
+      height: 140px;
+      background: var(--kup-gradient);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      opacity: 0.95;
+    }
+
+    /* CARD */
+    .card {
+      max-width: 480px;
+      margin: -50px auto 0;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      padding: 26px 24px 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* BRAND AVATAR */
+    .brand-avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      background: var(--kup-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+      margin: 0 auto 14px;
+    }
+    .brand-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .eyebrow {
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--kup-blue);
+      text-align: center;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .headline {
+      font-size: 1.3rem;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .subhead {
+      font-size: .88rem;
+      color: #666;
+      text-align: center;
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+
+    /* VIDEO */
+    .video-wrap { max-width: 330px; margin: 0 auto 22px; }
+    .video-frame {
+      position: relative;
+      padding-top: 177.78%; /* 9:16 portrait */
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,.18);
+      background: #000;
+    }
+    .video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    /* CLAIM SECTION */
+    .divider { height: 1px; background: #f0f0f0; margin: 0 -24px 22px; }
+    .claim-heading { font-size: 1.02rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .claim-sub { font-size: .86rem; color: #555; text-align: center; line-height: 1.55; margin-bottom: 18px; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: var(--kup-gradient);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      letter-spacing: .3px;
+    }
+    .btn-note {
+      font-size: .76rem;
+      color: #888;
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    /* POWERED BY */
+    .powered-by {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: .75rem;
+      color: #999;
+      margin-top: 22px;
+    }
+    .powered-by img { height: 20px; width: auto; display: block; margin-top: -2px; }
+
+    .page-footer {
+      text-align: center;
+      padding: 22px;
+      font-size: .72rem;
+      color: #bbb;
+    }
+    .page-footer a { color: #bbb; }
+
+    .state-error { text-align: center; padding: 60px 24px; color: #e53e3e; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img class="hero-logo" src="/images/kup_white_new_logo_1.png" alt="KeepUsPostd" onerror="this.style.display='none'" />
+  </div>
+
+  <div class="card" id="mainCard">
+
+    <div id="reviewContent">
+      <div class="brand-avatar" id="brandAvatar"></div>
+
+      <div class="eyebrow">A real customer review</div>
+      <div class="headline" id="headline">A video review, made for you</div>
+      <div class="subhead" id="subhead">Someone loved working with you enough to record it. Press play.</div>
+
+      <div class="video-wrap">
+        <div class="video-frame">
+          <iframe id="player"
+            src=""
+            allow="autoplay; fullscreen; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+            title="Customer review"></iframe>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="claim-heading">This review is yours</div>
+      <div class="claim-sub" id="claimSub">
+        Watch it as often as you like. To use it in your own marketing, respond to it, and unlock reviews from every customer who loves your work, claim your brand below.
+      </div>
+
+      <a href="#" class="btn-primary" id="claimBtn">Claim your brand</a>
+      <div class="btn-note">Free to start, no credit card. You approve every review before it ever goes live.</div>
+
+      <div class="powered-by">
+        <span>Powered by</span>
+        <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd" />
+      </div>
+    </div>
+
+    <div class="state-error" id="errorState" style="display:none;">
+      <p style="font-size:2rem;margin-bottom:12px;">🎬</p>
+      <p style="font-weight:700;margin-bottom:8px;">This review link looks incomplete</p>
+      <p style="font-size:.85rem;color:#888;">Please use the full link from your email, or reply and we will resend it.</p>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    &copy; 2026 KeepUsPostd &nbsp;·&nbsp;
+    <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/help">Help</a>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var b = (params.get('b') || '').trim();          // brand mongoId
+      var v = (params.get('v') || '').trim();           // vimeo video id
+      var h = (params.get('h') || '').trim();           // vimeo privacy hash
+
+      var contentEl = document.getElementById('reviewContent');
+      var errorEl = document.getElementById('errorState');
+
+      // Validate inputs (defensive — these build a URL + a DB lookup)
+      var validVideo = /^[0-9]+$/.test(v);
+      var validHash = h === '' || /^[a-z0-9]+$/i.test(h);
+      var validBrand = /^[a-f0-9]{24}$/i.test(b);
+
+      if (!validVideo || !validHash) {
+        contentEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // Build the clean Vimeo player URL — no title, byline, portrait, or badge.
+      var src = 'https://player.vimeo.com/video/' + encodeURIComponent(v)
+        + '?' + (h ? 'h=' + encodeURIComponent(h) + '&' : '')
+        + 'badge=0&autopause=0&title=0&byline=0&portrait=0&dnt=1';
+      document.getElementById('player').src = src;
+
+      // Claim button — falls back to the generic register page if no valid brand id.
+      var claimBtn = document.getElementById('claimBtn');
+      claimBtn.href = validBrand
+        ? '/pages/claim.html?brandId=' + encodeURIComponent(b)
+        : '/pages/register-brand.html';
+
+      // Personalize with the brand's name/logo (best-effort — the video always shows).
+      if (validBrand) {
+        fetch('/api/brands/public/' + encodeURIComponent(b.toUpperCase()))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var brand = data && data.brand;
+            if (!brand || !brand.name) return;
+
+            document.getElementById('headline').textContent = 'A video review for ' + brand.name;
+            document.getElementById('subhead').textContent =
+              'A real review of ' + brand.name + ', made just for you. Press play.';
+            document.getElementById('claimSub').textContent =
+              'Watch it as often as you like. To claim it as yours, use it in your own marketing, and unlock reviews from every customer who loves your work, claim ' + brand.name + ' below.';
+            document.getElementById('player').title = 'A review for ' + brand.name;
+            document.title = 'A Review For ' + brand.name + ' — KeepUsPostd';
+
+            var avatar = document.getElementById('brandAvatar');
+            if (brand.logoUrl) {
+              avatar.innerHTML = '<img src="' + brand.logoUrl + '" alt="" onerror="this.style.display=\'none\'" />';
+            } else {
+              avatar.textContent = brand.initials || brand.name.charAt(0).toUpperCase();
+              if (brand.generatedColor) avatar.style.background = brand.generatedColor;
+            }
+          })
+          .catch(function () { /* keep generic copy — video still plays */ });
+      } else {
+        document.getElementById('brandAvatar').textContent = '★';
+      }
+    })();
+  </script>
+</body>
+</html>

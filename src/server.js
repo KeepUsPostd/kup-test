@@ -113,6 +113,7 @@ app.use(helmet({
         "'self'",
         "https://keepuspostd.firebaseapp.com",
         "https://accounts.google.com",
+        "https://player.vimeo.com",   // Embedded review videos on /pages/review.html
       ],
       upgradeInsecureRequests: null,  // DISABLE — breaks local dev on phone (no HTTPS)
     },
