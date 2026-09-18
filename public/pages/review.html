@@ -33,7 +33,8 @@
     /* HERO */
     .hero {
       width: 100%;
-      height: 140px;
+      height: 180px;
+      padding-top: env(safe-area-inset-top, 0px); /* clear the notch/status bar on phones */
       background: var(--kup-gradient);
       position: relative;
       overflow: hidden;
@@ -180,7 +181,7 @@
 
       <div class="eyebrow">A real customer review</div>
       <div class="headline" id="headline">A video review, made for you</div>
-      <div class="subhead" id="subhead">Someone loved working with you enough to record it. Press play.</div>
+      <div class="subhead" id="subhead">Someone loved working with you enough to record it. Press&nbsp;play.</div>
 
       <div class="video-wrap">
         <div class="video-frame">
@@ -200,7 +201,7 @@
       </div>
 
       <a href="#" class="btn-primary" id="claimBtn">Claim your brand</a>
-      <div class="btn-note">Free to start, no credit card. You approve every review before it ever goes live.</div>
+      <div class="btn-note">Free to start, no credit card. You approve every review before it ever goes&nbsp;live.</div>
 
       <div class="powered-by">
         <span>Powered by</span>
@@ -264,7 +265,7 @@
 
             document.getElementById('headline').textContent = 'A video review for ' + brand.name;
             document.getElementById('subhead').textContent =
-              'A real review of ' + brand.name + ', made just for you. Press play.';
+              'A real review of ' + brand.name + ', made just for you. Press play.';
             document.getElementById('claimSub').textContent =
               'Watch it as often as you like. To claim it as yours, use it in your own marketing, and unlock reviews from every customer who loves your work, claim ' + brand.name + ' below.';
             document.getElementById('player').title = 'A review for ' + brand.name;
