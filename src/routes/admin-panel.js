@@ -2431,7 +2431,7 @@ router.post('/brands/bulk-create', async (req, res) => {
                 { threshold: 1750, rewardType: 'wallet_credit', rewardValue: '8', description: '$8 wallet credit' },
               ],
             },
-            createdBy: 'platform',
+            // createdBy omitted: optional ObjectId ref(User), platform rewards have no user creator
           });
         }
 
@@ -2496,7 +2496,7 @@ router.post('/platform-rewards/apply', async (req, res) => {
             { threshold: 1750, rewardType: 'wallet_credit', rewardValue: '8', description: '$8 wallet credit' },
           ],
         },
-        createdBy: 'platform',
+        // createdBy is an optional ObjectId ref(User); platform rewards have no user creator, so omit it
       });
       created++;
       console.log(`✅ Platform reward created for "${brand.name}"`);
