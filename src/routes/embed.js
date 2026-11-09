@@ -449,12 +449,11 @@ router.get('/:brandCode/config', async (req, res) => {
 
     // Load the brand's profile once — used for widget-enabled check AND
     // for reading brand-authored review briefing further down.
-    let brandProfile = null;
-    if (brand.ownerId) {
-      brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-        .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText')
-        .lean();
-    }
+    // Looked up by ownership, not ownerId: admin-created brands have no
+    // ownerId but still have a profile holding their widget settings.
+    const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
+      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText')
+      .lean();
     if (brandProfile && brandProfile.embedWidgetEnabled === false) {
       return res.status(403).json({
         error: 'widget_disabled',
@@ -689,18 +688,15 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
     }
 
     // Check widget-enabled flag
-    let consentProfile = null;
-    if (brand.ownerId) {
-      const profile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-        .select('embedWidgetEnabled widgetConsentText widgetOptInText')
-        .lean();
-      consentProfile = profile;
-      if (profile && profile.embedWidgetEnabled === false) {
-        return res.status(403).json({
-          error: 'widget_disabled',
-          message: 'This brand has paused instant reviews.',
-        });
-      }
+    // Same ownership lookup as /config, so admin-created brands are covered.
+    const consentProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
+      .select('embedWidgetEnabled widgetConsentText widgetOptInText')
+      .lean();
+    if (consentProfile && consentProfile.embedWidgetEnabled === false) {
+      return res.status(403).json({
+        error: 'widget_disabled',
+        message: 'This brand has paused instant reviews.',
+      });
     }
 
     // ── Find or create the User
