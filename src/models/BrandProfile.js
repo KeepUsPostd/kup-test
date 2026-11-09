@@ -111,6 +111,16 @@ const brandProfileSchema = new mongoose.Schema({
   // intro, what stood out, and why it mattered"). Editable from the brand
   // portal's Instant Review panel (Phase 4).
   reviewBriefing: { type: String, default: null, maxlength: 1000 },
+
+  // Optional per-brand Instant Review consent wording. When set, it replaces
+  // the default lead-in on the required checkbox. KeepUsPostd's Terms and
+  // Privacy sentence always follows it and cannot be removed.
+  widgetConsentText: { type: String, default: null, maxlength: 600 },
+
+  // Optional per-brand marketing opt-in. When set, the widget shows a second,
+  // UNCHECKED, optional checkbox with this label. Brands can only export the
+  // contact details of reviewers who ticked it.
+  widgetOptInText: { type: String, default: null, maxlength: 300 },
 }, {
   timestamps: true,
 });

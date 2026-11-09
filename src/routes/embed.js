@@ -272,7 +272,7 @@ router.get('/admin/config', requireAuth, async (req, res) => {
     if (!member) return; // 403 already sent
 
     const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-      .select('embedWidgetEnabled reviewBriefing embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
+      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
       .lean();
 
     // Effective monthly cap (Phase 2 shipped this — reuse the shared service).
@@ -297,6 +297,8 @@ router.get('/admin/config', requireAuth, async (req, res) => {
       widget: {
         enabled: brandProfile ? brandProfile.embedWidgetEnabled !== false : true,
         reviewBriefing: (brandProfile && brandProfile.reviewBriefing) || '',
+        consentText: (brandProfile && brandProfile.widgetConsentText) || '',
+        optInText: (brandProfile && brandProfile.widgetOptInText) || '',
         url: widgetUrl,
       },
       usage: {
@@ -318,7 +320,7 @@ router.get('/admin/config', requireAuth, async (req, res) => {
 // accidental clears (e.g. undefined vs empty string is meaningful).
 router.put('/admin/config', requireAuth, async (req, res) => {
   try {
-    const { brandId, enabled, reviewBriefing } = req.body || {};
+    const { brandId, enabled, reviewBriefing, consentText, optInText } = req.body || {};
     if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
 
     const brand = await Brand.findById(brandId).select('_id').lean();
@@ -342,6 +344,13 @@ router.put('/admin/config', requireAuth, async (req, res) => {
       // — brands may want to clear a briefing back to the KUP default.
       update.reviewBriefing = reviewBriefing.slice(0, 1000);
     }
+    // Empty string clears either field back to the platform default.
+    if (typeof consentText === 'string') {
+      update.widgetConsentText = consentText.replace(/\s+/g, ' ').trim().slice(0, 600) || null;
+    }
+    if (typeof optInText === 'string') {
+      update.widgetOptInText = optInText.replace(/\s+/g, ' ').trim().slice(0, 300) || null;
+    }
 
     if (Object.keys(update).length === 0) {
       return res.status(400).json({ error: 'no_updates', message: 'Nothing to update. Send enabled or reviewBriefing.' });
@@ -357,11 +366,69 @@ router.put('/admin/config', requireAuth, async (req, res) => {
       widget: {
         enabled: brandProfile.embedWidgetEnabled !== false,
         reviewBriefing: brandProfile.reviewBriefing || '',
+        consentText: brandProfile.widgetConsentText || '',
+        optInText: brandProfile.widgetOptInText || '',
       },
     });
   } catch (err) {
     console.error('[PUT /api/embed/admin/config]', err.message);
     return res.status(500).json({ error: 'server_error', message: 'Could not save widget config.' });
+  }
+});
+
+// GET /api/embed/admin/optins?brandId=
+// Brand members only. Returns ONLY reviewers who ticked this brand's optional
+// opt-in. Newest consent per email wins, so a later "no" removes an earlier "yes".
+router.get('/admin/optins', requireAuth, async (req, res) => {
+  try {
+    const { brandId } = req.query;
+    if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
+
+    const brand = await Brand.findById(brandId).select('_id').lean();
+    if (!brand) return res.status(404).json({ error: 'brand_not_found', message: 'Brand not found.' });
+
+    const member = await requireBrandMember(req, res, brand._id);
+    if (!member) return; // 403 already sent
+
+    const submissions = await ContentSubmission.find({
+      brandId: brand._id,
+      source: 'embed',
+      'embedConsent.acceptedAt': { $ne: null },
+    })
+      .select('influencerProfileId embedConsent')
+      .sort({ 'embedConsent.acceptedAt': -1 })
+      .lean();
+
+    const newestByProfile = new Map();
+    for (const s of submissions) {
+      const key = String(s.influencerProfileId);
+      if (!newestByProfile.has(key)) newestByProfile.set(key, s);
+    }
+    const optedIn = [...newestByProfile.values()].filter((s) => s.embedConsent.optedIn === true);
+
+    const profiles = await InfluencerProfile.find({ _id: { $in: optedIn.map((s) => s.influencerProfileId) } })
+      .select('userId displayName')
+      .lean();
+    const users = await User.find({ _id: { $in: profiles.map((p) => p.userId) } })
+      .select('email')
+      .lean();
+    const profileById = new Map(profiles.map((p) => [String(p._id), p]));
+    const userById = new Map(users.map((u) => [String(u._id), u]));
+
+    const optIns = optedIn.map((s) => {
+      const profile = profileById.get(String(s.influencerProfileId));
+      const user = profile && userById.get(String(profile.userId));
+      return {
+        name: (profile && profile.displayName) || '',
+        email: (user && user.email) || '',
+        optedInAt: s.embedConsent.acceptedAt,
+      };
+    }).filter((o) => o.email);
+
+    return res.json({ optIns });
+  } catch (err) {
+    console.error('[GET /api/embed/admin/optins]', err.message);
+    return res.status(500).json({ error: 'server_error', message: 'Could not load the opt-in list.' });
   }
 });
 
@@ -385,7 +452,7 @@ router.get('/:brandCode/config', async (req, res) => {
     let brandProfile = null;
     if (brand.ownerId) {
       brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-        .select('embedWidgetEnabled reviewBriefing')
+        .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText')
         .lean();
     }
     if (brandProfile && brandProfile.embedWidgetEnabled === false) {
@@ -483,6 +550,8 @@ router.get('/:brandCode/config', async (req, res) => {
             ? ''
             : `Share your honest experience about ${brand.name} — a quick intro, what stood out, and why it mattered. Real reactions perform best.`,
         reviewBriefingIsDefault: !(brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim()),
+        consentText: (brandProfile && brandProfile.widgetConsentText) || null,
+        optInText: (brandProfile && brandProfile.widgetOptInText) || null,
       },
     });
   } catch (err) {
@@ -593,6 +662,7 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       captureLat,
       captureLon,
       agreedToTerms,
+      marketingOptIn,
     } = req.body || {};
 
     // ── Input validation
@@ -619,10 +689,12 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
     }
 
     // Check widget-enabled flag
+    let consentProfile = null;
     if (brand.ownerId) {
       const profile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-        .select('embedWidgetEnabled')
+        .select('embedWidgetEnabled widgetConsentText widgetOptInText')
         .lean();
+      consentProfile = profile;
       if (profile && profile.embedWidgetEnabled === false) {
         return res.status(403).json({
           error: 'widget_disabled',
@@ -698,6 +770,12 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       brandLocationId: brandLocationId || null,
       captureLat: typeof captureLat === 'number' ? captureLat : null,
       captureLon: typeof captureLon === 'number' ? captureLon : null,
+      embedConsent: {
+        consentText: (consentProfile && consentProfile.widgetConsentText) || null,
+        optInText: (consentProfile && consentProfile.widgetOptInText) || null,
+        optedIn: !!(consentProfile && consentProfile.widgetOptInText && marketingOptIn === true),
+        acceptedAt: new Date(),
+      },
     });
 
     // ── Increment counters (mirrors the standard content-submit flow)

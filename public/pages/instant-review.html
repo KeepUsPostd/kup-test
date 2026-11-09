@@ -353,8 +353,13 @@
   <div class="checkbox-field">
     <input type="checkbox" id="input-terms">
     <label for="input-terms">
-      Sharing my honest take. I agree to KeepUsPostd's <a href="/pages/terms.html" target="_blank">Terms</a> &amp; <a href="/pages/policy.html" target="_blank">Privacy</a>.
+      <span id="consent-lead">Sharing my honest take.</span> I agree to KeepUsPostd's <a href="/pages/terms.html" target="_blank">Terms</a> &amp; <a href="/pages/policy.html" target="_blank">Privacy</a>.
     </label>
+  </div>
+
+  <div class="checkbox-field" id="optin-field" style="display:none;">
+    <input type="checkbox" id="input-optin">
+    <label for="input-optin" id="optin-label"></label>
   </div>
 
   <div id="form-error" class="status-banner error" style="display:none;"></div>
@@ -578,6 +583,13 @@ async function loadBrandConfig() {
       state.maxSeconds = Math.max(15, Math.min(600, data.widget.maxDurationSeconds));
     }
     state.reviewBriefing = data.widget && data.widget.reviewBriefing;
+    if (data.widget && data.widget.consentText) {
+      document.getElementById('consent-lead').textContent = data.widget.consentText;
+    }
+    if (data.widget && data.widget.optInText) {
+      document.getElementById('optin-label').textContent = data.widget.optInText;
+      document.getElementById('optin-field').style.display = 'flex';
+    }
     // Swap the browser-tab favicon to the brand's logo when available so
     // the widget reads as belonging to the brand's site, not to KUP. Keeps
     // KUP as a subtle 'powered by' at the bottom rather than dominating
@@ -897,6 +909,7 @@ async function submitReview() {
         email: state.email,
         mediaUrls: [mediaUrl],
         agreedToTerms: true,
+        marketingOptIn: document.getElementById('input-optin').checked,
       }),
     });
     if (!submitRes.ok) {

@@ -254,6 +254,23 @@
           </div>
         </div>
 
+        <div style="margin-top:24px;">
+          <span class="label">Consent wording (optional)</span>
+          <textarea class="briefing-editor" id="consentEditor" oninput="markDirty();" placeholder="Leave blank to use the default wording." maxlength="600"></textarea>
+          <div class="briefing-meta">
+            <span>Shown on the required checkbox. KeepUsPostd's Terms and Privacy sentence is always added after it.</span>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <span class="label">Optional email opt-in (optional)</span>
+          <textarea class="briefing-editor" id="optInEditor" oninput="markDirty();" placeholder="Leave blank to hide this checkbox." maxlength="300"></textarea>
+          <div class="briefing-meta">
+            <span>Shown as a separate checkbox that starts unticked. Only people who tick it appear in your list.</span>
+          </div>
+          <button class="btn-copy" type="button" id="btnOptIns" onclick="downloadOptIns()" style="margin-top:12px;">Download opt-in list (CSV)</button>
+        </div>
+
         <button class="btn-primary" id="btnSave" onclick="saveConfig()" disabled>Save changes</button>
       </div>
 
@@ -362,6 +379,8 @@
       // Settings
       document.getElementById('enabledToggle').checked = cfg.widget.enabled !== false;
       document.getElementById('briefingEditor').value = cfg.widget.reviewBriefing || '';
+      document.getElementById('consentEditor').value = cfg.widget.consentText || '';
+      document.getElementById('optInEditor').value = cfg.widget.optInText || '';
       updateBriefingCounter();
 
       // QR
@@ -501,6 +520,8 @@
         brandId: currentBrandId,
         enabled: document.getElementById('enabledToggle').checked,
         reviewBriefing: document.getElementById('briefingEditor').value,
+        consentText: document.getElementById('consentEditor').value,
+        optInText: document.getElementById('optInEditor').value,
       };
       const res = await kupApi.put('/api/embed/admin/config', payload);
       if (!res || res.error) {
@@ -515,6 +536,36 @@
       showToast('Widget settings saved.');
       // Refresh so the sidebar usage counter reflects any effect.
       loadConfig();
+    }
+
+    // Build the CSV in the browser. A leading ' stops spreadsheet apps from
+    // treating a typed-in name as a formula.
+    function csvCell(v) {
+      let s = String(v == null ? '' : v);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+
+    async function downloadOptIns() {
+      if (!currentBrandId) return;
+      let data;
+      try {
+        data = await kupApi.get('/api/embed/admin/optins?brandId=' + encodeURIComponent(currentBrandId));
+      } catch (e) {
+        showToast((e && e.message) || 'Could not load the list. Try again.', 6000);
+        return;
+      }
+      if (!data || !Array.isArray(data.optIns)) { showToast('Could not load the list. Try again.', 6000); return; }
+      if (data.optIns.length === 0) { showToast('No one has opted in yet.'); return; }
+      const rows = [['Name', 'Email', 'Opted in'].map(csvCell).join(',')].concat(
+        data.optIns.map((o) => [o.name, o.email, o.optedInAt].map(csvCell).join(','))
+      );
+      const url = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'opt-in-list.csv';
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     // ── Toast ───────────────────────────────────────────────────────

@@ -124,6 +124,16 @@ const contentSubmissionSchema = new mongoose.Schema({
   // - 'kiosk' : in-store kiosk mode
   // Used by admin/brand moderation queues to filter, by analytics to measure
   // widget adoption, and by monthly-approval-cap logic to attribute counts.
+  // What this reviewer agreed to on the Instant Review Widget, captured from
+  // the server's copy of the wording at submit time. This is the record of
+  // consent, so it is never rebuilt from the brand's current settings.
+  embedConsent: {
+    consentText: { type: String, default: null },
+    optInText: { type: String, default: null },
+    optedIn: { type: Boolean, default: false },
+    acceptedAt: { type: Date, default: null },
+  },
+
   source: {
     type: String,
     enum: ['app', 'embed', 'kiosk'],
