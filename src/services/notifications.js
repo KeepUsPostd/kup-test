@@ -270,6 +270,31 @@ async function contentSubmissionConfirmed({ influencer, brand, submission }) {
 }
 
 // CON-003: Content approved → notify influencer
+// Campaign-specific approval emails, keyed by brandHandle. Used only when the
+// brand's per-approval reward delivers through a link (e.g. a shipping form).
+// Every other brand and reward type keeps the standard approval email.
+const FORM_REWARD_EMAILS = {
+  risewithwells: {
+    subject: 'Your Free Rise Tee: confirm your size and address',
+    headline: 'Your Free Rise Tee is ready',
+    preheader: 'Your video was approved. Confirm your size and address.',
+    ctaText: 'Confirm your size and address',
+    bodyHtml: `
+      <p>Thank you for adding your voice to the record.</p>
+      <p>Your video was approved and now has a place on the <a href="https://risewithwells.org/red-record.html#wall" style="color:#2EA5DD;">Red Record Wall</a>. You've earned a free Rise With Wells tee.</p>
+      <p>Tap the button below to confirm your size and shipping address. Please use the same email you recorded with. One per person, US only.</p>
+    `,
+    submittedNote: `<p><strong>About your free tee:</strong> if your video is approved, your shirt form arrives in a separate email. If you don't see it, check your Promotions and Spam folders.</p>`,
+  },
+};
+
+// Returns the campaign email to send for this approval, or null for the standard one.
+function formRewardEmail(brand, reward) {
+  const config = FORM_REWARD_EMAILS[String(brand?.brandHandle || '').toLowerCase()];
+  const isFormLink = reward?.type === 'per_approval' && reward.deliverable?.method === 'link' && reward.deliverable.url;
+  return config && isFormLink ? config : null;
+}
+
 async function contentApproved({ influencer, brand, submission, reward = null }) {
   if (!influencer.email) return;
 
@@ -317,7 +342,17 @@ async function contentApproved({ influencer, brand, submission, reward = null })
     }
   }
 
-  await sendEmail({
+  const formEmail = formRewardEmail(brand, reward);
+  await sendEmail(formEmail ? {
+    to: influencer.email,
+    subject: formEmail.subject,
+    headline: formEmail.headline,
+    preheader: formEmail.preheader,
+    bodyHtml: formEmail.bodyHtml,
+    ctaText: formEmail.ctaText,
+    ctaUrl: reward.deliverable.url,
+    variant: 'brand',
+  } : {
     to: influencer.email,
     subject: `Content Approved — ${brand.name}`,
     headline: 'Your Content Was Approved!',
@@ -2644,6 +2679,7 @@ async function embedReviewSubmitted({ user, brand, submission }) {
         <li>📱 Download the free app to track your review, claim your rewards, and discover 100+ more brands to review</li>
       </ul>
       <p>You'll get one more email once ${brandName} approves your review.</p>
+      ${FORM_REWARD_EMAILS[String(brand?.brandHandle || '').toLowerCase()]?.submittedNote || ''}
     `,
     ctaText: 'Download the Free App',
     ctaUrl: downloadUrl,
@@ -2710,6 +2746,7 @@ module.exports = {
   notifyCreatorSubscribers,
   embedReviewSubmitted,
   embedReviewApproved,
+  formRewardEmail,
 
   // ── Lifecycle re-engagement (cron-triggered) ──
   lifecycleAlreadySent,

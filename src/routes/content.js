@@ -1429,7 +1429,10 @@ router.put('/:submissionId/approve', requireAuth, async (req, res) => {
             const submitter = await User.findById(inf.userId)
               .select('email authMethod legalFirstName')
               .lean();
-            if (submitter && submitter.authMethod === 'embed') {
+            // Campaign rewards delivered by form need no account or PayPal, so
+            // the "claim your account and connect PayPal" email would mislead.
+            const usesFormEmail = notify.formRewardEmail(brand, rewardTriggered || perApprovalReward);
+            if (submitter && submitter.authMethod === 'embed' && !usesFormEmail) {
               notify.embedReviewApproved({
                 user: submitter,
                 brand,
