@@ -323,13 +323,13 @@
   </div>
 
   <div id="briefing-card" class="briefing-card" style="display:none;">
-    <div class="briefing-eyebrow">Review Guidance</div>
+    <div class="briefing-eyebrow" id="briefing-eyebrow">Review Guidance</div>
     <div class="briefing-body" id="briefing-body"></div>
   </div>
 
   <div class="duration-note">Keep it under <span id="landing-max-duration">3 minutes</span></div>
 
-  <button class="cta-primary" onclick="showForm()">Leave a Video Review</button>
+  <button class="cta-primary" id="cta-leave" onclick="showForm()">Leave a Video Review</button>
 
   <div class="powered-by">Powered by <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd"></div>
 </div>
@@ -364,7 +364,7 @@
 
   <div id="form-error" class="status-banner error" style="display:none;"></div>
 
-  <button class="cta-primary" onclick="startRecordingFlow()">Continue → Record Review</button>
+  <button class="cta-primary" id="cta-continue" onclick="startRecordingFlow()">Continue → Record Review</button>
 </div>
 
 <!-- ═════ RECORDER ═════ -->
@@ -403,7 +403,7 @@
 
   <div id="record-error" class="status-banner error" style="display:none;"></div>
   <div id="record-actions" style="display:none;">
-    <button class="cta-primary" onclick="submitReview()" style="margin-bottom:8px;">Submit Review</button>
+    <button class="cta-primary" id="cta-submit" onclick="submitReview()" style="margin-bottom:8px;">Submit Review</button>
     <button class="cta-secondary" onclick="retakeVideo()">Retake</button>
   </div>
 </div>
@@ -412,7 +412,7 @@
 <div id="screen-uploading" class="screen">
   <div class="loading">
     <span class="spinner"></span>
-    <div style="margin-top:24px; font-size:16px; color:#ccc;">Sending your review…</div>
+    <div style="margin-top:24px; font-size:16px; color:#ccc;" id="sending-text">Sending your review…</div>
     <div style="margin-top:4px; font-size:12px; color:#666;" id="upload-status">Uploading video</div>
   </div>
 </div>
@@ -420,7 +420,7 @@
 <!-- ═════ CONFIRMATION ═════ -->
 <div id="screen-done" class="screen">
   <div class="checkmark">✓</div>
-  <div class="confirm-title">Review Submitted!</div>
+  <div class="confirm-title" id="confirm-title">Review Submitted!</div>
   <div class="confirm-body" id="confirm-body">
     Your review is with the brand's team.<br>
     They'll respond within 48 hours.
@@ -430,7 +430,7 @@
     <div class="next-icon">📱</div>
     <div>
       <div class="next-title">Track your reward on KeepUsPostd</div>
-      <div class="next-desc">Download the free app to see when your review is approved, claim your reward, and discover more brands to review.</div>
+      <div class="next-desc" id="next-desc">Download the free app to see when your review is approved, claim your reward, and discover more brands to review.</div>
     </div>
   </div>
 
@@ -586,6 +586,8 @@ async function loadBrandConfig() {
     if (data.widget && data.widget.consentText) {
       document.getElementById('consent-lead').textContent = data.widget.consentText;
     }
+    state.noun = (data.widget && data.widget.noun === 'video') ? 'video' : 'review';
+    if (state.noun === 'video') applyVideoWording();
     if (data.widget && data.widget.optInText) {
       document.getElementById('optin-label').textContent = data.widget.optInText;
       document.getElementById('optin-field').style.display = 'flex';
@@ -608,7 +610,7 @@ function renderLanding() {
   // Short title so the brand name stays visible in the browser tab strip.
   // ('Leave a Review for Powerplay Sports Group — KeepUsPostd' truncated
   // Powerplay's name in most tab widths.)
-  document.title = `Review ${brand.name}`;
+  document.title = state.noun === 'video' ? brand.name : `Review ${brand.name}`;
 
   const logoEl = document.getElementById('brand-logo');
   if (brand.logoUrl) {
@@ -624,7 +626,7 @@ function renderLanding() {
   const rc = stats.approvedReviews || 0;
   if (rc > 0) {
     const el = document.getElementById('review-count-line');
-    el.innerHTML = `<strong>${rc}</strong> approved review${rc === 1 ? '' : 's'} on KeepUsPostd`;
+    el.innerHTML = `<strong>${rc}</strong> approved ${state.noun || 'review'}${rc === 1 ? '' : 's'} on KeepUsPostd`;
     el.style.display = 'block';
   }
 
@@ -934,7 +936,21 @@ function renderConfirmation(submitData) {
   // No mention of email (Phase 5 wires that up) — the app-download card
   // below is the primary action.
   document.getElementById('confirm-body').innerHTML =
-    `Your review is with the <strong>${brandName}</strong> team.<br>They'll respond within 48 hours.`;
+    `Your ${state.noun || 'review'} is with the <strong>${brandName}</strong> team.<br>They'll respond within 48 hours.`;
+}
+
+// Brands that set widgetNoun to 'video' (causes, campaigns) never ask people
+// to "review" anything. Swaps the fixed labels once config has loaded.
+function applyVideoWording() {
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  set('briefing-eyebrow', 'Video Guidance');
+  set('cta-leave', 'Record Your Video');
+  set('cta-continue', 'Continue → Record Video');
+  set('recorder-title', 'Record your video');
+  set('cta-submit', 'Submit Video');
+  set('sending-text', 'Sending your video…');
+  set('confirm-title', 'Video Submitted');
+  set('next-desc', 'Download the free app to see when your video is approved and claim your reward.');
 }
 
 // ── Init ──────────────────────────────────────────────

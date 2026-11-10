@@ -272,7 +272,7 @@ router.get('/admin/config', requireAuth, async (req, res) => {
     if (!member) return; // 403 already sent
 
     const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
+      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText widgetNoun embedApprovalsLifetime planTier trialActive trialTier trialEndsAt')
       .lean();
 
     // Effective monthly cap (Phase 2 shipped this — reuse the shared service).
@@ -299,6 +299,7 @@ router.get('/admin/config', requireAuth, async (req, res) => {
         reviewBriefing: (brandProfile && brandProfile.reviewBriefing) || '',
         consentText: (brandProfile && brandProfile.widgetConsentText) || '',
         optInText: (brandProfile && brandProfile.widgetOptInText) || '',
+        noun: (brandProfile && brandProfile.widgetNoun) || 'review',
         url: widgetUrl,
       },
       usage: {
@@ -320,7 +321,7 @@ router.get('/admin/config', requireAuth, async (req, res) => {
 // accidental clears (e.g. undefined vs empty string is meaningful).
 router.put('/admin/config', requireAuth, async (req, res) => {
   try {
-    const { brandId, enabled, reviewBriefing, consentText, optInText } = req.body || {};
+    const { brandId, enabled, reviewBriefing, consentText, optInText, noun } = req.body || {};
     if (!brandId) return res.status(400).json({ error: 'missing_brand', message: 'brandId is required.' });
 
     const brand = await Brand.findById(brandId).select('_id').lean();
@@ -348,6 +349,9 @@ router.put('/admin/config', requireAuth, async (req, res) => {
     if (typeof consentText === 'string') {
       update.widgetConsentText = consentText.replace(/\s+/g, ' ').trim().slice(0, 600) || null;
     }
+    if (noun === 'review' || noun === 'video') {
+      update.widgetNoun = noun;
+    }
     if (typeof optInText === 'string') {
       update.widgetOptInText = optInText.replace(/\s+/g, ' ').trim().slice(0, 300) || null;
     }
@@ -368,6 +372,7 @@ router.put('/admin/config', requireAuth, async (req, res) => {
         reviewBriefing: brandProfile.reviewBriefing || '',
         consentText: brandProfile.widgetConsentText || '',
         optInText: brandProfile.widgetOptInText || '',
+        noun: brandProfile.widgetNoun || 'review',
       },
     });
   } catch (err) {
@@ -452,7 +457,7 @@ router.get('/:brandCode/config', async (req, res) => {
     // Looked up by ownership, not ownerId: admin-created brands have no
     // ownerId but still have a profile holding their widget settings.
     const brandProfile = await BrandProfile.findOne({ ownedBrandIds: brand._id })
-      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText')
+      .select('embedWidgetEnabled reviewBriefing widgetConsentText widgetOptInText widgetNoun')
       .lean();
     if (brandProfile && brandProfile.embedWidgetEnabled === false) {
       return res.status(403).json({
@@ -551,6 +556,7 @@ router.get('/:brandCode/config', async (req, res) => {
         reviewBriefingIsDefault: !(brandProfile && brandProfile.reviewBriefing && brandProfile.reviewBriefing.trim()),
         consentText: (brandProfile && brandProfile.widgetConsentText) || null,
         optInText: (brandProfile && brandProfile.widgetOptInText) || null,
+        noun: (brandProfile && brandProfile.widgetNoun) || 'review',
       },
     });
   } catch (err) {

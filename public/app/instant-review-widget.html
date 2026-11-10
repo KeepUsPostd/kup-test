@@ -255,6 +255,17 @@
         </div>
 
         <div style="margin-top:24px;">
+          <span class="label">What people record</span>
+          <select id="nounSelect" onchange="markDirty();" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:var(--radius-sm);font-family:var(--kup-font);font-size:.9rem;background:#fff;">
+            <option value="review">Reviews (for businesses)</option>
+            <option value="video">Videos (for causes and campaigns)</option>
+          </select>
+          <div class="briefing-meta">
+            <span>Choose Videos if people aren't reviewing a product or service. Buttons and titles then say "video" instead of "review".</span>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
           <span class="label">Consent wording (optional)</span>
           <textarea class="briefing-editor" id="consentEditor" oninput="markDirty();" placeholder="Leave blank to use the default wording." maxlength="600"></textarea>
           <div class="briefing-meta">
@@ -381,6 +392,7 @@
       document.getElementById('briefingEditor').value = cfg.widget.reviewBriefing || '';
       document.getElementById('consentEditor').value = cfg.widget.consentText || '';
       document.getElementById('optInEditor').value = cfg.widget.optInText || '';
+      document.getElementById('nounSelect').value = cfg.widget.noun === 'video' ? 'video' : 'review';
       updateBriefingCounter();
 
       // QR
@@ -522,6 +534,7 @@
         reviewBriefing: document.getElementById('briefingEditor').value,
         consentText: document.getElementById('consentEditor').value,
         optInText: document.getElementById('optInEditor').value,
+        noun: document.getElementById('nounSelect').value,
       };
       const res = await kupApi.put('/api/embed/admin/config', payload);
       if (!res || res.error) {

@@ -121,6 +121,10 @@ const brandProfileSchema = new mongoose.Schema({
   // UNCHECKED, optional checkbox with this label. Brands can only export the
   // contact details of reviewers who ticked it.
   widgetOptInText: { type: String, default: null, maxlength: 300 },
+
+  // The word the Instant Review page uses for what people record. Causes and
+  // campaigns use 'video' so reviewers are not asked to "review" a person.
+  widgetNoun: { type: String, enum: ['review', 'video'], default: 'review' },
 }, {
   timestamps: true,
 });
