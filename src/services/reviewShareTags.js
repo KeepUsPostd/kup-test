@@ -8,7 +8,7 @@ const SHARE_OVERRIDES = {
   risewithwells: {
     title: 'Ida B. Wells · Rise With Wells',
     description: 'Tell us what Ida B. Wells means to you and why you want to see her story on screen. The first 50 approved videos get a free Rise With Wells tee.',
-    image: 'https://keepuspostd.com/images/share/risewithwells-ida-og.jpg',
+    image: 'https://keepuspostd.com/images/share/risewithwells-ida-og.jpg?v=2',
     imageWidth: 1200,
     imageHeight: 630,
   },
