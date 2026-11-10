@@ -239,8 +239,12 @@
     display: flex; flex-direction: column;
     background: #000; overflow: hidden;
   }
+  /* Pinned to the full screen (not flex-sized): when iOS switches camera
+     resolution as recording starts, a flex-sized video was shrinking to the
+     frame's own size instead of filling the screen. */
   #videoPreview {
-    width: 100%; flex: 1; min-height: 0; object-fit: contain; background: #000;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: contain; background: #000;
     display: block;
   }
   #screen-recorder #record-actions { margin-top: 10px; }
@@ -761,6 +765,24 @@ async function startRecordingFlow() {
     video.srcObject = stream;
     video.muted = true;
     video.onloadedmetadata = () => showCameraDebug(stream, video);
+    // iOS can change the camera's frame size when recording starts, and Safari
+    // then leaves the live preview drawn small. Reattach the stream so it
+    // redraws full screen. Preview only; the recorder keeps its own stream.
+    let lastSize = '';
+    video.onresize = () => {
+      const size = `${video.videoWidth}x${video.videoHeight}`;
+      if (!video.srcObject || size === lastSize) return;
+      const first = !lastSize;
+      lastSize = size;
+      if (state.camAttempts) state.camAttempts.push(`resize -> ${size}`);
+      if (!first) {
+        const s = video.srcObject;
+        video.srcObject = null;
+        video.srcObject = s;
+        video.play().catch(() => {});
+      }
+      showCameraDebug(stream, video);
+    };
     await video.play();
   } catch (err) {
     document.getElementById('record-error').textContent = 'Camera access denied. Please allow camera + mic to record.';
