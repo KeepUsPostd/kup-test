@@ -182,20 +182,34 @@
      scrolling here would push the record button off-screen or force the user
      to scroll between the guidance and the camera. Everywhere else, natural
      document scroll is fine. */
+  /* Full-screen camera, like the phone's own camera app. The title, reward
+     strip, record button and upload link float over the video (.rec-top /
+     .rec-bottom) instead of shrinking it. */
   #screen-recorder.active {
-    height: 100dvh;
-    max-height: 100dvh;
-    padding: 12px;
-    gap: 10px;
+    position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 520px; z-index: 50;
+    padding: 0; background: #000; overflow: hidden;
   }
-  #screen-recorder .form-header { padding: 4px 2px 6px; }
+  #screen-recorder .rec-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    padding: calc(env(safe-area-inset-top) + 12px) 16px 32px;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0));
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  #screen-recorder .rec-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+    padding: 32px 16px calc(env(safe-area-inset-bottom) + 14px);
+    background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.7));
+  }
+  #screen-recorder .form-header { padding: 0 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
   #screen-recorder .form-title { font-size: 15px; margin-bottom: 2px; }
-  #screen-recorder .form-subtitle { font-size: 12px; color: #9aa3a8; line-height: 1.35; }
+  #screen-recorder .form-subtitle { font-size: 12px; color: #d5dde2; line-height: 1.35; }
   #screen-recorder .recorder-context {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 12px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
     font-size: 12px; color: #cbd8e0;
   }
@@ -216,29 +230,29 @@
     text-decoration: underline; cursor: pointer;
   }
   #screen-recorder .upload-alt button:disabled { opacity: 0.5; cursor: not-allowed; }
-  /* The preview box takes the camera's own shape (set from JS once the stream
-     loads, 9:16 on phones) and shows the full frame with object-fit: contain,
-     so what people see is exactly what gets recorded. The old fill-and-crop
-     preview zoomed in past the recording and pushed people too close. */
-  #screen-recorder .upload-alt { flex-wrap: wrap; text-align: center; }
+  /* The video fills the screen and shows the full camera frame (contain), so
+     what people see is exactly what gets recorded. A 9:16 frame on a taller
+     phone leaves thin dark bands top and bottom, which the overlays sit in. */
+  #screen-recorder .upload-alt { flex-wrap: wrap; text-align: center; padding-top: 4px; }
   .recorder-wrap {
-    position: relative; flex: 1; min-height: 0;
+    position: absolute; inset: 0;
     display: flex; flex-direction: column;
-    align-self: center; aspect-ratio: 9 / 16; max-width: 100%;
-    background: #000; border-radius: 16px; overflow: hidden;
+    background: #000; overflow: hidden;
   }
   #videoPreview {
     width: 100%; flex: 1; min-height: 0; object-fit: contain; background: #000;
     display: block;
   }
+  #screen-recorder #record-actions { margin-top: 10px; }
+  #screen-recorder #record-error { margin-top: 8px; }
   .cam-debug {
-    position: absolute; top: 56px; left: 8px; right: 8px; z-index: 5;
+    position: absolute; top: calc(env(safe-area-inset-top) + 130px); left: 8px; right: 8px; z-index: 5;
     background: rgba(0,0,0,0.75); color: #9ef; border-radius: 8px;
     font: 10px/1.35 ui-monospace, Menlo, monospace; padding: 8px;
     white-space: pre-wrap; word-break: break-all; max-height: 60%; overflow: auto;
   }
   .recorder-controls {
-    position: absolute; bottom: 24px; left: 0; right: 0;
+    position: absolute; bottom: calc(env(safe-area-inset-bottom) + 72px); left: 0; right: 0; z-index: 4;
     display: flex; justify-content: center; gap: 16px;
   }
   .record-btn {
@@ -253,7 +267,7 @@
     border-radius: 12px; width: 40px; height: 40px; margin: 16px;
   }
   .timer-badge {
-    position: absolute; top: 16px; left: 16px;
+    position: absolute; top: calc(env(safe-area-inset-top) + 118px); left: 16px; z-index: 4;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
     padding: 8px 12px; border-radius: 20px;
     font-size: 13px; font-weight: 600;
@@ -381,6 +395,7 @@
 
 <!-- ═════ RECORDER ═════ -->
 <div id="screen-recorder" class="screen">
+  <div class="rec-top">
   <div class="form-header">
     <div class="form-title" id="recorder-title">Record your review</div>
     <div class="form-subtitle" id="recorder-subtitle">Keep it under 3 minutes.</div>
@@ -391,6 +406,7 @@
   <div class="recorder-context" id="recorder-context" style="display:none;">
     <div class="rc-eyebrow" id="rc-eyebrow">You'll unlock</div>
     <div class="rc-body" id="rc-body"></div>
+  </div>
   </div>
 
   <div class="recorder-wrap">
@@ -407,6 +423,7 @@
   <!-- Upload existing video as an alternative to live recording.
        Hidden while recording is in progress; also hidden after a video is
        captured/selected (submit/retake owns the flow at that point). -->
+  <div class="rec-bottom">
   <div class="upload-alt" id="upload-alt">
     <span>Want a wider shot? Record in your camera app, then</span>
     <input type="file" id="input-video-file" accept="video/*" style="display:none;" onchange="handleUploadFromDevice(event)">
@@ -417,6 +434,7 @@
   <div id="record-actions" style="display:none;">
     <button class="cta-primary" id="cta-submit" onclick="submitReview()" style="margin-bottom:8px;">Submit Review</button>
     <button class="cta-secondary" onclick="retakeVideo()">Retake</button>
+  </div>
   </div>
 </div>
 
@@ -736,10 +754,10 @@ async function startRecordingFlow() {
   if (!validateForm()) return;
   showScreen('screen-recorder');
   try {
-    // 1080x1920 (still 9:16). On many phones the higher-res mode uses more of
-    // the sensor, which means a wider view than 720x1280 gave us.
+    // Vertical 9:16. Keep 720x1280: on iPhone, asking for 1080x1920 returned a
+    // sideways 16:9 frame, so recordings came out horizontal.
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } },
+      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
       audio: true,
     });
     state.mediaStream = stream;
@@ -747,13 +765,7 @@ async function startRecordingFlow() {
     const video = document.getElementById('videoPreview');
     video.srcObject = stream;
     video.muted = true;
-    video.onloadedmetadata = () => {
-      // Shape the preview box to the camera's real frame so nothing is cropped.
-      if (video.videoWidth && video.videoHeight) {
-        document.querySelector('.recorder-wrap').style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-      }
-      showCameraDebug(stream, video);
-    };
+    video.onloadedmetadata = () => showCameraDebug(stream, video);
     await video.play();
   } catch (err) {
     document.getElementById('record-error').textContent = 'Camera access denied. Please allow camera + mic to record.';
@@ -832,7 +844,11 @@ function startRecording() {
     video.srcObject = null;
     video.src = state.recordedBlobUrl;
     video.muted = false;
-    video.controls = true;
+    // No native controls: the overlay buttons sit where they'd be. Tap the
+    // video to pause or play the take instead.
+    video.controls = false;
+    video.loop = true;
+    video.onclick = () => { if (!video.srcObject) { video.paused ? video.play() : video.pause(); } };
     video.play().catch(() => {});
     document.getElementById('record-btn').style.display = 'none';
     document.getElementById('timer-badge').style.display = 'none';
@@ -872,7 +888,7 @@ function retakeVideo() {
   state.recordedBlobUrl = null;
   const video = document.getElementById('videoPreview');
   video.pause(); video.removeAttribute('src'); video.load();
-  video.controls = false; video.muted = true;
+  video.controls = false; video.muted = true; video.loop = false;
   document.getElementById('record-btn').style.display = 'block';
   document.getElementById('record-btn').classList.remove('recording');
   document.getElementById('record-actions').style.display = 'none';
@@ -931,7 +947,9 @@ function handleUploadFromDevice(event) {
   video.srcObject = null;
   video.src = state.recordedBlobUrl;
   video.muted = false;
-  video.controls = true;
+  video.controls = false;
+  video.loop = true;
+  video.onclick = () => { if (!video.srcObject) { video.paused ? video.play() : video.pause(); } };
   video.play().catch(() => {});
 
   document.getElementById('record-btn').style.display = 'none';
