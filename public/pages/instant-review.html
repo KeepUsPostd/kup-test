@@ -255,23 +255,60 @@
     font: 10px/1.35 ui-monospace, Menlo, monospace; padding: 8px;
     white-space: pre-wrap; word-break: break-all; max-height: 22%; overflow: auto; opacity: 0.85;
   }
+  /* Record button, TikTok / camera-app style. Ready: white ring, red dot
+     ("tap to record"). Recording: the dot becomes a red rounded square
+     ("tap to stop") and the ring fills red as time runs out. Same size in
+     both states, with a label underneath. */
   .recorder-controls {
-    position: absolute; bottom: calc(env(safe-area-inset-bottom) + 72px); left: 0; right: 0; z-index: 4;
-    display: flex; justify-content: center; gap: 16px;
+    position: absolute; bottom: calc(env(safe-area-inset-bottom) + 58px); left: 0; right: 0; z-index: 4;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
   }
   .record-btn {
-    width: 72px; height: 72px; border-radius: 50%;
-    background: #ff3b3b; border: 4px solid #fff;
-    cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    position: relative; width: 84px; height: 84px; border-radius: 50%; border: none; padding: 0;
+    background: conic-gradient(#ff3b3b calc(var(--p, 0) * 360deg), rgba(255,255,255,0.95) 0);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     transition: transform 0.15s ease;
   }
+  .record-btn::before {
+    content: ""; position: absolute; inset: 6px; border-radius: 50%; background: rgba(0,0,0,0.35);
+  }
+  .record-btn .rb-inner {
+    position: relative; width: 60px; height: 60px; border-radius: 50%; background: #ff3b3b;
+    transition: all 0.2s ease;
+  }
   .record-btn:active { transform: scale(0.95); }
-  .record-btn.recording {
-    background: #fff; border-color: #ff3b3b;
-    border-radius: 12px; width: 40px; height: 40px; margin: 16px;
+  .record-btn.recording .rb-inner { width: 30px; height: 30px; border-radius: 8px; }
+  .rec-hint {
+    font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.01em;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  }
+  /* Playback after a take: top pill shows play/pause + time, thin progress
+     bar above the buttons, big play icon in the middle when paused. */
+  .play-badge {
+    position: absolute; top: calc(env(safe-area-inset-top) + 118px); left: 50%; transform: translateX(-50%); z-index: 4;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px; white-space: nowrap; pointer-events: none;
+  }
+  .play-badge svg { width: 12px; height: 12px; fill: #fff; }
+  .paused-icon {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;
+    width: 76px; height: 76px; border-radius: 50%; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; pointer-events: none;
+  }
+  .paused-icon svg { width: 30px; height: 30px; fill: #fff; margin-left: 4px; }
+  .play-bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.25); overflow: hidden; margin: 0 0 12px; }
+  .play-bar > div { height: 100%; width: 0; background: #fff; }
+  /* Desktop / sideways webcams: a horizontal frame gets the whole window so
+     it shows full size; the text and buttons stay in a centered column.
+     Phones held upright never get this class, so mobile is unchanged. */
+  #screen-recorder.wide { max-width: none; }
+  #screen-recorder.wide .rec-top > *, #screen-recorder.wide .rec-bottom > * {
+    max-width: 520px; margin-left: auto; margin-right: auto; width: 100%;
   }
   .timer-badge {
-    position: absolute; top: calc(env(safe-area-inset-top) + 118px); left: 16px; z-index: 4;
+    position: absolute; top: calc(env(safe-area-inset-top) + 118px); left: 50%; transform: translateX(-50%); z-index: 4;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
     padding: 8px 12px; border-radius: 20px;
     font-size: 13px; font-weight: 600;
@@ -419,8 +456,13 @@
       <div class="rec-dot"></div>
       <span id="timer-text">0:00</span>
     </div>
-    <div class="recorder-controls">
-      <button id="record-btn" class="record-btn" aria-label="Start recording" onclick="toggleRecording()"></button>
+    <div class="play-badge" id="play-badge" style="display:none;">
+      <span id="pb-icon"></span><span id="pb-text">0:00 / 0:00</span>
+    </div>
+    <div class="paused-icon" id="paused-icon" style="display:none;"><svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z"/></svg></div>
+    <div class="recorder-controls" id="recorder-controls">
+      <button id="record-btn" class="record-btn" aria-label="Start recording" onclick="toggleRecording()"><span class="rb-inner"></span></button>
+      <div class="rec-hint" id="rec-hint">Tap to record</div>
     </div>
   </div>
 
@@ -436,6 +478,7 @@
 
   <div id="record-error" class="status-banner error" style="display:none;"></div>
   <div id="record-actions" style="display:none;">
+    <div class="play-bar" id="play-bar"><div id="play-bar-fill"></div></div>
     <button class="cta-primary" id="cta-submit" onclick="submitReview()" style="margin-bottom:8px;">Submit Review</button>
     <button class="cta-secondary" onclick="retakeVideo()">Retake</button>
   </div>
@@ -764,7 +807,7 @@ async function startRecordingFlow() {
     const video = document.getElementById('videoPreview');
     video.srcObject = stream;
     video.muted = true;
-    video.onloadedmetadata = () => showCameraDebug(stream, video);
+    video.onloadedmetadata = () => { applyStage(video); showCameraDebug(stream, video); };
     // iOS can change the camera's frame size when recording starts, and Safari
     // then leaves the live preview drawn small. Reattach the stream so it
     // redraws full screen. Preview only; the recorder keeps its own stream.
@@ -775,6 +818,7 @@ async function startRecordingFlow() {
       const first = !lastSize;
       lastSize = size;
       if (state.camAttempts) state.camAttempts.push(`resize -> ${size}`);
+      applyStage(video);
       if (!first) {
         const s = video.srcObject;
         video.srcObject = null;
@@ -879,6 +923,62 @@ async function showCameraDebug(stream, video) {
   } catch (e) { /* debug only */ }
 }
 
+// Wide stage for horizontal frames (desktop webcams); vertical phones untouched.
+function applyStage(video) {
+  if (!video.videoWidth || !video.videoHeight) return;
+  document.getElementById('screen-recorder').classList.toggle('wide', video.videoWidth > video.videoHeight);
+}
+
+// One place that sets the record button, its label and the timer for each
+// step: 'idle' (ready), 'recording', 'review' (playing back the take).
+function setRecUI(mode) {
+  const ctr = document.getElementById('recorder-controls');
+  const btn = document.getElementById('record-btn');
+  const hint = document.getElementById('rec-hint');
+  document.getElementById('timer-badge').style.display = mode === 'recording' ? 'flex' : 'none';
+  if (mode === 'review') { ctr.style.display = 'none'; return; }
+  ctr.style.display = 'flex';
+  btn.classList.toggle('recording', mode === 'recording');
+  btn.style.setProperty('--p', 0);
+  hint.textContent = mode === 'recording' ? 'Tap to stop' : 'Tap to record';
+  btn.setAttribute('aria-label', mode === 'recording' ? 'Stop recording' : 'Start recording');
+}
+
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+function fmtTime(s) { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+
+// Shows that the take is playing back: "Playing 0:03 / 0:07", a progress
+// bar, and a big play icon when paused (tap the video to pause / play).
+// Recorded webm files often report no duration, so fall back to the length
+// we timed while recording.
+function startPlaybackUI(video, fallbackSecs) {
+  const badge = document.getElementById('play-badge');
+  const icon = document.getElementById('pb-icon');
+  const text = document.getElementById('pb-text');
+  const fill = document.getElementById('play-bar-fill');
+  const big = document.getElementById('paused-icon');
+  const dur = () => (isFinite(video.duration) && video.duration > 0) ? video.duration : (fallbackSecs || 0);
+  const update = () => {
+    const d = dur();
+    const t = d ? Math.min(video.currentTime, d) : video.currentTime;
+    icon.innerHTML = video.paused ? ICON_PAUSE : ICON_PLAY;
+    text.textContent = `${video.paused ? 'Paused' : 'Playing'}  ${fmtTime(t)} / ${fmtTime(d)}`;
+    fill.style.width = d ? `${Math.min(100, (t / d) * 100)}%` : '0%';
+    big.style.display = video.paused ? 'flex' : 'none';
+  };
+  video.ontimeupdate = update; video.onplay = update; video.onpause = update; video.ondurationchange = update;
+  badge.style.display = 'flex';
+  update();
+}
+function stopPlaybackUI() {
+  const video = document.getElementById('videoPreview');
+  video.ontimeupdate = null; video.onplay = null; video.onpause = null; video.ondurationchange = null;
+  document.getElementById('play-badge').style.display = 'none';
+  document.getElementById('paused-icon').style.display = 'none';
+  document.getElementById('play-bar-fill').style.width = '0%';
+}
+
 function toggleRecording() {
   if (!state.mediaStream) return;
   if (state.isRecording) {
@@ -917,8 +1017,8 @@ function startRecording() {
     video.loop = true;
     video.onclick = () => { if (!video.srcObject) { video.paused ? video.play() : video.pause(); } };
     video.play().catch(() => {});
-    document.getElementById('record-btn').style.display = 'none';
-    document.getElementById('timer-badge').style.display = 'none';
+    setRecUI('review');
+    startPlaybackUI(video, state.recordedSecs);
     document.getElementById('record-actions').style.display = 'block';
   };
   recorder.start();
@@ -940,8 +1040,7 @@ function startRecording() {
   state.isRecording = true;
   state.recordingStartTs = Date.now();
 
-  document.getElementById('record-btn').classList.add('recording');
-  document.getElementById('timer-badge').style.display = 'flex';
+  setRecUI('recording');
   // Hide the upload-from-device option once live recording begins — mixing
   // the two mid-flow would be confusing (which video wins?).
   const uaEl = document.getElementById('upload-alt');
@@ -950,12 +1049,14 @@ function startRecording() {
     const secs = Math.floor((Date.now() - state.recordingStartTs) / 1000);
     const mm = Math.floor(secs / 60), ss = secs % 60;
     document.getElementById('timer-text').textContent = `${mm}:${String(ss).padStart(2, '0')}`;
+    document.getElementById('record-btn').style.setProperty('--p', Math.min(1, (Date.now() - state.recordingStartTs) / 1000 / (state.maxSeconds || 180)));
     if (secs >= state.maxSeconds) stopRecording();
   }, 250);
 }
 
 function stopRecording() {
   if (!state.mediaRecorder || !state.isRecording) return;
+  state.recordedSecs = (Date.now() - state.recordingStartTs) / 1000;
   state.mediaRecorder.stop();
   state.isRecording = false;
   clearInterval(state.timerInterval);
@@ -970,8 +1071,8 @@ function retakeVideo() {
   const video = document.getElementById('videoPreview');
   video.pause(); video.removeAttribute('src'); video.load();
   video.controls = false; video.muted = true; video.loop = false;
-  document.getElementById('record-btn').style.display = 'block';
-  document.getElementById('record-btn').classList.remove('recording');
+  stopPlaybackUI();
+  setRecUI('idle');
   document.getElementById('record-actions').style.display = 'none';
   document.getElementById('record-error').style.display = 'none';
   // Restore the upload-from-device option and reset the file input so the
@@ -1033,9 +1134,8 @@ function handleUploadFromDevice(event) {
   video.onclick = () => { if (!video.srcObject) { video.paused ? video.play() : video.pause(); } };
   video.play().catch(() => {});
 
-  document.getElementById('record-btn').style.display = 'none';
-  document.getElementById('record-btn').classList.remove('recording');
-  document.getElementById('timer-badge').style.display = 'none';
+  setRecUI('review');
+  startPlaybackUI(video, 0);
   document.getElementById('record-actions').style.display = 'block';
   const uaEl = document.getElementById('upload-alt');
   if (uaEl) uaEl.style.display = 'none';
