@@ -200,6 +200,9 @@ function getCorsOptions() {
     // Partner brand sites embedding the public content feed (read-only)
     'https://butterflyuprising.com',
     'https://www.butterflyuprising.com',
+    // Rise With Wells: Red Record Wall reads approved videos from the feed
+    'https://risewithwells.org',
+    'https://www.risewithwells.org',
     // Local preview for building partner embeds
     'http://localhost:3007',
     // Add your native app's origin if needed
