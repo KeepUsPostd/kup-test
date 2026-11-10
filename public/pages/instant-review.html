@@ -754,12 +754,7 @@ async function startRecordingFlow() {
   if (!validateForm()) return;
   showScreen('screen-recorder');
   try {
-    // Vertical 9:16. Keep 720x1280: on iPhone, asking for 1080x1920 returned a
-    // sideways 16:9 frame, so recordings came out horizontal.
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
-      audio: true,
-    });
+    const stream = await openVerticalCamera();
     state.mediaStream = stream;
     await widenCamera(stream);
     const video = document.getElementById('videoPreview');
@@ -771,6 +766,54 @@ async function startRecordingFlow() {
     document.getElementById('record-error').textContent = 'Camera access denied. Please allow camera + mic to record.';
     document.getElementById('record-error').style.display = 'block';
   }
+}
+
+// iPhones were handing back a sideways (landscape) frame even when we asked
+// for 720x1280 portrait; the old preview then zoomed into its middle, which is
+// why people looked too close. Ask a few ways and keep the first stream whose
+// real frame is vertical when the phone is held upright. Each attempt is
+// logged for the ?debug=1 readout.
+function frameSize(stream) {
+  return new Promise((resolve) => {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+    const done = () => resolve({ w: v.videoWidth, h: v.videoHeight });
+    v.onloadedmetadata = done;
+    setTimeout(done, 1500);
+    v.srcObject = stream;
+    v.play().catch(() => {});
+  });
+}
+async function openVerticalCamera() {
+  const upright = window.innerHeight > window.innerWidth;
+  const attempts = [
+    { width: { ideal: 1280 }, height: { ideal: 720 } }, // iPhone reads sizes landscape-first, then rotates
+    { width: { ideal: 720 }, height: { ideal: 1280 } },
+    { aspectRatio: { ideal: 9 / 16 } },
+    {},
+  ];
+  state.camAttempts = [];
+  let fallback = null;
+  for (const dims of attempts) {
+    let s;
+    try {
+      s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', ...dims }, audio: true });
+    } catch (e) {
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+      state.camAttempts.push(`${JSON.stringify(dims)} -> error ${e && e.name}`);
+      continue;
+    }
+    const { w, h } = await frameSize(s);
+    state.camAttempts.push(`${JSON.stringify(dims)} -> ${w}x${h}`);
+    if (!upright || !w || !h || h > w) {
+      if (fallback) fallback.getTracks().forEach(t => t.stop());
+      return s;
+    }
+    if (fallback) fallback.getTracks().forEach(t => t.stop());
+    fallback = s;
+  }
+  if (!fallback) throw new Error('no camera');
+  return fallback;
 }
 
 // If the browser lets us zoom the camera, start at its widest setting.
@@ -796,6 +839,8 @@ async function showCameraDebug(stream, video) {
       .filter(d => d.kind === 'videoinput').map(d => d.label || '(no label)');
     const info = {
       frame: `${video.videoWidth}x${video.videoHeight}`,
+      attempts: state.camAttempts,
+      upright: window.innerHeight > window.innerWidth,
       settings: track.getSettings ? track.getSettings() : null,
       capabilities: track.getCapabilities ? track.getCapabilities() : 'not supported',
       cameras: devices,
