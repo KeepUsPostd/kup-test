@@ -271,12 +271,38 @@ app.get('/@:handle', (req, res) => {
 //   /@handle/review
 // Both resolve to public/pages/instant-review.html which fetches the brand
 // config from /api/embed/:code/config and drives the record → submit flow.
-app.get('/brand/:code/review', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'instant-review.html'));
-});
-app.get('/@:handle/review', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'instant-review.html'));
-});
+// Link previews (iMessage, Facebook, X...) read the page's <head> before any
+// JS runs, so the brand's name and image are written into the tags here.
+// Fail-safe: if the brand lookup errors or takes over 1.5s, the page is sent
+// exactly as before. Nothing in the recorder itself changes.
+const { buildReviewPageHtml } = require('./services/reviewShareTags');
+const REVIEW_PAGE = path.join(__dirname, '..', 'public', 'pages', 'instant-review.html');
+let reviewPageHtml = null;
+async function sendReviewPage(req, res, key) {
+  try {
+    if (!reviewPageHtml || process.env.NODE_ENV !== 'production') {
+      reviewPageHtml = await require('fs').promises.readFile(REVIEW_PAGE, 'utf8');
+    }
+    const code = String(key || '').replace(/^@/, '').trim();
+    if (!code) return res.sendFile(REVIEW_PAGE);
+    const Brand = require('./models/Brand');
+    const lookup = Brand.findOne({
+      $or: [{ kioskBrandCode: code.toUpperCase() }, { brandHandle: code.toLowerCase() }],
+    }).select('name description logoUrl heroImageUrl brandHandle').lean();
+    const brand = await Promise.race([
+      lookup,
+      new Promise((resolve) => setTimeout(() => resolve(null), 1500)),
+    ]);
+    if (!brand) return res.sendFile(REVIEW_PAGE);
+    const url = `https://keepuspostd.com${req.path}`;
+    res.type('html').send(buildReviewPageHtml(reviewPageHtml, brand, url));
+  } catch (err) {
+    console.error('[review-page] share tags skipped:', err.message);
+    if (!res.headersSent) res.sendFile(REVIEW_PAGE);
+  }
+}
+app.get('/brand/:code/review', (req, res) => sendReviewPage(req, res, req.params.code));
+app.get('/@:handle/review', (req, res) => sendReviewPage(req, res, req.params.handle));
 
 // Instant Review — claim-account flow (Phase 5.2).
 // After an embed reviewer submits, their confirmation email points here so
