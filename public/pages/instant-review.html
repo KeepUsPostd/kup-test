@@ -187,7 +187,7 @@
      .rec-bottom) instead of shrinking it. */
   #screen-recorder.active {
     position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 520px; z-index: 50;
+    width: 100%; max-width: max(520px, calc(100dvh * 9 / 16)); z-index: 50;
     padding: 0; background: #000; overflow: hidden;
   }
   #screen-recorder .rec-top {
@@ -801,9 +801,15 @@ async function startRecordingFlow() {
   if (!validateForm()) return;
   showScreen('screen-recorder');
   try {
-    const stream = await openVerticalCamera();
+    const raw = await openVerticalCamera();
+    await widenCamera(raw);
+    // Every take is saved vertical 9:16. Phones already send vertical frames.
+    // Desktop webcams send horizontal ones, so cut a centered 9:16 slice at
+    // the camera's full height and record that (the preview shows the same).
+    const f = state.camFrame || {};
+    const stream = (f.w && f.h && f.w > f.h) ? makeVerticalStream(raw) : raw;
+    state.rawStream = (stream === raw) ? null : raw;
     state.mediaStream = stream;
-    await widenCamera(stream);
     const video = document.getElementById('videoPreview');
     video.srcObject = stream;
     video.muted = true;
@@ -834,6 +840,48 @@ async function startRecordingFlow() {
   }
 }
 
+// Crop a horizontal camera to vertical 9:16: draw the centered slice onto a
+// canvas at the camera's full height (no upscaling) and record the canvas,
+// with the camera's own microphone track added back in.
+function makeVerticalStream(raw) {
+  const src = document.createElement('video');
+  src.muted = true; src.playsInline = true; src.setAttribute('playsinline', '');
+  src.srcObject = raw;
+  src.play().catch(() => {});
+  const f = state.camFrame;
+  const outH = f.h - (f.h % 2);
+  const outW = Math.round((outH * 9) / 16 / 2) * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = outW; canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  let running = true;
+  const draw = () => {
+    if (!running) return;
+    const vw = src.videoWidth, vh = src.videoHeight;
+    if (vw && vh && src.readyState >= 2) {
+      const sw = Math.min(vw, (vh * 9) / 16);
+      ctx.drawImage(src, (vw - sw) / 2, 0, sw, vh, 0, 0, outW, outH);
+    }
+    if (src.requestVideoFrameCallback) src.requestVideoFrameCallback(draw);
+    else requestAnimationFrame(draw);
+  };
+  draw();
+  const out = canvas.captureStream(30);
+  raw.getAudioTracks().forEach(t => out.addTrack(t));
+  state.stopCrop = () => { running = false; src.srcObject = null; };
+  if (state.camAttempts) state.camAttempts.push(`desktop crop -> ${outW}x${outH}`);
+  return out;
+}
+
+// Turns the camera fully off, including the raw webcam behind a desktop crop.
+function stopCamera() {
+  if (state.stopCrop) { state.stopCrop(); state.stopCrop = null; }
+  if (state.mediaStream) state.mediaStream.getTracks().forEach(t => t.stop());
+  if (state.rawStream) state.rawStream.getTracks().forEach(t => t.stop());
+  state.mediaStream = null;
+  state.rawStream = null;
+}
+
 // iPhones were handing back a sideways (landscape) frame even when we asked
 // for 720x1280 portrait; the old preview then zoomed into its middle, which is
 // why people looked too close. Ask a few ways and keep the first stream whose
@@ -852,10 +900,15 @@ function frameSize(stream) {
 }
 async function openVerticalCamera() {
   const upright = window.innerHeight > window.innerWidth;
-  const attempts = [
+  // Desktop (landscape window): ask the webcam for its sharpest mode, since we
+  // crop a vertical slice out of it; the taller the frame, the sharper the slice.
+  const attempts = upright ? [
     { width: { ideal: 1280 }, height: { ideal: 720 } }, // iPhone reads sizes landscape-first, then rotates
     { width: { ideal: 720 }, height: { ideal: 1280 } },
     { aspectRatio: { ideal: 9 / 16 } },
+    {},
+  ] : [
+    { width: { ideal: 1920 }, height: { ideal: 1080 } },
     {},
   ];
   state.camAttempts = [];
@@ -871,6 +924,7 @@ async function openVerticalCamera() {
     }
     const { w, h } = await frameSize(s);
     state.camAttempts.push(`${JSON.stringify(dims)} -> ${w}x${h}`);
+    state.camFrame = { w, h };
     if (!upright || !w || !h || h > w) {
       if (fallback) fallback.getTracks().forEach(t => t.stop());
       return s;
@@ -1060,8 +1114,7 @@ function stopRecording() {
   state.mediaRecorder.stop();
   state.isRecording = false;
   clearInterval(state.timerInterval);
-  state.mediaStream.getTracks().forEach(t => t.stop());
-  state.mediaStream = null;
+  stopCamera();
 }
 
 function retakeVideo() {
@@ -1116,10 +1169,7 @@ function handleUploadFromDevice(event) {
   }
 
   // Tear down the live camera stream — the uploaded file replaces it.
-  if (state.mediaStream) {
-    state.mediaStream.getTracks().forEach(t => t.stop());
-    state.mediaStream = null;
-  }
+  stopCamera();
   if (state.recordedBlobUrl) URL.revokeObjectURL(state.recordedBlobUrl);
 
   state.recordedBlob = file;
