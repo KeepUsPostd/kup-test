@@ -253,7 +253,7 @@
     position: absolute; top: calc(env(safe-area-inset-top) + 130px); left: 8px; right: 8px; z-index: 5;
     background: rgba(0,0,0,0.75); color: #9ef; border-radius: 8px;
     font: 10px/1.35 ui-monospace, Menlo, monospace; padding: 8px;
-    white-space: pre-wrap; word-break: break-all; max-height: 60%; overflow: auto;
+    white-space: pre-wrap; word-break: break-all; max-height: 22%; overflow: auto; opacity: 0.85;
   }
   .recorder-controls {
     position: absolute; bottom: calc(env(safe-area-inset-bottom) + 72px); left: 0; right: 0; z-index: 4;
@@ -859,23 +859,23 @@ async function showCameraDebug(stream, video) {
     const track = stream.getVideoTracks()[0];
     const devices = (await navigator.mediaDevices.enumerateDevices())
       .filter(d => d.kind === 'videoinput').map(d => d.label || '(no label)');
-    const info = {
-      frame: `${video.videoWidth}x${video.videoHeight}`,
-      attempts: state.camAttempts,
-      upright: window.innerHeight > window.innerWidth,
-      settings: track.getSettings ? track.getSettings() : null,
-      capabilities: track.getCapabilities ? track.getCapabilities() : 'not supported',
-      cameras: devices,
-      screen: `${screen.width}x${screen.height} @${window.devicePixelRatio}x`,
-      ua: navigator.userAgent,
-    };
+    const st = track.getSettings ? track.getSettings() : {};
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    const lines = [
+      `frame ${video.videoWidth}x${video.videoHeight} | track ${st.width}x${st.height} | zoom ${st.zoom ?? '-'} (min ${caps.zoom ? caps.zoom.min : '-'})`,
+      `box ${Math.round(video.getBoundingClientRect().width)}x${Math.round(video.getBoundingClientRect().height)} | upright ${window.innerHeight > window.innerWidth}`,
+      ...(state.camAttempts || []).map(a => a.replace(/[{}"]/g, '').replace(/ideal:/g, '')),
+      `cams: ${devices.join(', ')}`,
+      '(tap to hide)',
+    ];
     let el = document.getElementById('cam-debug');
     if (!el) {
       el = document.createElement('div');
       el.id = 'cam-debug'; el.className = 'cam-debug';
+      el.onclick = () => { el.style.display = 'none'; };
       document.querySelector('.recorder-wrap').appendChild(el);
     }
-    el.textContent = JSON.stringify(info, null, 1);
+    el.textContent = lines.join('\n');
   } catch (e) { /* debug only */ }
 }
 
@@ -922,6 +922,20 @@ function startRecording() {
     document.getElementById('record-actions').style.display = 'block';
   };
   recorder.start();
+  // iOS glitch: the first time the mic starts recording, Safari redraws the
+  // live preview small (the camera frame itself never changes). Retake fixed
+  // it, so do what Retake does: reconnect the preview, shortly after start.
+  // Preview only; the recorder keeps recording its own stream.
+  [300, 1000].forEach((ms) => setTimeout(() => {
+    const pv = document.getElementById('videoPreview');
+    if (!state.isRecording || !pv.srcObject) return;
+    const s = pv.srcObject;
+    pv.srcObject = null;
+    pv.srcObject = s;
+    pv.play().catch(() => {});
+    if (state.camAttempts) state.camAttempts.push(`redraw @${ms}ms -> ${pv.videoWidth}x${pv.videoHeight}`);
+    showCameraDebug(s, pv);
+  }, ms));
   state.mediaRecorder = recorder;
   state.isRecording = true;
   state.recordingStartTs = Date.now();
