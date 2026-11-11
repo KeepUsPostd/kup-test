@@ -318,6 +318,7 @@
   @keyframes pulse { 50% { opacity: 0.3; } }
 
   /* ── Confirmation screen ── */
+  .done-link { display: block; text-align: center; margin-top: 18px; padding: 8px; font-size: 14px; font-weight: 600; color: #cbd8e0; text-decoration: underline; }
   .checkmark {
     width: 96px; height: 96px; margin: 40px auto 24px;
     border-radius: 50%; background: linear-gradient(135deg, #2EA5DD, #6c7cbd);
@@ -514,6 +515,7 @@
   <a href="https://keepuspostd.com/download" style="text-decoration:none; display:block;">
     <button class="cta-primary" style="margin-top:12px;">Download the App →</button>
   </a>
+  <a id="done-link" class="done-link" style="display:none;"></a>
 
   <div class="powered-by">Powered by <img src="/images/kup_gradient_new_logo_7.png" alt="KeepUsPostd"></div>
 </div>
@@ -1033,6 +1035,28 @@ function stopPlaybackUI() {
   document.getElementById('play-bar-fill').style.width = '0%';
 }
 
+// Confirmation screen: a way out to the brand's own site (browsers won't let a
+// page close a tab it didn't open), and campaign wording where the reward
+// arrives by email instead of through the app.
+function setupDoneScreen() {
+  const b = state.brand || {};
+  const raw = String(b.websiteUrl || '').trim();
+  const link = document.getElementById('done-link');
+  if (raw && b.name) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+      link.href = url.href;
+      link.textContent = `Done, back to ${b.name}`;
+      link.style.display = 'block';
+    } catch (e) { /* bad website on file: leave the link hidden */ }
+  }
+  if (b.brandHandle === 'risewithwells' && state.reward) {
+    document.querySelector('#screen-done .next-icon').textContent = '✉️';
+    document.querySelector('#screen-done .next-title').textContent = 'Watch your email';
+    document.getElementById('next-desc').textContent = "If your video is approved, your free tee form arrives by email. Check Promotions and Spam if you don't see it.";
+  }
+}
+
 function toggleRecording() {
   if (!state.mediaStream) return;
   if (state.isRecording) {
@@ -1238,6 +1262,7 @@ async function submitReview() {
     }
     const submitData = await submitRes.json();
     renderConfirmation(submitData);
+    setupDoneScreen();
     showScreen('screen-done');
   } catch (err) {
     document.getElementById('record-error').textContent = err.message || 'Something went wrong. Please try again.';

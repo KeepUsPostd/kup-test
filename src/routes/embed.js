@@ -769,6 +769,7 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       status: 'submitted',
       submittedAt: new Date(),
       source: 'embed',
+      submitterName: cleanName,
       brandLocationId: brandLocationId || null,
       captureLat: typeof captureLat === 'number' ? captureLat : null,
       captureLon: typeof captureLon === 'number' ? captureLon : null,

@@ -7,6 +7,7 @@ const router = express.Router();
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { ContentSubmission, Partnership, Campaign, InfluencerProfile, Transaction, Reward, Brand, BrandProfile, User } = require('../models');
 const notify = require('../services/notifications');
+const { isPrivateNameBrand, shortCreatorName } = require('../services/creatorNamePrivacy');
 const paypal = require('../config/paypal');
 const { sendEmail } = require('../config/email');
 const { checkMonthlyApprovalCap, capExceededPayload } = require('../services/planLimits');
@@ -710,7 +711,7 @@ router.get('/feed', optionalAuth, async (req, res) => {
 
     const submissions = await ContentSubmission.find(contentFilter)
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier verificationStatus isVerified')
-      .populate('brandId', 'name logoUrl generatedColor category city')
+      .populate('brandId', 'name logoUrl generatedColor category city brandHandle')
       // Sort newest-approved first. Use reviewedAt (the field admin-panel and
       // brand-side approval actually populate). Legacy sort used `approvedAt`
       // which doesn't exist on the schema → recently-approved content landed
@@ -726,6 +727,10 @@ router.get('/feed', optionalAuth, async (req, res) => {
     // viewers — it leaks which userIds liked which content. likedByMe is the
     // single signal the client needs to fill / empty the heart on render.
     const viewerId = req.user?._id?.toString() || null;
+    // Campaign brands: show "First L." only. Handles are auto-built from full
+    // names, so anonymous requests (websites) get a generic one; signed-in app
+    // users keep the real handle so tap-to-profile still works.
+    const privateName = (s) => isPrivateNameBrand(s.brandId?.brandHandle);
     const feed = submissions.map(s => ({
       // Internal — used by interleaveByBrand to bucket items by recency.
       // Stripped before res.json() so it never leaks to the client.
@@ -733,8 +738,10 @@ router.get('/feed', optionalAuth, async (req, res) => {
                      (s.submittedAt && new Date(s.submittedAt).getTime()) ||
                      0,
       _id:           s._id,
-      displayName:   s.influencerProfileId?.displayName || 'Creator',
-      handle:        s.influencerProfileId?.handle || 'creator',
+      displayName:   privateName(s)
+        ? shortCreatorName(s.submitterName || s.influencerProfileId?.displayName)
+        : (s.influencerProfileId?.displayName || 'Creator'),
+      handle:        (privateName(s) && !req.user) ? 'creator' : (s.influencerProfileId?.handle || 'creator'),
       avatarUrl:     s.influencerProfileId?.avatarUrl || null,
       verified:      s.influencerProfileId?.verificationStatus === 'verified',
       caption:       s.caption || '',
@@ -996,7 +1003,7 @@ router.get('/brand/:brandId', requireAuth, async (req, res) => {
       status: { $in: ['approved', 'postd'] },
     })
       .populate('influencerProfileId', 'displayName handle avatarUrl influenceTier isVerified verificationStatus')
-      .populate('brandId', 'name logoUrl generatedColor')
+      .populate('brandId', 'name logoUrl generatedColor brandHandle')
       .sort({ submittedAt: -1 })
       .limit(50)
       .lean();
@@ -1004,7 +1011,9 @@ router.get('/brand/:brandId', requireAuth, async (req, res) => {
     const result = submissions.map(s => ({
       _id:         s._id,
       status:      s.status,
-      displayName: s.influencerProfileId?.displayName || 'Creator',
+      displayName: isPrivateNameBrand(s.brandId?.brandHandle)
+        ? shortCreatorName(s.submitterName || s.influencerProfileId?.displayName)
+        : (s.influencerProfileId?.displayName || 'Creator'),
       handle:      s.influencerProfileId?.handle || 'creator',
       avatarUrl:   s.influencerProfileId?.avatarUrl || null,
       verified:    s.influencerProfileId?.verificationStatus === 'verified',

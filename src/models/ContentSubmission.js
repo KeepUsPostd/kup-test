@@ -127,6 +127,10 @@ const contentSubmissionSchema = new mongoose.Schema({
   // What this reviewer agreed to on the Instant Review Widget, captured from
   // the server's copy of the wording at submit time. This is the record of
   // consent, so it is never rebuilt from the brand's current settings.
+  // The name the reviewer typed on the Instant Review form. Existing accounts
+  // keep their own profile name, so this is the only record of what they entered.
+  submitterName: { type: String, maxlength: 60, default: null },
+
   embedConsent: {
     consentText: { type: String, default: null },
     optInText: { type: String, default: null },
