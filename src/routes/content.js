@@ -737,6 +737,10 @@ router.get('/feed', optionalAuth, async (req, res) => {
       __sortTs:      (s.reviewedAt && new Date(s.reviewedAt).getTime()) ||
                      (s.submittedAt && new Date(s.submittedAt).getTime()) ||
                      0,
+      // Internal — curated Explore rank. Featured items (rank < sentinel) are
+      // pinned to the top in exact rank order; the rest keep the recency/brand
+      // shuffle below. Stripped before res.json().
+      __rank:        (s.featuredRank != null ? s.featuredRank : 1000000),
       _id:           s._id,
       displayName:   privateName(s)
         ? shortCreatorName(s.submitterName || s.influencerProfileId?.displayName)
@@ -861,7 +865,13 @@ router.get('/feed', optionalAuth, async (req, res) => {
       return out;
     };
 
-    const ordered = interleaveByBrand(feed).map(({ __sortTs, ...rest }) => rest);
+    // Curated featured items lead, in exact rank order (within this viewer's
+    // already-filtered set). Everything else keeps the recency/brand shuffle.
+    const FEATURED_SENTINEL = 1000000;
+    const featured = feed.filter(it => it.__rank < FEATURED_SENTINEL).sort((a, b) => a.__rank - b.__rank);
+    const nonFeatured = feed.filter(it => it.__rank >= FEATURED_SENTINEL);
+    const ordered = [...featured, ...interleaveByBrand(nonFeatured)]
+      .map(({ __sortTs, __rank, ...rest }) => rest);
     res.json({ feed: ordered, page, hasMore: submissions.length === limit });
   } catch (error) {
     console.error('[GET /content/feed]', error.message);
