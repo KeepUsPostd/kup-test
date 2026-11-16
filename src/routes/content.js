@@ -410,16 +410,12 @@ router.post('/', requireAuth, async (req, res) => {
       console.log(`🔧 Auto-completed creator profile for ${user.email}: "${influencerProfile.displayName}" @${influencerProfile.handle}`);
     }
 
-    // Derive posterUrl from video filename if client didn't send it
-    // Upload route names posters as: <videoBasename>-poster.jpg
-    // Works for both web and Flutter app submissions
-    let resolvedPosterUrl = posterUrl || null;
-    if (!resolvedPosterUrl && contentType === 'video' && mediaUrls && mediaUrls.length > 0) {
-      const videoUrl = mediaUrls[0];
-      if (videoUrl && videoUrl.startsWith('http')) {
-        resolvedPosterUrl = videoUrl.replace(/\.[^.]+$/, '-poster.jpg');
-      }
-    }
+    // Use the client-provided poster if present. The old "<video>-poster.jpg"
+    // filename guess was unreliable (missing files / wrong-aspect square posters
+    // → blank thumbnails), so we no longer derive one here. When it is missing,
+    // posterGen.ensurePoster (fired after create) generates a correct frame
+    // server-side.
+    const resolvedPosterUrl = posterUrl || null;
 
     // ── Build 145: resolve brandLocation + geo-verify ─────────────────────
     // Validate the picked location belongs to the brand (defense in depth —
@@ -487,6 +483,12 @@ router.post('/', requireAuth, async (req, res) => {
       captureLon: typeof captureLon === 'number' ? captureLon : null,
       geoVerified: geoVerifiedFlag,
     });
+
+    // Guarantee a real thumbnail: if no poster was provided, generate one from
+    // the video frame in the background (non-blocking, never throws).
+    if (!submission.posterUrl) {
+      require('../services/posterGen').ensurePoster(submission._id).catch(() => {});
+    }
 
     // Increment campaign submission count
     if (campaignId) {

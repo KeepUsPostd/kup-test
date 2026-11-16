@@ -781,6 +781,12 @@ router.post('/:brandCode/submit', embedSubmitLimiter, async (req, res) => {
       },
     });
 
+    // Guarantee a real thumbnail: widget submissions rarely include a poster,
+    // so generate one from the video frame in the background (non-blocking).
+    if (!submission.posterUrl) {
+      require('../services/posterGen').ensurePoster(submission._id).catch(() => {});
+    }
+
     // ── Increment counters (mirrors the standard content-submit flow)
     await Partnership.findByIdAndUpdate(partnership._id, { $inc: { totalSubmissions: 1 } });
     await InfluencerProfile.findByIdAndUpdate(influencerProfile._id, { $inc: { totalReviews: 1 } });
