@@ -3259,4 +3259,32 @@ router.post('/content/featured-order', async (req, res) => {
   }
 });
 
+// GET /api/admin-panel/content/featured-list
+// All approved content in current curated order (featuredRank, then recency),
+// for the Explore order admin screen. Admin-only.
+router.get('/content/featured-list', async (req, res) => {
+  try {
+    const subs = await ContentSubmission.find({ status: 'approved' })
+      .populate('influencerProfileId', 'displayName handle')
+      .populate('brandId', 'name logoUrl generatedColor')
+      .sort({ featuredRank: 1, reviewedAt: -1, submittedAt: -1 })
+      .limit(500)
+      .lean();
+    const items = subs.map(s => ({
+      id: String(s._id),
+      posterUrl: s.posterUrl || null,
+      contentType: s.contentType,
+      brandName: s.brandId?.name || 'Brand',
+      brandColor: s.brandId?.generatedColor || '#1A1A1A',
+      handle: s.influencerProfileId?.handle || 'creator',
+      likes: s.metrics?.likes || 0,
+      featuredRank: (s.featuredRank != null ? s.featuredRank : 1000000),
+    }));
+    res.json({ count: items.length, items });
+  } catch (err) {
+    console.error('[GET /admin-panel/content/featured-list]', err);
+    res.status(500).json({ error: 'Failed to load featured list' });
+  }
+});
+
 module.exports = router;

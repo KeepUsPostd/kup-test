@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <title>Explore Order — KUP Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .eo-head { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+    .eo-sub { color:#888; font-size:.85rem; margin-bottom:18px; max-width:760px; line-height:1.5; }
+    .eo-actions { display:flex; align-items:center; gap:12px; }
+    .eo-btn { background:linear-gradient(135deg,#2EA5DD,#6c7cbd); color:#fff; border:none; border-radius:8px; padding:11px 20px; font-weight:700; font-size:.9rem; cursor:pointer; font-family:inherit; }
+    .eo-btn[disabled] { opacity:.5; cursor:default; }
+    .eo-btn.secondary { background:#2a2f3a; }
+    .eo-status { font-size:.85rem; color:#9aa0a6; }
+    .eo-status.ok { color:#16a34a; } .eo-status.err { color:#e53e3e; }
+    .eo-grid { display:grid; grid-template-columns:repeat(auto-fill,150px); gap:14px; margin-top:16px; }
+    .eo-card { width:150px; background:#1b1f27; border:1px solid #2a2f3a; border-radius:12px; overflow:hidden; cursor:grab; user-select:none; }
+    .eo-card.sortable-ghost { opacity:.35; }
+    .eo-card.sortable-chosen { outline:2px solid #2EA5DD; }
+    .eo-thumb { position:relative; width:150px; height:267px; background:#000; }
+    .eo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .eo-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.4rem; }
+    .eo-rank { position:absolute; top:6px; left:6px; background:#2EA5DD; color:#fff; font-weight:800; font-size:.8rem; min-width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+    .eo-meta { padding:8px 9px 10px; }
+    .eo-brand { font-size:.75rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#e8eaed; }
+    .eo-who { font-size:.68rem; color:#9aa0a6; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .eo-loading { padding:60px 0; text-align:center; color:#888; }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">&#9776;</button>
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">
+      <strong>KeepUsPostd</strong> <span>ADMIN</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/pages/admin/dashboard.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="/pages/admin/users.html"><span class="nav-icon">&#9787;</span> Users</a>
+      <a href="/pages/admin/creators.html"><span class="nav-icon">&#127775;</span> Creators</a>
+      <a href="/pages/admin/brands.html"><span class="nav-icon">&#9733;</span> Brands</a>
+      <a href="/pages/admin/claims.html"><span class="nav-icon">&#9873;</span> Claims</a>
+      <a href="/pages/admin/content.html"><span class="nav-icon">&#9998;</span> Content</a>
+      <a href="/pages/admin/verifications.html"><span class="nav-icon">&#10003;</span> Verifications</a>
+      <div class="nav-section-label">Financial</div>
+      <a href="/pages/admin/financials.html"><span class="nav-icon">&#36;</span> Financials</a>
+      <a href="/pages/admin/promotions.html"><span class="nav-icon">&#128227;</span> Promotions</a>
+      <div class="nav-section-label">Engagement</div>
+      <a href="/pages/admin/reviews.html"><span class="nav-icon">&#9733;</span> Reviews</a>
+      <a href="/pages/admin/explore-order.html" class="active"><span class="nav-icon">&#9636;</span> Explore Order</a>
+      <a href="/pages/admin/messages.html"><span class="nav-icon">&#9993;</span> Messages</a>
+    </div>
+    <div class="sidebar-footer"><a href="/pages/admin/dashboard.html">&larr; Back to Dashboard</a></div>
+  </nav>
+
+  <main class="admin-main">
+    <div class="eo-head">
+      <h1>Explore Order</h1>
+      <div class="eo-actions">
+        <span class="eo-status" id="status"></span>
+        <button class="eo-btn secondary" id="reloadBtn" type="button">Reload</button>
+        <button class="eo-btn" id="saveBtn" type="button" disabled>Save order</button>
+      </div>
+    </div>
+    <p class="eo-sub">Drag the videos into the order you want them to appear in the app's Explore feed. The order you set here shows first, within each viewer's own area (the feed still filters by location and category). Position 1 appears first.</p>
+
+    <div id="grid" class="eo-grid"></div>
+    <div id="loading" class="eo-loading">Loading content…</div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-client.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script>
+    let authToken = null;
+    const gridEl = document.getElementById('grid');
+    const loadingEl = document.getElementById('loading');
+    const statusEl = document.getElementById('status');
+    const saveBtn = document.getElementById('saveBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    let sortable = null;
+
+    function setStatus(msg, cls) { statusEl.textContent = msg || ''; statusEl.className = 'eo-status' + (cls ? ' ' + cls : ''); }
+
+    function initials(name) { return (name || '?').trim().slice(0, 2).toUpperCase(); }
+
+    function cardHtml(it) {
+      const thumb = it.posterUrl
+        ? '<img src="' + it.posterUrl + '" alt="" onerror="this.style.display=\'none\';this.parentNode.classList.add(\'eo-ph-fallback\')">'
+        : '<div class="eo-ph" style="background:' + (it.brandColor || '#333') + '">' + initials(it.brandName) + '</div>';
+      return '<div class="eo-card" data-id="' + it.id + '">'
+        + '<div class="eo-thumb"><span class="eo-rank"></span>' + thumb + '</div>'
+        + '<div class="eo-meta"><div class="eo-brand">' + (it.brandName || '') + '</div>'
+        + '<div class="eo-who">@' + (it.handle || '') + '</div></div></div>';
+    }
+
+    function renumber() {
+      [...gridEl.children].forEach((c, i) => {
+        const b = c.querySelector('.eo-rank'); if (b) b.textContent = (i + 1);
+      });
+    }
+
+    async function load() {
+      setStatus('');
+      loadingEl.style.display = 'block';
+      gridEl.innerHTML = '';
+      try {
+        const r = await fetch('/api/admin-panel/content/featured-list', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        const j = await r.json();
+        const items = j.items || [];
+        gridEl.innerHTML = items.map(cardHtml).join('');
+        renumber();
+        loadingEl.style.display = 'none';
+        if (sortable) sortable.destroy();
+        sortable = Sortable.create(gridEl, { animation: 150, onEnd: renumber });
+        saveBtn.disabled = items.length === 0;
+        setStatus(items.length + ' videos. Drag to reorder.');
+      } catch (e) {
+        loadingEl.textContent = 'Failed to load.';
+        setStatus('Load failed', 'err');
+      }
+    }
+
+    async function save() {
+      const orderedIds = [...gridEl.children].map(c => c.getAttribute('data-id'));
+      if (!orderedIds.length) return;
+      saveBtn.disabled = true;
+      setStatus('Saving…');
+      try {
+        const r = await fetch('/api/admin-panel/content/featured-order', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderedIds })
+        });
+        const j = await r.json();
+        if (j.ok) setStatus('Saved. ' + j.featured + ' videos ordered. Live in the app now.', 'ok');
+        else setStatus('Save failed: ' + (j.error || '?'), 'err');
+      } catch (e) {
+        setStatus('Save failed', 'err');
+      } finally {
+        saveBtn.disabled = false;
+      }
+    }
+
+    saveBtn.addEventListener('click', save);
+    reloadBtn.addEventListener('click', load);
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = '/pages/admin/dashboard.html'; return; }
+      authToken = await user.getIdToken();
+      load();
+    });
+  </script>
+</body>
+</html>
