@@ -3115,4 +3115,107 @@ router.get('/brand-locations/search', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// POST /api/admin-panel/content/backfill-posters
+// Regenerate server-side poster thumbnails for approved video content.
+// Fixes null / missing / wrong-aspect posters (e.g. a 200x200 square poster
+// on a 9:16 video) by grabbing a frame a few seconds in (skips a black
+// fade-in intro by trying later timestamps first).
+//   body.dryRun  (default TRUE) — just report targets, write nothing
+//   body.scope   'missing' (null/empty poster, default) | 'all' (every poster)
+//   body.ids     [..] optional — target specific submissions
+//   body.ts      optional seconds — force a seek timestamp
+//   body.limit   optional (default 100, max 200)
+// Admin-only (router.use(requireAuth, requireAdmin) above).
+// ─────────────────────────────────────────────────────────────
+const { execFile: _execFile } = require('child_process');
+const _fs = require('fs');
+const _os = require('os');
+const _path = require('path');
+const _ffmpeg = require('ffmpeg-static');
+const { S3Client: _S3, PutObjectCommand: _Put } = require('@aws-sdk/client-s3');
+
+const _R2_OK = !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_ENDPOINT);
+const _r2 = _R2_OK ? new _S3({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY },
+}) : null;
+const _R2_BUCKET = process.env.R2_BUCKET || 'keepuspostd-uploads';
+const _R2_PUBLIC = process.env.R2_PUBLIC_URL || '';
+
+// Extract one JPEG frame (fit within 720x720, aspect preserved) from a remote
+// video, trying later timestamps first so fade-from-black intros don't produce
+// a black poster. Resolves with the timestamp used.
+function _extractPoster(videoUrl, outPath, forcedTs) {
+  const ladder = forcedTs != null ? [forcedTs] : [5, 3, 1, 0.5, 0];
+  return new Promise((resolve, reject) => {
+    const tryAt = (i) => {
+      if (i >= ladder.length) return reject(new Error('no frame extracted'));
+      const args = ['-y', '-ss', String(ladder[i]), '-i', videoUrl, '-frames:v', '1',
+        '-vf', 'scale=w=720:h=720:force_original_aspect_ratio=decrease', '-q:v', '3', outPath];
+      _execFile(_ffmpeg, args, { timeout: 60000 }, (err) => {
+        if (!err && _fs.existsSync(outPath) && _fs.statSync(outPath).size > 0) return resolve(ladder[i]);
+        tryAt(i + 1);
+      });
+    };
+    tryAt(0);
+  });
+}
+
+router.post('/content/backfill-posters', async (req, res) => {
+  try {
+    const dryRun = req.body.dryRun !== false;
+    const scope = req.body.scope === 'all' ? 'all' : 'missing';
+    const ids = Array.isArray(req.body.ids) ? req.body.ids : null;
+    const forcedTs = (req.body.ts != null && !isNaN(Number(req.body.ts))) ? Number(req.body.ts) : null;
+    const limit = Math.min(200, parseInt(req.body.limit, 10) || 100);
+
+    const filter = { status: 'approved', contentType: 'video' };
+    if (ids) filter._id = { $in: ids };
+    else if (scope === 'missing') filter.$or = [{ posterUrl: null }, { posterUrl: '' }, { posterUrl: { $exists: false } }];
+
+    const subs = await ContentSubmission.find(filter)
+      .select('_id brandId posterUrl mediaUrls')
+      .limit(limit).lean();
+    const targets = subs
+      .map(s => ({ id: String(s._id), brandId: String(s.brandId), posterUrl: s.posterUrl || null, video: (s.mediaUrls || [])[0] || null }))
+      .filter(t => t.video);
+
+    if (dryRun) {
+      return res.json({ dryRun: true, scope, count: targets.length, targets });
+    }
+    if (!_R2_OK) return res.status(500).json({ error: 'R2 not configured on server' });
+    if (!_R2_PUBLIC) return res.status(500).json({ error: 'R2_PUBLIC_URL not set' });
+
+    const results = [];
+    for (const t of targets) {
+      const tmp = _path.join(_os.tmpdir(), `poster-${t.id}-${Date.now()}.jpg`);
+      try {
+        const usedTs = await _extractPoster(t.video, tmp, forcedTs);
+        const body = _fs.readFileSync(tmp);
+        const key = `poster-${t.id}-${Date.now()}.jpg`;
+        await _r2.send(new _Put({ Bucket: _R2_BUCKET, Key: key, Body: body, ContentType: 'image/jpeg' }));
+        const url = `${_R2_PUBLIC}/${key}`;
+        await ContentSubmission.findByIdAndUpdate(t.id, { posterUrl: url });
+        results.push({ id: t.id, ok: true, ts: usedTs, posterUrl: url });
+      } catch (e) {
+        results.push({ id: t.id, ok: false, error: String((e && e.message) || e) });
+      } finally {
+        try { if (_fs.existsSync(tmp)) _fs.unlinkSync(tmp); } catch (_) {}
+      }
+    }
+    res.json({
+      dryRun: false, scope,
+      processed: results.length,
+      updated: results.filter(r => r.ok).length,
+      failed: results.filter(r => !r.ok).length,
+      results,
+    });
+  } catch (err) {
+    console.error('[POST /admin-panel/content/backfill-posters]', err);
+    res.status(500).json({ error: 'Backfill failed', message: String((err && err.message) || err) });
+  }
+});
+
 module.exports = router;
