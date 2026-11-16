@@ -3144,15 +3144,24 @@ const _r2 = _R2_OK ? new _S3({
 const _R2_BUCKET = process.env.R2_BUCKET || 'keepuspostd-uploads';
 const _R2_PUBLIC = process.env.R2_PUBLIC_URL || '';
 
-// Extract one JPEG frame (fit within 720x720, aspect preserved) from a remote
-// video, trying later timestamps first so fade-from-black intros don't produce
-// a black poster. Resolves with the timestamp used.
-function _extractPoster(videoUrl, outPath, forcedTs) {
+// Download a remote file to a local temp path (the bundled ffmpeg cannot read
+// https, so we fetch first then extract from the local file).
+async function _download(url, dest) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('download ' + resp.status);
+  const buf = Buffer.from(await resp.arrayBuffer());
+  _fs.writeFileSync(dest, buf);
+}
+
+// Extract one JPEG frame (fit within 720x720, aspect preserved) from a LOCAL
+// video file, trying later timestamps first so fade-from-black intros don't
+// produce a black poster. Resolves with the timestamp used.
+function _extractPoster(videoPath, outPath, forcedTs) {
   const ladder = forcedTs != null ? [forcedTs] : [5, 3, 1, 0.5, 0];
   return new Promise((resolve, reject) => {
     const tryAt = (i) => {
       if (i >= ladder.length) return reject(new Error('no frame extracted'));
-      const args = ['-y', '-ss', String(ladder[i]), '-i', videoUrl, '-frames:v', '1',
+      const args = ['-y', '-ss', String(ladder[i]), '-i', videoPath, '-frames:v', '1',
         '-vf', 'scale=w=720:h=720:force_original_aspect_ratio=decrease', '-q:v', '3', outPath];
       _execFile(_ffmpeg, args, { timeout: 60000 }, (err) => {
         if (!err && _fs.existsSync(outPath) && _fs.statSync(outPath).size > 0) return resolve(ladder[i]);
@@ -3191,8 +3200,10 @@ router.post('/content/backfill-posters', async (req, res) => {
     const results = [];
     for (const t of targets) {
       const tmp = _path.join(_os.tmpdir(), `poster-${t.id}-${Date.now()}.jpg`);
+      const tmpVid = _path.join(_os.tmpdir(), `vid-${t.id}-${Date.now()}`);
       try {
-        const usedTs = await _extractPoster(t.video, tmp, forcedTs);
+        await _download(t.video, tmpVid);
+        const usedTs = await _extractPoster(tmpVid, tmp, forcedTs);
         const body = _fs.readFileSync(tmp);
         const key = `poster-${t.id}-${Date.now()}.jpg`;
         await _r2.send(new _Put({ Bucket: _R2_BUCKET, Key: key, Body: body, ContentType: 'image/jpeg' }));
@@ -3203,6 +3214,7 @@ router.post('/content/backfill-posters', async (req, res) => {
         results.push({ id: t.id, ok: false, error: String((e && e.message) || e) });
       } finally {
         try { if (_fs.existsSync(tmp)) _fs.unlinkSync(tmp); } catch (_) {}
+        try { if (_fs.existsSync(tmpVid)) _fs.unlinkSync(tmpVid); } catch (_) {}
       }
     }
     res.json({
