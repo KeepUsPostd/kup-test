@@ -82,6 +82,11 @@ const contentSubmissionSchema = new mongoose.Schema({
   },
   submittedAt: { type: Date, default: Date.now },
   reviewedAt: { type: Date, default: null },
+
+  // Explore feed curation. Lower = higher priority. Non-featured default to a
+  // high sentinel so featured items (ranks 1,2,3...) sort first, then everyone
+  // else by reviewedAt. Applied WITHIN each viewer's geo/category filter.
+  featuredRank: { type: Number, default: 1000000 },
   reviewedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -167,5 +172,6 @@ const contentSubmissionSchema = new mongoose.Schema({
 contentSubmissionSchema.index({ brandId: 1, status: 1 });
 contentSubmissionSchema.index({ influencerProfileId: 1, status: 1 });
 contentSubmissionSchema.index({ campaignId: 1 });
+contentSubmissionSchema.index({ status: 1, featuredRank: 1, reviewedAt: -1 });
 
 module.exports = mongoose.model('ContentSubmission', contentSubmissionSchema);

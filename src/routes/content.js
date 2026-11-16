@@ -717,7 +717,7 @@ router.get('/feed', optionalAuth, async (req, res) => {
       // which doesn't exist on the schema → recently-approved content landed
       // at the END of the feed because new docs sorted null on the missing
       // primary key. Fall back to submittedAt for any pre-review submissions.
-      .sort({ reviewedAt: -1, submittedAt: -1 })
+      .sort({ featuredRank: 1, reviewedAt: -1, submittedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();

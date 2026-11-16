@@ -3230,4 +3230,33 @@ router.post('/content/backfill-posters', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// POST /api/admin-panel/content/featured-order
+// Set the curated Explore feed order. body.orderedIds = [id1, id2, ...]
+// receive featuredRank 1,2,3...; every other approved submission is reset to
+// the unfeatured sentinel (1000000), which also backfills any doc missing the
+// field. The feed applies this WITHIN each viewer's geo/category filter.
+// Idempotent. Admin-only (router.use(requireAuth, requireAdmin) above).
+// ─────────────────────────────────────────────────────────────
+router.post('/content/featured-order', async (req, res) => {
+  try {
+    const orderedIds = Array.isArray(req.body.orderedIds) ? req.body.orderedIds.filter(Boolean) : null;
+    if (!orderedIds || !orderedIds.length) return res.status(400).json({ error: 'orderedIds array required' });
+    // Reset all approved content to the unfeatured baseline (also backfills missing field)
+    await ContentSubmission.updateMany({ status: 'approved' }, { $set: { featuredRank: 1000000 } });
+    // Assign ranks in order
+    const applied = [];
+    let rank = 1;
+    for (const id of orderedIds) {
+      const r = await ContentSubmission.updateOne({ _id: id }, { $set: { featuredRank: rank } });
+      applied.push({ id, rank, matched: (r.matchedCount != null ? r.matchedCount : (r.n || 0)) });
+      rank++;
+    }
+    res.json({ ok: true, requested: orderedIds.length, featured: applied.filter(a => a.matched).length, applied });
+  } catch (err) {
+    console.error('[POST /admin-panel/content/featured-order]', err);
+    res.status(500).json({ error: 'Failed to set order', message: String((err && err.message) || err) });
+  }
+});
+
 module.exports = router;
