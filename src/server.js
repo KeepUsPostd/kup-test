@@ -866,6 +866,89 @@ const startServer = async () => {
       }
     }, { timezone: 'UTC' });
     console.log('⏰ Cron: Referral nudge scheduled Tuesday at 15:30 UTC\n');
+
+    // ── LIFE-005: Brands near you — Wed & Sat at 16:00 UTC (11am CT) ──
+    // Geo-gated retention push. Targets profiles whose last-known location was
+    // seen in the last 30 days (persisted fire-and-forget from the feed's
+    // lat/lon — no app change). Fires ONLY when at least NEARBY_BRAND_FLOOR
+    // active, reward-ready brands sit within NEARBY_RADIUS_MI, so the push is
+    // never a lie and never opens to an empty Discover. "Near you" is literal:
+    // isAvailableEverywhere online brands are intentionally NOT counted here.
+    // Dedup 7 days via lifecycleAlreadySent.
+    //
+    // Scale note: one geo query pair per candidate. Fine at current volume;
+    // if the candidate set grows large, batch by geo-cell or precompute.
+    cron.schedule('0 16 * * 3,6', async () => {
+      console.log('⏰ [CRON] Running brands-near-you push...');
+      try {
+        const InfluencerProfile = require('./models/InfluencerProfile');
+        const Brand             = require('./models/Brand');
+        const BrandLocation     = require('./models/BrandLocation');
+        const Reward            = require('./models/Reward');
+        const notify            = require('./services/notifications');
+
+        const NEARBY_RADIUS_MI   = 25;
+        const NEARBY_BRAND_FLOOR = 3;
+        const radiusMeters       = NEARBY_RADIUS_MI * 1609.34;
+        const freshCutoff        = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const candidates = await InfluencerProfile.find({
+          lastLocationAt: { $gte: freshCutoff },
+          'lastKnownCoordinates.coordinates': { $exists: true, $ne: null },
+        }).lean();
+
+        let sent = 0, skipped = 0, belowFloor = 0, errors = 0;
+        for (const profile of candidates) {
+          try {
+            const coords = profile.lastKnownCoordinates?.coordinates;
+            if (!Array.isArray(coords) || coords.length !== 2) { skipped++; continue; }
+
+            const already = await notify.lifecycleAlreadySent(
+              profile.userId,
+              'lifecycle_brands_near_you',
+              7 * 24
+            );
+            if (already) { skipped++; continue; }
+
+            const nearQuery = {
+              $nearSphere: {
+                $geometry: { type: 'Point', coordinates: coords },
+                $maxDistance: radiusMeters,
+              },
+            };
+            const [nearBrands, nearLocs] = await Promise.all([
+              Brand.find({ coordinates: nearQuery, status: 'active' }).select('_id').lean(),
+              BrandLocation.find({ coordinates: nearQuery, isActive: true }).select('brandId').lean(),
+            ]);
+
+            const brandIdSet = new Set(nearBrands.map(b => String(b._id)));
+            for (const l of nearLocs) if (l.brandId) brandIdSet.add(String(l.brandId));
+            if (brandIdSet.size === 0) { belowFloor++; continue; }
+
+            // Only count brands that can actually accept a review right now
+            // (an active reward). Rewardless brands are hidden from Discover,
+            // so sending someone toward them would break the promise.
+            const rewardReady = await Reward.find({
+              brandId: { $in: [...brandIdSet] },
+              status: 'active',
+            }).distinct('brandId');
+
+            const count = rewardReady.length;
+            if (count < NEARBY_BRAND_FLOOR) { belowFloor++; continue; }
+
+            await notify.lifecycleBrandsNearYou({ influencer: profile, brandCount: count });
+            sent++;
+          } catch (innerErr) {
+            console.error(`[CRON brands-near-you] ${profile._id}:`, innerErr.message);
+            errors++;
+          }
+        }
+        console.log(`⏰ [CRON] Brands-near-you done — sent: ${sent}, skipped: ${skipped}, below floor: ${belowFloor}, errors: ${errors}`);
+      } catch (err) {
+        console.error('⏰ [CRON] Brands-near-you failed:', err.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('⏰ Cron: Brands-near-you push scheduled Wed/Sat at 16:00 UTC\n');
   });
 };
 

@@ -658,28 +658,61 @@ router.get('/feed', optionalAuth, async (req, res) => {
       const radiusMeters = radius * 1609.34;
 
       if (!isNaN(latitude) && !isNaN(longitude)) {
-        // $nearSphere can't live inside $or, so run two queries in parallel
+        // Persist this signed-in viewer's last-known location (fire-and-forget:
+        // never awaited, never fails the feed). The app already sends lat/lon
+        // here when it has permission, so this needs no app change. Feeds the
+        // geo-gated "brands near you" re-engagement cron (LIFE-005).
+        if (req.user?._id) {
+          InfluencerProfile.updateOne(
+            { userId: req.user._id },
+            { $set: {
+              lastKnownCoordinates: { type: 'Point', coordinates: [longitude, latitude] },
+              lastLocationAt: new Date(),
+            } }
+          ).catch(() => {});
+        }
+
+        // $nearSphere can't live inside $or, so run the queries in parallel
         // and union the result set.
-        const [nearbyBrands, everywhereBrands] = await Promise.all([
-          Brand.find({
-            coordinates: {
-              $nearSphere: {
-                $geometry: { type: 'Point', coordinates: [longitude, latitude] },
-                $maxDistance: radiusMeters,
-              },
-            },
-            status: 'active',
-          }).select('_id').lean(),
-          Brand.find({
-            isAvailableEverywhere: true,
-            status: 'active',
-          }).select('_id').lean(),
+        //
+        // Franchise fix: Brand.coordinates is a SINGLE point (HQ / primary).
+        // A chain with many stores only surfaced where its HQ sits, so a user
+        // standing next to a local branch far from HQ never saw the brand.
+        // BrandLocation holds every store as its own 2dsphere point, so we
+        // also match nearby active locations and fold their brands in.
+        const BrandLocation = require('../models/BrandLocation');
+        const nearQuery = {
+          $nearSphere: {
+            $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+            $maxDistance: radiusMeters,
+          },
+        };
+        const [nearbyBrands, everywhereBrands, nearbyLocs] = await Promise.all([
+          Brand.find({ coordinates: nearQuery, status: 'active' }).select('_id').lean(),
+          Brand.find({ isAvailableEverywhere: true, status: 'active' }).select('_id').lean(),
+          BrandLocation.find({ coordinates: nearQuery, isActive: true }).select('brandId').lean(),
         ]);
 
         const idSet = new Set([
           ...nearbyBrands.map(b => String(b._id)),
           ...everywhereBrands.map(b => String(b._id)),
         ]);
+
+        // Fold in brands that have a nearby ACTIVE location but weren't already
+        // matched by HQ. Guard their brand status so a deactivated brand's
+        // still-active locations don't leak back into the feed. One extra
+        // query, and only when there are genuinely new franchise candidates.
+        const locBrandIds = [...new Set(
+          nearbyLocs.map(l => l.brandId && String(l.brandId)).filter(Boolean)
+        )].filter(id => !idSet.has(id));
+        if (locBrandIds.length) {
+          const activeLocBrands = await Brand.find({
+            _id: { $in: locBrandIds },
+            status: 'active',
+          }).select('_id').lean();
+          for (const b of activeLocBrands) idSet.add(String(b._id));
+        }
+
         contentFilter.brandId = { $in: Array.from(idSet) };
       }
     }
@@ -724,6 +757,24 @@ router.get('/feed', optionalAuth, async (req, res) => {
       .limit(limit)
       .lean();
 
+    // "Paid" proof signal (Build: earnings visibility). Surface which reviews
+    // earned the creator a DELIVERED cash reward so the feed proves the core
+    // thesis — everyday creators get paid — on every scroll. Boolean only:
+    // exact amounts and brand spend stay private (same posture as stripping
+    // likedBy[]). Only status 'paid' counts; pending/processing isn't earned
+    // yet. Cheap: contentSubmissionId is a sparse-indexed lookup.
+    let paidSet = new Set();
+    try {
+      const { Transaction } = require('../models');
+      const paidTx = await Transaction.find({
+        contentSubmissionId: { $in: submissions.map(s => s._id) },
+        status: 'paid',
+      }).select('contentSubmissionId').lean();
+      paidSet = new Set(
+        paidTx.map(t => t.contentSubmissionId?.toString()).filter(Boolean)
+      );
+    } catch (_) { /* badge is best-effort — never block the feed on it */ }
+
     // Compute likedByMe per item from req.user (optionalAuth — anonymous viewers
     // get likedByMe=false everywhere). Never expose the raw likedBy[] array to
     // viewers — it leaks which userIds liked which content. likedByMe is the
@@ -764,6 +815,9 @@ router.get('/feed', optionalAuth, async (req, res) => {
       comments:      s.metrics?.comments || 0,
       shares:        s.metrics?.shares || 0,
       likedByMe:     viewerId ? (s.likedBy || []).map(String).includes(viewerId) : false,
+      // Earnings visibility — true when this review earned the creator a
+      // delivered cash reward. Powers the "Paid" badge on the watch feed.
+      paid:          paidSet.has(s._id.toString()),
       // Build 145 — surface the geo verification result to the client so
       // the watch feed can render the 📍 Verified badge. brandLocationId
       // omitted from the public feed (location detail is brand-scoped).

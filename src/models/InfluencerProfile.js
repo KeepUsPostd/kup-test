@@ -108,12 +108,27 @@ const influencerProfileSchema = new mongoose.Schema({
 
   // Referral
   referralCode: { type: String, unique: true, sparse: true },
+
+  // Last-known location — persisted (fire-and-forget) from the lat/lon the
+  // app already passes to GET /api/content/feed. No app change needed: the
+  // device sends coordinates when it has location permission. Powers the
+  // geo-gated "brands near you" re-engagement push (LIFE-005), which only
+  // fires when we have a RECENT location and enough nearby participating
+  // brands. GeoJSON Point: [longitude, latitude].
+  lastKnownCoordinates: {
+    type:        { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: undefined }, // [lon, lat]
+  },
+  lastLocationAt: { type: Date, default: null },
 }, {
   timestamps: true,
 });
 
 // Indexes
 influencerProfileSchema.index({ influenceTier: 1 });
+// 2dsphere for the geo-gated "brands near you" cron. Sparse — most historical
+// profiles have no stored location until they next open the feed with it on.
+influencerProfileSchema.index({ lastKnownCoordinates: '2dsphere' }, { sparse: true });
 influencerProfileSchema.index({ creatorTier: 1 });
 influencerProfileSchema.index({ isVerified: 1 });
 influencerProfileSchema.index({ interests: 1 });

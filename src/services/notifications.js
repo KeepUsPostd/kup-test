@@ -2640,6 +2640,29 @@ async function lifecycleReferralNudge({ influencer }) {
   });
 }
 
+// LIFE-005: Brands near you (geo-gated). The cron pre-counts nearby
+// participating brands and only calls this when the count clears a floor, so
+// the push is never a lie and never opens to an empty Discover. brandCount is
+// passed in so the copy reflects the real number the user will find.
+async function lifecycleBrandsNearYou({ influencer, brandCount }) {
+  if (!influencer?.userId) return;
+  const n = Math.max(1, parseInt(brandCount, 10) || 0);
+  const plural = n === 1 ? 'brand' : 'brands';
+  await createInApp({
+    userId: influencer.userId,
+    title: `📍 ${n} ${plural} near you want your review`,
+    message: `📍 ${n} ${plural} around you are looking for honest reviews right now. Open Discover to see who's nearby and get paid on approval.`,
+    type: 'lifecycle_brands_near_you',
+    metadata: { brandLogoUrl: LIFECYCLE_AVATAR_URL },
+    // link omitted intentionally — see note above
+  });
+  await push(influencer.userId, {
+    title: `📍 ${n} ${plural} near you want your review`,
+    body: `${n} ${plural} around you are paying for honest reviews. Tap to see who's nearby.`,
+    link: '/discover',
+  });
+}
+
 // ═══════════════════════════════════════════════════════════
 // INSTANT REVIEW WIDGET (embed submissions)
 // ═══════════════════════════════════════════════════════════
@@ -2754,6 +2777,7 @@ module.exports = {
   lifecycleFirstReviewNudge,
   lifecycleCoolingOff,
   lifecycleReferralNudge,
+  lifecycleBrandsNearYou,
 
   // ── Phase 1: Account (Critical) ──
   accountCreated,
